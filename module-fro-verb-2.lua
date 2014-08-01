@@ -781,7 +781,7 @@ inflections["i"] = function(args, data)
 		full_verb_comment(args, stemv, stemc, stems, data.ier, data.supe)
 	data.group = "first"
 	data.forms.pres_ptc = {stemc .. "ant"}
-	data.forms.past_ptc = {stemv .. i .. "é", stemv .. i .. "ez"}
+	data.forms.past_ptc = {stemv .. i .. "é"}
 
 	data.forms.pres_indc_1sg = {add_zero(stems, data.ier, data.supe)}
 	data.forms.pres_indc_2sg = {stems .. "es"}
@@ -834,7 +834,7 @@ inflections["ii"] = function(args, data)
 	data.group = "second"
 
 	data.forms.pres_ptc = {stemv .. "issant"}
-	data.forms.past_ptc = {stemv .. "i", stemv .. "iz"}
+	data.forms.past_ptc = {stemv .. "i"}
 
 	data.forms.pres_indc_1sg = {stemv .. "is"}
 	data.forms.pres_indc_2sg = {stemv .. "is"}
@@ -882,7 +882,7 @@ inflections["iii"] = function(args, data)
 	data.group = "third"
 
 	data.forms.pres_ptc = {stemc .. "ant"}
-	data.forms.past_ptc = {stemc .. "u", stemc .. "uz"}
+	data.forms.past_ptc = {stemc .. "u"}
 
 	data.forms.pres_indc_1sg = {add_zero(stems, data.ier, data.supe)}
 	data.forms.pres_indc_2sg = {add_s(stems, data.ier, data.supe)}
