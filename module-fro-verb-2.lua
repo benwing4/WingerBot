@@ -467,9 +467,9 @@ end
 -- If ARGBASE == "foo", return an array of
 -- {args["foo"],args["foo2"],...,args["foo9"]}.
 function get_args(args, argbase)
-	local theargs = {args[argbase]}
+	local theargs = {args[argbase] or ""}
 	for j = 2, 9 do
-		table.insert(theargs, args[argbase .. j])
+		table.insert(theargs, args[argbase .. j] or "")
 	end
 	return theargs
 end
