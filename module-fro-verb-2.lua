@@ -347,7 +347,8 @@ function irreg_verb(args)
     for k,v in pairs(args) do
         if k ~= 'stemv' and k ~= 'stemc' and k ~= 'aux' and k ~= 'ier' and
                 k ~= 'supe' and k ~= 'refl' and k ~= 'inf' and
-                k ~= 1 and k ~= 2 and mw.text.trim(v) ~= '' then
+                k ~= 'comment' and k ~= 1 and k ~= 2 and
+                mw.text.trim(v) ~= '' then
             return true
         end
     end
@@ -367,6 +368,9 @@ end
 -- the unstressed stem before e/i, STEMC the unstressed stem before a/o/u,
 -- STEMS the stressed stem. See get_endings() for meaning of IER and SUPE.
 function full_verb_comment(args, stemv, stemc, stems, ier, supe)
+    if ine(args["comment"]) then
+        return mw.text.trim(args["comment"]) .. " "
+    end
     local com = verb_comment(stems, ier, supe)
     local irreg = irreg_verb(args)
     if stemv ~= stems and irreg then
