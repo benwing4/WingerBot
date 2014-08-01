@@ -1151,3 +1151,6 @@ function show_form(subforms)
 end
 
 return export
+
+-- For Vim, so we get 4-space tabs
+-- vim: set ts=4 sw=4 noet:
