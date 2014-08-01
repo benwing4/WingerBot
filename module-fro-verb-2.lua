@@ -164,12 +164,12 @@ end
 -- is the ending to be substitute, the second is the add_zero ending to
 -- substitute, the third is the add_s ending to substitute, the fourth is
 -- the add_t ending to substitute and the fifth is the text going into the
--- comment at the top of the conj table. The IER parameter should be
--- specified for -ier verbs, which only occur with palatal(ized) final
--- consonants, and causes a different interpretation of certain consonants,
--- esp. final l.
-local function get_endings(stem, ier)
-    -- local args = frame:getParent().args or {}
+-- comment at the top of the conj table. IER should be specified for -ier
+-- verbs, which only occur with palatal(ized) final consonants, and causes
+-- a different interpretation of certain consonants, esp. final l.
+-- If SUPE is specified, force a supporting -e to be added (normally this
+-- is inferred automatically from the stem).
+local function get_endings(stem, ier, supe)
     local ret = {"", "", "s", "t", ""}
     local ending = nil
     local prev = nil
@@ -184,7 +184,9 @@ local function get_endings(stem, ier)
       ending = rmatch(stem, "(..)$")
       stem = rsub(stem, "([bcdfghjkmnpqrstvwxz])%1$", "%1")
     end
-    if rfind(stem, "mb$") then
+    if supe then
+      ret = supporting_e("")
+    elseif rfind(stem, "mb$") then
       ret = mod3("mb", "mp", "ns", "nt")
     elseif rfind(stem, "mp$") then
       ret = mod3("mp", "mp", "ns", "nt")
@@ -270,9 +272,9 @@ end
 
 -- Convert a stressed verb stem to the form used with a zero ending
 -- (1st sing pres indic, also, 1st sing pres subj of -er verbs).
--- See get_endings() for meaning of IER.
-function add_zero(stem, ier)
-    local e = get_endings(stem, ier)
+-- See get_endings() for meaning of IER and SUPE.
+function add_zero(stem, ier, supe)
+    local e = get_endings(stem, ier, supe)
     -- We need to assign to a variable here because rsub() returns multiple
     -- values and we want only the first returned. Return rsub() directly
     -- and all values get returned and appended to the string.
@@ -285,9 +287,9 @@ end
 -- (2nd sing pres indic of -ir/-oir/-re verbs, 2nd sing pres subj of
 -- -er verbs). Same code could be used to add -s to nouns except that
 -- handling of -c stems needs to be different (need to treat as hard /k/
--- not /ts/). See get_endings() for meaning of IER.
-function add_s(stem, ier)
-    local e = get_endings(stem, ier)
+-- not /ts/). See get_endings() for meaning of IER and SUPE.
+function add_s(stem, ier, supe)
+    local e = get_endings(stem, ier, supe)
     -- We need to assign to a variable here because rsub() returns multiple
     -- values and we want only the first returned. Return rsub() directly
     -- and all values get returned and appended to the string.
@@ -298,9 +300,9 @@ end
  
 -- Convert a stressed verb stem to the form used with a -t ending
 -- (3rd sing pres indic of -ir/-oir/-re verbs, 3rd sing pres subj of
--- -er verbs). See get_endings() for meaning of IER.
-function add_t(stem, ier)
-    local e = get_endings(stem, ier)
+-- -er verbs). See get_endings() for meaning of IER and SUPE.
+function add_t(stem, ier, supe)
+    local e = get_endings(stem, ier, supe)
     -- We need to assign to a variable here because rsub() returns multiple
     -- values and we want only the first returned. Return rsub() directly
     -- and all values get returned and appended to the string.
@@ -310,27 +312,30 @@ function add_t(stem, ier)
 end
 
 -- External entry point for add_zero(). Optional stem is first argument,
--- optional 'ier' argument is used for -ier verbs (see get_ending()).
+-- optional 'ier' and 'supe' arguments are as in get_ending().
 function export.add_zero(frame)
     local stem = get_stem_from_frame(frame)
     local ier = ine(frame.args["ier"])
-    return add_zero(stem, ier)
+    local supe = ine(frame.args["supe"])
+    return add_zero(stem, ier, supe)
 end
  
 -- External entry point for add_s(). Optional stem is first argument,
--- optional 'ier' argument is used for -ier verbs (see get_ending()).
+-- optional 'ier' and 'supe' arguments are as in get_ending().
 function export.add_s(frame)
     local stem = get_stem_from_frame(frame)
     local ier = ine(frame.args["ier"])
-    return add_s(stem, ier)
+    local supe = ine(frame.args["supe"])
+    return add_s(stem, ier, supe)
 end
  
 -- External entry point for add_t(). Optional stem is first argument,
--- optional 'ier' argument is used for -ier verbs (see get_ending()).
+-- optional 'ier' and 'supe' arguments are as in get_ending().
 function export.add_t(frame)
     local stem = get_stem_from_frame(frame)
     local ier = ine(frame.args["ier"])
-    return add_t(stem, ier)
+    local supe = ine(frame.args["supe"])
+    return add_t(stem, ier, supe)
 end
 
 ----------------------------------------------------------------------------
@@ -338,31 +343,32 @@ end
 
 -- Return comment describing phonetic changes to the verb in the present
 -- tense. Appears near the top of the conjugation chart. STEM is the stressed
--- stem. See get_endings() for meaning of IER.
-function verb_comment(stem, ier)
-    local e = get_endings(stem, ier)
+-- stem. See get_endings() for meaning of IER and SUPE.
+function verb_comment(stem, ier, supe)
+    local e = get_endings(stem, ier, supe)
     return e[5]
 end
  
 -- Return comment describing phonetic and stem changes to the verb in the
 -- present tense. Appears near the top of the conjugation chart. STEMV is
 -- the unstressed stem before e/i, STEMC the unstressed stem before a/o/u,
--- STEMS the stressed stem. See get_endings() for meaning of IER.
-function full_verb_comment(stemv, stemc, stems, ier)
+-- STEMS the stressed stem. See get_endings() for meaning of IER and SUPE.
+function full_verb_comment(stemv, stemc, stems, ier, supe)
     local com = ""
     if stemv ~= stems then
         com = com .. "In addition, it has a stressed stem ''" .. stems .. "'' distinct from the unstressed stem ''" .. stemv .. "''. "
     end
-    com = com .. verb_comment(stems, ier)
+    com = com .. verb_comment(stems, ier, supe)
     return com
 end
  
 -- External entry point for verb_comment(). Optional stem is first argument,
--- optional 'ier' argument is used for -ier verbs (see get_ending()).
+-- optional 'ier' and 'supe' arguments are as in get_ending().
 function export.verb_comment(frame)
     local stem = get_stem_from_frame(frame)
     local ier = ine(frame.args["ier"])
-    return verb_comment(stem, ier)
+    local supe = ine(frame.args["supe"])
+    return verb_comment(stem, ier, supe)
 end
 
 ----------------------------------------------------------------------------
@@ -373,9 +379,14 @@ function export.froconj(frame)
     local args = frame:getParent().args
     
     -- Create the forms
-    local data = {forms = {}, categories = {}, comment = "", refl = ine(args["refl"]), ier = ine(args["ier"])}
+    local data = {forms = {}, categories = {}, comment = "",
+      refl = ine(args["refl"]),
+      ier = ine(args["ier"]) or ine(frame.args["ier"]),
+      supe = ine(args["supe"]) or ine(frame.args["supe"])
+    }
     
-    data.forms.aux = {data.refl and "estre" or mw.text.trim(ine(args["aux"]) or "avoir")}
+    -- allow aux to be specified as second unnamed param for compatibility
+    data.forms.aux = {data.refl and "estre" or mw.text.trim(ine(args["aux"]) or ine(args[2]) or "avoir")}
     
     data.forms.infinitive =
         {ine(args["inf"]) or mw.title.getCurrentTitle().text}
@@ -384,7 +395,7 @@ function export.froconj(frame)
     -- They can be explicitly set using 'stemv' and 'stemc' params.
     -- If one is set, the other is inferred from it. If neither is set,
     -- both are inferred from the infinitive.
-    data.stemv = ine(args["stemv"])
+    data.stemv = ine(args["stemv"]) or ine(args[1]) -- for compatibility
     data.stemc = ine(args["stemc"])
     local inf_stem, inf_ending, inf_is_soft = 
         get_stem_from_inf(data.forms.infinitive[1], data.ier)
@@ -424,6 +435,12 @@ function export.froconj(frame)
     end
     
     return make_table(data) .. m_utilities.format_categories(data.categories, lang)
+end
+
+-- Version of main entry point meant for calling from the debug console.
+function export.froconj2(args, parargs)
+    local frame = {args = args, getParent = function() {args = parargs}}
+    return export.froconj(frame)
 end
 
 -- If ARGBASE == "foo", return an array of
@@ -471,9 +488,12 @@ function process_overrides(args, data)
         return ret
     end
     
-    -- Mark terms with any additional statement as irregular.
+    -- Mark terms with any additional parameters as irregular, except for
+    -- certain ones that we consider normal variants.
     for k,v in pairs(args) do
-        if k ~= 'stemv' and k ~= 'aux' and k ~= 'ier' and mw.text.trim(v) ~= '' then
+        if k ~= 'stemv' and k ~= 'stemc' and k ~= 'aux' and k ~= 'ier' and
+                k ~= 'supe' and k ~= 'refl' and k ~= 'inf' and
+                k ~= 1 and k ~= 2 and mw.text.trim(v) ~= '' then
             table.insert(data.categories, 'Old French irregular verbs')
             break
         end
@@ -737,22 +757,22 @@ inflections["i"] = function(args, data)
     else
         data.comment = "This verb conjugates as a first-group verb ending in ''-er''. "
     end
-    data.comment =
-      data.comment .. full_verb_comment(stemv, stemc, stems, data.ier)
+    data.comment = data.comment ..
+        full_verb_comment(stemv, stemc, stems, data.ier, data.supe)
     data.group = "first"
     data.forms.pres_ptc = {stemc .. "ant"}
     data.forms.past_ptc = {stemv .. i .. "é", stemv .. i .. "ez"}
     
-    data.forms.pres_indc_1sg = {add_zero(stems, data.ier)}
+    data.forms.pres_indc_1sg = {add_zero(stems, data.ier, data.supe)}
     data.forms.pres_indc_2sg = {stems .. "es"}
     data.forms.pres_indc_3sg = {stems .. "e"}
     data.forms.pres_indc_1pl = {stemc .. "ons"}
     data.forms.pres_indc_2pl = {stemv .. i .. "ez"}
     data.forms.pres_indc_3pl = {stems .. "ent"}
     
-    data.forms.pres_subj_1sg = {add_zero(stems, data.ier)}
-    data.forms.pres_subj_2sg = {add_s(stems, data.ier)}
-    data.forms.pres_subj_3sg = {add_t(stems, data.ier)}
+    data.forms.pres_subj_1sg = {add_zero(stems, data.ier, data.supe)}
+    data.forms.pres_subj_2sg = {add_s(stems, data.ier, data.supe)}
+    data.forms.pres_subj_3sg = {add_t(stems, data.ier, data.supe)}
     data.forms.pres_subj_1pl = {stemc .. "ons"}
     data.forms.pres_subj_2pl = {stemv .. i .. "ez"}
     data.forms.pres_subj_3pl = {stems .. "ent"}
@@ -837,21 +857,21 @@ inflections["iii"] = function(args, data)
     if data.ier then
       data.comment = data.comment .. "This verb ends in a palatal stem, so there is an extra ''i'' before the ''e'' of some endings. "
     end
-    data.comment =
-      data.comment .. full_verb_comment(stemv, stemc, stems, data.ier)
+    data.comment = data.comment ..
+        full_verb_comment(stemv, stemc, stems, data.ier, data.supe)
     data.group = "third"
 
     data.forms.pres_ptc = {stemc .. "ant"}
     data.forms.past_ptc = {stemc .. "u", stemc .. "uz"}
     
-    data.forms.pres_indc_1sg = {add_zero(stems, data.ier)}
-    data.forms.pres_indc_2sg = {add_s(stems, data.ier)}
-    data.forms.pres_indc_3sg = {add_t(stems, data.ier)}
+    data.forms.pres_indc_1sg = {add_zero(stems, data.ier, data.supe)}
+    data.forms.pres_indc_2sg = {add_s(stems, data.ier, data.supe)}
+    data.forms.pres_indc_3sg = {add_t(stems, data.ier, data.supe)}
     data.forms.pres_indc_1pl = {stemc .. "ons"}
     data.forms.pres_indc_2pl = {stemv .. i .. "ez"}
     data.forms.pres_indc_3pl = {stems .. "ent"}
     
-    data.forms.pres_subj_1sg = {add_zero(stems, data.ier)}
+    data.forms.pres_subj_1sg = {add_zero(stems, data.ier, data.supe)}
     data.forms.pres_subj_2sg = {stems .. "es"}
     data.forms.pres_subj_3sg = {stems .. "e"}
     data.forms.pres_subj_1pl = {stemc .. "ons"}
