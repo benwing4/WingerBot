@@ -341,6 +341,19 @@ end
 ----------------------------------------------------------------------------
 -- Functions for handling comments at the top of conjugation tables
 
+-- Return true if this is an irregular verb, due to stems or particular
+-- forms being explicitly specified
+function irreg_verb(args)
+    for k,v in pairs(args) do
+        if k ~= 'stemv' and k ~= 'stemc' and k ~= 'aux' and k ~= 'ier' and
+                k ~= 'supe' and k ~= 'refl' and k ~= 'inf' and
+                k ~= 1 and k ~= 2 and mw.text.trim(v) ~= '' then
+            return true
+        end
+    end
+    return false
+end
+
 -- Return comment describing phonetic changes to the verb in the present
 -- tense. Appears near the top of the conjugation chart. STEM is the stressed
 -- stem. See get_endings() for meaning of IER and SUPE.
@@ -353,12 +366,16 @@ end
 -- present tense. Appears near the top of the conjugation chart. STEMV is
 -- the unstressed stem before e/i, STEMC the unstressed stem before a/o/u,
 -- STEMS the stressed stem. See get_endings() for meaning of IER and SUPE.
-function full_verb_comment(stemv, stemc, stems, ier, supe)
-    local com = ""
-    if stemv ~= stems then
+function full_verb_comment(args, stemv, stemc, stems, ier, supe)
+    local com = verb_comment(stems, ier, supe)
+    local irreg = irreg_verb(args)
+    if stemv ~= stems and irreg then
+        com = com .. "In addition, it has a stressed stem ''" .. stems .. "'' distinct from the unstressed stem ''" .. stemv .. "'', as well as other irregularities. "
+    elseif stemv ~= stems then
         com = com .. "In addition, it has a stressed stem ''" .. stems .. "'' distinct from the unstressed stem ''" .. stemv .. "''. "
+    elseif irreg then
+        com = com .. "In addition, it has irregularities in its conjugation. "
     end
-    com = com .. verb_comment(stems, ier, supe)
     return com
 end
  
@@ -490,13 +507,8 @@ function process_overrides(args, data)
     
     -- Mark terms with any additional parameters as irregular, except for
     -- certain ones that we consider normal variants.
-    for k,v in pairs(args) do
-        if k ~= 'stemv' and k ~= 'stemc' and k ~= 'aux' and k ~= 'ier' and
-                k ~= 'supe' and k ~= 'refl' and k ~= 'inf' and
-                k ~= 1 and k ~= 2 and mw.text.trim(v) ~= '' then
-            table.insert(data.categories, 'Old French irregular verbs')
-            break
-        end
+    if irreg_verb(args) then
+        table.insert(data.categories, 'Old French irregular verbs')
     end
     
     --[[
@@ -758,7 +770,7 @@ inflections["i"] = function(args, data)
         data.comment = "This verb conjugates as a first-group verb ending in ''-er''. "
     end
     data.comment = data.comment ..
-        full_verb_comment(stemv, stemc, stems, data.ier, data.supe)
+        full_verb_comment(args, stemv, stemc, stems, data.ier, data.supe)
     data.group = "first"
     data.forms.pres_ptc = {stemc .. "ant"}
     data.forms.past_ptc = {stemv .. i .. "é", stemv .. i .. "ez"}
@@ -858,7 +870,7 @@ inflections["iii"] = function(args, data)
       data.comment = data.comment .. "This verb ends in a palatal stem, so there is an extra ''i'' before the ''e'' of some endings. "
     end
     data.comment = data.comment ..
-        full_verb_comment(stemv, stemc, stems, data.ier, data.supe)
+        full_verb_comment(args, stemv, stemc, stems, data.ier, data.supe)
     data.group = "third"
 
     data.forms.pres_ptc = {stemc .. "ant"}
