@@ -456,7 +456,7 @@ end
 
 -- Version of main entry point meant for calling from the debug console.
 function export.froconj2(args, parargs)
-    local frame = {args = args, getParent = function() {args = parargs}}
+    local frame = {args = args, getParent = function() return {args = parargs} end}
     return export.froconj(frame)
 end
 
@@ -578,7 +578,11 @@ function add_reflexive_pronouns(args, data)
     vprons["3pl"] = vprons["3sg"]
 
     function add_refl(person, form)
-        if rfind(form, "^[aeiou]") then
+        mw.log(form)
+        -- FIXME! YUCK! This hard-codes knowledge of how the links are formatted.
+        -- Perhaps we should go back to the old way of having the reflexive code
+        -- also insert links.
+        if rfind(form, "^<span.*>[^a-zA-Z]*[aeiouAEIOU]") then
             return vprons[person] .. form
         else
             return cprons[person] .. form
