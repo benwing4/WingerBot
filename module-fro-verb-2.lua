@@ -891,14 +891,14 @@ inflections["iii"] = function(args, data)
 	data.forms.pres_indc_2pl = {stemv .. i .. "ez"}
 	data.forms.pres_indc_3pl = {stems .. "ent"}
 
-	data.forms.pres_subj_1sg = {add_zero(stems, data.ier, data.supe)}
+	data.forms.pres_subj_1sg = {stems .. "e"}
 	data.forms.pres_subj_2sg = {stems .. "es"}
 	data.forms.pres_subj_3sg = {stems .. "e"}
 	data.forms.pres_subj_1pl = {stemc .. "ons"}
 	data.forms.pres_subj_2pl = {stemv .. i .. "ez"}
 	data.forms.pres_subj_3pl = {stemv .. "ent"}
 
-	data.forms.impr_2sg = {stems .. "e"}
+	data.forms.impr_2sg = {add_zero(stems, data.ier, data.supe)}
 	data.forms.impr_1pl = {stemc .. "ons"}
 	data.forms.impr_2pl = {stemv .. i .. "ez"}
 
