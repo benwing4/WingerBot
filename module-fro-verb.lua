@@ -28,6 +28,21 @@ local function ined(x) -- If Not Empty or Dash
 	end
 end
 
+local function contains(table, item)
+	for _, value in pairs(table) do
+		if value == item then
+			return true
+		end
+	end
+	return false
+end
+
+local function insert_if_not(table, item)
+	if not contains(table, item) then
+		table.insert(table, item)
+	end
+end
+
 ----------------------------------------------------------------------------
 -- Functions for working with stems
 
@@ -690,6 +705,87 @@ function inflect_tense(data, tense, stems, endings)
 	end
 end
 
+function inflect_pres(data, tense, group, stemv, stemc, stems, ier, supe)
+	local i = ine(ier) and "i" or ""
+	if tense == "pres_indc" and group == "i" then
+		inflect_tense(data, tense,
+			{add_zero(stems, ier, supe), stems, stems, stemc, stemv, stems},
+			{"", "es", "e", "ons", i .. "ez", "ent"})
+	elseif tense == "pres_subj" and group == "iii" then
+		inflect_tense(data, tense,
+			{stems, stems, stems, stemc, stemv, stems},
+			{"e", "es", "e", "ons", i .. "ez", "ent"})
+	else
+		inflect_tense(data, tense,
+			{add_zero(stems, ier, supe), add_s(stems, ier, supe),
+			 add_t(stems, ier, supe), stemc, stemv, stems},
+			{"", "", "", "ons", i .. "ez", "ent"})
+	end
+end
+
+function handle_pres(args, data, group, stemv, stemc, stems, ier, supe)
+	inflect_pres(data, "pres_indc", group, stemv, stemc, stems, ier, supe)
+	-- If subv or subc set, derive one from the other if necessary.
+	-- Else, derive both from the indicative.
+	-- If subs not set, derive from subv if either subv or subc set, else
+	-- derive from the indicative.
+	local sub_stemv = ine(args["subv"])
+	local sub_stemc = ine(args["subc"])
+	local sub_dash = sub_stemv == "-" or sub_stemc == "-"
+	local sub_specified = sub_stemv or sub_stemc
+	if not sub_dash then
+		if not sub_specified then
+			sub_stemv = stemv
+			sub_stemc = stemc
+		end
+		if not sub_stemv then sub_stemv = stemc_to_stemv(sub_stemc) end
+		if not sub_stemc then sub_stemc = stemv_to_stemc(sub_stemv) end
+		local sub_stems = ine(args["subs"])
+		if not sub_stems then
+			sub_stems = sub_specified and sub_stemv or stems
+		end
+		inflect_pres(data, "pres_subj", group, sub_stemv, sub_stemc, sub_stems,
+			ine(args["subier"]) or (not sub_specified and ier),
+			ine(args["subsupe"]) or (not sub_specified and supe))
+	end
+
+	-- If indic stem specified, we add indic values, and also corresponding
+	-- subj values if separate subj stem not specified.
+	for i = 2, 9 do
+		stemv = ine(args["stemv" .. i])
+		stemc = ine(args["stemc" .. i])
+		local indic_specified = stemv or stemc
+		if indic_specified then
+			if not stemv then stemv = stemc_to_stemv(stemc) end
+			if not stemc then stemc = stemv_to_stemc(stemv) end
+			stems = ine(args["stems" .. i]) or stemv
+			ier = ine(args["ier" .. i])
+			supe = ine(args["supe" .. i])
+			inflect_pres(data, "pres_indc", group, stemv, stemc, stems, ier, supe)
+		end
+		sub_stemv = ine(args["subv" .. i])
+		sub_stemc = ine(args["subc" .. i])
+		sub_dash = sub_stemv == "-" or sub_stemc == "-"
+		sub_specified = sub_stemv or sub_stemc
+		if not sub_dash and (indic_specified or sub_specified) then
+			if not sub_specified then
+				sub_stemv = stemv
+				sub_stemc = stemc
+			end
+			if not sub_stemv then sub_stemv = stemc_to_stemv(sub_stemc) end
+			if not sub_stemc then sub_stemc = stemv_to_stemc(sub_stemv) end
+			sub_stems = ine(args["subs" .. i])
+			if not sub_stems then
+				sub_stems = sub_specified and sub_stemv or stems
+			end
+			inflect_pres(data, "pres_subj", group, sub_stemv, sub_stemc,
+				sub_stems,
+				ine(args["subier" .. i]) or (not sub_specified and ier),
+				ine(args["subsupe" .. i]) or (not sub_specified and supe))
+		end
+	end
+end
+
 -- Add to DATA the endings for the preterite and imperfect
 -- subjunctive, with unstressed stem STEMU, stressed stem STEMS, and
 -- conjugation type PTY.
@@ -731,41 +827,39 @@ function inflect_past_impf_subj(data, stemu, stems, pty)
 		{"se","ses","t",{"sons","siens"},{"soiz","sez","siez"},"sent"})
 end
 
--- Add to DATA the endings for the preterite and
--- imperfect subjunctive, based on the strong and weak stems and past ending
--- type(s) given in ARGS. For each weak past ending type 'pasttyN' there
--- should be a corresponding stem in 'pastN' and for each strong past ending
--- type 'pasttyN' there should be corresponding unstressed and stressed stems
--- in 'pastuN' and 'pastsN'. If no past ending types given, default to the
--- past type in PTY and stem in STEM, which serves for both unstressed and
--- stressed stems.
+-- Add to DATA the endings for the preterite and imperfect subjunctive,
+-- based on the strong and weak stems and past ending type(s) given in ARGS.
+-- For each weak past ending type 'pasttyN' there should be a corresponding
+-- stem in 'pastN' (defaulting to STEM) and for each strong past ending
+-- type 'pasttyN' there should be corresponding unstressed and stressed
+-- stems in 'pastuN' and 'pastsN' (defaulting to 'pastN' or STEM).
+-- If no past ending types given, default to the past type in PTY and
+-- stressed/unstressed stem STEM.
 function handle_past_impf_subj(args, data, stem, pty)
-	if not ined(args["pastty"]) then
+	if not ine(args["pastty"]) then
 		inflect_past_impf_subj(data, stem, stem, pty)
 	else
-		if ined(args["pastty"]) then
+		inflect_past_impf_subj(data,
+			ine(args["pastu"]) or ine(args["past"]) or stem,
+			ine(args["pasts"]) or ine(args["pastu"]) or ine(args["past"]) or stem,
+			args["pastty"])
+	end
+	for i = 2, 9 do
+		if ine(args["pastty" .. i]) then
 			inflect_past_impf_subj(data,
-				ine(args["pastu"]) or args["past"] or stem,
-				ine(args["pasts"]) or ine(args["pastu"]) or args["past"] or stem,
-				args["pastty"])
-		end
-		for i = 2, 9 do
-		if ined(args["pastty" .. i]) then
-			inflect_past_impf_subj(data,
-				ine(args["pastu" .. i]) or args["past" .. i] or stem,
-				ine(args["pasts" .. i]) or ine(args["pastu" .. i]) or args["past" .. i] or stem,
+				ine(args["pastu" .. i]) or ine(args["past" .. i]) or stem,
+				ine(args["pasts" .. i]) or ine(args["pastu" .. i]) or ine(args["past" .. i]) or stem,
 				args["pastty" .. i])
-		end
 		end
 	end
 end
 
 -- Add to DATA the endings for the future and conditional, with the stems in
 -- STEM, a sequence (generally the infinitive or some modified version).
--- Values in STEM that are empty or "-" are ignored.
+-- Values in STEM that are empty are ignored.
 function inflect_future_cond(data, stems)
 	for _, stem in ipairs(stems) do
-		if ined(stem) then
+		if ine(stem) then
 			inflect_tense(data, "futr_indc", stem,
 				{"ai","as","a","ons",{"ez","eiz"},"ont"})
 			inflect_tense(data, "cond", stem,
@@ -778,7 +872,7 @@ end
 -- Add to DATA the endings for the future and conditional based on the
 -- future stem(s) in ARGS. If no future stems given, use STEM.
 function handle_future_cond(args, data, stem)
-	if not ined(args["fut"]) then
+	if not ine(args["fut"]) then
 		inflect_future_cond(data, {stem})
 	else
 		inflect_future_cond(data, get_args(args, "fut"))
@@ -804,19 +898,7 @@ inflections["i"] = function(args, data)
 	data.forms.pres_ptc = {stemc .. "ant"}
 	data.forms.past_ptc = {stemv .. i .. "é"}
 
-	data.forms.pres_indc_1sg = {add_zero(stems, data.ier, data.supe)}
-	data.forms.pres_indc_2sg = {stems .. "es"}
-	data.forms.pres_indc_3sg = {stems .. "e"}
-	data.forms.pres_indc_1pl = {stemc .. "ons"}
-	data.forms.pres_indc_2pl = {stemv .. i .. "ez"}
-	data.forms.pres_indc_3pl = {stems .. "ent"}
-
-	data.forms.pres_subj_1sg = {add_zero(stems, data.ier, data.supe)}
-	data.forms.pres_subj_2sg = {add_s(stems, data.ier, data.supe)}
-	data.forms.pres_subj_3sg = {add_t(stems, data.ier, data.supe)}
-	data.forms.pres_subj_1pl = {stemc .. "ons"}
-	data.forms.pres_subj_2pl = {stemv .. i .. "ez"}
-	data.forms.pres_subj_3pl = {stems .. "ent"}
+	handle_pres(args, data, "i", stemv, stemc, stems, data.ier, data.supe)
 
 	data.forms.impr_2sg = {stems .. "e"}
 	data.forms.impr_1pl = {stemc .. "ons"}
@@ -905,19 +987,7 @@ inflections["iii"] = function(args, data)
 	data.forms.pres_ptc = {stemc .. "ant"}
 	data.forms.past_ptc = {stemc .. "u"}
 
-	data.forms.pres_indc_1sg = {add_zero(stems, data.ier, data.supe)}
-	data.forms.pres_indc_2sg = {add_s(stems, data.ier, data.supe)}
-	data.forms.pres_indc_3sg = {add_t(stems, data.ier, data.supe)}
-	data.forms.pres_indc_1pl = {stemc .. "ons"}
-	data.forms.pres_indc_2pl = {stemv .. i .. "ez"}
-	data.forms.pres_indc_3pl = {stems .. "ent"}
-
-	data.forms.pres_subj_1sg = {stems .. "e"}
-	data.forms.pres_subj_2sg = {stems .. "es"}
-	data.forms.pres_subj_3sg = {stems .. "e"}
-	data.forms.pres_subj_1pl = {stemc .. "ons"}
-	data.forms.pres_subj_2pl = {stemv .. i .. "ez"}
-	data.forms.pres_subj_3pl = {stemv .. "ent"}
+	handle_pres(args, data, "iii", stemv, stemc, stems, data.ier, data.supe)
 
 	data.forms.impr_2sg = {add_zero(stems, data.ier, data.supe)}
 	data.forms.impr_1pl = {stemc .. "ons"}
@@ -939,7 +1009,7 @@ function make_table(data)
 	return data.comment .. [=[Old French conjugation varies significantly by date and by region. The following conjugation should be treated as a guide.
 <div class="NavFrame" style="clear:both;margin-top:1em">
 <div class="NavHead" align=left>&nbsp; &nbsp; Conjugation of ]=] .. m_links.full_link(nil, data.forms.infinitive[1], lang, nil, "term", nil, nil, nil) .. [=[
-<span style="font-size:90%;">(see also [[Appendix:Old French verbs]])</span></div>
+<span style="font-size:90%;"> (see also [[Appendix:Old French verbs]])</span></div>
 <div class="NavContent" align=center>
 {| style="width: 100%; background:#F0F0F0;border-collapse:separate;border-spacing:2px" class="inflection-table"
 |-
@@ -1151,7 +1221,7 @@ function make_link(subform)
 		mw.title.getCurrentTitle().prefixedText)
 end
 
--- Shows forms with links, or a dash if empty
+-- Shows forms, or a dash if empty
 function show_form(subforms)
 	if not subforms then
 		return "&mdash;"
@@ -1161,13 +1231,11 @@ function show_form(subforms)
 		return "&mdash;"
 	end
 
+	-- Concatenate results, omitting duplicates
 	local ret = {}
-
-	-- Go over each subform and insert links
 	for key, subform in ipairs(subforms) do
-		table.insert(ret, subform)
+		insert_if_not(ret, subform)
 	end
-
 	return table.concat(ret, ", ")
 end
 
