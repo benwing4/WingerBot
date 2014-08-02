@@ -28,8 +28,8 @@ local function ined(x) -- If Not Empty or Dash
 	end
 end
 
-local function contains(table, item)
-	for _, value in pairs(table) do
+local function contains(tab, item)
+	for _, value in pairs(tab) do
 		if value == item then
 			return true
 		end
@@ -37,9 +37,9 @@ local function contains(table, item)
 	return false
 end
 
-local function insert_if_not(table, item)
-	if not contains(table, item) then
-		table.insert(table, item)
+local function insert_if_not(tab, item)
+	if not contains(tab, item) then
+		table.insert(tab, item)
 	end
 end
 
