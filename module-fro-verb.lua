@@ -338,6 +338,27 @@ function export.add_t(frame)
 	return add_t(stem, ier, supe)
 end
 
+-- Add -r, for the group-iii future
+function add_r(stem)
+	local ret = stem .. "r"
+	if rfind(stem, "ss$") then
+		ret = rsub(stem, "ss$", "str")
+	elseif rfind(stem, "is$") then
+		ret = rsub(stem, "is$", "ir")
+	elseif rfind(stem, "s$") then
+		ret = stem .. "dr"
+	elseif rfind(stem, "g?n$") then
+		ret = rsub(stem, "g?n$", "ndr")
+	elseif rfind(stem, "m$") then
+		ret = stem .. "br"
+	elseif rfind(stem, "i?ll?$") then
+		ret = rsub(stem, "i?ll?$", "udr")
+	elseif rfind(stem, "[^aeiou]r$") then
+		ret = stem .. "er"
+	end
+	return ret
+end
+
 ----------------------------------------------------------------------------
 -- Functions for handling comments at the top of conjugation tables
 
@@ -910,7 +931,7 @@ inflections["iii"] = function(args, data)
 	data.forms.impf_indc_3pl = {stemc .. "oient", stemv .. "eient"}
 
 	handle_past_impf_subj(args, data, stemv, "weak-i")
-	handle_future_cond(args, data, stemc .. "r")
+	handle_future_cond(args, data, add_r(stemc))
 end
 
 -- Shows the table with the given forms
