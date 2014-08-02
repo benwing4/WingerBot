@@ -502,12 +502,32 @@ end
 
 -- If ARGBASE == "foo", return an array of
 -- {args["foo"],args["foo2"],...,args["foo9"]}.
+-- If ARGBASE is a sequence of strings, return an array of sequences, e.g.
+-- if ARGBASE == {"foo", "bar"}, return an array of
+-- {{args["foo"],args["bar"]},{args["foo2"],args["bar2"]},...,{args["foo9"],args["bar9"]}}
 function get_args(args, argbase)
-	local theargs = {args[argbase] or ""}
-	for j = 2, 9 do
-		table.insert(theargs, args[argbase .. j] or "")
+	if type(argbase) == "string" then
+		local theargs = {args[argbase] or ""}
+		for j = 2, 9 do
+			table.insert(theargs, args[argbase .. j] or "")
+		end
+		return theargs
+	else
+		local theargs = {}
+		local onearg = {}
+		for i, item in ipairs(argbase) do
+			table.insert(onearg, args[item] or "")
+		end
+		table.insert(theargs, onearg)
+		for j = 2, 9 do
+			onearg = {}
+			for i, item in ipairs(argbase) do
+				table.insert(onearg, args[item .. j] or "")
+			end
+			table.insert(theargs, onearg)
+		end
+		return theargs
 	end
-	return theargs
 end
 
 -- Replaces terms with overridden ones that are given as additional named parameters.
@@ -879,6 +899,64 @@ function handle_future_cond(args, data, stem)
 	end
 end
 
+-- Add to DATA the endings for the imperfect, with the stems in
+-- STEMS, a sequence. Each entry of the sequence is a sequence of
+-- {STEME, STEMA, IER}. Values in STEMS where STEME and STEMA are
+-- empty are ignored.
+function inflect_imperfect(data, group, stems)
+	for _, stem in ipairs(stems) do
+		local steme = ine(stem[1])
+		local stema = ine(stem[2])
+		local ier = ine(stem[3])
+	    local i = ier and "i" or ""
+		if steme or stema then
+			if not steme then steme = stemc_to_stemv(stema) end
+			if not stema then stema = stemv_to_stemc(steme) end
+			if group == "i" then
+				inflect_tense(data, "impf_indc", "",
+					{
+	{stema .. "oie", steme .. "eie", stema .. "oe", steme .. i .. "eve"},
+	{stema .. "oies", steme .. "eies", stema .. "oes", steme .. i .. "eves"},
+	{stema .. "oit", steme .. "eit", stema .. "ot", steme .. i .. "eve"},
+	{steme .. "iiens", steme .. "iens"},
+	{steme .. "iiez", steme .. "iez"},
+	{stema .. "oient", steme .. "eient", stema .. "oent", steme .. i .. "event"}
+					})
+			elseif group == "ii" then
+				inflect_tense(data, "impf_indc", steme .. "iss",
+					{
+						{"oie", "eie"},
+						{"oies", "eies"},
+						{"oit", "eit"},
+						{"iiens", "iens"},
+						{"iiez", "iez"},
+						{"oient", "eient"}
+					})
+			elseif group == "iii" then
+				inflect_tense(data, "impf_indc", "",
+					{
+						{stema .. "oie", steme .. "eie"},
+						{stema .. "oies", steme .. "eies"},
+						{stema .. "oit", steme .. "eit"},
+						{steme .. "iiens", steme .. "iens"},
+						{steme .. "iiez", steme .. "iez"},
+						{stema .. "oient", steme .. "eient"}
+					})
+			end
+		end
+	end
+end
+
+-- Add to DATA the endings for the future and conditional based on the
+-- future stem(s) in ARGS. If no future stems given, use STEM.
+function handle_imperfect(args, data, group, steme, stema, ier)
+	if not ine(args["imperf"]) and not ine(args["imperfa"]) then
+		inflect_imperfect(data, group, {{steme, stema, ier}})
+	else
+		inflect_imperfect(data, group, get_args(args, {"imperf","imperfa","imperfier"}))
+	end
+end
+
 -- Add to DATA the endings for an -er or -ier verb, based on the arguments
 -- in ARGS.
 inflections["i"] = function(args, data)
@@ -904,12 +982,7 @@ inflections["i"] = function(args, data)
 	data.forms.impr_1pl = {stemc .. "ons"}
 	data.forms.impr_2pl = {stemv .. i .. "ez"}
 
-	data.forms.impf_indc_1sg = {stemc .. "oie", stemv .. "eie", stemc .. "oe", stemv .. i .. "eve"}
-	data.forms.impf_indc_2sg = {stemc .. "oies", stemv .. "eies", stemc .. "oes", stemv .. i .. "eves"}
-	data.forms.impf_indc_3sg = {stemc .. "oit", stemv .. "eit", stemc .. "ot", stemv .. i .. "eve"}
-	data.forms.impf_indc_1pl = {stemv .. "iiens", stemv .. "iens"}
-	data.forms.impf_indc_2pl = {stemv .. "iiez", stemv .. "iez"}
-	data.forms.impf_indc_3pl = {stemc .. "oient", stemv .. "eient", stemc .. "oent", stemv .. i .. "event"}
+	handle_imperfect(args, data, "i", stemv, stemc, data.ier)
 
 	data.forms.pret_indc_1sg = {stemc .. "ai"}
 	data.forms.pret_indc_2sg = {stemc .. "as"}
@@ -957,13 +1030,7 @@ inflections["ii"] = function(args, data)
 	data.forms.impr_1pl = {stemv .. "issons"}
 	data.forms.impr_2pl = {stemv .. "issez"}
 
-	data.forms.impf_indc_1sg = {stemv .. "issoie", stemv .. "isseie"}
-	data.forms.impf_indc_2sg = {stemv .. "issoies", stemv .. "isseies"}
-	data.forms.impf_indc_3sg = {stemv .. "issoit", stemv .. "isseit"}
-	data.forms.impf_indc_1pl = {stemv .. "issiiens", stemv .. "issiens"}
-	data.forms.impf_indc_2pl = {stemv .. "issiiez", stemv .. "issiez"}
-	data.forms.impf_indc_3pl = {stemv .. "issoient", stemv .. "isseient"}
-
+	handle_imperfect(args, data, "ii", stemv, stemv, data.ier)
 	handle_pret_impf_subj(args, data, stemv, "weak-i")
 	handle_future_cond(args, data, stemv .. "ir")
 end
@@ -993,13 +1060,7 @@ inflections["iii"] = function(args, data)
 	data.forms.impr_1pl = {stemc .. "ons"}
 	data.forms.impr_2pl = {stemv .. i .. "ez"}
 
-	data.forms.impf_indc_1sg = {stemc .. "oie", stemv .. "eie"}
-	data.forms.impf_indc_2sg = {stemc .. "oies", stemv .. "eies"}
-	data.forms.impf_indc_3sg = {stemc .. "oit", stemv .. "eit"}
-	data.forms.impf_indc_1pl = {stemv .. "iiens", stemv .. "iens"}
-	data.forms.impf_indc_2pl = {stemv .. "iiez", stemv .. "iez"}
-	data.forms.impf_indc_3pl = {stemc .. "oient", stemv .. "eient"}
-
+	handle_imperfect(args, data, "iii", stemv, stemc, data.ier)
 	handle_pret_impf_subj(args, data, stemv, "weak-i")
 	handle_future_cond(args, data, add_r(stemc))
 end
