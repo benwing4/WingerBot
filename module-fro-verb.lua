@@ -789,7 +789,7 @@ end
 -- Add to DATA the endings for the preterite and imperfect
 -- subjunctive, with unstressed stem STEMU, stressed stem STEMS, and
 -- conjugation type PTY.
-function inflect_past_impf_subj(data, stemu, stems, pty)
+function inflect_pret_impf_subj(data, stemu, stems, pty)
 	-- WARNING: If the second person singular of any of these is not a
 	-- simple string, you will need to modify the handling below of
 	-- the imperfect subjunctive, which relies on this form.
@@ -811,8 +811,8 @@ function inflect_past_impf_subj(data, stemu, stems, pty)
 	pty == "strong-o" and {"oi","eüs","ot","eümes","eüstes","orent"} or
 	pty == "strong-st" and {"s","sis","st","simes","sistes","strent"} or
 	pty == "strong-sd" and {"s","ṣis","st","ṣimes","ṣistes","sdrent"} or
-	ine(pty) and error("Unrecognized pty value '" .. pty .. "'") or
-	error("Unspecified pty value")
+	ine(pty) and error("Unrecognized prettype value '" .. pty .. "'") or
+	error("Unspecified prettype value")
 
 	-- Always use weak stem unless we have strong-stem endings
 	local stems =
@@ -828,28 +828,28 @@ function inflect_past_impf_subj(data, stemu, stems, pty)
 end
 
 -- Add to DATA the endings for the preterite and imperfect subjunctive,
--- based on the strong and weak stems and past ending type(s) given in ARGS.
--- For each weak past ending type 'pasttyN' there should be a corresponding
--- stem in 'pastN' (defaulting to STEM) and for each strong past ending
--- type 'pasttyN' there should be corresponding unstressed and stressed
--- stems in 'pastuN' and 'pastsN' (defaulting to 'pastN' or STEM).
--- If no past ending types given, default to the past type in PTY and
+-- based on the strong and weak stems and preterite ending type(s) given in
+-- ARGS. For each weak preterite ending type 'prettypeN' there should be a
+-- corresponding stem in 'pretN' (defaulting to STEM) and for each strong
+-- preterite ending type 'prettypeN' there should be corresponding unstressed
+-- and stressed stems in 'pretuN' and 'pretsN' (defaulting to 'pretN' or STEM).
+-- If no preterite ending types given, default to the preterite type in PTY and
 -- stressed/unstressed stem STEM.
-function handle_past_impf_subj(args, data, stem, pty)
-	if not ine(args["pastty"]) then
-		inflect_past_impf_subj(data, stem, stem, pty)
+function handle_pret_impf_subj(args, data, stem, pty)
+	if not ine(args["prettype"]) then
+		inflect_pret_impf_subj(data, stem, stem, pty)
 	else
-		inflect_past_impf_subj(data,
-			ine(args["pastu"]) or ine(args["past"]) or stem,
-			ine(args["pasts"]) or ine(args["pastu"]) or ine(args["past"]) or stem,
-			args["pastty"])
+		inflect_pret_impf_subj(data,
+			ine(args["pretu"]) or ine(args["pret"]) or stem,
+			ine(args["prets"]) or ine(args["pretu"]) or ine(args["pret"]) or stem,
+			args["prettype"])
 	end
 	for i = 2, 9 do
-		if ine(args["pastty" .. i]) then
-			inflect_past_impf_subj(data,
-				ine(args["pastu" .. i]) or ine(args["past" .. i]) or stem,
-				ine(args["pasts" .. i]) or ine(args["pastu" .. i]) or ine(args["past" .. i]) or stem,
-				args["pastty" .. i])
+		if ine(args["prettype" .. i]) then
+			inflect_pret_impf_subj(data,
+				ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
+				ine(args["prets" .. i]) or ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
+				args["prettype" .. i])
 		end
 	end
 end
@@ -964,7 +964,7 @@ inflections["ii"] = function(args, data)
 	data.forms.impf_indc_2pl = {stemv .. "issiiez", stemv .. "issiez"}
 	data.forms.impf_indc_3pl = {stemv .. "issoient", stemv .. "isseient"}
 
-	handle_past_impf_subj(args, data, stemv, "weak-i")
+	handle_pret_impf_subj(args, data, stemv, "weak-i")
 	handle_future_cond(args, data, stemv .. "ir")
 end
 
@@ -1000,7 +1000,7 @@ inflections["iii"] = function(args, data)
 	data.forms.impf_indc_2pl = {stemv .. "iiez", stemv .. "iez"}
 	data.forms.impf_indc_3pl = {stemc .. "oient", stemv .. "eient"}
 
-	handle_past_impf_subj(args, data, stemv, "weak-i")
+	handle_pret_impf_subj(args, data, stemv, "weak-i")
 	handle_future_cond(args, data, add_r(stemc))
 end
 
