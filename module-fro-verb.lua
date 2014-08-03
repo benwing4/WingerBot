@@ -385,7 +385,8 @@ function irreg_verb(args, skip)
 	end
 	
 	for k,v in pairs(args) do
-		if k ~= 'pres' and k ~= 'presa' and
+		if k == 'pres' and rfind(v, "/") or
+				k ~= 'pres' and k ~= 'prese' and k ~= 'presa' and
 				k ~= 'ier' and k ~= 'supe' and k ~= 'aux' and k ~= 'refl' and
 				k ~= 'inf' and k ~= 'comment' and
 				-- for compatibility:
@@ -459,7 +460,9 @@ function export.froconj(frame)
 	-- They can be explicitly set using 'pres' and 'presa' params.
 	-- If one is set, the other is inferred from it. If neither is set,
 	-- both are inferred from the infinitive.
-	data.prese = ine(args["pres"]) or ine(args["stemv"]) or ine(args[1]) -- for compatibility
+	data.prese = ine(args["pres"]) and not rfind(args["pres"], "/") and args["pres"] or
+		ine(args["prese"]) or
+		ine(args["stemv"]) or ine(args[1]) -- for compatibility
 	data.presa = ine(args["presa"])
 	local inf_stem, inf_ending, inf_is_soft =
 		get_stem_from_inf(data.forms.infinitive[1], data.ier)
@@ -722,7 +725,10 @@ function inflect_tense_1(data, tense, stems, endings, pnums)
 		if type(stem) == "table" then stem = stem[i] end
 		-- Add entries for stem + endings
 		for j, ending in ipairs(ends) do
-			table.insert(data.forms[tense .. "_" .. pnums[i]], stem .. ending)
+			local form = stem .. ending
+			if ine(form) and form ~= "-" then
+				table.insert(data.forms[tense .. "_" .. pnums[i]], form)
+			end
 		end
 	end
 end
@@ -771,8 +777,27 @@ function inflect_pres(data, tense, group, steme, stema, stems, ier, supe)
 	end
 end
 
+-- Split a string into entries separated by slashes, each representing one
+-- of the possible person/number combinations. Each entry in turn may consist
+-- of one or more forms, separated by commas.
+function split_multipart(str)
+	local entries = mw.text.split(str, "/")
+	for i, entry in ipairs(entries) do
+		if rfind(entry, ",") then
+			entries[i] = mw.text.split(entry, ",")
+		else
+			entries[i] = {entry}
+		end
+	end
+	return entries
+end
+
 function handle_pres(args, data, group, steme, stema, stems, ier, supe)
-	inflect_pres(data, "pres_indc", group, steme, stema, stems, ier, supe)
+	if ine(args["pres"]) and rfind(args["pres"], "/") then
+		inflect_tense(data, "pres_indc", "", split_multipart(args["pres"]))
+	else
+		inflect_pres(data, "pres_indc", group, steme, stema, stems, ier, supe)
+	end
 	-- If subv or subc set, derive one from the other if necessary.
 	-- Else, derive both from the indicative.
 	-- If subs not set, derive from subv if either subv or subc set, else
@@ -781,7 +806,9 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 	local sub_stema = ine(args["suba"])
 	local sub_dash = sub_steme == "-" or sub_stema == "-"
 	local sub_specified = sub_steme or sub_stema
-	if not sub_dash then
+	if sub_steme and rfind(sub_steme, "/") then
+		inflect_tense(data, "pres_subj", "", split_multipart(sub_steme))
+	elseif not sub_dash then
 		if not sub_specified then
 			sub_steme = steme
 			sub_stema = stema
@@ -802,7 +829,9 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 	local imp_stema = ine(args["impa"])
 	local imp_dash = imp_steme == "-" or imp_stema == "-"
 	local imp_specified = imp_steme or imp_stema
-	if not imp_dash then
+	if imp_steme and rfind(imp_steme, "/") then
+		inflect_tense_impr(data, "impr", "", split_multipart(imp_steme))
+	elseif not imp_dash then
 		if not imp_specified then
 			imp_steme = steme
 			imp_stema = stema
@@ -823,8 +852,11 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 	for i = 2, 9 do
 		steme = ine(args["pres" .. i])
 		stema = ine(args["presa" .. i])
-		local indic_specified = steme or stema
-		if indic_specified then
+		local multi_indic = steme and rfind(steme, "/")
+		local indic_specified = not multi_indic and (steme or stema)
+		if multi_indic then
+			inflect_tense(data, "pres_indc", "", split_multipart(steme))
+		elseif indic_specified then
 			if not steme then steme = stema_to_steme(stema) end
 			if not stema then stema = steme_to_stema(steme) end
 			stems = ine(args["press" .. i]) or steme
@@ -838,7 +870,9 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 		sub_stema = ine(args["suba" .. i])
 		sub_dash = sub_steme == "-" or sub_stema == "-"
 		sub_specified = sub_steme or sub_stema
-		if not sub_dash and (indic_specified or sub_specified) then
+		if sub_steme and rfind(sub_steme, "/") then
+			inflect_tense(data, "pres_subj", "", split_multipart(sub_steme))
+		elseif not sub_dash and (indic_specified or sub_specified) then
 			if not sub_specified then
 				sub_steme = steme
 				sub_stema = stema
@@ -860,7 +894,9 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 		imp_stema = ine(args["impa" .. i])
 		imp_dash = imp_steme == "-" or imp_stema == "-"
 		imp_specified = imp_steme or imp_stema
-		if not imp_dash and (indic_specified or imp_specified) then
+		if imp_steme and rfind(imp_steme, "/") then
+			inflect_tense_impr(data, "impr", "", split_multipart(imp_steme))
+		elseif not imp_dash and (indic_specified or imp_specified) then
 			if not imp_specified then
 				imp_steme = steme
 				imp_stema = stema
@@ -935,7 +971,9 @@ end
 -- If no preterite ending types given, default to the preterite type in PTY and
 -- stressed/unstressed stem STEM.
 function handle_pret_impf_subj(args, data, stem, pty)
-	if not ine(args["prettype"]) then
+	if ine(args["pret"]) and rfind(args["pret"], "/") then
+		inflect_tense(data, "pret_indc", "", split_multipart(args["pret"]))
+	elseif not ine(args["prettype"]) then
 		inflect_pret_impf_subj(data, stem, stem, pty)
 	else
 		inflect_pret_impf_subj(data,
@@ -944,7 +982,9 @@ function handle_pret_impf_subj(args, data, stem, pty)
 			args["prettype"])
 	end
 	for i = 2, 9 do
-		if ine(args["prettype" .. i]) then
+		if ine(args["pret" .. i]) and rfind(args["pret" .. i], "/") then
+			inflect_tense(data, "pret_indc", "", split_multipart(args["pret" .. i]))
+		elseif ine(args["prettype" .. i]) then
 			inflect_pret_impf_subj(data,
 				ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
 				ine(args["prets" .. i]) or ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
@@ -958,7 +998,9 @@ end
 -- Values in STEM that are empty are ignored.
 function inflect_future_cond(data, stems)
 	for _, stem in ipairs(stems) do
-		if ine(stem) then
+		if ine(stem) and rfind(stem, "/") then
+			inflect_tense(data, "futr_indc", "", split_multipart(stem))
+		elseif ine(stem) then
 			inflect_tense(data, "futr_indc", stem,
 				{"ai","as","a","ons",{"ez","eiz"},"ont"})
 			inflect_tense(data, "cond", stem,
@@ -988,7 +1030,9 @@ function inflect_imperfect(data, group, stems)
 		local stema = ine(stem[2])
 		local ier = ine(stem[3])
 	    local i = ier and "i" or ""
-		if steme or stema then
+		if steme and rfind(steme, "/") then
+			inflect_tense(data, "impf_indc", "", split_multipart(steme))
+		elseif steme or stema then
 			if not steme then steme = stema_to_steme(stema) end
 			if not stema then stema = steme_to_stema(steme) end
 			if group == "i" then
