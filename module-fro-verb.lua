@@ -916,9 +916,9 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 end
 
 -- Add to DATA the endings for the preterite and imperfect
--- subjunctive, with unstressed stem STEMU, stressed stem STEMS, and
--- conjugation type PTY.
-function inflect_pret_impf_subj(data, stemu, stems, pty)
+-- subjunctive, with unstressed stem STEMU, stressed stem STEMS,
+-- conjugation type PTY and corresponding value of IMPSUB.
+function inflect_pret_impf_subj(data, stemu, stems, pty, impsub)
 	-- WARNING: If the second person singular of any of these is not a
 	-- simple string, you will need to modify the handling below of
 	-- the imperfect subjunctive, which relies on this form.
@@ -952,13 +952,20 @@ function inflect_pret_impf_subj(data, stemu, stems, pty)
 	-- Handle imperfect subj, which follows the same types as the preterite
 	-- and is built off of the 2nd person singular form, although we need to
 	-- special-case weak-a and weak-a2
-	if pty == "weak-a" or pty == "weak-a2" then
+	local impsub_endings =
+		{"se","ses","t",{"sons","siens"},{"soiz","sez","siez"},"sent"}
+	impsub = ine(impsub)
+	if impsub and rfind(impsub, "/") then
+		inflect_tense(data, "impf_subj", "", split_multipart(impsub))
+	elseif impsub then
+		inflect_tense(data, "impf_subj", impsub, impsub_endings)
+	elseif pty == "weak-a" or pty == "weak-a2" then
 		inflect_tense(data, "impf_subj", stemu,
 			{"asse","asses","ast",
 			 {"issons","issiens"},{"issoiz","issez","issiez"},"assent"})
 	else
 		inflect_tense(data, "impf_subj", stemu .. all_endings[2],
-			{"se","ses","t",{"sons","siens"},{"soiz","sez","siez"},"sent"})
+			impsub_endings)
 	end
 end
 
@@ -974,12 +981,12 @@ function handle_pret_impf_subj(args, data, stem, pty)
 	if ine(args["pret"]) and rfind(args["pret"], "/") then
 		inflect_tense(data, "pret_indc", "", split_multipart(args["pret"]))
 	elseif not ine(args["prettype"]) then
-		inflect_pret_impf_subj(data, stem, stem, pty)
+		inflect_pret_impf_subj(data, stem, stem, pty, args["impsub"])
 	else
 		inflect_pret_impf_subj(data,
 			ine(args["pretu"]) or ine(args["pret"]) or stem,
 			ine(args["prets"]) or ine(args["pretu"]) or ine(args["pret"]) or stem,
-			args["prettype"])
+			args["prettype"], args["impsub"])
 	end
 	for i = 2, 9 do
 		if ine(args["pret" .. i]) and rfind(args["pret" .. i], "/") then
@@ -988,7 +995,7 @@ function handle_pret_impf_subj(args, data, stem, pty)
 			inflect_pret_impf_subj(data,
 				ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
 				ine(args["prets" .. i]) or ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
-				args["prettype" .. i])
+				args["prettype" .. i], args["impsub" .. i])
 		end
 	end
 end
