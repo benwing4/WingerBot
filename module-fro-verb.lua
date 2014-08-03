@@ -326,33 +326,6 @@ function add_t(stem, ier, supe)
 	return ret
 end
 
--- External entry point for add_zero(). Optional stem is first argument,
--- optional 'ier' and 'supe' arguments are as in get_ending().
-function export.add_zero(frame)
-	local stem = get_stem_from_frame(frame)
-	local ier = ine(frame.args["ier"])
-	local supe = ine(frame.args["supe"])
-	return add_zero(stem, ier, supe)
-end
-
--- External entry point for add_s(). Optional stem is first argument,
--- optional 'ier' and 'supe' arguments are as in get_ending().
-function export.add_s(frame)
-	local stem = get_stem_from_frame(frame)
-	local ier = ine(frame.args["ier"])
-	local supe = ine(frame.args["supe"])
-	return add_s(stem, ier, supe)
-end
-
--- External entry point for add_t(). Optional stem is first argument,
--- optional 'ier' and 'supe' arguments are as in get_ending().
-function export.add_t(frame)
-	local stem = get_stem_from_frame(frame)
-	local ier = ine(frame.args["ier"])
-	local supe = ine(frame.args["supe"])
-	return add_t(stem, ier, supe)
-end
-
 -- Add -r, for the group-iii future
 function add_r(stem)
 	local ret = stem .. "r"
@@ -402,7 +375,7 @@ end
 -- Return comment describing phonetic changes to the verb in the present
 -- tense. Appears near the top of the conjugation chart. STEM is the stressed
 -- stem. See get_endings() for meaning of IER and SUPE.
-function verb_comment(stem, ier, supe)
+function phonetic_verb_comment(stem, ier, supe)
 	local e = get_endings(stem, ier, supe)
 	return e[5]
 end
@@ -411,29 +384,20 @@ end
 -- present tense. Appears near the top of the conjugation chart. STEME is
 -- the unstressed stem before e/i, STEMA the unstressed stem before a/o/u,
 -- STEMS the stressed stem. See get_endings() for meaning of IER and SUPE.
-function full_verb_comment(args, steme, stema, stems, ier, supe)
+function verb_comment(args, group, steme, stema, stems, ier, supe)
 	if ine(args["comment"]) then
 		return mw.text.trim(args["comment"]) .. " "
 	end
-	local com = verb_comment(stems, ier, supe)
+	local com = group == "i" and phonetic_verb_comment(stems, ier, supe) or ""
 	local irreg = irreg_verb(args, 'press')
-	if steme ~= stems and irreg then
-		com = com .. "In addition, it has a stressed present stem ''" .. stems .. "'' distinct from the unstressed stem ''" .. steme .. "'', as well as other irregularities. "
-	elseif steme ~= stems then
-		com = com .. "In addition, it has a stressed present stem ''" .. stems .. "'' distinct from the unstressed stem ''" .. steme .. "''. "
+	if steme ~= stems then
+		com = com .. "This verb has a stressed present stem ''" .. stems ..
+			"'' distinct from the unstressed stem ''" .. steme .. "''" ..
+			(irreg and ", as well as other irregularities. " or ". ")
 	elseif irreg then
-		com = com .. "In addition, it has irregularities in its conjugation. "
+		com = com .. "This verb has irregularities in its conjugation. "
 	end
 	return com
-end
-
--- External entry point for verb_comment(). Optional stem is first argument,
--- optional 'ier' and 'supe' arguments are as in get_ending().
-function export.verb_comment(frame)
-	local stem = get_stem_from_frame(frame)
-	local ier = ine(frame.args["ier"])
-	local supe = ine(frame.args["supe"])
-	return verb_comment(stem, ier, supe)
 end
 
 ----------------------------------------------------------------------------
@@ -1101,7 +1065,7 @@ inflections["i"] = function(args, data)
 		data.comment = "This verb conjugates as a first-group verb ending in ''-er''. "
 	end
 	data.comment = data.comment ..
-		full_verb_comment(args, prese, presa, press, data.ier, data.supe)
+		verb_comment(args, "i", prese, presa, press, data.ier, data.supe)
 	data.group = "first"
 	data.forms.pres_ptc = {presa .. "ant"}
 	data.forms.past_ptc = {prese .. i .. "é"}
@@ -1168,12 +1132,12 @@ inflections["iii"] = function(args, data)
 	local press = ine(args["press"]) or prese
 	local i = data.ier and "i" or ""
 
-	data.comment = "This verb conjugates as a third-group verb (mostly irregular). "
+	data.comment = "This verb conjugates as a third-group verb. "
 	if data.ier then
 		data.comment = data.comment .. "This verb ends in a palatal stem, so there is an extra ''i'' before the ''e'' of some endings. "
 	end
 	data.comment = data.comment ..
-		full_verb_comment(args, prese, presa, press, data.ier, data.supe)
+		verb_comment(args, "iii", prese, presa, press, data.ier, data.supe)
 	data.group = "third"
 
 	data.forms.pres_ptc = {presa .. "ant"}
