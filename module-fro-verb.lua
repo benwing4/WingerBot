@@ -734,7 +734,7 @@ function inflect_tense_impr(data, tense, stems, endings)
 end
 
 function inflect_pres(data, tense, group, steme, stema, stems, ier, supe)
-	local i = ine(ier) and "i" or ""
+	local i = ier and "i" or ""
 	if tense == "impr" and group == "i" then
 		inflect_tense_impr(data, tense,
 			{stems, stema, steme},
@@ -750,7 +750,7 @@ function inflect_pres(data, tense, group, steme, stema, stems, ier, supe)
 	elseif tense == "pres_subj" and group == "iii" then
 		inflect_tense(data, tense,
 			{stems, stems, stems, stema, steme, stems},
-			{"e", "es", "e", "ons", i .. "ez", "ent"})
+			{"e", "es", "e", ier and {"iens", "ons"} or "ons", i .. "ez", "ent"})
 	else
 		inflect_tense(data, tense,
 			{add_zero(stems, ier, supe), add_s(stems, ier, supe),
