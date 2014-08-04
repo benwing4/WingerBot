@@ -8,14 +8,11 @@ Todo:
 2. Go through at the beginning of froconj() and trim all arguments using
    mw.text.trim() so extra spaces can be included, and remove calls to
    mw.text.trim() elsewhere.
-3. Allow overrides to specify multiple forms separated by commas. In such a
-   case, the multiple forms override a single form with multiple forms,
-   essentially allowing forms to be inserted.
-4. Clean up handling of preterite and imperfect subjunctive in type-I verbs,
+3. Clean up handling of preterite and imperfect subjunctive in type-I verbs,
    making it use handle_pret_impf_subj(). Then change 'ester' to be a type-I
    verb (currently it's type-III to change the pret/imp-subj stem). This
    requires dealing with the steme vs. stema distinction.
-5. Possibly, eliminate all of the stema-related params, making the conversion
+4. Possibly, eliminate all of the stema-related params, making the conversion
    between steme and stema forms uncustomizable. It's unclear it needs to be
    customizable and doing so adds a lot of complexity; if it needs to be
    controlled specially, it can be done using overrides or multipart stems.
@@ -533,12 +530,25 @@ function process_overrides(args, data)
 
 		local i = 1
 
+		-- Insert an override entry, possibly splitting on commas and
+		-- inserting multiple forms.
+		local function insert_override(entry)
+			if entry ~= "-" then
+				if rfind(entry, ",") then
+					local forms = mw.text.split(entry, ",")
+					for _, form in ipairs(forms) do
+						table.insert(ret, form)
+					end
+				else
+					table.insert(ret, entry)
+				end
+			end
+		end
+
 		-- First see if any of the existing items in current have an override specified.
 		while current[i] do
 			if ine(override[i]) then
-				if override[i] ~= "-" then
-					table.insert(ret, override[i])
-				end
+				insert_override(override[i])
 			else
 				table.insert(ret, current[i])
 			end
@@ -549,8 +559,8 @@ function process_overrides(args, data)
 		-- We've reached the end of current.
 		-- Look in the override list to see if there are any extra forms to add on to the end.
 		while override[i] do
-			if ine(override[i]) and override[i] ~= "-" then
-				table.insert(ret, override[i])
+			if ine(override[i]) then
+				insert_override(override[i])
 			end
 
 			i = i + 1
