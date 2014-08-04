@@ -1,3 +1,27 @@
+--[[
+
+Todo:
+
+1. Go through at the beginning of froconj() and convert all empty-string
+   arguments to nil, and remove the uses of ine() everywhere that treat
+   empty-string arguments as nil.
+2. Go through at the beginning of froconj() and trim all arguments using
+   mw.text.trim() so extra spaces can be included, and remove calls to
+   mw.text.trim() elsewhere.
+3. Allow overrides to specify multiple forms separated by commas. In such a
+   case, the multiple forms override a single form with multiple forms,
+   essentially allowing forms to be inserted.
+4. Clean up handling of preterite and imperfect subjunctive in type-I verbs,
+   making it use handle_pret_impf_subj(). Then change 'ester' to be a type-I
+   verb (currently it's type-III to change the pret/imp-subj stem). This
+   requires dealing with the steme vs. stema distinction.
+5. Possibly, eliminate all of the stema-related params, making the conversion
+   between steme and stema forms uncustomizable. It's unclear it needs to be
+   customizable and doing so adds a lot of complexity; if it needs to be
+   controlled specially, it can be done using overrides or multipart stems.
+
+--]]
+
 local m_links = require("Module:links")
 local m_utilities = require("Module:utilities")
 
@@ -362,8 +386,7 @@ function irreg_verb(args, skip)
 				k ~= 'pres' and k ~= 'prese' and k ~= 'presa' and
 				k ~= 'ier' and k ~= 'supe' and k ~= 'aux' and k ~= 'refl' and
 				k ~= 'inf' and k ~= 'comment' and
-				-- for compatibility:
-				k ~= 'stemv' and k ~= 1 and k ~= 2 and
+				k ~= 1 and -- for compatibility:
 				not contains(skip, k) and
 				mw.text.trim(v) ~= '' then
 			return true
@@ -414,8 +437,7 @@ function export.froconj(frame)
 	supe = ine(args["supe"]) or ine(frame.args["supe"])
 	}
 
-	-- allow aux to be specified as second unnamed param for compatibility
-	data.forms.aux = {data.refl and "estre" or mw.text.trim(ine(args["aux"]) or ine(args[2]) or "avoir")}
+	data.forms.aux = {data.refl and "estre" or mw.text.trim(ine(args["aux"]) or "avoir")}
 
 	data.forms.infinitive =
 		{ine(args["inf"]) or mw.title.getCurrentTitle().text}
@@ -426,7 +448,7 @@ function export.froconj(frame)
 	-- both are inferred from the infinitive.
 	data.prese = ine(args["pres"]) and not rfind(args["pres"], "/") and args["pres"] or
 		ine(args["prese"]) or
-		ine(args["stemv"]) or ine(args[1]) -- for compatibility
+		ine(args[1]) -- for compatibility
 	data.presa = ine(args["presa"])
 	local inf_stem, inf_ending, inf_is_soft =
 		get_stem_from_inf(data.forms.infinitive[1], data.ier)
@@ -542,9 +564,13 @@ function process_overrides(args, data)
 	-- Mark terms with any additional parameters as irregular, except for
 	-- certain ones that we consider normal variants.
 	if irreg_verb(args) then
-		table.insert(data.categories, 'Old French irregular verbs')
+		table.insert(data.categories, "Old French irregular verbs")
 	end
-
+	for k,v in pairs(args) do
+		if k == 1 then
+			table.insert(data.categories, "fro-conj using unnamed argument 1")
+		end
+	end
 	--[[
 
 	This function replaces former code like this:
@@ -743,9 +769,16 @@ end
 
 -- Split a string into entries separated by slashes, each representing one
 -- of the possible person/number combinations. Each entry in turn may consist
--- of one or more forms, separated by commas.
-function split_multipart(str)
+-- of one or more forms, separated by commas. NUMREQ is how many entries need
+-- to be present, defaulting to 6.
+function split_multipart(str, numreq)
 	local entries = mw.text.split(str, "/")
+
+	numreq = numreq or 6
+	if #entries ~= numreq then
+		error("Expected " .. numreq .. " entries in multipart string '" .. str .. "'")
+	end
+
 	for i, entry in ipairs(entries) do
 		if rfind(entry, ",") then
 			entries[i] = mw.text.split(entry, ",")
@@ -753,6 +786,7 @@ function split_multipart(str)
 			entries[i] = {entry}
 		end
 	end
+		
 	return entries
 end
 
@@ -794,7 +828,7 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 	local imp_dash = imp_steme == "-" or imp_stema == "-"
 	local imp_specified = imp_steme or imp_stema
 	if imp_steme and rfind(imp_steme, "/") then
-		inflect_tense_impr(data, "impr", "", split_multipart(imp_steme))
+		inflect_tense_impr(data, "impr", "", split_multipart(imp_steme, 3))
 	elseif not imp_dash then
 		if not imp_specified then
 			imp_steme = steme
@@ -859,7 +893,7 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 		imp_dash = imp_steme == "-" or imp_stema == "-"
 		imp_specified = imp_steme or imp_stema
 		if imp_steme and rfind(imp_steme, "/") then
-			inflect_tense_impr(data, "impr", "", split_multipart(imp_steme))
+			inflect_tense_impr(data, "impr", "", split_multipart(imp_steme, 3))
 		elseif not imp_dash and (indic_specified or imp_specified) then
 			if not imp_specified then
 				imp_steme = steme
