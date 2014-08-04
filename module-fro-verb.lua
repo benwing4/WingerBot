@@ -458,11 +458,11 @@ function export.froconj(frame)
 	-- Generate standard conjugated forms for each type of verb.
 	local infl_type = frame.args["type"]
 	if not ine(infl_type) then
-		error("Verb type (infl_type) not specified.")
+		error("Verb type ('type' arg) not specified.")
 	elseif inflections[infl_type] then
 		inflections[infl_type](args, data)
 	else
-		error("Verb type " .. infl_type .. " not supported.")
+		error("Verb type '" .. infl_type .. "' not supported.")
 	end
 
 	table.insert(data.categories, "Old French " .. data.group .. " group verbs")
