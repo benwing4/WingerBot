@@ -471,8 +471,14 @@ function export.froconj(frame)
 	-- Get overridden forms
 	process_overrides(args, data)
 
+	-- Add a prefix if specified
+	local prefix = ine(args["prefix"])
+	if prefix then
+		add_prefix(data, prefix)
+	end
+
 	-- Add links
-	add_links(args, data)
+	add_links(data)
 
 	-- Add reflexive pronouns
 	if data.refl then
@@ -673,13 +679,20 @@ function add_reflexive_pronouns(args, data)
 	end
 end
 
--- Adds links to appropriate forms
-function add_links(args, data)
-	-- Go over all the forms in the list
+-- Add links to all forms
+function add_links(data)
 	for key, subforms in pairs(data.forms) do
-		-- Go through each of the alternative subforms and add the pronoun
 		for key2, subform in ipairs(subforms) do
 			data.forms[key][key2] = make_link(subform)
+		end
+	end
+end
+
+-- Add a prefix to all forms
+function add_prefix(data, prefix)
+	for key, subforms in pairs(data.forms) do
+		for key2, subform in ipairs(subforms) do
+			data.forms[key][key2] = prefix .. subform
 		end
 	end
 end
