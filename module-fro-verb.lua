@@ -1080,8 +1080,8 @@ function inflect_imperfect(data, group, stems)
 	end
 end
 
--- Add to DATA the endings for the future and conditional based on the
--- future stem(s) in ARGS. If no future stems given, use STEM.
+-- Add to DATA the endings for the imperfect based on the
+-- imperfect stem(s) in ARGS. If no imperfect stems given, use STEM.
 function handle_imperfect(args, data, group, steme, stema, ier)
 	if not ine(args["imperf"]) and not ine(args["imperfa"]) then
 		inflect_imperfect(data, group, {{steme, stema, ier}})
