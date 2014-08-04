@@ -44,14 +44,6 @@ local function ine(x) -- If Not Empty
 	end
 end
 
-local function ined(x) -- If Not Empty or Dash
-	if x == "" or x == "-" then
-		return nil
-	else
-		return x
-	end
-end
-
 local function contains(tab, item)
 	for _, value in pairs(tab) do
 		if value == item then
