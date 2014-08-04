@@ -1012,10 +1012,10 @@ function inflect_future_cond(data, stems)
 			inflect_tense(data, "futr_indc", "", split_multipart(stem))
 		elseif ine(stem) then
 			inflect_tense(data, "futr_indc", stem,
-				{"ai","as","a","ons",{"ez","eiz"},"ont"})
+				{"ai","as","a","ons",{"oiz","eiz", "ez"},"ont"})
 			inflect_tense(data, "cond", stem,
 				{{"oie","eie"},{"oies","eies"},{"oit","eit"},
-				{"iens","iiens"},{"iez","iiez"},{"oient","eient"}})
+				{"iiens","iens"},{"iiez","iez"},{"oient","eient"}})
 		end
 	end
 end
