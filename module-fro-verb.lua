@@ -720,7 +720,7 @@ function inflect_tense_1(data, tense, stems, endings, pnums)
 		if type(stem) == "table" then stem = stem[i] end
 		-- Add entries for stem + endings
 		for j, ending in ipairs(ends) do
-			local form = stem .. ending
+			local form = type(stem) == "table" and stem[j] .. ending or stem ..ending
 			if ine(form) and form ~= "-" then
 				table.insert(data.forms[tense .. "_" .. pnums[i]], form)
 			end
@@ -762,7 +762,7 @@ function inflect_pres(data, tense, group, steme, stema, stems, ier, supe)
 			{"", "es", "e", "ons", i .. "ez", "ent"})
 	elseif tense == "pres_subj" and group == "iii" then
 		inflect_tense(data, tense,
-			{stems, stems, stems, stema, steme, stems},
+			{stems, stems, stems, ier and {steme, stema} or stema, steme, stems},
 			{"e", "es", "e", ier and {"iens", "ons"} or "ons", i .. "ez", "ent"})
 	else
 		inflect_tense(data, tense,
