@@ -16,6 +16,9 @@ Todo:
    between steme and stema forms uncustomizable. It's unclear it needs to be
    customizable and doing so adds a lot of complexity; if it needs to be
    controlled specially, it can be done using overrides or multipart stems.
+5. Make it possible to specify multiple stems to stem parameters separated
+   by commas. This is easiest for fut= but gets trickier for all the rest
+   because there are multiple parameters per stem.
 
 --]]
 
@@ -523,13 +526,21 @@ end
 
 -- Replaces terms with overridden ones that are given as additional named parameters.
 function process_overrides(args, data)
-	-- Each term in current is overridden by one in override, if it exists.
-	local function override(current, override)
+	-- Each term in current is overridden by one in overN, if it exists.
+	local function override(current, over)
 		current = current or {}
 		local ret = {}
 
 		local i = 1
 
+		local function getover(n)
+			if n == 1 then
+				return ine(args[over])
+			else
+				return ine(args[over .. n])
+			end
+		end
+		
 		-- Insert an override entry, possibly splitting on commas and
 		-- inserting multiple forms.
 		local function insert_override(entry)
@@ -545,10 +556,15 @@ function process_overrides(args, data)
 			end
 		end
 
-		-- First see if any of the existing items in current have an override specified.
+		-- Look for overrides at the beginning
+		if getover(0) then
+			insert_override(getover(0))
+		end
+		
+		-- See if any of the existing items in current have an override specified.
 		while current[i] do
-			if ine(override[i]) then
-				insert_override(override[i])
+			if getover(i) then
+				insert_override(getover(i))
 			else
 				table.insert(ret, current[i])
 			end
@@ -558,14 +574,19 @@ function process_overrides(args, data)
 
 		-- We've reached the end of current.
 		-- Look in the override list to see if there are any extra forms to add on to the end.
-		while override[i] do
-			if ine(override[i]) then
-				insert_override(override[i])
+		while i <= 9 do
+			if getover(i) then
+				insert_override(getover(i))
 			end
 
 			i = i + 1
 		end
 
+		-- Look for overrides at the end
+		if getover("n") then
+			insert_override(getover("n"))
+		end
+		
 		return ret
 	end
 
@@ -580,18 +601,14 @@ function process_overrides(args, data)
 		end
 	end
 	--[[
-
 	This function replaces former code like this:
 
-	data.forms.pret_indc_1sg = override(data.forms.pret_indc_1sg, {args["pret1s"], args["pret1s2"], args["pret1s3"]})
-	data.forms.pret_indc_2sg = override(data.forms.pret_indc_2sg, {args["pret2s"], args["pret2s2"], args["pret2s3"]})
-	data.forms.pret_indc_3sg = override(data.forms.pret_indc_3sg, {args["pret3s"], args["pret3s2"], args["pret3s3"]})
-	data.forms.pret_indc_1pl = override(data.forms.pret_indc_1pl, {args["pret1p"], args["pret1p2"], args["pret1p3"]})
-	data.forms.pret_indc_2pl = override(data.forms.pret_indc_2pl, {args["pret2p"], args["pret2p2"], args["pret2p3"]})
-	data.forms.pret_indc_3pl = override(data.forms.pret_indc_3pl, {args["pret3p"], args["pret3p2"], args["pret3p3"]})
-
-	except that there are 9 overrides for each tense-person-number combo,
-	not just 2 or 3.
+	data.forms.pret_indc_1sg = override(data.forms.pret_indc_1sg, "pret1s")
+	data.forms.pret_indc_2sg = override(data.forms.pret_indc_2sg, "pret2s")
+	data.forms.pret_indc_3sg = override(data.forms.pret_indc_3sg, "pret3s")
+	data.forms.pret_indc_1pl = override(data.forms.pret_indc_1pl, "pret1p")
+	data.forms.pret_indc_2pl = override(data.forms.pret_indc_2pl, "pret2p")
+	data.forms.pret_indc_3pl = override(data.forms.pret_indc_3pl, "pret3p")
 	--]]
 	local function handle_tense_override(tense, short)
 		local pnums = {"1sg", "2sg", "3sg", "1pl", "2pl", "3pl"}
@@ -599,17 +616,17 @@ function process_overrides(args, data)
 		for pn = 1, #pnums do
 			local pnum = pnums[pn]
 			local pnum_short = pnums_short[pn]
-			local theargs = get_args(args, short .. pnum_short)
 			local tensepnum = tense .. "_" .. pnum
-			data.forms[tensepnum] = override(data.forms[tensepnum], theargs)
+			data.forms[tensepnum] =
+				override(data.forms[tensepnum], short .. pnum_short)
 		end
 	end
 
 
 	-- Non-finite forms
-	data.forms.infinitive = override(data.forms.infinitive, {args["inf"]})
-	data.forms.pres_ptc = override(data.forms.pres_ptc, get_args(args, "presp"))
-	data.forms.past_ptc = override(data.forms.past_ptc, get_args(args, "pastp"))
+	data.forms.infinitive = override(data.forms.infinitive, "inf")
+	data.forms.pres_ptc = override(data.forms.pres_ptc, "presp")
+	data.forms.past_ptc = override(data.forms.past_ptc, "pastp")
 
 	handle_tense_override("pres_indc", "pres") -- Present
 	handle_tense_override("impf_indc", "imperf") -- Imperfect
@@ -620,9 +637,9 @@ function process_overrides(args, data)
 	handle_tense_override("impf_subj", "impsub") -- Imperfect subjunctive
 
 	-- Imperative
-	data.forms.impr_2sg = override(data.forms.impr_2sg, get_args(args, "imp2s"))
-	data.forms.impr_1pl = override(data.forms.impr_1pl, get_args(args, "imp1p"))
-	data.forms.impr_2pl = override(data.forms.impr_2pl, get_args(args, "imp2p"))
+	data.forms.impr_2sg = override(data.forms.impr_2sg, "imp2s")
+	data.forms.impr_1pl = override(data.forms.impr_1pl, "imp1p")
+	data.forms.impr_2pl = override(data.forms.impr_2pl, "imp2p")
 end
 
 -- Adds reflexive pronouns to the appropriate forms
@@ -730,7 +747,7 @@ function inflect_tense_1(data, tense, stems, endings, pnums)
 		if type(stem) == "table" then stem = stem[i] end
 		-- Add entries for stem + endings
 		for j, ending in ipairs(ends) do
-			local form = type(stem) == "table" and stem[j] .. ending or stem ..ending
+			local form = stem ..ending
 			if ine(form) and form ~= "-" then
 				table.insert(data.forms[tense .. "_" .. pnums[i]], form)
 			end
@@ -771,9 +788,10 @@ function inflect_pres(data, tense, group, steme, stema, stems, ier, supe)
 			{add_zero(stems, ier, supe), stems, stems, stema, steme, stems},
 			{"", "es", "e", "ons", i .. "ez", "ent"})
 	elseif tense == "pres_subj" and group == "iii" then
-		inflect_tense(data, tense,
-			{stems, stems, stems, ier and {steme, stema} or stema, steme, stems},
-			{"e", "es", "e", ier and {"iens", "ons"} or "ons", i .. "ez", "ent"})
+		inflect_tense(data, tense, "",
+			{stems .. "e", stems .. "es", stems .. "e",
+			 ier and {steme .. "iens", stema .. "ons"} or stema .. "ons",
+			 steme .. i .. "ez", stems .. "ent"})
 	else
 		inflect_tense(data, tense,
 			{add_zero(stems, ier, supe), add_s(stems, ier, supe),
@@ -932,6 +950,9 @@ end
 -- subjunctive, with unstressed stem STEMU, stressed stem STEMS,
 -- conjugation type PTY and corresponding value of IMPSUB.
 function inflect_pret_impf_subj(data, stemu, stems, pty, impsub)
+	if pty == "strong-i" and rfind(stemu, "[aeiou]$") then
+		pty = "strong-iv"
+	end
 	-- WARNING: If the second person singular of any of these is not a
 	-- simple string, you will need to modify the handling below of
 	-- the imperfect subjunctive, which relies on this form.
@@ -946,6 +967,7 @@ function inflect_pret_impf_subj(data, stemu, stems, pty, impsub)
 	pty == "weak-i" and {"i","is",{"i","iṭ"},"imes","istes","irent"} or
 	pty == "weak-i2" and {"i","is",{"ié","iéṭ"},"imes","istes","ierent"} or
 	pty == "strong-i" and {"","is","t","imes","istes","rent"} or
+	pty == "strong-iv" and {"","ïs","t","ïmes","ïstes","rent"} or
 	pty == "strong-id" and {"","is","t","imes","istes",{"drent","rent"}} or
 	pty == "weak-u" and {"ui","us",{"u","uṭ"},"umes","ustes","urent"} or
 	pty == "strong-u" and {"ui","eüs","ut","eümes","eüstes","urent"} or
@@ -956,11 +978,11 @@ function inflect_pret_impf_subj(data, stemu, stems, pty, impsub)
 	error("Unspecified prettype value")
 
 	-- Always use weak stem unless we have strong-stem endings
-	local stems =
+	local all_stems =
 		(rfind(pty, "^strong-") and {stems, stemu, stems, stemu, stemu, stems}
 			or stemu)
 
-	inflect_tense(data, "pret_indc", stems, all_endings)
+	inflect_tense(data, "pret_indc", all_stems, all_endings)
 
 	-- Handle imperfect subj, which follows the same types as the preterite
 	-- and is built off of the 2nd person singular form, although we need to
