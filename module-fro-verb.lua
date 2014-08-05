@@ -534,11 +534,7 @@ function process_overrides(args, data)
 		local i = 1
 
 		local function getover(n)
-			if n == 1 then
-				return ine(args[over])
-			else
-				return ine(args[over .. n])
-			end
+			return ine(args[over .. n])
 		end
 		
 		-- Insert an override entry, possibly splitting on commas and
@@ -559,6 +555,12 @@ function process_overrides(args, data)
 		-- Look for overrides at the beginning
 		if getover(0) then
 			insert_override(getover(0))
+		end
+		
+		-- Look for override of all current forms
+		if getover("") then
+			current = {}
+			insert_override(getover(""))
 		end
 		
 		-- See if any of the existing items in current have an override specified.
