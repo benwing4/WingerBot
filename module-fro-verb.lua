@@ -8,15 +8,11 @@ Todo:
 2. Go through at the beginning of froconj() and trim all arguments using
    mw.text.trim() so extra spaces can be included, and remove calls to
    mw.text.trim() elsewhere.
-3. Clean up handling of preterite and imperfect subjunctive in type-I verbs,
-   making it use handle_pret_impf_subj(). Then change 'ester' to be a type-I
-   verb (currently it's type-III to change the pret/imp-subj stem). This
-   requires dealing with the steme vs. stema distinction.
-4. Possibly, eliminate all of the stema-related params, making the conversion
+3. Possibly, eliminate all of the stema-related params, making the conversion
    between steme and stema forms uncustomizable. It's unclear it needs to be
    customizable and doing so adds a lot of complexity; if it needs to be
    controlled specially, it can be done using overrides or multipart stems.
-5. Make it possible to specify multiple stems to stem parameters separated
+4. Make it possible to specify multiple stems to stem parameters separated
    by commas. This is easiest for fut= but gets trickier for all the rest
    because there are multiple parameters per stem.
 
@@ -37,7 +33,9 @@ local rsub = mw.ustring.gsub
 local rmatch = mw.ustring.match
 
 local function ine(x) -- If Not Empty
-	if x == "" then
+	if x == '""' or x == "''" then
+		return ""
+	elseif x == "" then
 		return nil
 	else
 		return x
@@ -62,8 +60,8 @@ end
 ----------------------------------------------------------------------------
 -- Functions for working with stems
 
--- Given the stem as it appears before a soft-vowel ending (e/i), generate
--- the corresponding stem for a hard-vowel ending (a/o/u).
+-- Given the stem as it appears before e/i, generate the corresponding
+-- stem for a/o.
 function steme_to_stema(steme)
 	if rfind(steme, "c$") then
 		-- Need to assign to a var because rsub returns 2 values, and
@@ -78,8 +76,8 @@ function steme_to_stema(steme)
 	end
 end
 
--- Given the stem as it appears before a hard-vowel ending, generate
--- the corresponding stem for a soft-vowel ending.
+-- Given the stem as it appears before a/o, generate the corresponding
+-- stem for e/i.
 function stema_to_steme(stema)
 	if rfind(stema, "c$") then
 		-- Need to assign to a var because rsub returns 2 values, and
@@ -95,6 +93,28 @@ function stema_to_steme(stema)
 	else
 		return stema
 	end
+end
+
+-- Given the stem as it appears before a/o, generates the corresponding
+-- stem for u.
+function stema_to_stemu(stema)
+	if rfind(stema, "qu$") then
+		-- Need to assign to a var because rsub returns 2 values, and
+		-- assigning to one var fetches only the first one
+		local stemu = rsub(stema, "qu$", "c")
+		return stemu
+	elseif rfind(stema, "gu$") then
+		local stemu = rsub(stema, "gu$", "g")
+		return stemu
+	else
+		return stema
+	end
+end
+
+-- Given the stem as it appears before e/i, generates the corresponding
+-- stem for u.
+function steme_to_stemu(steme)
+	return stema_to_stemu(steme_to_stema(steme))
 end
 
 -- Get the stem from the infinitive. Return stem and whether stem is
@@ -149,9 +169,9 @@ end
 -- specifying the stem. (We assume this anyway in the case of any '-ir'
 -- verb whose stem ends in '-o', such as 'oir' "to hear".)
 local function get_stem_from_frame(frame)
-	local stem = frame.args[1]
+	local stem = ine(frame.args[1])
 	-- if stem passed in and non-blank, use it.
-	if ine(stem) then
+	if stem then
 		return stem
 	end
 	local inf = mw.title.getCurrentTitle().text
@@ -357,6 +377,10 @@ function add_r(stem)
 		ret = stem .. "br"
 	elseif rfind(stem, "i?ll?$") then
 		ret = rsub(stem, "i?ll?$", "udr")
+	elseif rfind(stem, "qu$") then
+		ret = rsub(stem, "qu$", "cr")
+	elseif rfind(stem, "gu$") then
+		ret = rsub(stem, "gu$", "gr")
 	elseif rfind(stem, "[^aeiou]r$") then
 		ret = stem .. "er"
 	end
@@ -400,7 +424,7 @@ end
 -- the unstressed stem before e/i, STEMA the unstressed stem before a/o/u,
 -- STEMS the stressed stem. See get_endings() for meaning of IER and SUPE.
 function verb_comment(args, group, steme, stema, stems, ier, supe)
-	if ine(args["comment"]) then
+	if args["comment"] then
 		return mw.text.trim(args["comment"]) .. " "
 	end
 	local com = group == "i" and phonetic_verb_comment(stems, ier, supe) or ""
@@ -421,27 +445,31 @@ end
 -- Main entry point
 function export.froconj(frame)
 	local args = frame:getParent().args
+	for k, v in pairs(args) do
+		args[k] = ine(v)
+	end
 
 	-- Create the forms
 	local data = {forms = {}, categories = {}, comment = "",
-	refl = ine(args["refl"]),
-	ier = ine(args["ier"]) or ine(frame.args["ier"]),
-	supe = ine(args["supe"]) or ine(frame.args["supe"])
+	refl = args["refl"],
+	ier = args["ier"] or ine(frame.args["ier"]),
+	supe = args["supe"] or ine(frame.args["supe"])
 	}
 
-	data.forms.aux = {data.refl and "estre" or mw.text.trim(ine(args["aux"]) or "avoir")}
+	data.forms.aux = {data.refl and "estre" or mw.text.trim(args["aux"] or "avoir")}
 
 	data.forms.infinitive =
-		{ine(args["inf"]) or mw.title.getCurrentTitle().text}
+		{args["inf"] or mw.title.getCurrentTitle().text}
+	data.inf_from_title = not args["inf"]
 
 	-- Set the soft vowel ('pres') and hard vowel ('presa') present stems.
 	-- They can be explicitly set using 'pres' and 'presa' params.
 	-- If one is set, the other is inferred from it. If neither is set,
 	-- both are inferred from the infinitive.
-	data.prese = ine(args["pres"]) and not rfind(args["pres"], "/") and args["pres"] or
-		ine(args["prese"]) or
-		ine(args[1]) -- for compatibility
-	data.presa = ine(args["presa"])
+	data.prese = args["pres"] and not rfind(args["pres"], "/") and args["pres"] or
+		args["prese"] or
+		args[1] -- for compatibility
+	data.presa = args["presa"]
 	local inf_stem, inf_ending, inf_is_soft =
 		get_stem_from_inf(data.forms.infinitive[1], data.ier)
 	if not data.prese and not data.presa then
@@ -456,8 +484,8 @@ function export.froconj(frame)
 
 	-- Find what type of verb is it (hard-coded in the template).
 	-- Generate standard conjugated forms for each type of verb.
-	local infl_type = frame.args["type"]
-	if not ine(infl_type) then
+	local infl_type = ine(frame.args["type"])
+	if not infl_type then
 		error("Verb type ('type' arg) not specified.")
 	elseif inflections[infl_type] then
 		inflections[infl_type](args, data)
@@ -472,7 +500,7 @@ function export.froconj(frame)
 	process_overrides(args, data)
 
 	-- Add a prefix if specified
-	local prefix = ine(args["prefix"])
+	local prefix = args["prefix"]
 	if prefix then
 		add_prefix(data, prefix)
 	end
@@ -501,22 +529,22 @@ end
 -- {{args["foo"],args["bar"]},{args["foo2"],args["bar2"]},...,{args["foo9"],args["bar9"]}}
 function get_args(args, argbase)
 	if type(argbase) == "string" then
-		local theargs = {args[argbase] or ""}
+		local theargs = {args[argbase]}
 		for j = 2, 9 do
-			table.insert(theargs, args[argbase .. j] or "")
+			table.insert(theargs, args[argbase .. j])
 		end
 		return theargs
 	else
 		local theargs = {}
 		local onearg = {}
 		for i, item in ipairs(argbase) do
-			table.insert(onearg, args[item] or "")
+			table.insert(onearg, args[item])
 		end
 		table.insert(theargs, onearg)
 		for j = 2, 9 do
 			onearg = {}
 			for i, item in ipairs(argbase) do
-				table.insert(onearg, args[item .. j] or "")
+				table.insert(onearg, args[item .. j])
 			end
 			table.insert(theargs, onearg)
 		end
@@ -534,7 +562,7 @@ function process_overrides(args, data)
 		local i = 1
 
 		local function getover(n)
-			return ine(args[over .. n])
+			return args[over .. n]
 		end
 		
 		-- Insert an override entry, possibly splitting on commas and
@@ -650,22 +678,21 @@ function add_reflexive_pronouns(args, data)
 	local cprons = {}
 	local vprons = {}
 
-	cprons["1sg"] = ine(args["me"]) or "me "
-	cprons["2sg"] = ine(args["te"]) or "te "
-	cprons["3sg"] = ine(args["se"]) or "se "
-	cprons["1pl"] = ine(args["nos"]) or "nos "
-	cprons["2pl"] = ine(args["vos"]) or "vos "
+	cprons["1sg"] = args["me"] or "me "
+	cprons["2sg"] = args["te"] or "te "
+	cprons["3sg"] = args["se"] or "se "
+	cprons["1pl"] = args["nos"] or "nos "
+	cprons["2pl"] = args["vos"] or "vos "
 	cprons["3pl"] = cprons["3sg"]
 
-	vprons["1sg"] = ine(args["me"]) or "m'"
-	vprons["2sg"] = ine(args["te"]) or "t'"
-	vprons["3sg"] = ine(args["se"]) or "s'"
-	vprons["1pl"] = ine(args["nos"]) or "nos "
-	vprons["2pl"] = ine(args["vos"]) or "vos "
+	vprons["1sg"] = args["me"] or "m'"
+	vprons["2sg"] = args["te"] or "t'"
+	vprons["3sg"] = args["se"] or "s'"
+	vprons["1pl"] = args["nos"] or "nos "
+	vprons["2pl"] = args["vos"] or "vos "
 	vprons["3pl"] = vprons["3sg"]
 
 	function add_refl(person, form)
-		mw.log(form)
 		-- FIXME! YUCK! This hard-codes knowledge of how the links are formatted.
 		-- Perhaps we should go back to the old way of having the reflexive code
 		-- also insert links.
@@ -720,8 +747,12 @@ end
 -- Add a prefix to all forms
 function add_prefix(data, prefix)
 	for key, subforms in pairs(data.forms) do
-		for key2, subform in ipairs(subforms) do
-			data.forms[key][key2] = prefix .. subform
+		-- Don't put prefix in front of aux, nor in front of infinitive
+		-- that comes from the page title.
+		if key ~= "aux" and (key ~= "infinitive" or not data.inf_from_title) then
+			for key2, subform in ipairs(subforms) do
+				data.forms[key][key2] = prefix .. subform
+			end
 		end
 	end
 end
@@ -749,7 +780,7 @@ function inflect_tense_1(data, tense, stems, endings, pnums)
 		if type(stem) == "table" then stem = stem[i] end
 		-- Add entries for stem + endings
 		for j, ending in ipairs(ends) do
-			local form = stem ..ending
+			local form = stem .. ending
 			if ine(form) and form ~= "-" then
 				table.insert(data.forms[tense .. "_" .. pnums[i]], form)
 			end
@@ -826,7 +857,7 @@ function split_multipart(str, numreq)
 end
 
 function handle_pres(args, data, group, steme, stema, stems, ier, supe)
-	if ine(args["pres"]) and rfind(args["pres"], "/") then
+	if args["pres"] and rfind(args["pres"], "/") then
 		inflect_tense(data, "pres_indc", "", split_multipart(args["pres"]))
 	else
 		inflect_pres(data, "pres_indc", group, steme, stema, stems, ier, supe)
@@ -835,8 +866,8 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 	-- Else, derive both from the indicative.
 	-- If subs not set, derive from subv if either subv or subc set, else
 	-- derive from the indicative.
-	local sub_steme = ine(args["sub"])
-	local sub_stema = ine(args["suba"])
+	local sub_steme = args["sub"]
+	local sub_stema = args["suba"]
 	local sub_dash = sub_steme == "-" or sub_stema == "-"
 	local sub_specified = sub_steme or sub_stema
 	if sub_steme and rfind(sub_steme, "/") then
@@ -848,18 +879,18 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 		end
 		if not sub_steme then sub_steme = stema_to_steme(sub_stema) end
 		if not sub_stema then sub_stema = steme_to_stema(sub_steme) end
-		local sub_stems = ine(args["subs"])
+		local sub_stems = args["subs"]
 		if not sub_stems then
 			sub_stems = sub_specified and sub_steme or stems
 		end
 		inflect_pres(data, "pres_subj", group, sub_steme, sub_stema, sub_stems,
-			ine(args["subier"]) or (not sub_specified and ier),
-			ine(args["subsupe"]) or (not sub_specified and supe))
+			args["subier"] or (not sub_specified and ier),
+			args["subsupe"] or (not sub_specified and supe))
 	end
 
 	-- Repeat exactly for the imperative.
-	local imp_steme = ine(args["imp"])
-	local imp_stema = ine(args["impa"])
+	local imp_steme = args["imp"]
+	local imp_stema = args["impa"]
 	local imp_dash = imp_steme == "-" or imp_stema == "-"
 	local imp_specified = imp_steme or imp_stema
 	if imp_steme and rfind(imp_steme, "/") then
@@ -871,20 +902,20 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 		end
 		if not imp_steme then imp_steme = stema_to_steme(imp_stema) end
 		if not imp_stema then imp_stema = steme_to_stema(imp_steme) end
-		local imp_stems = ine(args["imps"])
+		local imp_stems = args["imps"]
 		if not imp_stems then
 			imp_stems = imp_specified and imp_steme or stems
 		end
 		inflect_pres(data, "impr", group, imp_steme, imp_stema, imp_stems,
-			ine(args["impier"]) or (not imp_specified and ier),
-			ine(args["impsupe"]) or (not imp_specified and supe))
+			args["impier"] or (not imp_specified and ier),
+			args["impsupe"] or (not imp_specified and supe))
 	end
 
 	-- If indic stem specified, we add indic values, and also corresponding
 	-- subj values if separate subj stem not specified.
 	for i = 2, 9 do
-		steme = ine(args["pres" .. i])
-		stema = ine(args["presa" .. i])
+		steme = args["pres" .. i]
+		stema = args["presa" .. i]
 		local multi_indic = steme and rfind(steme, "/")
 		local indic_specified = not multi_indic and (steme or stema)
 		if multi_indic then
@@ -892,15 +923,15 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 		elseif indic_specified then
 			if not steme then steme = stema_to_steme(stema) end
 			if not stema then stema = steme_to_stema(steme) end
-			stems = ine(args["press" .. i]) or steme
-			ier = ine(args["ier" .. i])
-			supe = ine(args["supe" .. i])
+			stems = args["press" .. i] or steme
+			ier = args["ier" .. i]
+			supe = args["supe" .. i]
 			inflect_pres(data, "pres_indc", group, steme, stema, stems, ier, supe)
 		end
 
 		-- Handle subjunctive as above.
-		sub_steme = ine(args["sub" .. i])
-		sub_stema = ine(args["suba" .. i])
+		sub_steme = args["sub" .. i]
+		sub_stema = args["suba" .. i]
 		sub_dash = sub_steme == "-" or sub_stema == "-"
 		sub_specified = sub_steme or sub_stema
 		if sub_steme and rfind(sub_steme, "/") then
@@ -912,19 +943,19 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 			end
 			if not sub_steme then sub_steme = stema_to_steme(sub_stema) end
 			if not sub_stema then sub_stema = steme_to_stema(sub_steme) end
-			sub_stems = ine(args["subs" .. i])
+			sub_stems = args["subs" .. i]
 			if not sub_stems then
 				sub_stems = sub_specified and sub_steme or stems
 			end
 			inflect_pres(data, "pres_subj", group, sub_steme, sub_stema,
 				sub_stems,
-				ine(args["subier" .. i]) or (not sub_specified and ier),
-				ine(args["subsupe" .. i]) or (not sub_specified and supe))
+				args["subier" .. i] or (not sub_specified and ier),
+				args["subsupe" .. i] or (not sub_specified and supe))
 		end
 
 		-- Repeat for the imperative.
-		imp_steme = ine(args["imp" .. i])
-		imp_stema = ine(args["impa" .. i])
+		imp_steme = args["imp" .. i]
+		imp_stema = args["impa" .. i]
 		imp_dash = imp_steme == "-" or imp_stema == "-"
 		imp_specified = imp_steme or imp_stema
 		if imp_steme and rfind(imp_steme, "/") then
@@ -936,34 +967,50 @@ function handle_pres(args, data, group, steme, stema, stems, ier, supe)
 			end
 			if not imp_steme then imp_steme = stema_to_steme(imp_stema) end
 			if not imp_stema then imp_stema = steme_to_stema(imp_steme) end
-			imp_stems = ine(args["imps" .. i])
+			imp_stems = args["imps" .. i]
 			if not imp_stems then
 				imp_stems = imp_specified and imp_steme or stems
 			end
 			inflect_pres(data, "impr", group, imp_steme, imp_stema,
 				imp_stems,
-				ine(args["impier" .. i]) or (not imp_specified and ier),
-				ine(args["impsupe" .. i]) or (not imp_specified and supe))
+				args["impier" .. i] or (not imp_specified and ier),
+				args["impsupe" .. i] or (not imp_specified and supe))
 		end
 	end
 end
 
 -- Add to DATA the endings for the preterite and imperfect
--- subjunctive, with unstressed stem STEMU, stressed stem STEMS,
+-- subjunctive, with unstressed e/i stem STEME, stressed e/i stem STEMS,
 -- conjugation type PTY and corresponding value of IMPSUB.
-function inflect_pret_impf_subj(data, stemu, stems, pty, impsub)
-	if pty == "strong-i" and rfind(stemu, "[aeiou]$") then
-		pty = "strong-iv"
-	end
-	-- WARNING: If the second person singular of any of these is not a
-	-- simple string, you will need to modify the handling below of
-	-- the imperfect subjunctive, which relies on this form.
-	local all_endings =
-	-- FIXME: weak-a (-er) and weak-a2 (-ier) are handled separately by the
-	-- handlers for -er and -ier. In any case the code here doesn't
-	-- properly handle the steme vs. stema distinction necessary for these
-	-- verbs.
-	--
+function inflect_pret_impf_subj(data, stem, all_props) -- steme, stems, pty, impsub)
+	for _, props in ipairs(all_props) do
+		local pty = props[1]
+		local pret = props[2]
+		local pretu = props[3]
+		local prets = props[4]
+		local impsub = props[5]
+		local steme = pretu or pret or stem
+		local stems = prets or pretu or pret or stem
+		if pret and rfind(pret, "/") then
+			inflect_tense(data, "pret_indc", "", split_multipart(pret))
+			inflect_impf_subj(data, impsub, "", nil)
+		elseif pty then
+			local stema = steme_to_stema(steme)
+			local stemu = steme_to_stemu(steme)
+			local stemsa = steme_to_stema(stems)
+			local stemsu = steme_to_stemu(stems)
+			if pty == "strong-i" and rfind(steme, "[aeiou]$") then
+				pty = "strong-iv"
+			end
+			-- WARNING: If the second person singular of any of these is not a
+			-- simple string, you will need to modify the handling below of
+			-- the imperfect subjunctive, which relies on this form.
+			local all_endings =
+			-- FIXME: weak-a (-er) and weak-a2 (-ier) are handled separately by
+			-- the handlers for -er and -ier. In any case the code here doesn't
+			-- properly handle the steme vs. stema distinction necessary for
+			-- these verbs.
+			--
 	pty == "weak-a" and {"ai","as",{"a","aṭ"},"ames","astes","erent"} or
 	pty == "weak-a2" and {"ai","as",{"a","aṭ"},"ames","astes","ierent"} or
 	pty == "weak-i" and {"i","is",{"i","iṭ"},"imes","istes","irent"} or
@@ -976,33 +1023,44 @@ function inflect_pret_impf_subj(data, stemu, stems, pty, impsub)
 	pty == "strong-o" and {"oi","eüs","ot","eümes","eüstes","orent"} or
 	pty == "strong-st" and {"s","sis","st","simes","sistes","strent"} or
 	pty == "strong-sd" and {"s","ṣis","st","ṣimes","ṣistes","sdrent"} or
-	ine(pty) and error("Unrecognized prettype value '" .. pty .. "'") or
-	error("Unspecified prettype value")
+	error("Unrecognized prettype value '" .. pty .. "'")
 
-	-- Always use weak stem unless we have strong-stem endings
-	local all_stems =
-		(rfind(pty, "^strong-") and {stems, stemu, stems, stemu, stemu, stems}
-			or stemu)
+			-- Always use one of the weak stems unless we have strong-stem endings
+			local all_stems =
+			-- need the % here to escape the dash, which otherwise stands for a
+			-- character range???????
+	rfind(pty, "^weak%-a") and {stema, stema, stema, stema, stema, steme} or
+	pty == "strong-u" and {stemsu, steme, stemsu, steme, steme, stemsu} or
+	pty == "strong-o" and {stemsa, steme, stemsa, steme, steme, stemsa} or
+	rfind(pty, "^strong-") and {stems, steme, stems, steme, steme, stems} or
+	pty == "weak-u" and {stemu, stemu, stemu, stemu, stemu, stemu} or
+	{steme, steme, steme, steme, steme, steme}
 
-	inflect_tense(data, "pret_indc", all_stems, all_endings)
+			inflect_tense(data, "pret_indc", all_stems, all_endings)
+			inflect_impf_subj(data, impsub, all_stems[2] .. all_endings[2], pty)
+		end
+	end
+end
 
+function inflect_impf_subj(data, impsub, fallback, pty)
 	-- Handle imperfect subj, which follows the same types as the preterite
 	-- and is built off of the 2nd person singular form, although we need to
 	-- special-case weak-a and weak-a2
 	local impsub_endings =
 		{"se","ses","t",{"sons","siens"},{"soiz","sez","siez"},"sent"}
-	impsub = ine(impsub)
 	if impsub and rfind(impsub, "/") then
 		inflect_tense(data, "impf_subj", "", split_multipart(impsub))
 	elseif impsub then
 		inflect_tense(data, "impf_subj", impsub, impsub_endings)
-	elseif pty == "weak-a" or pty == "weak-a2" then
-		inflect_tense(data, "impf_subj", stemu,
+	-- need the % here to escape the dash, which otherwise stands for a
+	-- character range???????
+	elseif pty and rfind(pty, "^weak%-a") then
+		inflect_tense(data, "impf_subj",
+		    {stema, stema, stema, steme, steme, stema},
 			{"asse","asses","ast",
 			 {"issons","issiens"},{"issoiz","issez","issiez"},"assent"})
-	else
-		inflect_tense(data, "impf_subj", stemu .. all_endings[2],
-			impsub_endings)
+	elseif pty then
+		inflect_tense(data, "impf_subj", fallback, impsub_endings)
 	end
 end
 
@@ -1015,25 +1073,10 @@ end
 -- If no preterite ending types given, default to the preterite type in PTY and
 -- stressed/unstressed stem STEM.
 function handle_pret_impf_subj(args, data, stem, pty)
-	if ine(args["pret"]) and rfind(args["pret"], "/") then
-		inflect_tense(data, "pret_indc", "", split_multipart(args["pret"]))
-	elseif not ine(args["prettype"]) then
-		inflect_pret_impf_subj(data, stem, stem, pty, args["impsub"])
+	if not args["pret"] and not args["prettype"] then
+		inflect_pret_impf_subj(data, stem, {{pty, stem, stem, stem, args["impsub"]}})
 	else
-		inflect_pret_impf_subj(data,
-			ine(args["pretu"]) or ine(args["pret"]) or stem,
-			ine(args["prets"]) or ine(args["pretu"]) or ine(args["pret"]) or stem,
-			args["prettype"], args["impsub"])
-	end
-	for i = 2, 9 do
-		if ine(args["pret" .. i]) and rfind(args["pret" .. i], "/") then
-			inflect_tense(data, "pret_indc", "", split_multipart(args["pret" .. i]))
-		elseif ine(args["prettype" .. i]) then
-			inflect_pret_impf_subj(data,
-				ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
-				ine(args["prets" .. i]) or ine(args["pretu" .. i]) or ine(args["pret" .. i]) or stem,
-				args["prettype" .. i], args["impsub" .. i])
-		end
+		inflect_pret_impf_subj(data, stem, get_args(args, {"prettype", "pret", "pretu", "prets", "impsub"}))
 	end
 end
 
@@ -1042,9 +1085,9 @@ end
 -- Values in STEM that are empty are ignored.
 function inflect_future_cond(data, stems)
 	for _, stem in ipairs(stems) do
-		if ine(stem) and rfind(stem, "/") then
+		if stem and rfind(stem, "/") then
 			inflect_tense(data, "futr_indc", "", split_multipart(stem))
-		elseif ine(stem) then
+		elseif stem then
 			inflect_tense(data, "futr_indc", stem,
 				{"ai","as","a","ons",{"oiz","eiz", "ez"},"ont"})
 			inflect_tense(data, "cond", stem,
@@ -1057,7 +1100,7 @@ end
 -- Add to DATA the endings for the future and conditional based on the
 -- future stem(s) in ARGS. If no future stems given, use STEM.
 function handle_future_cond(args, data, stem)
-	if not ine(args["fut"]) then
+	if not args["fut"] then
 		inflect_future_cond(data, {stem})
 	else
 		inflect_future_cond(data, get_args(args, "fut"))
@@ -1070,9 +1113,9 @@ end
 -- empty are ignored.
 function inflect_imperfect(data, group, stems)
 	for _, stem in ipairs(stems) do
-		local steme = ine(stem[1])
-		local stema = ine(stem[2])
-		local ier = ine(stem[3])
+		local steme = stem[1]
+		local stema = stem[2]
+		local ier = stem[3]
 	    local i = ier and "i" or ""
 		if steme and rfind(steme, "/") then
 			inflect_tense(data, "impf_indc", "", split_multipart(steme))
@@ -1117,7 +1160,7 @@ end
 -- Add to DATA the endings for the imperfect based on the
 -- imperfect stem(s) in ARGS. If no imperfect stems given, use STEM.
 function handle_imperfect(args, data, group, steme, stema, ier)
-	if not ine(args["imperf"]) and not ine(args["imperfa"]) then
+	if not args["imperf"] and not args["imperfa"] then
 		inflect_imperfect(data, group, {{steme, stema, ier}})
 	else
 		inflect_imperfect(data, group, get_args(args, {"imperf","imperfa","imperfier"}))
@@ -1129,7 +1172,7 @@ end
 inflections["i"] = function(args, data)
 	local prese = data.prese
 	local presa = data.presa
-	local press = ine(args["press"]) or prese
+	local press = args["press"] or prese
 	local i = data.ier and "i" or ""
 
 	if data.ier then
@@ -1145,21 +1188,8 @@ inflections["i"] = function(args, data)
 
 	handle_pres(args, data, "i", prese, presa, press, data.ier, data.supe)
 	handle_imperfect(args, data, "i", prese, presa, data.ier)
-
-	data.forms.pret_indc_1sg = {presa .. "ai"}
-	data.forms.pret_indc_2sg = {presa .. "as"}
-	data.forms.pret_indc_3sg = {presa .. "a"}
-	data.forms.pret_indc_1pl = {presa .. "ames"}
-	data.forms.pret_indc_2pl = {presa .. "astes"}
-	data.forms.pret_indc_3pl = {prese .. i .. "erent"}
-
-	data.forms.impf_subj_1sg = {presa .. "asse"}
-	data.forms.impf_subj_2sg = {presa .. "asses"}
-	data.forms.impf_subj_3sg = {presa .. "ast"}
-	data.forms.impf_subj_1pl = {prese .. "issons"}
-	data.forms.impf_subj_2pl = {prese .. "issez", prese .. "issiez"}
-	data.forms.impf_subj_3pl = {presa .. "assent"}
-
+	handle_pret_impf_subj(args, data, prese,
+		data.ier and "weak-a2" or "weak-a")
 	handle_future_cond(args, data, prese .. "er")
 end
 
@@ -1202,7 +1232,7 @@ end
 inflections["iii"] = function(args, data)
 	local prese = data.prese
 	local presa = data.presa
-	local press = ine(args["press"]) or prese
+	local press = args["press"] or prese
 	local i = data.ier and "i" or ""
 
 	data.comment = "This verb conjugates as a third-group verb. "
