@@ -29,7 +29,9 @@ def do_vocalize(param, arabic, latin):
   return False
 
 # Attempt to vocalize parameter PARAM based on corresponding transliteration
-# parameter PARAMTR. Return True if both parameters found, False otherwise.
+# parameter PARAMTR. If both parameters found, return the vocalized Arabic if
+# different from unvocalized, else return True; if either parameter not found,
+# return False.
 def vocalize(template, param, paramtr):
   if template.has(param) and template.has(paramtr):
     arabic = unicode(template.get(param).value)
@@ -41,25 +43,37 @@ def vocalize(template, param, paramtr):
       oldtempl = "%s" % unicode(template)
       template.add(param, vocalized)
       uniprint("Replaced %s with %s" % (oldtempl, unicode(template)))
+      return vocalized
     return True
   else:
     return False
 
 def doparam(template, param):
+  paramschanged = []
   result = vocalize(template, param, param + "tr")
+  if isinstance(result, basestring):
+    paramschanged.append(param)
   i = 2
   while result:
-    result = vocalize(template, param + str(i), param + str(i) + "tr")
+    thisparam = param + str(i)
+    result = vocalize(template, thisparam, thisparam + "tr")
+    if isinstance(result, basestring):
+      paramschanged.append(thisparam)
     i += 1
+  return paramschanged
 
 def vocalize_head(page, template):
-  if not vocalize(template, "1", "tr"):
+  paramschanged = []
+  result = vocalize(template, "1", "tr")
+  if isinstance(result, basestring):
+    paramschanged.append("1")
+  if not result:
     pagetitle = page.title(withNamespace=False)
     if template.has("tr"):
       arabic = unicode(pagetitle)
       latin = unicode(template.get("tr").value)
       if not arabic or not latin:
-        return
+        return paramschanged
       vocalized = do_vocalize("page title", arabic, latin)
       if vocalized:
         oldtempl = "%s" % unicode(template)
@@ -67,31 +81,39 @@ def vocalize_head(page, template):
           template.add("1", vocalized, before="2")
         else:
           template.add("1", vocalized, before="tr")
+        paramschanged.append("1")
         uniprint("Replaced %s with %s" % (oldtempl, unicode(template)))
   i = 2
   result = True
   while result:
-    result = vocalize(template, "head" + str(i), "tr" + str(i))
+    thisparam = "head" + str(i)
+    result = vocalize(template, thisparam, "tr" + str(i))
+    if isinstance(result, basestring):
+      paramschanged.append(thisparam)
     i += 1
+  return paramschanged
 
 def fix(page, text):
+  actions_taken = []
+  numchanged = 0
   for template in text.filter_templates():
+    paramschanged = []
     if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
-      vocalize_head(page, template)
-      doparam(template, "pl")
-      doparam(template, "cpl")
-      doparam(template, "fpl")
-      doparam(template, "f")
-      doparam(template, "el")
-      doparam(template, "sing")
-      doparam(template, "coll")
-      doparam(template, "d")
-      doparam(template, "pauc")
-      doparam(template, "obl")
-      doparam(template, "fobl")
-      doparam(template, "plobl")
-      doparam(template, "dobl")
-  return text, "vocalize parameters"
+      paramschanged += vocalize_head(page, template)
+      for param in ["pl", "cpl", "fpl", "f", "el", "sing", "coll", "d", "pauc", "obl",
+          "fobl", "plobl", "dobl"]:
+        paramschanged += doparam(template, param)
+      numchanged += len(paramschanged)
+      if len(paramschanged) > 0:
+        if template.has("tr"):
+          tempname = "%s %s" % (template.name, unicode(template.get("tr").value))
+        else:
+          tempname = template.name
+        actions_taken.append("%s (%s)" % (', '.join(paramschanged), tempname))
+  changelog = "vocalize parameters: %s" % '; '.join(actions_taken)
+  #if numchanged > 0:
+  uniprint("Change log = %s" % changelog)
+  return text, changelog
 
 startFrom, upTo = blib.get_args()
 
