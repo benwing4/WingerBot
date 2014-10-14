@@ -125,6 +125,54 @@ before_diacritic_checking_subs = [
     [u"\\s([\u0627\u0671])\u064E?\u0644", {u"\u0627":u" al-", u"\u0671":u" l-"}]
 ]
 
+# Transliterate any words or phrases. OMIT_I3RAAB means leave out final
+# short vowels (ʾiʿrāb). FORCE_TRANSLATE causes even non-vocalized text to
+# be transliterated (normally the function checks for non-vocalized text and
+# returns None, since such text is ambiguous in transliteration).
+def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False):
+    for sub in before_diacritic_checking_subs:
+        text = rsub(text, sub[0], sub[1])
+
+    if not force_translate and not has_diacritics(text):
+        return None
+
+    ############# transformations after checking for diacritics ##############
+    # Replace plain alif with hamzatu l-waṣl when followed by fatḥa/ḍamma/kasra.
+    # Must go after handling of initial al-, which distinguishes alif-fatḥa
+    # from alif w/hamzatu l-waṣl. Must go before generation of ū and ī, which
+    # eliminate the ḍamma/kasra.
+    text = rsub(text, u"\u0627([\u064E\u064F\u0650])", u"\u0671\\1")
+    # ḍamma + waw not followed by a diacritic is ū, otherwise w
+    text = rsub(text, u"\u064F\u0648([^\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670])", u"ū\\1")
+    text = rsub(text, u"\u064F\u0648$", u"ū")
+    # kasra + yaa not followed by a diacritic is ī, otherwise y
+    text = rsub(text, u"\u0650\u064A([^\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670])", u"ī\\1")
+    text = rsub(text, u"\u0650\u064A$", u"ī")
+    # convert shadda to double letter.
+    text = rsub(text, u"(.)\u0651", u"\\1\\1")
+    if not omit_i3raab: # show ʾiʿrāb (desinential inflection) in transliteration
+        # tāʾ marbūṭa should not be rendered by -t if word-final even when
+        # ʾiʿrāb is shown; instead, use (t) before whitespace, nothing when final;
+        # but render final -اة as -āh, consistent with Wehr's dictionary
+        text = rsub(text, u"\u0627\u0629$", u"\u0627h")
+        text = rsub(text, u"\u0629$", u"")
+        text = rsub(text, u"\u0629\\s", u"(t) ")
+        text = rsub(text, u".", {
+            u"\u0629":u"t", u"\u064B":u"an", u"\u064D":u"in", u"\u064C":u"un",
+            u"\u064E":u"a", u"\u0650":u"i" , u"\u064F":u"u"
+        })
+    else:
+        text = rsub(text, u"\u0627\u0629$", u"\u0627h")
+        text = rsub(text, u"\u0629$", u"")
+        text = rsub(text, u"\u0629", u"(t)")
+        text = rsub(text, u"[\u064B\u064C\u064D]", u"")
+        text = rsub(text, u"[\u064E\u064F\u0650]\\s", u" ")
+        text = rsub(text, u"[\u064E\u064F\u0650]$", u"")
+    text = rsub(text, u".", tt)
+    text = rsub(text, u"aā", u"ā")
+
+    return text
+
 has_diacritics_subs = [
     # FIXME! What about lam-alif ligature?
     # remove punctuation and shadda
@@ -158,8 +206,8 @@ has_diacritics_subs = [
 ]
 
 def has_diacritics(text):
-    for _, sub in ipairs(has_diacritics_subs):
-        text = rsub(text, sub[1], sub[2])
+    for sub in has_diacritics_subs:
+        text = rsub(text, sub[0], sub[1])
     return len(text) == 0
 
 
@@ -350,7 +398,7 @@ def post_canonicalize_arabic(text):
 
 # Transliterate any words or phrases from Latin into Arabic script.
 # UNVOC is the unvocalized equivalent in Arabic. If unable to match, throw
-# an error if ERR, else return nil. This works by matching the
+# an error if ERR, else return None. This works by matching the
 # Latin to the unvocalized Arabic and inserting the appropriate diacritics
 # in the right places, so that ambiguities of Latin transliteration can be
 # correctly handled.
@@ -372,7 +420,7 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
     alen = len(ar)
     lind = [0] # index of next Latin character
     llen = len(la)
-    
+
     # attempt to match the current Arabic character against the current
     # Latin character(s). If no match, return False; else, increment the
     # Arabic and Latin pointers over the matched characters, add the Arabic
@@ -422,7 +470,7 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
                 # print "matched; lind is %s" % lind[0]
                 return True
         return False
-    
+
     def cant_match():
         if aind[0] < alen and lind[0] < llen:
             error("Unable to match Arabic character %s at index %s, Latin character %s at index %s" %
@@ -442,7 +490,7 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
     # handles short vowels and shadda. If this doesn't match either, and we
     # have left-over Arabic or Latin characters, we reject the whole match,
     # either returning False or signaling an error.
-    
+
     while aind[0] < alen or lind[0] < llen:
         matched = False
         if aind[0] < alen and match():
@@ -459,7 +507,7 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
                 cant_match()
             else:
                 return False
-    
+
     arabic = "".join(res)
     latin = "".join(lres)
     arabic = post_canonicalize_arabic(arabic)
@@ -534,7 +582,7 @@ tt_to_arabic_direct = {
 }
 
 # Transliterate any words or phrases from Latin into Arabic script.
-# POS, if not nil, is e.g. "noun" or "verb", controlling how to handle
+# POS, if not None, is e.g. "noun" or "verb", controlling how to handle
 # final -a.
 #
 # FIXME: NEEDS WORK. Works but ignores POS. Doesn't yet generate the correct
@@ -559,7 +607,9 @@ def test(latin, arabic):
         print result
     else:
         arabic, latin = result
-        print ("%s %s" % (arabic, latin)).encode('utf-8')
+        print ("tr_matching: %s %s" % (arabic, latin)).encode('utf-8')
+        trlatin = tr(arabic)
+        print ("tr(%s) = %s" % (arabic, trlatin)).encode('utf-8')
 
 def run_tests():
     test("katab", u"كتب")
