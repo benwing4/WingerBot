@@ -561,28 +561,39 @@ def test(latin, arabic):
         arabic, latin = result
         print ("%s %s" % (arabic, latin)).encode('utf-8')
 
-test("katab", u"كتب")
-test(u"kátab", u"كتب")
-test("katab", u"كتبٌ")
-test("kat", u"كتب") # should fail
-test("kataban", u"كتب") # should fail?
-test("dakhala", u"دخل")
-test("al-dakhala", u"الدخل")
-test("wa-dakhala", u"ودخل")
-test("wadakhala", u"ودخل")
-test("duuba", u"دوبة")
-test("duwba", u"دوبة")
-test("duubah", u"دوبة")
-test("duubaa", u"دوباة")
-test("duubaah", u"دوباة")
-test("al-duuba", u"اَلدّوبة")
-test("al-duuba", u"الدّوبة")
-test("al-duuba", u"الدوبة")
-test("al-kuuba", u"اَلْكوبة")
-test("al-kuuba", u"الكوبة")
-test(u"aṣdiqaa'", u"أَصدقاء")
-test(u"aṣdiqā́'", u"أَصدقاء")
-test(u"'aṣdiqā́'", u"أَصدقاء")
-test(u"aSdiqaa'", u"أَصدقاء")
-test("hudan", u"هُدًى")
-test("'animi", u"أنمي") # should fail
+def run_tests():
+    test("katab", u"كتب")
+    test(u"kátab", u"كتب")
+    test("katab", u"كتبٌ")
+    test("kat", u"كتب") # should fail
+    test("kataban", u"كتب") # should fail?
+    test("dakhala", u"دخل")
+    test("al-dakhala", u"الدخل")
+    test("wa-dakhala", u"ودخل")
+    test("wadakhala", u"ودخل")
+    test("duuba", u"دوبة")
+    test("duwba", u"دوبة")
+    test("duubah", u"دوبة")
+    test("duubaa", u"دوباة")
+    test("duubaah", u"دوباة")
+    test("al-duuba", u"اَلدّوبة")
+    test("al-duuba", u"الدّوبة")
+    test("al-duuba", u"الدوبة")
+    test("al-kuuba", u"اَلْكوبة")
+    test("al-kuuba", u"الكوبة")
+    test("baitu l-kuuba", u"بيت الكوبة")
+    test("bait al-kuuba", u"بيت الكوبة")
+    test("baitu l-kuuba", u"بيت ٱلكوبة")
+    test("diiba", u"ديبة")
+    test(u"aṣdiqaa'", u"أَصدقاء")
+    test(u"aṣdiqā́'", u"أَصدقاء")
+    test(u"'aṣdiqā́'", u"أَصدقاء")
+    test(u"aSdiqaa'", u"أَصدقاء")
+    test("hudan", u"هُدًى")
+    test("'animi", u"أنمي") # should fail
+
+if __name__ == "__main__":
+    run_tests()
+
+# For Vim, so we get 4-space indent
+# vim: set sw=4:
