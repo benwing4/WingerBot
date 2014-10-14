@@ -360,6 +360,8 @@ def post_canonicalize_latin(text):
     text = rsub(text, u"iī", u"ī")
     text = rsub(text, u"oō", u"ō")
     text = rsub(text, u"uū", u"ū")
+    # Convert shadda back to double letter
+    text = rsub(text, u"(.)\u0651", u"\\1\\1")
     return text
 
 def canonicalize_arabic(unvoc):
