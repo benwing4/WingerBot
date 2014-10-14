@@ -23,7 +23,7 @@ def error(msg):
     raise RuntimeError(msg)
 
 zwnj = u"\u200c" # zero-width non-joiner
-#zwj = u"\u200d" # zero-width joiner
+zwj  = u"\u200d" # zero-width joiner
 #lrm = u"\u200e" # left-to-right mark
 #rlm = u"\u200f" # right-to-left mark
 
@@ -39,7 +39,7 @@ tt = {
     # \u0629 = tāʾ marbūṭa = ة
     # control characters
     zwnj:"-", # ZWNJ (zero-width non-joiner)
-    # zwj:"", # ZWJ (zero-width joiner)
+    zwj:"-", # ZWJ (zero-width joiner)
     # rare letters
     u"پ":u"p", u"چ":u"č", u"ڤ":u"v", u"گ":u"g", u"ڨ":u"g", u"ڧ":u"q",
     # semivowels or long vowels, alif, hamza, special letters
@@ -275,8 +275,8 @@ tt_to_arabic_matching = {
     # so that we have -a but -āh.
     u"ة":[u"h",[u"t"],[u"(t)"],u""],
     # control characters
-    zwnj:[u"-",u""], # ZWNJ (zero-width non-joiner)
-    # zwj:"", # ZWJ (zero-width joiner)
+    zwnj:[u"-"],#,u""], # ZWNJ (zero-width non-joiner)
+    zwj:[u"-"],#,u""], # ZWJ (zero-width joiner)
     # rare letters
     u"پ":u"p", u"چ":[u"č",u"ch"], u"ڤ":u"v", u"گ":u"g", u"ڨ":u"g", u"ڧ":u"q",
     # semivowels or long vowels, alif, hamza, special letters
@@ -646,6 +646,11 @@ def run_tests():
     test("al-dakhala", u"الدخل")
     test("al-la:zim", u"اللازم")
     test("wa-dakhala", u"ودخل")
+    # The Arabic of the following consists of wāw + fatḥa + ZWJ + dāl + ḵāʾ + lām.
+    test("wa-dakhala", u"وَ‍دخل")
+    # The Arabic of the following two consists of wāw + ZWJ + dāl + ḵāʾ + lām.
+    test("wa-dakhala", u"و‍دخل")
+    test("wadakhala", u"و‍دخل") # should fail, ZWJ must match hyphen
     test("wadakhala", u"ودخل")
     # Six different ways of spelling a long ū. uw should be preserved, others
     # mapped to ū. (We could avoid preserving uw if we were more sophisticated in
