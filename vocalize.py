@@ -12,7 +12,7 @@ def uniprint(x):
 # else False.
 def do_vocalize(param, arabic, latin):
   try:
-    vocalized = ar_translit.tr_latin_matching(latin, arabic, True)
+    vocalized = ar_translit.tr_matching_arabic(arabic, latin, True)
   except Exception as e:
     uniprint("Trying to vocalize %s (%s): %s" % (arabic, latin, e))
     vocalized = None
