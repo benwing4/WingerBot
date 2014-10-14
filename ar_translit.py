@@ -625,15 +625,17 @@ def tr_latin_direct(text, pos):
 def test(latin, arabic):
     result = tr_matching(arabic, latin)
     if result == False:
-        print result
+        print ("tr_matching(%s, %s) = %s" % (arabic, latin, result)
+            ).encode('utf-8')
     else:
         vocarabic, canonlatin = result
-        print ("tr_matching(%s, %s) = %s %s" % (arabic, latin, vocarabic, canonlatin)
-            ).encode('utf-8')
         trlatin = tr(vocarabic)
-        print ("tr(%s) = %s %s" %
-            (vocarabic, trlatin, "MATCHED" if trlatin == canonlatin else "UNMATCHED")
-            ).encode('utf-8')
+        print ("tr_matching(%s, %s) = %s %s," % (arabic, latin, vocarabic, canonlatin)
+            ).encode('utf-8'),
+        if trlatin == canonlatin:
+            print "tr() MATCHED"
+        else:
+            print ("tr() UNMATCHED (= %s)" % trlatin).encode('utf-8')
 
 def run_tests():
     test("katab", u"كتب")
