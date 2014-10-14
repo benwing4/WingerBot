@@ -619,13 +619,40 @@ def run_tests():
     test("kataban", u"كتب") # should fail?
     test("dakhala", u"دخل")
     test("al-dakhala", u"الدخل")
+    test("al-la:zim", u"اللازم")
     test("wa-dakhala", u"ودخل")
     test("wadakhala", u"ودخل")
+    # Six different ways of spelling a long ū. uw should be preserved, others
+    # mapped to ū. (We could avoid preserving uw if we were more sophisticated in
+    # distinguishing uw+vowel (to be left alone), uww (currently to be left alone,
+    # but could reasonably be argued to be normalized to ūw), uw+consonant
+    # (to be normalized) and final uw (to be normalized).
     test("duuba", u"دوبة")
+    test(u"dúuba", u"دوبة")
     test("duwba", u"دوبة")
-    test("duubah", u"دوبة")
-    test("duubaa", u"دوباة")
-    test("duubaah", u"دوباة")
+    test("du:ba", u"دوبة")
+    test(u"dūba", u"دوبة")
+    test(u"dū́ba", u"دوبة")
+    #test(u"dōba", u"دوبة") # not yet
+    # w definitely as a consonant, should be preserved
+    test("duwaba", u"دوبة")
+
+    # Similar but for ī and y
+    test("diiba", u"ديبة")
+    test(u"díiba", u"ديبة")
+    test("diyba", u"ديبة")
+    test("di:ba", u"ديبة")
+    test(u"dība", u"ديبة")
+    test(u"dī́ba", u"ديبة")
+    test("diyaba", u"ديبة")
+
+    # Test handling of tāʾ marbūṭa
+    # test of "duuba" already done above.
+    test("duubah", u"دوبة") # should be reduced to -a
+    test("duubaa", u"دوباة") # should become -āh
+    test("duubaah", u"دوباة") # should become -āh
+
+    # Test the definite article and its rendering in Arabic
     test("al-duuba", u"اَلدّوبة")
     test("al-duuba", u"الدّوبة")
     test("al-duuba", u"الدوبة")
@@ -634,13 +661,20 @@ def run_tests():
     test("baitu l-kuuba", u"بيت الكوبة")
     test("bait al-kuuba", u"بيت الكوبة")
     test("baitu l-kuuba", u"بيت ٱلكوبة")
-    test("diiba", u"ديبة")
+
+    # Test transliteration that omits initial hamza (should be inferrable)
     test(u"aṣdiqaa'", u"أَصدقاء")
     test(u"aṣdiqā́'", u"أَصدقاء")
+    # Test random hamzas
     test(u"'aṣdiqā́'", u"أَصدقاء")
+    # Test capital letters for emphatics
     test(u"aSdiqaa'", u"أَصدقاء")
+    # Test final otiose alif maqṣūra after fatḥatan
     test("hudan", u"هُدًى")
-    test("'animi", u"أنمي") # should fail
+    # Check that final short Latin letter doesn't match to final
+    # long vowel (this check is already present) and that an error doesn't
+    # occur
+    test("'animi", u"أنمي") # should fail and return None
 
 if __name__ == "__main__":
     run_tests()
