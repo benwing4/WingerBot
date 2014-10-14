@@ -248,8 +248,14 @@ tt_to_arabic_matching_eow = { # end of word
 
 # This dict maps Arabic characters to all the Latin characters that might
 # correspond to them. The entries can be a string (equivalent to a one-entry
-# array) or an array of strings. Each string might have multiple characters,
-# to handle things like خ=kh and ث=th.
+# list) or a list of strings or one-element lists containing strings (the latter is
+# equivalent to a string but suppresses canonicalization during transliteration;
+# see below). The ordering of elements in the list is important insofar as which
+# element is first, because the default behavior when canonicalizing a transliteration
+# is to substitute any string in the list with the first element of the list (this can
+# be suppressed by making an element a one-entry list containing a string, as
+# mentioned above). Each string might have multiple characters, to handle things
+# like خ=kh and ث=th.
 tt_to_arabic_matching = {
     # consonants
     u"ب":"b", u"ت":"t", u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],    u"ج":u"j",
@@ -265,7 +271,9 @@ tt_to_arabic_matching = {
     u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3"], u"غ":[u"ḡ",u"ġ",u"ğ",u"gh"],
     u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m",    u"ن":u"n",
     u"ه":u"h",
-    u"ة":[u"h",u"t",u"(t)",u""],
+    # We have special handling for the following in the canonicalized Latin,
+    # so that we have -a but -āh.
+    u"ة":[u"h",[u"t"],[u"(t)"],u""],
     # control characters
     zwnj:[u"-",u""], # ZWNJ (zero-width non-joiner)
     # zwj:"", # ZWJ (zero-width joiner)
@@ -278,8 +286,8 @@ tt_to_arabic_matching = {
     # hamzated letters
     u"أ":hamza_match, u"إ":hamza_match, u"ؤ":hamza_match,
     u"ئ":hamza_match, u"ء":hamza_match,
-    u"و":[u"w",u"ū"],
-    u"ي":[u"y",u"ī"],
+    u"و":[[u"w"],[u"ū"],[u"ō"]],
+    u"ي":[[u"y"],[u"ī"],[u"ē"]],
     u"ى":u"ā", # ʾalif maqṣūra = \u0649
     u"آ":[u"ʾaā",u"’aā",u"'aā",u"`aā"], # ʾalif madda = \u0622
     u"ٱ":[u""], # hamzatu l-waṣl = \u0671
@@ -289,8 +297,8 @@ tt_to_arabic_matching = {
     u"\u064C":u"un", # ḍammatan
     u"\u064D":u"in", # kasratan
     u"\u064E":u"a", # fatḥa
-    u"\u064F":u"u", # ḍamma
-    u"\u0650":u"i", # kasra
+    u"\u064F":[[u"u"],[u"o"]], # ḍamma
+    u"\u0650":[[u"i"],[u"e"]], # kasra
     u"\u0651":u"\u0651", # šadda - doubled consonant
     u"\u0652":u"", #sukūn - no vowel
     # ligatures
@@ -311,7 +319,9 @@ tt_to_arabic_matching = {
 tt_to_arabic_unmatching = {
     u"a":u"\u064E",
     u"u":u"\u064F",
+    u"o":u"\u064F",
     u"i":u"\u0650",
+    u"e":u"\u0650",
     u"\u0651":u"\u0651",
     u"-":u""
 }
@@ -341,12 +351,14 @@ def canonicalize_latin(text):
     #text = rsub(text, u"[-]", u"") # eliminate stray hyphens (e.g. in al-)
     # add short vowel before long vowel since corresponding Arabic has it
     text = rsub(text, u".",
-        {u"ā":u"aā", u"ī":u"iī", u"ū":u"uū"})
+        {u"ā":u"aā", u"ē":u"eē", u"ī":u"iī", u"ō":u"oō", u"ū":u"uū"})
     return text
 
 def post_canonicalize_latin(text):
     text = rsub(text, u"aā", u"ā")
+    text = rsub(text, u"eē", u"ē")
     text = rsub(text, u"iī", u"ī")
+    text = rsub(text, u"oō", u"ō")
     text = rsub(text, u"uū", u"ū")
     return text
 
@@ -396,25 +408,24 @@ def post_canonicalize_arabic(text):
          u"\\1\\2\\3\u0651")
     return text
 
-# Transliterate any words or phrases from Latin into Arabic script.
-# UNVOC is the unvocalized equivalent in Arabic. If unable to match, throw
-# an error if ERR, else return None. This works by matching the
-# Latin to the unvocalized Arabic and inserting the appropriate diacritics
-# in the right places, so that ambiguities of Latin transliteration can be
-# correctly handled.
-def tr_arabic_latin_matching(text, unvoc, err=False):
-    text = canonicalize_latin(text)
+# Vocalize Arabic based on transliterated Latin, and canonicalize the transliteration
+# based on the Arabic.  This works by matching the Latin to the unvocalized Arabic
+# and inserting the appropriate diacritics in the right places, so that ambiguities
+# of Latin transliteration can be correctly handled. Returns a tuple of Arabic, Latin.
+# If unable to match, throw an error if ERR, else return None.
+def tr_matching(arabic, latin, err=False):
+    latin = canonicalize_latin(latin)
     # convert double consonant to consonant + shadda
-    text = rsub(text, u"(.)\\1", u"\\1\u0651")
-    unvoc = canonicalize_arabic(unvoc)
+    latin = rsub(latin, u"(.)\\1", u"\\1\u0651")
+    arabic = canonicalize_arabic(arabic)
 
     ar = [] # exploded Arabic characters
     la = [] # exploded Latin characters
     res = [] # result Arabic characters
     lres = [] # result Latin characters
-    for cp in unvoc:
+    for cp in arabic:
         ar.append(cp)
-    for cp in text:
+    for cp in latin:
         la.append(cp)
     aind = [0] # index of next Arabic character
     alen = len(ar)
@@ -444,6 +455,10 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
         if type(matches) is not list:
             matches = [matches]
         for m in matches:
+            preserve_latin = False
+            if type(m) is list:
+                preserve_latin = True
+                m = m[0]
             l = lind[0]
             matched = True
             # print "m: %s" % m
@@ -456,15 +471,19 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
                     break
             if matched:
                 res.append(ac)
-                if ac == u"ة":
+                if preserve_latin:
+                    for cp in m:
+                        lres.append(cp)
+                elif ac == u"ة":
                     if aind[0] > 0 and ar[aind[0] - 1] == u"ا":
                         lres.append(u"h")
                     # else do nothing
-                elif ac == u"و" or ac == u"ي":
-                    lres.append(la[lind[0]])
                 else:
-                    for c in matches[0]:
-                        lres.append(c)
+                    subst = matches[0]
+                    if type(subst) is list:
+                        subst = subst[0]
+                    for cp in subst:
+                        lres.append(cp)
                 lind[0] = l
                 aind[0] = aind[0] + 1
                 # print "matched; lind is %s" % lind[0]
@@ -514,12 +533,12 @@ def tr_arabic_latin_matching(text, unvoc, err=False):
     latin = post_canonicalize_latin(latin)
     return arabic, latin
 
-def tr_latin_matching(text, unvoc, err=False):
-    arabic, latin = tr_arabic_latin_matching(text, unvoc, err)
+def tr_matching_arabic(arabic, latin, err=False):
+    arabic, latin = tr_matching(arabic, latin, err)
     return arabic
 
-def tr_arabic_matching(text, unvoc, err=False):
-    arabic, latin = tr_arabic_latin_matching(text, unvoc, err)
+def tr_matching_latin(arabic, latin, err=False):
+    arabic, latin = tr_matching(arabic, latin, err)
     return latin
 
 ######### Transliterate directly, without unvocalized Arabic to guide #########
@@ -602,17 +621,21 @@ def tr_latin_direct(text, pos):
     return text
 
 def test(latin, arabic):
-    result = tr_arabic_latin_matching(latin, arabic)
+    result = tr_matching(arabic, latin)
     if result == False:
         print result
     else:
-        arabic, latin = result
-        print ("tr_matching: %s %s" % (arabic, latin)).encode('utf-8')
-        trlatin = tr(arabic)
-        print ("tr(%s) = %s" % (arabic, trlatin)).encode('utf-8')
+        vocarabic, canonlatin = result
+        print ("tr_matching(%s, %s) = %s %s" % (arabic, latin, vocarabic, canonlatin)
+            ).encode('utf-8')
+        trlatin = tr(vocarabic)
+        print ("tr(%s) = %s %s" %
+            (vocarabic, trlatin, "MATCHED" if trlatin == canonlatin else "UNMATCHED")
+            ).encode('utf-8')
 
 def run_tests():
     test("katab", u"كتب")
+    test("kattab", u"كتب")
     test(u"kátab", u"كتب")
     test("katab", u"كتبٌ")
     test("kat", u"كتب") # should fail
@@ -633,7 +656,6 @@ def run_tests():
     test("du:ba", u"دوبة")
     test(u"dūba", u"دوبة")
     test(u"dū́ba", u"دوبة")
-    #test(u"dōba", u"دوبة") # not yet
     # w definitely as a consonant, should be preserved
     test("duwaba", u"دوبة")
 
@@ -645,6 +667,11 @@ def run_tests():
     test(u"dība", u"ديبة")
     test(u"dī́ba", u"ديبة")
     test("diyaba", u"ديبة")
+
+    # Test o's and e's
+    test(u"dōba", u"دوبة")
+    test(u"dōba", u"دُوبة")
+    test(u"telefōn", u"تلفون")
 
     # Test handling of tāʾ marbūṭa
     # test of "duuba" already done above.
@@ -661,6 +688,14 @@ def run_tests():
     test("baitu l-kuuba", u"بيت الكوبة")
     test("bait al-kuuba", u"بيت الكوبة")
     test("baitu l-kuuba", u"بيت ٱلكوبة")
+
+    # Test handling of tāʾ marbūṭa when non-final
+    test("ghurfatu l-kuuba", u"غرفة الكوبة")
+    test("ghurfat al-kuuba", u"غرفة الكوبة")
+    test("ghurfa l-kuuba", u"غرفة الكوبة")
+    test("ghurfa(t) al-kuuba", u"غرفة الكوبة")
+    test("ghurfatu l-kuuba", u"غرفة ٱلكوبة")
+    test("ghurfa l-kuuba", u"غرفة ٱلكوبة")
 
     # Test transliteration that omits initial hamza (should be inferrable)
     test(u"aṣdiqaa'", u"أَصدقاء")
