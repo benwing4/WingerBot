@@ -82,6 +82,10 @@ numbers = u"١٢٣٤٥٦٧٨٩٠"
 
 before_diacritic_checking_subs = [
     ########### transformations prior to checking for diacritics ##############
+    # remove the first part of [[foo|bar]] links
+    [ur"\[\[[^]]*\|", u""],
+    # remove brackets in [[foo]] links
+    [ur"[\[\]]", u""],
     # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
     # replaced with short-vowel+shadda during NFC normalisation, which
     # MediaWiki does for all Unicode strings; however, it makes the
@@ -313,7 +317,9 @@ tt_to_arabic_matching = {
     u"؟":u"?", # question mark
     u"،":u",", # comma
     u"؛":u";", # semicolon
-    u" ":u" "
+    u" ":u" ",
+    u"[":u"",
+    u"]":u""
 }
 
 tt_to_arabic_unmatching = {
@@ -390,23 +396,31 @@ def canonicalize_arabic(unvoc):
     unvoc = rsub(unvoc, u"\u0627\u064B", silent_alif_subst + u"\u064B")
     unvoc = rsub(unvoc, u"\u0649\u064B", silent_alif_maqsuura_subst + u"\u064B")
     # initial al + consonant + shadda: remove shadda
-    unvoc = rsub(unvoc, u"^([\u0627\u0671]\u064E?\u0644[" + consonants + u"])\u0651",
-         u"\\1")
-    unvoc = rsub(unvoc, u"\\s([\u0627\u0671]\u064E?\u0644[" + consonants + u"])\u0651",
-         u" \\1")
+    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644[" + consonants + u"])\u0651",
+         u"\\1\\2")
     return unvoc
 
 def post_canonicalize_arabic(text):
     text = rsub(text, silent_alif_subst, u"ا")
     text = rsub(text, silent_alif_maqsuura_subst, u"ى")
-    # add sukūn between adjacent consonants
-    text = rsub(text, u"([" + consonants + u"])([" + consonants + u"])", u"\\1\u0652\\2")
+
+    # add sukūn between adjacent consonants, but not in the first part of
+    # a link of the sort [[foo|bar]], which we don't vocalize
+    splitparts = []
+    index = 0
+    for part in re.split(r'(\[\[[^]]*\|)', text):
+        if (index % 2) == 0:
+            part = rsub(part, u"([" + consonants + u"])([" + consonants + u"])", u"\\1\u0652\\2")
+        splitparts.append(part)
+        index += 1
+    text = ''.join(splitparts)
+
     # remove sukūn after ḍamma + wāw
     text = rsub(text, u"\u064F\u0648\u0652", u"\u064F\u0648")
     # remove sukūn after kasra + yā'
     text = rsub(text, u"\u0650\u064A\u0652", u"\u0650\u064A")
     # initial al + consonant + sukūn + sun letter: convert to shadda
-    text = rsub(text, u"(^|\\s)([\u0627\u0671]\u064E?\u0644)\u0652([تثدذرزسشصضطظلن])",
+    text = rsub(text, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644)\u0652([تثدذرزسشصضطظلن])",
          u"\\1\\2\\3\u0651")
     return text
 
@@ -441,8 +455,22 @@ def tr_matching(arabic, latin, err=False):
     def match():
         ac = ar[aind[0]]
         # print "ac is %s" % ac
-        bow = aind[0] == 0 or ar[aind[0] - 1] == u" "
-        eow = aind[0] == alen - 1 or ar[aind[0] + 1] == u" "
+        bow = aind[0] == 0 or ar[aind[0] - 1] in [u" ", u"[", u"|"]
+        eow = aind[0] == alen - 1 or ar[aind[0] + 1] in [u" ", u"[", u"|"]
+
+        # Check for link of the form [[foo|bar]] and skip over the part
+        # up through the vertical bar, copying it
+        if ac == '[':
+            newpos = aind[0]
+            while newpos < alen and ar[newpos] != ']':
+                if ar[newpos] == '|':
+                    newpos += 1
+                    while aind[0] < newpos:
+                        res.append(ar[aind[0]])
+                        aind[0] += 1
+                    return True
+                newpos += 1
+
         matches = (
             bow and tt_to_arabic_matching_bow.get(ac) or
             eow and tt_to_arabic_matching_eow.get(ac) or
@@ -623,7 +651,11 @@ def tr_latin_direct(text, pos):
     return text
 
 def test(latin, arabic):
-    result = tr_matching(arabic, latin)
+    try:
+        result = tr_matching(arabic, latin, True)
+    except RuntimeError as e:
+        print (u"%s" % e).encode('utf-8')
+        result = False
     if result == False:
         print ("tr_matching(%s, %s) = %s" % (arabic, latin, result)
             ).encode('utf-8')
@@ -705,6 +737,11 @@ def run_tests():
     test("ghurfa(t) al-kuuba", u"غرفة الكوبة")
     test("ghurfatu l-kuuba", u"غرفة ٱلكوبة")
     test("ghurfa l-kuuba", u"غرفة ٱلكوبة")
+
+    # Test handling of embedded links
+    test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]")
+    test(u"arqām hindiyya", u"[[أرقام]] [[هندية]]")
+    test(u"ʾufuq al-ħadaŧ", u"[[أفق]] [[حادثة|الحدث]]")
 
     # Test transliteration that omits initial hamza (should be inferrable)
     test(u"aṣdiqaa'", u"أَصدقاء")
