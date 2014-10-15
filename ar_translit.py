@@ -86,6 +86,8 @@ before_diacritic_checking_subs = [
     [ur"\[\[[^]]*\|", u""],
     # remove brackets in [[foo]] links
     [ur"[\[\]]", u""],
+    # convert llh for allāh into ll+shadda+dagger-alif+h
+    [u"لله", u"للّٰه"],
     # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
     # replaced with short-vowel+shadda during NFC normalisation, which
     # MediaWiki does for all Unicode strings; however, it makes the
