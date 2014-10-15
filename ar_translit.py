@@ -120,13 +120,12 @@ before_diacritic_checking_subs = [
     # ignore dagger alif placed over regular alif or alif maqṣūra
     [u"([\u0627\u0649])\u0670", u"\\1"],
 
-    # initial al + consonant + shadda: remove shadda
-    [u"^([\u0627\u0671]\u064E?\u0644[" + consonants + u"])\u0651", u"\\1"],
-    [u"\\s([\u0627\u0671]\u064E?\u0644[" + consonants + u"])\u0651", u" \\1"],
-    # handle utterance-initial or word-initial (a)l-, possibly marked with
-    # hamzatu l-waṣl
-    [u"^([\u0627\u0671])\u064E?\u0644", {u"\u0627":u"al-", u"\u0671":u"l-"}],
-    [u"\\s([\u0627\u0671])\u064E?\u0644", {u"\u0627":u" al-", u"\u0671":u" l-"}]
+    # al + consonant + shadda (only recognize word-initially if regular alif): remove shadda
+    [u"(^|\\s)(\u0627\u064E?\u0644[" + consonants + u"])\u0651", u"\\1\\2"],
+    [u"(\u0671\u064E?\u0644[" + consonants + u"])\u0651", u"\\1"],
+    # handle l- hamzatu l-waṣl or word-initial al-
+    [u"(^|\\s)\u0627\u064E?\u0644", u"\\1al-"],
+    [u"\u0671\u064E?\u0644", "l-"]
 ]
 
 # Transliterate any words or phrases. OMIT_I3RAAB means leave out final
@@ -149,8 +148,8 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False):
     # ḍamma + waw not followed by a diacritic is ū, otherwise w
     text = rsub(text, u"\u064F\u0648([^\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670])", u"ū\\1")
     text = rsub(text, u"\u064F\u0648$", u"ū")
-    # kasra + yaa not followed by a diacritic is ī, otherwise y
-    text = rsub(text, u"\u0650\u064A([^\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670])", u"ī\\1")
+    # kasra + yaa not followed by a diacritic (or ū from prev step) is ī, otherwise y
+    text = rsub(text, u"\u0650\u064A([^\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670ū])", u"ī\\1")
     text = rsub(text, u"\u0650\u064A$", u"ī")
     # convert shadda to double letter.
     text = rsub(text, u"(.)\u0651", u"\\1\\1")
