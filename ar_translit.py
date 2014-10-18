@@ -107,9 +107,9 @@ before_diacritic_checking_subs = [
     # instead of over the previous letter (considered a misspelling but
     # common)
     [u"[\u0627\u0649]\u064B", u"\u064B"],
-    # tāʾ marbūṭa should always be preceded by fatḥa, alif or dagger alif;
-    # infer fatḥa if not
-    [u"([^\u064E\u0627\u0670])\u0629", u"\\1\u064E\u0629"],
+    # tāʾ marbūṭa should always be preceded by fatḥa, alif, alif madda or
+    # dagger alif; infer fatḥa if not
+    [u"([^\u064E\u0627\u0622\u0670])\u0629", u"\\1\u064E\u0629"],
     # similarly for alif between consonants, possibly marked with shadda
     # (does not apply to initial alif, which is silent when not marked with
     # hamza, or final alif, which might be pronounced as -an)
@@ -158,8 +158,8 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False):
     if not omit_i3raab: # show ʾiʿrāb (desinential inflection) in transliteration
         # tāʾ marbūṭa should not be rendered by -t if word-final even when
         # ʾiʿrāb is shown; instead, use (t) before whitespace, nothing when final;
-        # but render final -اة as -āh, consistent with Wehr's dictionary
-        text = rsub(text, u"\u0627\u0629$", u"\u0627h")
+        # but render final -اة and -آة as -āh, consistent with Wehr's dictionary
+        text = rsub(text, u"([\u0627\u0622])\u0629$", u"\\1h")
         text = rsub(text, u"\u0629$", u"")
         text = rsub(text, u"\u0629\\s", u"(t) ")
         text = rsub(text, u".", {
@@ -167,7 +167,7 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False):
             u"\u064E":u"a", u"\u0650":u"i" , u"\u064F":u"u"
         })
     else:
-        text = rsub(text, u"\u0627\u0629$", u"\u0627h")
+        text = rsub(text, u"([\u0627\u0622])\u0629$", u"\\1h")
         text = rsub(text, u"\u0629$", u"")
         text = rsub(text, u"\u0629", u"(t)")
         text = rsub(text, u"[\u064B\u064C\u064D]", u"")
