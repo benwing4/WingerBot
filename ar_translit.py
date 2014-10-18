@@ -345,7 +345,7 @@ def canonicalize_latin(text):
     # eliminate doubled vowels = long vowels
     text = rsub(text, u"([aeiou])\\1", {u"a":u"ā", u"e":u"ē", u"i":u"ī", u"o":u"ō", u"u":u"ū"})
     # eliminate vowels followed by colon = long vowels
-    text = rsub(text, u"([aeiou]):", {u"a":u"ā", u"e":u"ē", u"i":u"ī", u"o":u"ō", u"u":u"ū"})
+    text = rsub(text, u"([aeiou])[:ː]", {u"a":u"ā", u"e":u"ē", u"i":u"ī", u"o":u"ō", u"u":u"ū"})
     # eliminate - or ' separating t-h, t'h, etc. in transliteration style
     # that uses th to indicate ث
     text = rsub(text, u"([dtgkcs])[-']h", u"\\1h")
