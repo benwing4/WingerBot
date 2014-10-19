@@ -64,12 +64,43 @@ def doparam(template, param):
 
 def vocalize_head(page, template):
   paramschanged = []
-  result = vocalize(template, "1", "tr")
-  if isinstance(result, basestring):
-    paramschanged.append("1")
-  if not result:
-    pagetitle = page.title(withNamespace=False)
-    if template.has("tr"):
+  pagetitle = page.title(withNamespace=False)
+
+  # Handle existing 1= and head from page title
+  if template.has("tr"):
+
+    # Check for multiple transliterations of head or 1. If so, split on
+    # the multiple transliterations, with separate vocalized heads.
+    latin = unicode(template.get("tr").value)
+    if "," in latin:
+      trs = re.split(",\\s*", latin)
+      # Find the first alternate head (head2, head3, ...) not already present
+      i = 2
+      while template.has("head" + str(i)):
+        i += 1
+      template.add("tr", trs[0])
+      if template.has("1"):
+        head = unicode(template.get("1").value)
+        # for new heads, only use existing head in 1= if ends with -un (tanwīn),
+        # because many of the existing 1= values are vocalized according to the
+        # first transliterated entry in the list and won't work with the others
+        if not head.endswith(u"\u064C"):
+          head = pagetitle
+      else:
+        head = pagetitle
+      for tr in trs[1:]:
+        template.add("head" + str(i), head)
+        template.add("tr" + str(i), tr)
+        i += 1
+      paramschanged.append("split translit into multiple heads")
+
+    # Try to vocalize 1=
+    result = vocalize(template, "1", "tr")
+    if isinstance(result, basestring):
+      paramschanged.append("1")
+
+    # If no, try vocalizing the page title and make it the 1= value
+    if not result:
       arabic = unicode(pagetitle)
       latin = unicode(template.get("tr").value)
       if not arabic or not latin:
@@ -83,6 +114,8 @@ def vocalize_head(page, template):
           template.add("1", vocalized, before="tr")
         paramschanged.append("1")
         uniprint("Replaced %s with %s" % (oldtempl, unicode(template)))
+
+  # Check and try to vocalize extra heads
   i = 2
   result = True
   while result:
@@ -118,5 +151,5 @@ def fix(page, text):
 startFrom, upTo = blib.get_args()
 
 #for current in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
-for current in blib.cat_articles(u"Arabic collective nouns", startFrom, upTo):
+for current in blib.cat_articles(u"Arabic nouns", startFrom, upTo):
   blib.do_edit(current, fix)
