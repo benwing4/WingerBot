@@ -36,11 +36,15 @@ def dump(page):
   old = page.get(get_redirect=True)
   msg(u'Contents of [[{0}]]:\n{1}\n----------'.format(page.title(), old))
 
+def parse(page):
+  return mwparserfromhell.parser.Parser().parse(page.text,
+    skip_style_tags=True)
+
 def do_edit(page, func=None, null=False):
   while True:
     try:
       if func:
-        new, comment = func(page, mwparserfromhell.parser.Parser().parse(page.text, skip_style_tags=True))
+        new, comment = func(page, parse(page))
         
         if new:
           new = unicode(new)
