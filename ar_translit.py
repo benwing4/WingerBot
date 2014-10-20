@@ -263,7 +263,7 @@ tt_to_arabic_matching_eow = { # end of word
 # like خ=kh and ث=th.
 tt_to_arabic_matching = {
     # consonants
-    u"ب":u"b", u"ت":u"t", u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],    u"ج":u"j",
+    u"ب":u"b", u"ت":u"t", u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],    u"ج":[u"j",u"ǧ"],
     # allow what would normally be capital H, but we lowercase all text
     # before processing
     u"ح":[u"ḥ",u"ħ",u"h"], u"خ":[u"ḵ",u"x",u"kh"],
