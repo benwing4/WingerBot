@@ -273,7 +273,7 @@ tt_to_arabic_matching = {
     # we lowercase the text before processing to handle proper names and such
     u"ص":[u"ṣ",u"sʿ",u"s"], u"ض":[u"ḍ",u"dʿ",u"d"],
     u"ط":[u"ṭ",u"tʿ",u"ṫ",u"t"], u"ظ":[u"ẓ",u"ðʿ",u"đ̣",u"z"],
-    u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3"], u"غ":[u"ḡ",u"ġ",u"ğ",u"gh"],
+    u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3",u"ˁ"], u"غ":[u"ḡ",u"ġ",u"ğ",u"gh"],
     u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m",    u"ن":u"n",
     u"ه":u"h",
     # We have special handling for the following in the canonicalized Latin,
