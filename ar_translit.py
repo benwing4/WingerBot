@@ -4,6 +4,11 @@
 
 import re
 
+def uniprint(x):
+  print x.encode('utf-8')
+def uniout(x):
+  print x.encode('utf-8'),
+
 def rsub(text, fr, to):
     if type(to) is dict:
         def rsub_replace(m):
@@ -323,6 +328,30 @@ tt_to_arabic_matching = {
     u"]":u""
 }
 
+build_canonicalize_latin = {}
+for ch in "abcdefghijklmnopqrstuvwyz3":
+    build_canonicalize_latin[ch] = "multiple"
+    build_canonicalize_latin[""] = "multiple"
+for arabic in tt_to_arabic_matching:
+    alts = tt_to_arabic_matching[arabic]
+    if isinstance(alts, basestring):
+        continue
+    canon = alts[0]
+    if isinstance(canon, list):
+        continue
+    for alt in alts[1:]:
+        if isinstance(alt, list):
+            continue
+        if alt in build_canonicalize_latin and build_canonicalize_latin[alt] != canon:
+            build_canonicalize_latin[alt] = "multiple"
+        else:
+            build_canonicalize_latin[alt] = canon
+tt_canonicalize_latin = {}
+for alt in build_canonicalize_latin:
+    canon = build_canonicalize_latin[alt]
+    if canon != "multiple":
+        tt_canonicalize_latin[alt] = canon
+
 tt_to_arabic_unmatching = {
     u"a":u"\u064E",
     u"u":u"\u064F",
@@ -333,7 +362,7 @@ tt_to_arabic_unmatching = {
     u"-":u""
 }
 
-def canonicalize_latin(text):
+def pre_canonicalize_latin(text):
     text = text.lower()
     # eliminate accents
     text = rsub(text, u".",
@@ -371,7 +400,21 @@ def post_canonicalize_latin(text):
     text = rsub(text, u"(.)\u0651", u"\\1\\1")
     return text
 
-def canonicalize_arabic(unvoc):
+# Canonicalize a Latin transliteration to standard form, as much as is
+# possible without access to the Arabic (which can be done using
+# tr_matching()).
+def canonicalize_latin(text):
+    text = pre_canonicalize_latin(text)
+    text = rsub(text, u".", tt_canonicalize_latin)
+    latin_chars = u"[a-zA-Zāēīōūčḍḏḡḥḵṣšṭṯẓžʿʾ]"
+    # Convert 3 to ʿ if next to a letter or letter symbol. This tries
+    # to avoid converting 3 in numbers.
+    text = rsub(text, u"(%s)3" % latin_chars, u"\\1ʿ")
+    text = rsub(text, u"3(%s)" % latin_chars, u"ʿ\\1")
+    text = post_canonicalize_latin(text)
+    return text
+
+def pre_canonicalize_arabic(unvoc):
     # print "unvoc enter: %s" % unvoc
     # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
     # replaced with short-vowel+shadda during NFC normalisation, which
@@ -425,16 +468,17 @@ def post_canonicalize_arabic(text):
          u"\\1\\2\\3\u0651")
     return text
 
-# Vocalize Arabic based on transliterated Latin, and canonicalize the transliteration
-# based on the Arabic.  This works by matching the Latin to the unvocalized Arabic
-# and inserting the appropriate diacritics in the right places, so that ambiguities
-# of Latin transliteration can be correctly handled. Returns a tuple of Arabic, Latin.
-# If unable to match, throw an error if ERR, else return None.
+# Vocalize Arabic based on transliterated Latin, and canonicalize the
+# transliteration based on the Arabic.  This works by matching the Latin
+# to the unvocalized Arabic and inserting the appropriate diacritics in
+# the right places, so that ambiguities of Latin transliteration can be
+# correctly handled. Returns a tuple of Arabic, Latin. If unable to match,
+# throw an error if ERR, else return None.
 def tr_matching(arabic, latin, err=False):
-    latin = canonicalize_latin(latin)
+    latin = pre_canonicalize_latin(latin)
     # convert double consonant to consonant + shadda
     latin = rsub(latin, u"(.)\\1", u"\\1\u0651")
-    arabic = canonicalize_arabic(arabic)
+    arabic = pre_canonicalize_arabic(arabic)
 
     ar = [] # exploded Arabic characters
     la = [] # exploded Latin characters
@@ -641,7 +685,7 @@ tt_to_arabic_direct = {
 # POS for this). Doesn't (and can't) know about cases where sh, th, etc.
 # stand for single letters rather than combinations.
 def tr_latin_direct(text, pos):
-    text = canonicalize_latin(text)
+    text = pre_canonicalize_latin(text)
     text = rsub(text, u"ah$", u"\u064Eة")
     text = rsub(text, u"āh$", u"\u064Eاة")
     text = rsub(text, u".", tt_to_arabic_direct)
@@ -655,20 +699,21 @@ def test(latin, arabic):
     try:
         result = tr_matching(arabic, latin, True)
     except RuntimeError as e:
-        print (u"%s" % e).encode('utf-8')
+        uniprint(u"%s" % e)
         result = False
     if result == False:
-        print ("tr_matching(%s, %s) = %s" % (arabic, latin, result)
-            ).encode('utf-8')
+        uniprint("tr_matching(%s, %s) = %s" % (arabic, latin, result))
     else:
         vocarabic, canonlatin = result
         trlatin = tr(vocarabic)
-        print ("tr_matching(%s, %s) = %s %s," % (arabic, latin, vocarabic, canonlatin)
-            ).encode('utf-8'),
+        uniout("tr_matching(%s, %s) = %s %s," %
+                (arabic, latin, vocarabic, canonlatin))
         if trlatin == canonlatin:
-            print "tr() MATCHED"
+            uniprint("tr() MATCHED")
         else:
-            print ("tr() UNMATCHED (= %s)" % trlatin).encode('utf-8')
+            uniprint("tr() UNMATCHED (= %s)" % trlatin)
+    uniprint("canonicalize_latin(%s) = %s" %
+            (latin, canonicalize_latin(latin)))
 
 def run_tests():
     test("katab", u"كتب")
