@@ -104,21 +104,37 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
       infls = parse_infls(m.group(3), tr)
       repl = "{{%s|%s|%s%s}}" % (repltemplate, head, g, infls)
       repl = remove_empty_args(repl)
+      repl = repl + m.group(4) # Include trailing text
       msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
-      #m.replace(repl)
-    for m in re.finditer(r"===+%s===+\s*'*{\{lang\|ar\|(.*?)\}\}'* *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *(?:\{\{g\|(.*?)\}\})? *((?:,[^,\n]*)*)(.*)" % pos, text, re.I):
+      newtext = text.replace(m.group(0), repl, 1)
+      if newtext == text:
+        msg("WARNING: Unable to do replacement")
+      else:
+        text = newtext
+    for m in re.finditer(r"===+%s===+\s*(?:'*{\{(?:lang|l)\|ar\|(.*?)\}\}'*|'+([^{}']+)'+) *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *(?:\{\{g\|(.*?)\}\})? *((?:,[^,\n]*)*)(.*)" % pos, text, re.I):
       replsfound += 1
       msg("Found match: %s" % m.group(0))
-      if m.group(5):
-        msg("WARNING: Trailing text %s" % m.group(5))
-      head = m.group(1)
-      g = m.group(3) or ""
-      tr = m.group(2)
-      infls = parse_infls(m.group(4), tr)
+      if m.group(6):
+        msg("WARNING: Trailing text %s" % m.group(6))
+      head = m.group(1) or m.group(2)
+      g = m.group(4) or ""
+      tr = m.group(3)
+      infls = parse_infls(m.group(5), tr)
       repl = "{{%s|%s|%s%s}}" % (repltemplate, head, g, infls)
       repl = remove_empty_args(repl)
+      repl = repl + m.group(6) # Include trailing text
       msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
-      #m.replace(repl)
+      newtext = text.replace(m.group(0), repl, 1)
+      if newtext == text:
+        msg("WARNING: Unable to do replacement")
+      else:
+        text = newtext
+      newtext = re.sub(r"\[\[Category:%s\]\]\n?" % cat, "", text, 1)
+      if newtext != text:
+        msg("Removed [[Category:%s]]" % cat)
+        text = newtext
+      else:
+        msg("WARNING: Unable to remove [[Category:%s]]" % cat)
     if not sawtemp and replsfound == 0:
       msg("WARNING: No replacements found for {{l|ar|%s}}" % pagetitle)
 
