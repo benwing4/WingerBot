@@ -11,7 +11,8 @@ import ar_translit
 
 # Vocalize ARABIC based on LATIN. Return vocalized Arabic text if
 # vocalization succeeds and is different from the existing Arabic text,
-# else False.
+# else False. PARAM is the name of the parameter being vocalized and is
+# used only in status messages.
 def do_vocalize_param(param, arabic, latin):
   try:
     vocalized = ar_translit.tr_matching_arabic(arabic, latin, True)
@@ -31,26 +32,30 @@ def do_vocalize_param(param, arabic, latin):
   return False
 
 # Attempt to vocalize parameter PARAM based on corresponding transliteration
-# parameter PARAMTR. If both parameters found, return the vocalized Arabic if
-# different from unvocalized, else return True; if either parameter not found,
-# return False.
+# parameter PARAMTR. If PARAM not found, return False. Else, return the
+# vocalized Arabic if different from unvocalized, else return True.
 def vocalize_param(template, param, paramtr):
-  if template.has(param) and template.has(paramtr):
+  arabic = ""
+  latin = ""
+  if template.has(param):
     arabic = unicode(template.get(param).value)
+  if template.has(paramtr):
     latin = unicode(template.get(paramtr).value)
-    if not arabic or not latin:
-      return False
+  if not arabic:
+    return False
+  if latin:
     vocalized = do_vocalize_param(param, arabic, latin)
     if vocalized:
       oldtempl = "%s" % unicode(template)
       template.add(param, vocalized)
       msg("Replaced %s with %s" % (oldtempl, unicode(template)))
       return vocalized
-    return True
-  else:
-    return False
+  return True
 
-def doparam(template, param):
+# Vocalize the parameter chain for PARAM in TEMPLATE. For example, if PARAM
+# is "pl" then this will attempt to vocalize "pl", "pl2", "pl3", etc. based on
+# "pltr", "pl2tr", "pl3tr", etc., stopping when "plN" isn't found.
+def vocalize_param_chain(template, param):
   paramschanged = []
   result = vocalize_param(template, param, param + "tr")
   if isinstance(result, basestring):
@@ -64,6 +69,9 @@ def doparam(template, param):
     i += 1
   return paramschanged
 
+# Vocalize the head param(s) for the given headword template on the given page.
+# Modifies the templates in place. Return list of changed parameters, for
+# use in the changelog message.
 def vocalize_head(page, template):
   paramschanged = []
   pagetitle = page.title(withNamespace=False)
@@ -101,21 +109,20 @@ def vocalize_head(page, template):
     if isinstance(result, basestring):
       paramschanged.append("1")
 
-    # If no, try vocalizing the page title and make it the 1= value
+    # If 1= not found, try vocalizing the page title and make it the 1= value
     if not result:
       arabic = unicode(pagetitle)
       latin = unicode(template.get("tr").value)
-      if not arabic or not latin:
-        return paramschanged
-      vocalized = do_vocalize_param("page title", arabic, latin)
-      if vocalized:
-        oldtempl = "%s" % unicode(template)
-        if template.has("2"):
-          template.add("1", vocalized, before="2")
-        else:
-          template.add("1", vocalized, before="tr")
-        paramschanged.append("1")
-        msg("Replaced %s with %s" % (oldtempl, unicode(template)))
+      if arabic and latin:
+        vocalized = do_vocalize_param("page title", arabic, latin)
+        if vocalized:
+          oldtempl = "%s" % unicode(template)
+          if template.has("2"):
+            template.add("1", vocalized, before="2")
+          else:
+            template.add("1", vocalized, before="tr")
+          paramschanged.append("1")
+          msg("Replaced %s with %s" % (oldtempl, unicode(template)))
 
   # Check and try to vocalize extra heads
   i = 2
@@ -128,7 +135,9 @@ def vocalize_head(page, template):
     i += 1
   return paramschanged
 
-def fix(page, text):
+# Vocalize the headword templates on the given page with the given text.
+# Returns the changed text along with a changelog message.
+def vocalize_one_page_headwords(page, text):
   actions_taken = []
   numchanged = 0
   for template in text.filter_templates():
@@ -137,7 +146,7 @@ def fix(page, text):
       paramschanged += vocalize_head(page, template)
       for param in ["pl", "cpl", "fpl", "f", "el", "sing", "coll", "d", "pauc", "obl",
           "fobl", "plobl", "dobl"]:
-        paramschanged += doparam(template, param)
+        paramschanged += vocalize_param_chain(template, param)
       numchanged += len(paramschanged)
       if len(paramschanged) > 0:
         if template.has("tr"):
@@ -150,10 +159,12 @@ def fix(page, text):
   msg("Change log = %s" % changelog)
   return text, changelog
 
-def vocalize(save, startFrom, upTo):
+# Vocalize headword templates on pages from STARTFROM to (but not including)
+# UPTO, either page names or 0-based integers. Save changes if SAVE is true.
+def vocalize_pages_headwords(save, startFrom, upTo):
   #for current in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
   for current in blib.cat_articles(u"Arabic nouns", startFrom, upTo):
-    blib.do_edit(current, fix, save=save)
+    blib.do_edit(current, vocalize_one_page_headwords, save=save)
 
 pa = argparse.ArgumentParser(description="Correct vocalization and translit")
 pa.add_argument("-s", "--save", action='store_true',
@@ -164,4 +175,4 @@ pa.add_argument("end", nargs="?", help="Last page to work on")
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
-vocalize(parms.save, startFrom, upTo)
+vocalize_pages_headwords(parms.save, startFrom, upTo)
