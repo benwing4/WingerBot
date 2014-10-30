@@ -12,7 +12,7 @@ import ar_translit
 # Vocalize ARABIC based on LATIN. Return vocalized Arabic text if
 # vocalization succeeds and is different from the existing Arabic text,
 # else False.
-def do_vocalize(param, arabic, latin):
+def do_vocalize_param(param, arabic, latin):
   try:
     vocalized = ar_translit.tr_matching_arabic(arabic, latin, True)
   except Exception as e:
@@ -34,13 +34,13 @@ def do_vocalize(param, arabic, latin):
 # parameter PARAMTR. If both parameters found, return the vocalized Arabic if
 # different from unvocalized, else return True; if either parameter not found,
 # return False.
-def vocalize(template, param, paramtr):
+def vocalize_param(template, param, paramtr):
   if template.has(param) and template.has(paramtr):
     arabic = unicode(template.get(param).value)
     latin = unicode(template.get(paramtr).value)
     if not arabic or not latin:
       return False
-    vocalized = do_vocalize(param, arabic, latin)
+    vocalized = do_vocalize_param(param, arabic, latin)
     if vocalized:
       oldtempl = "%s" % unicode(template)
       template.add(param, vocalized)
@@ -52,13 +52,13 @@ def vocalize(template, param, paramtr):
 
 def doparam(template, param):
   paramschanged = []
-  result = vocalize(template, param, param + "tr")
+  result = vocalize_param(template, param, param + "tr")
   if isinstance(result, basestring):
     paramschanged.append(param)
   i = 2
   while result:
     thisparam = param + str(i)
-    result = vocalize(template, thisparam, thisparam + "tr")
+    result = vocalize_param(template, thisparam, thisparam + "tr")
     if isinstance(result, basestring):
       paramschanged.append(thisparam)
     i += 1
@@ -97,7 +97,7 @@ def vocalize_head(page, template):
       paramschanged.append("split translit into multiple heads")
 
     # Try to vocalize 1=
-    result = vocalize(template, "1", "tr")
+    result = vocalize_param(template, "1", "tr")
     if isinstance(result, basestring):
       paramschanged.append("1")
 
@@ -107,7 +107,7 @@ def vocalize_head(page, template):
       latin = unicode(template.get("tr").value)
       if not arabic or not latin:
         return paramschanged
-      vocalized = do_vocalize("page title", arabic, latin)
+      vocalized = do_vocalize_param("page title", arabic, latin)
       if vocalized:
         oldtempl = "%s" % unicode(template)
         if template.has("2"):
@@ -122,7 +122,7 @@ def vocalize_head(page, template):
   result = True
   while result:
     thisparam = "head" + str(i)
-    result = vocalize(template, thisparam, "tr" + str(i))
+    result = vocalize_param(template, thisparam, "tr" + str(i))
     if isinstance(result, basestring):
       paramschanged.append(thisparam)
     i += 1
