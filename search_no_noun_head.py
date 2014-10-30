@@ -18,6 +18,8 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
     ftrs = []
     pls = []
     pltrs = []
+    fpls = []
+    fpltrs = []
     for rawinfl in re.split(", *", infltext):
       if not rawinfl:
         continue
@@ -36,8 +38,11 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
       elif infl.group(3) == "p":
         pls.append(infl.group(1))
         pltrs.append(infl.group(2))
+      elif infl.group(3) == "f-p":
+        fpls.append(infl.group(1))
+        fpltrs.append(infl.group(2))
       else:
-        msg("WARNING: Unrecognized inflection gender '%s'" % infl.group(2))
+        msg("WARNING: Unrecognized inflection gender '%s'" % infl.group(3))
     infls = ""
     if tr:
       infls += "|tr=%s" % tr
@@ -59,6 +64,7 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
       return infls
     infls = handle_infls(infls, fs, ftrs, "f")
     infls = handle_infls(infls, pls, pltrs, "pl")
+    infls = handle_infls(infls, fpls, fpltrs, "fpl")
     return infls
 
   def remove_empty_args(templ):
@@ -148,7 +154,7 @@ def search_no_noun_head(startFrom, upTo):
   search_category_for_missing_template("adverb", "ar-adv", startFrom, upTo)
   search_category_for_missing_template("conjunction", "ar-con", startFrom, upTo)
   search_category_for_missing_template("interjection", "ar-interj", startFrom, upTo)
-  search_category_for_missing_template("participle", "ar-part", startFrom, upTo)
+  search_category_for_missing_template("particle", "ar-part", startFrom, upTo)
   search_category_for_missing_template("preposition", "ar-prep", startFrom, upTo)
   search_category_for_missing_template("pronoun", "ar-pron", startFrom, upTo)
   # ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
