@@ -47,6 +47,12 @@ def parse(page):
   return mwparserfromhell.parser.Parser().parse(page.text,
     skip_style_tags=True)
 
+def getparam(template, param):
+  if template.has(param):
+    return unicode(template.get(param).value)
+  else:
+    return ""
+
 def do_edit(page, func=None, null=False, save=False):
   while True:
     try:
@@ -209,14 +215,14 @@ def get_args(args = sys.argv[1:]):
 def parse_start_end(startsort, endsort):
   if startsort != None:
     try:
-      startsort = int(args[0])
+      startsort = int(startsort)
     except ValueError:
-      startsort = str.decode(args[0], "utf-8")
+      startsort = str.decode(startsort, "utf-8")
   if endsort != None:
     try:
-      endsort = int(args[1])
+      endsort = int(endsort)
     except ValueError:
-      endsort = str.decode(args[1], "utf-8")
+      endsort = str.decode(endsort, "utf-8")
 
   return (startsort, endsort)
 
