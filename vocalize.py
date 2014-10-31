@@ -35,12 +35,8 @@ def do_vocalize_param(param, arabic, latin):
 # parameter PARAMTR. If PARAM not found, return False. Else, return the
 # vocalized Arabic if different from unvocalized, else return True.
 def vocalize_param(template, param, paramtr):
-  arabic = ""
-  latin = ""
-  if template.has(param):
-    arabic = unicode(template.get(param).value)
-  if template.has(paramtr):
-    latin = unicode(template.get(paramtr).value)
+  arabic = blib.getparam(template, param)
+  latin = blib.getparam(template, paramtr)
   if not arabic:
     return False
   if latin:
@@ -54,7 +50,8 @@ def vocalize_param(template, param, paramtr):
 
 # Vocalize the parameter chain for PARAM in TEMPLATE. For example, if PARAM
 # is "pl" then this will attempt to vocalize "pl", "pl2", "pl3", etc. based on
-# "pltr", "pl2tr", "pl3tr", etc., stopping when "plN" isn't found.
+# "pltr", "pl2tr", "pl3tr", etc., stopping when "plN" isn't found. Return
+# list of changed parameters, for use in the changelog message.
 def vocalize_param_chain(template, param):
   paramschanged = []
   result = vocalize_param(template, param, param + "tr")
@@ -81,7 +78,7 @@ def vocalize_head(page, template):
 
     # Check for multiple transliterations of head or 1. If so, split on
     # the multiple transliterations, with separate vocalized heads.
-    latin = unicode(template.get("tr").value)
+    latin = blib.getparam(template, "tr")
     if "," in latin:
       trs = re.split(",\\s*", latin)
       # Find the first alternate head (head2, head3, ...) not already present
@@ -90,7 +87,7 @@ def vocalize_head(page, template):
         i += 1
       template.add("tr", trs[0])
       if template.has("1"):
-        head = unicode(template.get("1").value)
+        head = blib.getparam(template, "1")
         # for new heads, only use existing head in 1= if ends with -un (tanwīn),
         # because many of the existing 1= values are vocalized according to the
         # first transliterated entry in the list and won't work with the others
@@ -112,7 +109,7 @@ def vocalize_head(page, template):
     # If 1= not found, try vocalizing the page title and make it the 1= value
     if not result:
       arabic = unicode(pagetitle)
-      latin = unicode(template.get("tr").value)
+      latin = blib.getparam(template, "tr")
       if arabic and latin:
         vocalized = do_vocalize_param("page title", arabic, latin)
         if vocalized:
@@ -139,7 +136,6 @@ def vocalize_head(page, template):
 # Returns the changed text along with a changelog message.
 def vocalize_one_page_headwords(page, text):
   actions_taken = []
-  numchanged = 0
   for template in text.filter_templates():
     paramschanged = []
     if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
@@ -147,32 +143,73 @@ def vocalize_one_page_headwords(page, text):
       for param in ["pl", "cpl", "fpl", "f", "el", "sing", "coll", "d", "pauc", "obl",
           "fobl", "plobl", "dobl"]:
         paramschanged += vocalize_param_chain(template, param)
-      numchanged += len(paramschanged)
       if len(paramschanged) > 0:
         if template.has("tr"):
-          tempname = "%s %s" % (template.name, unicode(template.get("tr").value))
+          tempname = "%s %s" % (template.name, blib.getparam(template, "tr"))
         else:
           tempname = template.name
         actions_taken.append("%s (%s)" % (', '.join(paramschanged), tempname))
   changelog = "vocalize parameters: %s" % '; '.join(actions_taken)
-  #if numchanged > 0:
+  #if len(actions_taken) > 0:
   msg("Change log = %s" % changelog)
   return text, changelog
 
 # Vocalize headword templates on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
-def vocalize_pages_headwords(save, startFrom, upTo):
+def vocalize_headwords(save, startFrom, upTo):
   #for current in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
-  for current in blib.cat_articles(u"Arabic nouns", startFrom, upTo):
-    blib.do_edit(current, vocalize_one_page_headwords, save=save)
+  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
+    for page in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, vocalize_one_page_headwords, save=save)
+
+# Vocalize link-like templates on pages from STARTFROM to (but not including)
+# UPTO, either page names or 0-based integers. Save changes if SAVE is true.
+def vocalize_links(save, startFrom, upTo):
+  templates_changed = {}
+
+  # Vocalize the link-like templates on the given page with the given text.
+  # Returns the changed text along with a changelog message.
+  def vocalize_one_page_links(page, text):
+    actions_taken = []
+    terms_vocalized = []
+    for template in text.filter_templates():
+      result = None
+      if (#template.name in ["l", "m"] and
+          blib.getparam(template, "1") == "ar"):
+        # Try to vocalize 2=
+        result = vocalize_param(template, "2", "tr")
+      elif (#template.name in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
+          blib.getparam(template, "lang") == "ar"):
+        # Try to vocalize 1=
+        result = vocalize_param(template, "1", "tr")
+      if isinstance(result, basestring):
+        terms_vocalized.append("%s (%s)" % (result, template.name))
+        templates_changed[template.name] = \
+            templates_changed.get(template.name, 0) + 1
+    changelog = "vocalize links: %s" % '; '.join(terms_vocalized)
+    #if len(terms_vocalized) > 0:
+    msg("Change log = %s" % changelog)
+    return text, changelog
+
+  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
+    for page in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, vocalize_one_page_links, save=save)
+  msg("Templates vocalized:")
+  for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
+    msg("  %s = %s" % (template, count))
 
 pa = argparse.ArgumentParser(description="Correct vocalization and translit")
 pa.add_argument("-s", "--save", action='store_true',
     help="Save changed pages")
+pa.add_argument("-l", "--links", action='store_true',
+    help="Vocalize links")
 pa.add_argument("start", nargs="?", help="First page to work on")
 pa.add_argument("end", nargs="?", help="Last page to work on")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
-vocalize_pages_headwords(parms.save, startFrom, upTo)
+if parms.links:
+  vocalize_links(parms.save, startFrom, upTo)
+else:
+  vocalize_headwords(parms.save, startFrom, upTo)

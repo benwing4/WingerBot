@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 #coding: utf-8
 
-import blib, pywikibot, re, string, sys, codecs
-import ar_translit
+import re, string, sys, codecs
+import argparse
+
+import blib, pywikibot
 from blib import msg
 
-def search_category_for_missing_template(pos, templates, startFrom, upTo):
+import ar_translit
+
+def search_category_for_missing_template(pos, templates, save, startFrom, upTo):
   if not isinstance(templates, list):
     templates = [templates]
   cat = "Arabic %ss" % pos
@@ -72,8 +76,8 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
     templ = re.sub(r"\|\|+([A-Za-z0-9_]+=)", r"|\1", templ)
     return templ
 
-  for page in blib.cat_articles(cat, startFrom, upTo):
-    text = unicode(blib.parse(page))
+  def correct_one_page_headword_formatting(page, text):
+    text = unicode(text)
     pagetitle = page.title()
     sawtemp = False
     for temp in templates:
@@ -117,7 +121,7 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
         msg("WARNING: Unable to do replacement")
       else:
         text = newtext
-    for m in re.finditer(r"===+%s===+\s*(?:'*{\{(?:lang|l)\|ar\|(.*?)\}\}'*|'+([^{}']+)'+) *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *(?:\{\{g\|(.*?)\}\})? *((?:,[^,\n]*)*)(.*)" % pos, text, re.I):
+    for m in re.finditer(r"===+%s===+\s*(?:'*\{\{(?:lang|l)\|ar\|(.*?)\}\}'*|'+([^{}']+)'+) *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *(?:\{\{g\|(.*?)\}\})? *((?:,[^,\n]*)*)(.*)" % pos, text, re.I):
       replsfound += 1
       msg("Found match: %s" % m.group(0))
       if m.group(6):
@@ -143,22 +147,59 @@ def search_category_for_missing_template(pos, templates, startFrom, upTo):
         msg("WARNING: Unable to remove [[Category:%s]]" % cat)
     if not sawtemp and replsfound == 0:
       msg("WARNING: No replacements found for {{l|ar|%s}}" % pagetitle)
+    return text, "Correct headword formatting for [[:Category:%s]]" % cat
 
-def search_no_noun_head(startFrom, upTo):
-  search_category_for_missing_template("noun", ["ar-noun", "ar-coll-noun", "ar-sing-noun"], startFrom, upTo)
-  search_category_for_missing_template("proper noun", "ar-proper noun", startFrom, upTo)
-  search_category_for_missing_template("adjective", ["ar-adj", "ar-nisba", "ar-adj-color"], startFrom, upTo)
-  search_category_for_missing_template("collective noun", "ar-coll-noun", startFrom, upTo)
-  search_category_for_missing_template("singulative noun", "ar-sing-noun", startFrom, upTo)
-  search_category_for_missing_template("verbal noun", "ar-verbal noun", startFrom, upTo)
-  search_category_for_missing_template("adverb", "ar-adv", startFrom, upTo)
-  search_category_for_missing_template("conjunction", "ar-con", startFrom, upTo)
-  search_category_for_missing_template("interjection", "ar-interj", startFrom, upTo)
-  search_category_for_missing_template("particle", "ar-part", startFrom, upTo)
-  search_category_for_missing_template("preposition", "ar-prep", startFrom, upTo)
-  search_category_for_missing_template("pronoun", "ar-pron", startFrom, upTo)
+  for page in blib.cat_articles(cat, startFrom, upTo):
+    blib.do_edit(page, correct_one_page_headword_formatting, save=save)
+
+def correct_headword_formatting(save, startFrom, upTo):
+  search_category_for_missing_template("noun", ["ar-noun", "ar-coll-noun", "ar-sing-noun"], save, startFrom, upTo)
+  search_category_for_missing_template("proper noun", "ar-proper noun", save, startFrom, upTo)
+  search_category_for_missing_template("adjective", ["ar-adj", "ar-nisba", "ar-adj-color"], save, startFrom, upTo)
+  search_category_for_missing_template("collective noun", "ar-coll-noun", save, startFrom, upTo)
+  search_category_for_missing_template("singulative noun", "ar-sing-noun", save, startFrom, upTo)
+  search_category_for_missing_template("verbal noun", "ar-verbal noun", save, startFrom, upTo)
+  search_category_for_missing_template("adverb", "ar-adv", save, startFrom, upTo)
+  search_category_for_missing_template("conjunction", "ar-con", save, startFrom, upTo)
+  search_category_for_missing_template("interjection", "ar-interj", save, startFrom, upTo)
+  search_category_for_missing_template("particle", "ar-part", save, startFrom, upTo)
+  search_category_for_missing_template("preposition", "ar-prep", save, startFrom, upTo)
+  search_category_for_missing_template("pronoun", "ar-pron", save, startFrom, upTo)
   # ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
 
-startFrom, upTo = blib.get_args()
+def correct_one_page_link_formatting(page, text):
+  text = unicode(text)
+  pagetitle = page.title()
+  linkschanged = []
+  for m in re.finditer(r"\{\{l\|ar\|(.*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)'*", text):
+    msg("On page %s, found match: %s" % (pagetitle, m.group(0)))
+    repl = "{{l|ar|%s|tr=%s}}" % (m.group(1), m.group(2))
+    msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
+    newtext = text.replace(m.group(0), repl, 1)
+    if newtext == text:
+      msg("WARNING: Unable to do replacement")
+    else:
+      text = newtext
+      linkschanged.append(m.group(2))
+  return text, "incorporated translit into links: %s" % ', '.join(linkschanged)
 
-search_no_noun_head(startFrom, upTo)
+def correct_link_formatting(save, startFrom, upTo):
+  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
+    for page in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, correct_one_page_link_formatting, save=save)
+
+pa = argparse.ArgumentParser(description="Correct formatting of headword templates")
+pa.add_argument("-s", "--save", action='store_true',
+    help="Save changed pages")
+pa.add_argument("-l", "--links", action='store_true',
+    help="Vocalize links")
+pa.add_argument("start", nargs="?", help="First page to work on")
+pa.add_argument("end", nargs="?", help="Last page to work on")
+
+parms = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+
+if parms.links:
+  correct_link_formatting(parms.save, startFrom, upTo)
+else:
+  correct_headword_formatting(parms.save, startFrom, upTo)
