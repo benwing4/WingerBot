@@ -184,8 +184,8 @@ def vocalize_links(save, startFrom, upTo):
         result = vocalize_param(template, "1", "tr")
       if isinstance(result, basestring):
         terms_vocalized.append("%s (%s)" % (result, template.name))
-        templates_changed[template.name] = \
-            templates_changed.get(template.name, 0) + 1
+        tempname = unicode(template.name)
+        templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
     changelog = "vocalize links: %s" % '; '.join(terms_vocalized)
     #if len(terms_vocalized) > 0:
     msg("Change log = %s" % changelog)
