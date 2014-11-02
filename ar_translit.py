@@ -81,7 +81,7 @@ tt = {
 }
 
 consonants_needing_vowels = u"بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئءةﷲ"
-consonants = consonants_needing_vowels + u"وي"
+consonants = consonants_needing_vowels + u"ويآ"
 punctuation = u"؟،؛" + u"ـ" # semicolon, comma, question mark, taṭwīl
 numbers = u"١٢٣٤٥٦٧٨٩٠"
 
@@ -282,7 +282,7 @@ tt_to_arabic_matching = {
     u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m",    u"ن":u"n",
     u"ه":u"h",
     # We have special handling for the following in the canonicalized Latin,
-    # so that we have -a but -āh.
+    # so that we have -a but -āh and -at-.
     u"ة":[u"h",[u"t"],[u"(t)"],u""],
     # control characters
     zwnj:[u"-"],#,u""], # ZWNJ (zero-width non-joiner)
@@ -422,12 +422,13 @@ def pre_canonicalize_arabic(unvoc):
     # transliteration process inconvenient, so undo it.
     unvoc = rsub(unvoc,
         u"([\u064B\u064C\u064D\u064E\u064F\u0650\u0670])\u0651", u"\u0651\\1")
-    # tāʾ marbūṭa should always be preceded by fatḥa, alif or dagger alif;
-    # infer fatḥa if not. This fatḥa will force a match to an "a" in the Latin,
-    # so we can safely have tāʾ marbūṭa itself match "h", "t" or "", making it
-    # work correctly with alif + tāʾ marbūṭa where e.g. اة = ā and still
-    # correctly allow e.g. رة = ra but disallow رة = r.
-    unvoc = rsub(unvoc, u"([^\u064E\u0627\u0670])\u0629", u"\\1\u064E\u0629")
+    # tāʾ marbūṭa should always be preceded by fatḥa, alif, alif madda or
+    # dagger alif; infer fatḥa if not. This fatḥa will force a match to an "a"
+    # in the Latin, so we can safely have tāʾ marbūṭa itself match "h", "t"
+    # or "", making it work correctly with alif + tāʾ marbūṭa where
+    # e.g. اة = ā and still correctly allow e.g. رة = ra but disallow رة = r.
+    unvoc = rsub(unvoc, u"([^\u064E\u0627\u0622\u0670])\u0629",
+        u"\\1\u064E\u0629")
     # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
     # accusative singular or words like عَصًا "stick" or هُذًى "guidance"; this is
     # called tanwin nasb). So substitute special silent versions of these
@@ -499,9 +500,9 @@ def tr_matching(arabic, latin, err=False):
     # character to the result characters and return True.
     def match():
         ac = ar[aind[0]]
-        # print "ac is %s" % ac
+        # uniprint("ac is %s" % ac)
         bow = aind[0] == 0 or ar[aind[0] - 1] in [u" ", u"[", u"|"]
-        eow = aind[0] == alen - 1 or ar[aind[0] + 1] in [u" ", u"[", u"|"]
+        eow = aind[0] == alen - 1 or ar[aind[0] + 1] in [u" ", u"]", u"|"]
 
         # Check for link of the form [[foo|bar]] and skip over the part
         # up through the vertical bar, copying it
@@ -520,7 +521,7 @@ def tr_matching(arabic, latin, err=False):
             bow and tt_to_arabic_matching_bow.get(ac) or
             eow and tt_to_arabic_matching_eow.get(ac) or
             tt_to_arabic_matching.get(ac))
-        # print "matches is %s" % matches
+        # uniprint("matches is %s" % matches)
         if matches == None:
             if True:
                 error("Encountered non-Arabic (?) character " + ac +
@@ -536,9 +537,9 @@ def tr_matching(arabic, latin, err=False):
                 m = m[0]
             l = lind[0]
             matched = True
-            # print "m: %s" % m
+            # uniprint("m: %s" % m)
             for cp in m:
-                # print "cp: %s" % cp
+                # uniprint("cp: %s" % cp)
                 if l < llen and la[l] == cp:
                     l = l + 1
                 else:
@@ -550,7 +551,10 @@ def tr_matching(arabic, latin, err=False):
                     for cp in m:
                         lres.append(cp)
                 elif ac == u"ة":
-                    if aind[0] > 0 and ar[aind[0] - 1] == u"ا":
+                    if not eow:
+                        lres.append(u"t")
+                    elif aind[0] > 0 and (ar[aind[0] - 1] == u"ا" or
+                            ar[aind[0] - 1] == u"آ"):
                         lres.append(u"h")
                     # else do nothing
                 else:
@@ -561,7 +565,7 @@ def tr_matching(arabic, latin, err=False):
                         lres.append(cp)
                 lind[0] = l
                 aind[0] = aind[0] + 1
-                # print "matched; lind is %s" % lind[0]
+                # uniprint("matched; lind is %s" % lind[0])
                 return True
         return False
 
@@ -590,6 +594,7 @@ def tr_matching(arabic, latin, err=False):
         if aind[0] < alen and match():
             matched = True
         elif lind[0] < llen:
+            # uniprint("Unmatched Latin: %s at %s" % (la[lind[0]], lind[0]))
             unmatched = tt_to_arabic_unmatching.get(la[lind[0]])
             if unmatched != None:
                 res.append(unmatched)
@@ -765,6 +770,7 @@ def run_tests():
     test("duubah", u"دوبة") # should be reduced to -a
     test("duubaa", u"دوباة") # should become -āh
     test("duubaah", u"دوباة") # should become -āh
+    test("mir'aah", u"مرآة") # should become -āh
 
     # Test the definite article and its rendering in Arabic
     test("al-duuba", u"اَلدّوبة")
@@ -783,6 +789,7 @@ def run_tests():
     test("ghurfa(t) al-kuuba", u"غرفة الكوبة")
     test("ghurfatu l-kuuba", u"غرفة ٱلكوبة")
     test("ghurfa l-kuuba", u"غرفة ٱلكوبة")
+    test("ghurfa", u"غرفةٌ")
 
     # Test handling of embedded links
     test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]")
@@ -802,6 +809,9 @@ def run_tests():
     # long vowel (this check is already present) and that an error doesn't
     # occur
     test("'animi", u"أنمي") # should fail and return None
+
+    # Bugs
+    test(u"qiṭṭ", u"قِطٌّ")
 
 if __name__ == "__main__":
     run_tests()
