@@ -171,7 +171,7 @@ def correct_one_page_link_formatting(page, text):
   text = unicode(text)
   pagetitle = page.title()
   linkschanged = []
-  for m in re.finditer(r"\{\{l\|ar\|(.*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)'*", text):
+  for m in re.finditer(r"\{\{l\|ar\|([^}]*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\(([^)]*?)\)(?:\}\})?)'*", text):
     msg("On page %s, found match: %s" % (pagetitle, m.group(0)))
     if "|tr=" in m.group(1):
       msg("Skipping because translit already present")
