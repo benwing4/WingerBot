@@ -173,6 +173,9 @@ def correct_one_page_link_formatting(page, text):
   linkschanged = []
   for m in re.finditer(r"\{\{l\|ar\|(.*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)'*", text):
     msg("On page %s, found match: %s" % (pagetitle, m.group(0)))
+    if "|tr=" in m.group(1):
+      msg("Skipping because translit already present")
+      continue
     repl = "{{l|ar|%s|tr=%s}}" % (m.group(1), m.group(2))
     msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
     newtext = text.replace(m.group(0), repl, 1)
