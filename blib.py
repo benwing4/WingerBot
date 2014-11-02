@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #coding: utf-8
 
-# Author: CodeCat for MewBot
+# Author: CodeCat for MewBot; fixes by Benwing
 
 #    blib.py is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
