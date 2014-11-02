@@ -300,3 +300,53 @@ def getEtymLanguageData():
     etym_languages_byCode[etyl["code"]] = etyl
     etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
 
+# Process link-like templates, on pages from STARTFROM to (but not including)
+# UPTO, either page names or 0-based integers. Save changes if SAVE is true.
+# PROCESS_PARAM is the function called, which is called with four arguments:
+# The page, the template on the page, the param in the template containing the
+# Arabic and the param containing the Latin transliteration. It should return
+# a changelog string if changes were made, and something else otherwise
+# (e.g. False). Changelog strings for all templates will be joined together,
+# separated by a semi-colon.
+def process_links(save, startFrom, upTo, process_param):
+  templates_changed = {}
+
+  # Process the link-like templates on the given page with the given text.
+  # Returns the changed text along with a changelog message.
+  def process_one_page_links(page, text):
+    actions = []
+    for template in text.filter_templates():
+      result = None
+      tempname = unicode(template.name)
+      if tempname == "head" and getparam(template, "1") == "ar":
+        result = process_param(page, template, "head", "tr")
+      elif (tempname == "m" and getparam(template, "1") == "ar" and
+          getparam(template, "3")):
+        result = process_param(page, template, "3", "tr")
+      elif (tempname == "term" and getparam(template, "lang") == "ar" and
+          getparam(template, "2")):
+        result = process_param(page, template, "2", "tr")
+      elif (#tempname in ["l", "m"] and
+          getparam(template, "1") == "ar"):
+        # Try to process 2=
+        result = process_param(page, template, "2", "tr")
+      elif (#tempname in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
+          tempname != "borrowing" and
+          getparam(template, "lang") == "ar"):
+        # Try to process 1=
+        result = process_param(page, template, "1", "tr")
+      if isinstance(result, basestring):
+        actions.append(result)
+        templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
+    changelog = '; '.join(actions)
+    #if len(terms_processed) > 0:
+    msg("Change log for page %s = %s" % (page.title(), changelog))
+    return text, changelog
+
+  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
+    for page in cat_articles(cat, startFrom, upTo):
+      do_edit(page, process_one_page_links, save=save)
+  msg("Templates processed:")
+  for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
+    msg("  %s = %s" % (template, count))
+

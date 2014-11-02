@@ -14,53 +14,70 @@ import ar_translit
 # parameter. Otherwise, if PARAM found, try to canonicalize. If a change
 # made, return a string describing the action, else True. If PARAM not found,
 # return False.
-def process_param(template, param, paramtr):
+def process_param(page, template, param, paramtr,
+    include_tempname_in_changelog=False):
+  def prn(text):
+    msg("Page %s, %s.%s: %s" % (page.title(), template.name, param, text))
   arabic = blib.getparam(template, param)
   latin = blib.getparam(template, paramtr)
+  if include_tempname_in_changelog:
+    paramname = "%s.%s" % (template.name, param)
+  else:
+    paramname = param
   if not arabic:
     return False
+  if latin == "-":
+    prn("Translit is '-', skipping")
+    return True
   if latin:
     try:
       canonlatin = ar_translit.tr_matching_latin(arabic, latin, True)
+      if not canonlatin:
+        prn("Unable to match-canonicalize %s (%s)" % (arabic, latin))
     except Exception as e:
-      msg("Trying to match-canonicalize %s (%s): %s" % (arabic, latin, e))
+      prn("Trying to match-canonicalize %s (%s): %s" % (arabic, latin, e))
       canonlatin = None
     try:
       translit = ar_translit.tr(arabic)
+      if not translit:
+        prn("Unable to auto-translit %s" % arabic)
     except Exception as e:
-      msg("Trying to transliterate %s: %s" % (arabic, e))
+      prn("Trying to transliterate %s: %s" % (arabic, e))
       translit = None
-    if not translit or not canonlatin:
-      msg("%s, %s: Unable to auto-translit Arabic" % (param, arabic))
     if translit and canonlatin:
       if translit == canonlatin:
       #if (translit == canonlatin or
       #    translit == canonlatin + "un" or
       #    translit == u"ʾ" + canonlatin or
       #    translit == u"ʾ" + canonlatin + "un"):
-        msg("%s, %s: Removing translit %s" % (param, arabic, latin))
+        prn("Removing redundant translit for %s (%s)" % (arabic, latin))
         oldtempl = "%s" % unicode(template)
         template.remove(paramtr)
-        msg("Replaced %s with %s" % (oldtempl, unicode(template)))
-        return "removing param %s translit %s" % (param, latin)
+        msg("Page %s: Replaced %s with %s" %
+            (page.title(), oldtempl, unicode(template)))
+        return ("removing param %s redundant translit %s" % (paramname, latin))
       else:
-        msg("%s, %s: Auto-translit %s not same as manual translit %s (canonicalized %s)" %
-            (param, arabic, translit, latin, canonlatin))
+        prn("Auto-translit for %s (%s) not same as manual translit %s (canonicalized %s)" %
+            (arabic, translit, latin, canonlatin))
     if canonlatin:
       if latin != canonlatin:
-        msg("%s: Match-canonicalizing Latin %s to %s" % (param, latin, canonlatin))
+        prn("Match-canonicalizing Latin %s to %s" % (latin, canonlatin))
         oldtempl = "%s" % unicode(template)
         template.add(paramtr, canonlatin)
-        msg("Replaced %s with %s" % (oldtempl, unicode(template)))
-        return "match-canonicalizing param %s %s -> %s" % (param, latin, canonlatin)
+        msg("Page %s: Replaced %s with %s" %
+            (page.title(), oldtempl, unicode(template)))
+        return ("match-canonicalizing param %s %s -> %s" %
+            (paramname, latin, canonlatin))
       return True
     canonlatin = ar_translit.canonicalize_latin(latin)
     if latin != canonlatin:
-      msg("%s: Self-canonicalizing Latin %s to %s" % (param, latin, canonlatin))
+      prn("Self-canonicalizing Latin %s to %s" % (latin, canonlatin))
       oldtempl = "%s" % unicode(template)
       template.add(paramtr, canonlatin)
-      msg("Replaced %s with %s" % (oldtempl, unicode(template)))
-      return "self-canonicalizing param %s %s -> %s" % (param, latin, canonlatin)
+      msg("Page %s: Replaced %s with %s" %
+          (page.title(), oldtempl, unicode(template)))
+      return ("self-canonicalizing param %s %s -> %s" %
+          (paramname, latin, canonlatin))
   return True
 
 # Process the parameter chain for PARAM in TEMPLATE, looking for translits
@@ -68,15 +85,15 @@ def process_param(template, param, paramtr):
 # attempt to process "pl", "pl2", "pl3", etc. based on "pltr", "pl2tr",
 # "pl3tr", etc., stopping when "plN" isn't found. Return list of actions
 # taken, for use in the changelog message.
-def process_param_chain(template, param):
+def process_param_chain(page, template, param):
   actions = []
-  result = process_param(template, param, param + "tr")
+  result = process_param(page, template, param, param + "tr")
   if isinstance(result, basestring):
     actions.append(result)
   i = 2
   while result:
     thisparam = param + str(i)
-    result = process_param(template, thisparam, thisparam + "tr")
+    result = process_param(page, template, thisparam, thisparam + "tr")
     if isinstance(result, basestring):
       actions.append(result)
     i += 1
@@ -91,7 +108,7 @@ def process_head(page, template):
   # Handle existing 1= and head from page title
   if template.has("tr"):
     # Try to process 1=
-    result = process_param(template, "1", "tr")
+    result = process_param(page, template, "1", "tr")
     if isinstance(result, basestring):
       actions.append(result)
 
@@ -100,7 +117,7 @@ def process_head(page, template):
   result = True
   while result:
     thisparam = "head" + str(i)
-    result = process_param(template, thisparam, "tr" + str(i))
+    result = process_param(page, template, thisparam, "tr" + str(i))
     if isinstance(result, basestring):
       actions.append(result)
     i += 1
@@ -118,7 +135,7 @@ def process_one_page_headwords(page, text):
       thisactions += process_head(page, template)
       for param in ["pl", "cpl", "fpl", "f", "el", "sing", "coll", "d", "pauc", "obl",
           "fobl", "plobl", "dobl"]:
-        thisactions += process_param_chain(template, param)
+        thisactions += process_param_chain(page, template, param)
       if len(thisactions) > 0:
         actions.append("%s: %s" % (template.name, ', '.join(thisactions)))
   changelog = '; '.join(actions)
@@ -141,38 +158,10 @@ def process_headwords(save, startFrom, upTo):
 # (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true.
 def process_links(save, startFrom, upTo):
-  templates_changed = {}
-
-  # Vocalize the link-like templates on the given page with the given text.
-  # Returns the changed text along with a changelog message.
-  def process_one_page_links(page, text):
-    actions = []
-    for template in text.filter_templates():
-      result = None
-      tr = blib.getparam(template, "tr")
-      if (#template.name in ["l", "m"] and
-          blib.getparam(template, "1") == "ar"):
-        # Try to process 2=
-        result = process_param(template, "2", "tr")
-      elif (#template.name in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
-          blib.getparam(template, "lang") == "ar"):
-        # Try to process 1=
-        result = process_param(template, "1", "tr")
-      if isinstance(result, basestring):
-        actions.append(result)
-        tempname = unicode(template.name)
-        templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
-    changelog = '; '.join(actions)
-    #if len(terms_processed) > 0:
-    msg("Change log for page %s = %s" % (page.title(), changelog))
-    return text, changelog
-
-  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, process_one_page_links, save=save)
-  msg("Templates processed:")
-  for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
-    msg("  %s = %s" % (template, count))
+  def do_process_param(page, template, param, paramtr):
+    return process_param(page, template, param, paramtr,
+        include_tempname_in_changelog=True)
+  return blib.process_links(save, startFrom, upTo, do_process_param)
 
 pa = argparse.ArgumentParser(description="Remove redundant translit")
 pa.add_argument("-s", "--save", action='store_true',

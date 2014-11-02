@@ -165,38 +165,13 @@ def vocalize_headwords(save, startFrom, upTo):
 # Vocalize link-like templates on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
 def vocalize_links(save, startFrom, upTo):
-  templates_changed = {}
+  def process_param(page, template, param, paramtr):
+    result = vocalize_param(template, param, paramtr)
+    if isinstance(result, basestring):
+      result = "vocalize links: %s (%s)" % (result, template.name)
+    return result
 
-  # Vocalize the link-like templates on the given page with the given text.
-  # Returns the changed text along with a changelog message.
-  def vocalize_one_page_links(page, text):
-    actions_taken = []
-    terms_vocalized = []
-    for template in text.filter_templates():
-      result = None
-      if (#template.name in ["l", "m"] and
-          blib.getparam(template, "1") == "ar"):
-        # Try to vocalize 2=
-        result = vocalize_param(template, "2", "tr")
-      elif (#template.name in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
-          blib.getparam(template, "lang") == "ar"):
-        # Try to vocalize 1=
-        result = vocalize_param(template, "1", "tr")
-      if isinstance(result, basestring):
-        terms_vocalized.append("%s (%s)" % (result, template.name))
-        tempname = unicode(template.name)
-        templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
-    changelog = "vocalize links: %s" % '; '.join(terms_vocalized)
-    #if len(terms_vocalized) > 0:
-    msg("Change log = %s" % changelog)
-    return text, changelog
-
-  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, vocalize_one_page_links, save=save)
-  msg("Templates vocalized:")
-  for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
-    msg("  %s = %s" % (template, count))
+  return blib.process_links(save, startFrom, upTo, process_param)
 
 pa = argparse.ArgumentParser(description="Correct vocalization and translit")
 pa.add_argument("-s", "--save", action='store_true',
