@@ -232,6 +232,7 @@ def has_diacritics(text):
 
 silent_alif_subst = u"\ufff1"
 silent_alif_maqsuura_subst = u"\ufff2"
+multi_single_quote_subst = u"\ufff3"
 hamza_match=[u"ʾ",u"’",u"'",u"`"]
 hamza_match_or_empty=[u"ʾ",u"’",u"'",u"`",u""]
 
@@ -326,6 +327,8 @@ tt_to_arabic_matching = {
     u"؟":u"?", # question mark
     u"،":u",", # comma
     u"؛":u";", # semicolon
+    u".":u".", # period
+    u"'":u"'", # single quote, for bold/italic
     u" ":u" ",
     u"[":u"",
     u"]":u""
@@ -408,12 +411,18 @@ def post_canonicalize_latin(text):
 # tr_matching()).
 def canonicalize_latin(text):
     text = pre_canonicalize_latin(text)
+    # Protect instances of two or more single quotes in a row so they don't
+    # get converted to sequences of hamza half-rings.
+    def quote_subst(m):
+        return m.group(0).replace("'", multi_single_quote_subst)
+    text = re.sub(r"''+", quote_subst, text)
     text = rsub(text, u".", tt_canonicalize_latin)
     latin_chars = u"[a-zA-Zāēīōūčḍḏḡḥḵṣšṭṯẓžʿʾ]"
     # Convert 3 to ʿ if next to a letter or letter symbol. This tries
     # to avoid converting 3 in numbers.
     text = rsub(text, u"(%s)3" % latin_chars, u"\\1ʿ")
     text = rsub(text, u"3(%s)" % latin_chars, u"ʿ\\1")
+    text = text.replace(multi_single_quote_subst, "'")
     text = post_canonicalize_latin(text)
     return text
 
@@ -480,8 +489,8 @@ def post_canonicalize_arabic(text):
 # throw an error if ERR, else return None.
 def tr_matching(arabic, latin, err=False):
     latin = pre_canonicalize_latin(latin)
-    # convert double consonant to consonant + shadda
-    latin = rsub(latin, u"(.)\\1", u"\\1\u0651")
+    # convert double consonant to consonant + shadda, but not multiple quotes
+    latin = rsub(latin, u"([^'])\\1", u"\\1\u0651")
     arabic = pre_canonicalize_arabic(arabic)
 
     ar = [] # exploded Arabic characters
@@ -812,6 +821,9 @@ def run_tests():
     # long vowel (this check is already present) and that an error doesn't
     # occur
     test("'animi", u"أنمي") # should fail and return None
+
+    # Single quotes in Arabic
+    test("man '''huwa'''", u"من '''هو'''")
 
     # Bugs
     test(u"qiṭṭ", u"قِطٌ")
