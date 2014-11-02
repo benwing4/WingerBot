@@ -279,7 +279,7 @@ tt_to_arabic_matching = {
     u"س":u"s", u"ش":[u"š",u"sh"],
     # allow non-emphatic to match so we can handle uppercase S, D, T, Z;
     # we lowercase the text before processing to handle proper names and such
-    u"ص":[u"ṣ",u"sʿ",u"s"], u"ض":[u"ḍ",u"dʿ",u"d"],
+    u"ص":[u"ṣ",u"sʿ",u"s", u"ʂ"], u"ض":[u"ḍ",u"dʿ",u"d"],
     u"ط":[u"ṭ",u"tʿ",u"ṫ",u"t"], u"ظ":[u"ẓ",u"ðʿ",u"đ̣",u"z"],
     u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3",u"ˁ"], u"غ":[u"ḡ",u"ġ",u"ğ",u"gh"],
     u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m",    u"ن":u"n",
