@@ -811,7 +811,7 @@ def run_tests():
     test("'animi", u"أنمي") # should fail and return None
 
     # Bugs
-    test(u"qiṭṭ", u"قِطٌّ")
+    test(u"qiṭṭ", u"قِطٌ")
 
 if __name__ == "__main__":
     run_tests()
