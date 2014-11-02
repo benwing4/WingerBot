@@ -82,7 +82,10 @@ tt = {
 
 consonants_needing_vowels = u"بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئءةﷲ"
 consonants = consonants_needing_vowels + u"ويآ"
-punctuation = u"؟،؛" + u"ـ" # semicolon, comma, question mark, taṭwīl
+punctuation = (u"؟،؛" # Arabic semicolon, comma, question mark
+               + u"ـ" # taṭwīl
+               + u".'" # period, single quote for bold/italic
+               )
 numbers = u"١٢٣٤٥٦٧٨٩٠"
 
 before_diacritic_checking_subs = [
