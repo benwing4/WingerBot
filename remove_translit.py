@@ -9,41 +9,6 @@ from blib import msg
 
 import ar_translit
 
-# Compare auto-translit of ARABIC with LATIN. Return changelog action if
-# ARABIC can be auto-transliterated and result is same as LATIN, else False.
-# PARAM is the name of the parameter being processed.
-def check_auto_translit(param, arabic, latin):
-  try:
-    translit = ar_translit.tr(arabic)
-  except Exception as e:
-    msg("Trying to transliterate %s: %s" % (arabic, e))
-    translit = None
-  if translit:
-    canonlatin = ar_translit.canonicalize_latin(latin)
-    if (translit == canonlatin or
-        translit == canonlatin + "un" or
-        translit == u"ʾ" + canonlatin or
-        translit == u"ʾ" + canonlatin + "un"):
-      msg("%s, %s: Removing translit %s" % (param, arabic, latin))
-      return "removing param %s translit %s" % (param, latin)
-    else:
-      msg("%s, %s: Auto-translit %s not same as manual translit %s" %
-          (param, arabic, translit, latin))
-      return False
-  else:
-    msg("%s, %s: Unable to auto-translit Arabic" % (param, arabic))
-  return False
-
-# Try to canonicalize the given transliteration to standard form. Return
-# canonicalized string if different from original, else False. Return
-# changelog action as second return value in tuple.
-def check_canonicalize(param, latin):
-  canonlatin = ar_translit.canonicalize_latin(latin)
-  if latin != canonlatin:
-    msg("%s: Canonicalizing Latin %s to %s" % (param, latin, canonlatin))
-    return canonlatin, "canonicalizing param %s %s -> %s" % (param, latin, canonlatin)
-  return False, ""
-
 # Compare the auto-translit of PARAM with the corresponding transliteration
 # parameter PARAMTR. If both found and both the same, remove the translit
 # parameter. Otherwise, if PARAM found, try to canonicalize. If a change
@@ -55,18 +20,47 @@ def process_param(template, param, paramtr):
   if not arabic:
     return False
   if latin:
-    action = check_auto_translit(param, arabic, latin)
-    if action:
+    try:
+      canonlatin = ar_translit.tr_matching_latin(arabic, latin, True)
+    except Exception as e:
+      msg("Trying to match-canonicalize %s (%s): %s" % (arabic, latin, e))
+      canonlatin = None
+    try:
+      translit = ar_translit.tr(arabic)
+    except Exception as e:
+      msg("Trying to transliterate %s: %s" % (arabic, e))
+      translit = None
+    if not translit or not canonlatin:
+      msg("%s, %s: Unable to auto-translit Arabic" % (param, arabic))
+    if translit and canonlatin:
+      if translit == canonlatin:
+      #if (translit == canonlatin or
+      #    translit == canonlatin + "un" or
+      #    translit == u"ʾ" + canonlatin or
+      #    translit == u"ʾ" + canonlatin + "un"):
+        msg("%s, %s: Removing translit %s" % (param, arabic, latin))
+        oldtempl = "%s" % unicode(template)
+        template.remove(paramtr)
+        msg("Replaced %s with %s" % (oldtempl, unicode(template)))
+        return "removing param %s translit %s" % (param, latin)
+      else:
+        msg("%s, %s: Auto-translit %s not same as manual translit %s (canonicalized %s)" %
+            (param, arabic, translit, latin, canonlatin))
+    if canonlatin:
+      if latin != canonlatin:
+        msg("%s: Match-canonicalizing Latin %s to %s" % (param, latin, canonlatin))
+        oldtempl = "%s" % unicode(template)
+        template.add(paramtr, canonlatin)
+        msg("Replaced %s with %s" % (oldtempl, unicode(template)))
+        return "match-canonicalizing param %s %s -> %s" % (param, latin, canonlatin)
+      return True
+    canonlatin = ar_translit.canonicalize_latin(latin)
+    if latin != canonlatin:
+      msg("%s: Self-canonicalizing Latin %s to %s" % (param, latin, canonlatin))
       oldtempl = "%s" % unicode(template)
-      template.remove(paramtr)
+      template.add(paramtr, canonlatin)
       msg("Replaced %s with %s" % (oldtempl, unicode(template)))
-      return action
-    canon, action = check_canonicalize(param, latin)
-    if canon:
-      oldtempl = "%s" % unicode(template)
-      template.add(paramtr, canon)
-      msg("Replaced %s with %s" % (oldtempl, unicode(template)))
-      return action
+      return "self-canonicalizing param %s %s -> %s" % (param, latin, canonlatin)
   return True
 
 # Process the parameter chain for PARAM in TEMPLATE, looking for translits
@@ -166,8 +160,8 @@ def process_links(save, startFrom, upTo):
         result = process_param(template, "1", "tr")
       if isinstance(result, basestring):
         actions.append(result)
-        templates_changed[template.name] = \
-            templates_changed.get(template.name, 0) + 1
+        tempname = unicode(template.name)
+        templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
     changelog = '; '.join(actions)
     #if len(terms_processed) > 0:
     msg("Change log for page %s = %s" % (page.title(), changelog))
