@@ -181,10 +181,12 @@ def vocalize_links(save, startFrom, upTo):
   def process_param(page, template, param, paramtr):
     result = vocalize_param(template, param, paramtr)
     if isinstance(result, basestring):
-      result = "vocalize links: %s (%s)" % (result, template.name)
+      result = ["%s (%s)" % (result, template.name)]
     return result
+  def join_actions(actions):
+    return "vocalize links: %s" % '; '.join(actions)
 
-  return blib.process_links(save, startFrom, upTo, process_param)
+  return blib.process_links(save, startFrom, upTo, process_param, join_actions)
 
 pa = argparse.ArgumentParser(description="Correct vocalization and translit")
 pa.add_argument("-s", "--save", action='store_true',

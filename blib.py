@@ -308,7 +308,7 @@ def getEtymLanguageData():
 # a changelog string if changes were made, and something else otherwise
 # (e.g. False). Changelog strings for all templates will be joined together,
 # separated by a semi-colon.
-def process_links(save, startFrom, upTo, process_param):
+def process_links(save, startFrom, upTo, process_param, join_actions=None):
   templates_changed = {}
 
   # Process the link-like templates on the given page with the given text.
@@ -335,10 +335,13 @@ def process_links(save, startFrom, upTo, process_param):
           getparam(template, "lang") == "ar"):
         # Try to process 1=
         result = process_param(page, template, "1", "tr")
-      if isinstance(result, basestring):
-        actions.append(result)
+      if isinstance(result, list):
+        actions.extend(result)
         templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
-    changelog = '; '.join(actions)
+    if not join_actions:
+      changelog = '; '.join(actions)
+    else:
+      changelog = join_actions(actions)
     #if len(terms_processed) > 0:
     msg("Change log for page %s = %s" % (page.title(), changelog))
     return text, changelog

@@ -34,9 +34,9 @@ def process_param(page, template, param, paramtr,
   arabic = blib.getparam(template, param)
   latin = blib.getparam(template, paramtr)
   if include_tempname_in_changelog:
-    paramname = "%s.%s" % (template.name, param)
+    paramtrname = "%s.%s" % (template.name, paramtr)
   else:
-    paramname = param
+    paramtrname = paramtr
   if not arabic:
     return False
   if latin == "-":
@@ -68,7 +68,7 @@ def process_param(page, template, param, paramtr,
         template.remove(paramtr)
         msg("Page %s: Replaced %s with %s" %
             (page.title(), oldtempl, unicode(template)))
-        return ("removing param %s redundant translit %s" % (paramname, latin))
+        return ["remove redundant %s=%s" % (paramtrname, latin)]
       else:
         prn("Auto-translit for %s (%s) not same as manual translit %s (canonicalized %s)" %
             (arabic, translit, latin, canonlatin))
@@ -79,8 +79,7 @@ def process_param(page, template, param, paramtr,
         template.add(paramtr, canonlatin)
         msg("Page %s: Replaced %s with %s" %
             (page.title(), oldtempl, unicode(template)))
-        return ("match-canonicalizing param %s %s -> %s" %
-            (paramname, latin, canonlatin))
+        return ["match-canon %s=%s -> %s" % (paramtrname, latin, canonlatin)]
       return True
     canonlatin = ar_translit.canonicalize_latin(latin)
     if latin != canonlatin:
@@ -89,9 +88,27 @@ def process_param(page, template, param, paramtr,
       template.add(paramtr, canonlatin)
       msg("Page %s: Replaced %s with %s" %
           (page.title(), oldtempl, unicode(template)))
-      return ("self-canonicalizing param %s %s -> %s" %
-          (paramname, latin, canonlatin))
+      return ["self-canon %s=%s -> %s" % (paramtrname, latin, canonlatin)]
   return True
+
+def sort_group_changelogs(actions):
+  grouped_actions = {}
+  begins = ["remove redundant ", "match-canon ", "self-canon ", ""]
+  for begin in begins:
+    grouped_actions[begin] = []
+  actiontype = None
+  action = ""
+  for action in actions:
+    for begin in begins:
+      if action.startswith(begin):
+        actiontag = action.replace(begin, "", 1)
+        grouped_actions[begin].append(actiontag)
+        break
+  grouped_action_strs = \
+    [begin + ', '.join(grouped_actions[begin]) for begin in begins
+        if len(grouped_actions[begin]) > 0]
+  all_grouped_actions = '; '.join([x for x in grouped_action_strs if x])
+  return all_grouped_actions
 
 # Process the parameter chain for PARAM in TEMPLATE, looking for translits
 # to remove or canonicalize. For example, if PARAM is "pl" then this will
@@ -101,14 +118,14 @@ def process_param(page, template, param, paramtr,
 def process_param_chain(page, template, param):
   actions = []
   result = process_param(page, template, param, param + "tr")
-  if isinstance(result, basestring):
-    actions.append(result)
+  if isinstance(result, list):
+    actions.extend(result)
   i = 2
   while result:
     thisparam = param + str(i)
     result = process_param(page, template, thisparam, thisparam + "tr")
-    if isinstance(result, basestring):
-      actions.append(result)
+    if isinstance(result, list):
+      actions.extend(result)
     i += 1
   return actions
 
@@ -122,8 +139,8 @@ def process_head(page, template):
   if template.has("tr"):
     # Try to process 1=
     result = process_param(page, template, "1", "tr")
-    if isinstance(result, basestring):
-      actions.append(result)
+    if isinstance(result, list):
+      actions.extend(result)
 
   # Check and try to process extra heads
   i = 2
@@ -131,8 +148,8 @@ def process_head(page, template):
   while result:
     thisparam = "head" + str(i)
     result = process_param(page, template, thisparam, "tr" + str(i))
-    if isinstance(result, basestring):
-      actions.append(result)
+    if isinstance(result, list):
+      actions.extend(result)
     i += 1
   return actions
 
@@ -172,9 +189,22 @@ def process_headwords(save, startFrom, upTo):
 # changes if SAVE is true.
 def process_links(save, startFrom, upTo):
   def do_process_param(page, template, param, paramtr):
-    return process_param(page, template, param, paramtr,
+    result = process_param(page, template, param, paramtr,
         include_tempname_in_changelog=True)
-  return blib.process_links(save, startFrom, upTo, do_process_param)
+    if blib.getparam(template, "sc") == "Arab":
+      msg("Page %s, %s.%s: Removing sc=Arab" % (page.title(), template.name, "sc"))
+      oldtempl = "%s" % unicode(template)
+      template.remove("sc")
+      msg("Page %s: Replaced %s with %s" %
+          (page.title(), oldtempl, unicode(template)))
+      newresult = ["remove %s.sc=Arab" % template.name]
+      if isinstance(result, list):
+        result = result + newresult
+      else:
+        result = newresult
+    return result
+  return blib.process_links(save, startFrom, upTo, do_process_param,
+      sort_group_changelogs)
 
 pa = argparse.ArgumentParser(description="Remove redundant translit")
 pa.add_argument("-s", "--save", action='store_true',
