@@ -142,7 +142,7 @@ def process_head(page, template):
 def process_one_page_headwords(page, text):
   actions = []
   for template in text.filter_templates():
-    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
+    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-plural"]: # ar-adj-color, # ar-nisba
       thisactions = []
       tr = blib.getparam(template, "tr")
       thisactions += process_head(page, template)
