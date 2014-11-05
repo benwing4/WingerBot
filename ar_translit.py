@@ -94,7 +94,10 @@ tt = {
 }
 
 consonants_needing_vowels = u"بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئءةﷲ"
-consonants = consonants_needing_vowels + u"ويآ"
+# consonants on the right side; includes alif madda
+rconsonants = consonants_needing_vowels + u"ويآ"
+# consonants on the left side; does not include alif madda
+lconsonants = consonants_needing_vowels + u"وي"
 punctuation = (u"؟،؛" # Arabic semicolon, comma, question mark
                + u"ـ" # taṭwīl
                + u".'" # period, single quote for bold/italic
@@ -134,7 +137,7 @@ before_diacritic_checking_subs = [
     # similarly for alif between consonants, possibly marked with shadda
     # (does not apply to initial alif, which is silent when not marked with
     # hamza, or final alif, which might be pronounced as -an)
-    [u"([" + consonants + u"]\u0651?)\u0627([" + consonants + u"])",
+    [u"([" + lconsonants + u"]\u0651?)\u0627([" + rconsonants + u"])",
         u"\\1\u064E\u0627\\2"],
     # infer fatḥa in case of non-fatḥa + alif/alif-maqṣūra + dagger alif
     [u"([^\u064E])([\u0627\u0649]\u0670)", u"\\1\u064E\\2"],
@@ -144,8 +147,8 @@ before_diacritic_checking_subs = [
     [u"([\u0627\u0649])\u0670", u"\\1"],
 
     # al + consonant + shadda (only recognize word-initially if regular alif): remove shadda
-    [u"(^|\\s)(\u0627\u064E?\u0644[" + consonants + u"])\u0651", u"\\1\\2"],
-    [u"(\u0671\u064E?\u0644[" + consonants + u"])\u0651", u"\\1"],
+    [u"(^|\\s)(\u0627\u064E?\u0644[" + lconsonants + u"])\u0651", u"\\1\\2"],
+    [u"(\u0671\u064E?\u0644[" + lconsonants + u"])\u0651", u"\\1"],
     # handle l- hamzatu l-waṣl or word-initial al-
     [u"(^|\\s)\u0627\u064E?\u0644", u"\\1al-"],
     [u"\u0671\u064E?\u0644", "l-"]
@@ -207,13 +210,13 @@ has_diacritics_subs = [
     # Remove consonants at end of word or utterance, so that we're OK with
     # words lacking iʿrāb (must go before removing other consonants).
     # If you want to catch places without iʿrāb, comment out the next two lines.
-    [u"[" + consonants + u"]$", u""],
-    [u"[" + consonants + u"]\\s", u" "],
+    [u"[" + lconsonants + u"]$", u""],
+    [u"[" + lconsonants + u"]\\s", u" "],
     # remove consonants (or alif) when followed by diacritics
     # must go after removing shadda
     # do not remove the diacritics yet because we need them to handle
     # long-vowel sequences of diacritic + pseudo-consonant
-    [u"[" + consonants + u"\u0627]([\u064B\u064C\u064D\u064E\u064F\u0650\u0652\u0670])", u"\\1"],
+    [u"[" + lconsonants + u"\u0627]([\u064B\u064C\u064D\u064E\u064F\u0650\u0652\u0670])", u"\\1"],
     # the following two must go after removing consonants w/diacritics because
     # we only want to treat vocalic wāw/yā' in them (we want to have removed
     # wāw/yā' followed by a diacritic)
@@ -466,7 +469,7 @@ def pre_canonicalize_arabic(unvoc):
     unvoc = rsub(unvoc, u"\u0627\u064B", silent_alif_subst + u"\u064B")
     unvoc = rsub(unvoc, u"\u0649\u064B", silent_alif_maqsuura_subst + u"\u064B")
     # initial al + consonant + shadda: remove shadda
-    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644[" + consonants + u"])\u0651",
+    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644[" + lconsonants + u"])\u0651",
          u"\\1\\2")
     return unvoc
 
@@ -480,7 +483,7 @@ def post_canonicalize_arabic(text):
     index = 0
     for part in re.split(r'(\[\[[^]]*\|)', text):
         if (index % 2) == 0:
-            part = rsub(part, u"([" + consonants + u"])([" + consonants + u"])", u"\\1\u0652\\2")
+            part = rsub(part, u"([" + lconsonants + u"])([" + rconsonants + u"])", u"\\1\u0652\\2")
         splitparts.append(part)
         index += 1
     text = ''.join(splitparts)
@@ -720,7 +723,7 @@ def tr_latin_direct(text, pos):
     text = rsub(text, u"āh$", u"\u064Eاة")
     text = rsub(text, u".", tt_to_arabic_direct)
     # convert double consonant to consonant + shadda
-    text = rsub(text, u"([" + consonants + u"])\\1", u"\\1\u0651")
+    text = rsub(text, u"([" + lconsonants + u"])\\1", u"\\1\u0651")
     text = post_canonicalize_arabic(text)
 
     return text
@@ -837,6 +840,10 @@ def run_tests():
 
     # Single quotes in Arabic
     test("man '''huwa'''", u"من '''هو'''")
+
+    # Alif madda
+    test("'aabaa'", u"آباء")
+    test("mir'aah", u"مرآة")
 
     # Bugs
     test(u"qiṭṭ", u"قِطٌ")
