@@ -23,9 +23,14 @@ from blib import msg
 import ar_translit
 
 def search_category_for_missing_template(pos, templates, save, startFrom, upTo):
+  return search_category_for_missing_form(pos, pos, templates, save, startFrom,
+      upTo)
+
+def search_category_for_missing_form(form, pos, templates, save, startFrom,
+    upTo):
   if not isinstance(templates, list):
     templates = [templates]
-  cat = "Arabic %ss" % pos
+  cat = "Arabic %ss" % form
   repltemplate = templates[0]
   msg("---Searching [[Category:%s|%s]] for %s:---" %
       (cat, cat, ' or '.join(["{{temp|%s}}" % temp for temp in templates])))
@@ -102,7 +107,7 @@ def search_category_for_missing_template(pos, templates, save, startFrom, upTo):
       else:
         msg("* %s not in {{l|ar|%s}}, nor {{temp|head|ar}}" % (' or '.join(templates), pagetitle))
     replsfound = 0
-    for m in re.finditer(r'===+%s===+\s*\{\{head\|ar\|(?:sc=Arab\|)?%s((?:\|[A-Za-z0-9_]+=(?:\[[^\]]*\]|[^|}])*)*)\}\} *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *((?:,[^,\n]*)*)(.*)' % (pos, pos), text, re.I):
+    for m in re.finditer(r'===+%s===+\s*\{\{head\|ar\|(?:sc=Arab\|)?%s((?:\|[A-Za-z0-9_]+=(?:\[[^\]]*\]|[^|}])*)*)\}\} *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *((?:,[^,\n]*)*)(.*)' % (pos, form), text, re.I):
       replsfound += 1
       msg("Found match: %s" % m.group(0))
       if m.group(4):
@@ -166,6 +171,7 @@ def search_category_for_missing_template(pos, templates, save, startFrom, upTo):
     blib.do_edit(page, correct_one_page_headword_formatting, save=save)
 
 def correct_headword_formatting(save, startFrom, upTo):
+  search_category_for_missing_form("plural", "noun", "ar-plural", save, startFrom, upTo)
   search_category_for_missing_template("noun", ["ar-noun", "ar-coll-noun", "ar-sing-noun"], save, startFrom, upTo)
   search_category_for_missing_template("proper noun", "ar-proper noun", save, startFrom, upTo)
   search_category_for_missing_template("adjective", ["ar-adj", "ar-nisba", "ar-adj-color"], save, startFrom, upTo)
@@ -184,7 +190,7 @@ def correct_one_page_link_formatting(page, text):
   text = unicode(text)
   pagetitle = page.title()
   linkschanged = []
-  for m in re.finditer(r"\{\{l\|ar\|([^}]*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\(([^)]*?)\)(?:\}\})?)'*", text):
+  for m in re.finditer(r"\{\{l\|ar\|([^}]*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\(([^{})]*?)\)(?:\}\})?)'*", text):
     msg("On page %s, found match: %s" % (pagetitle, m.group(0)))
     if "|tr=" in m.group(1):
       msg("Skipping because translit already present")
