@@ -108,7 +108,7 @@ rconsonants = consonants_needing_vowels + u"ويآ"
 lconsonants = consonants_needing_vowels + u"وي"
 punctuation = (u"؟،؛" # Arabic semicolon, comma, question mark
                + u"ـ" # taṭwīl
-               + u".'" # period, single quote for bold/italic
+               + u".!'" # period, exclamation point, single quote for bold/italic
                )
 numbers = u"١٢٣٤٥٦٧٨٩٠"
 
