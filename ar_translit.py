@@ -93,6 +93,14 @@ tt = {
     u"؛":u";" # semicolon
 }
 
+sun_letters = u"تثدذرزسشصضطظلن"
+# For use in implementing sun-letter assimilation of ال (al-)
+ttsun1 = {}
+ttsun2 = {}
+for ch in sun_letters:
+    ttsun1[ch] = tt[ch]
+    ttsun2["l-" + ch] = tt[ch] + "-" + ch
+
 consonants_needing_vowels = u"بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئءةﷲ"
 # consonants on the right side; includes alif madda
 rconsonants = consonants_needing_vowels + u"ويآ"
@@ -151,7 +159,9 @@ before_diacritic_checking_subs = [
     [u"(\u0671\u064E?\u0644[" + lconsonants + u"])\u0651", u"\\1"],
     # handle l- hamzatu l-waṣl or word-initial al-
     [u"(^|\\s)\u0627\u064E?\u0644", u"\\1al-"],
-    [u"\u0671\u064E?\u0644", "l-"]
+    [u"\u0671\u064E?\u0644", "l-"],
+    # implement assimilation of sun letters
+    [u"l-[" + sun_letters + "]", ttsun2]
 ]
 
 # Transliterate any words or phrases. OMIT_I3RAAB means leave out final
@@ -249,6 +259,7 @@ def has_diacritics(text):
 silent_alif_subst = u"\ufff1"
 silent_alif_maqsuura_subst = u"\ufff2"
 multi_single_quote_subst = u"\ufff3"
+assimilating_l_subst = u"\ufff4"
 hamza_match=[u"ʾ",u"’",u"'",u"`"]
 hamza_match_or_empty=[u"ʾ",u"’",u"'",u"`",u""]
 
@@ -460,7 +471,7 @@ def pre_canonicalize_arabic(unvoc):
     # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
     # accusative singular or words like عَصًا "stick" or هُذًى "guidance"; this is
     # called tanwin nasb). So substitute special silent versions of these
-    # vowels.
+    # vowels. Will convert back during post-canonicalization.
     unvoc = rsub(unvoc, u"\u064B\u0627", u"\u064B" + silent_alif_subst)
     unvoc = rsub(unvoc, u"\u064B\u0649", u"\u064B" + silent_alif_maqsuura_subst)
     # same but with the fatḥatan placed over the alif or alif maqṣūra
@@ -470,12 +481,20 @@ def pre_canonicalize_arabic(unvoc):
     unvoc = rsub(unvoc, u"\u0649\u064B", silent_alif_maqsuura_subst + u"\u064B")
     # initial al + consonant + shadda: remove shadda
     unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644[" + lconsonants + u"])\u0651",
-         u"\\1\\2")
+        u"\\1\\2")
+    # word-initial al- + sun letter: convert l to assimilating_l_subst; will
+    # convert back during post-canonicalization; during tr_matching(),
+    # assimilating_l_subst will match the appropriate character, or "l"
+    unvoc = rsub(unvoc, u"(^|\\s)(\u0627\u064E?)\u0644([" + sun_letters + "])",
+        u"\\1\\2" + assimilating_l_subst + u"\\3")
+    unvoc = rsub(unvoc, u"(\u0671\u064E?)\u0644([" + sun_letters + "])",
+        u"\\1" + assimilating_l_subst + u"\\2")
     return unvoc
 
 def post_canonicalize_arabic(text):
     text = rsub(text, silent_alif_subst, u"ا")
     text = rsub(text, silent_alif_maqsuura_subst, u"ى")
+    text = rsub(text, assimilating_l_subst, u"ل")
 
     # add sukūn between adjacent consonants, but not in the first part of
     # a link of the sort [[foo|bar]], which we don't vocalize
@@ -493,7 +512,7 @@ def post_canonicalize_arabic(text):
     # remove sukūn after kasra + yā'
     text = rsub(text, u"\u0650\u064A\u0652", u"\u0650\u064A")
     # initial al + consonant + sukūn + sun letter: convert to shadda
-    text = rsub(text, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644)\u0652([تثدذرزسشصضطظلن])",
+    text = rsub(text, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644)\u0652([" + sun_letters + "])",
          u"\\1\\2\\3\u0651")
     return text
 
@@ -545,10 +564,21 @@ def tr_matching(arabic, latin, err=False):
                     return True
                 newpos += 1
 
-        matches = (
-            bow and tt_to_arabic_matching_bow.get(ac) or
-            eow and tt_to_arabic_matching_eow.get(ac) or
-            tt_to_arabic_matching.get(ac))
+        # Special-case handling of the lām that gets assimilated to a sun
+        # letter in transliteration. We build up the list of possible
+        # matches on the fly according to the following character, which
+        # should be a sun letter. We put "l" as a secondary match so that
+        # something like al-nūr will get recognized and converted to an-nūr.
+        if ac == assimilating_l_subst:
+            assert aind[0] < alen - 1
+            sunlet = ar[aind[0] + 1]
+            assert sunlet in sun_letters
+            matches = [ttsun1[sunlet], "l"]
+        else:
+            matches = (
+                bow and tt_to_arabic_matching_bow.get(ac) or
+                eow and tt_to_arabic_matching_eow.get(ac) or
+                tt_to_arabic_matching.get(ac))
         # uniprint("matches is %s" % matches)
         if matches == None:
             if True:
@@ -728,7 +758,11 @@ def tr_latin_direct(text, pos):
 
     return text
 
-def test(latin, arabic):
+num_failed = 0
+num_succeeded = 0
+
+def test(latin, arabic, should_outcome):
+    global num_succeeded, num_failed
     try:
         result = tr_matching(arabic, latin, True)
     except RuntimeError as e:
@@ -736,6 +770,7 @@ def test(latin, arabic):
         result = False
     if result == False:
         uniprint("tr_matching(%s, %s) = %s" % (arabic, latin, result))
+        outcome = "failed"
     else:
         vocarabic, canonlatin = result
         trlatin = tr(vocarabic)
@@ -743,110 +778,129 @@ def test(latin, arabic):
                 (arabic, latin, vocarabic, canonlatin))
         if trlatin == canonlatin:
             uniprint("tr() MATCHED")
+            outcome = "matched"
         else:
             uniprint("tr() UNMATCHED (= %s)" % trlatin)
+            outcome = "unmatched"
     uniprint("canonicalize_latin(%s) = %s" %
             (latin, canonicalize_latin(latin)))
+    if outcome == should_outcome:
+        uniprint("TEST SUCCEEDED.")
+        num_succeeded += 1
+    else:
+        uniprint("TEST FAILED.")
+        num_failed += 1
 
 def run_tests():
-    test("katab", u"كتب")
-    test("kattab", u"كتب")
-    test(u"kátab", u"كتب")
-    test("katab", u"كتبٌ")
-    test("kat", u"كتب") # should fail
-    test("kataban", u"كتب") # should fail?
-    test("dakhala", u"دخل")
-    test("al-dakhala", u"الدخل")
-    test("al-la:zim", u"اللازم")
-    test("wa-dakhala", u"ودخل")
+    global num_succeeded, num_failed
+    num_succeeded = 0
+    num_failed = 0
+    test("katab", u"كتب", "matched")
+    test("kattab", u"كتب", "matched")
+    test(u"kátab", u"كتب", "matched")
+    test("katab", u"كتبٌ", "matched")
+    test("kat", u"كتب", "failed") # should fail
+    test("kataban", u"كتب", "failed") # should fail?
+    test("dakhala", u"دخل", "matched")
+    test("al-dakhala", u"الدخل", "matched")
+    test("ad-dakhala", u"الدخل", "matched")
+    test("al-la:zim", u"اللازم", "matched")
+    test("al-bait", u"البيت", "matched")
+    test("wa-dakhala", u"ودخل", "unmatched")
     # The Arabic of the following consists of wāw + fatḥa + ZWJ + dāl + ḵāʾ + lām.
-    test("wa-dakhala", u"وَ‍دخل")
+    test("wa-dakhala", u"وَ‍دخل", "matched")
     # The Arabic of the following two consists of wāw + ZWJ + dāl + ḵāʾ + lām.
-    test("wa-dakhala", u"و‍دخل")
-    test("wadakhala", u"و‍دخل") # should fail, ZWJ must match hyphen
-    test("wadakhala", u"ودخل")
+    test("wa-dakhala", u"و‍دخل", "matched")
+    test("wadakhala", u"و‍دخل", "failed") # should fail, ZWJ must match hyphen
+    test("wadakhala", u"ودخل", "matched")
     # Six different ways of spelling a long ū. uw should be preserved, others
     # mapped to ū. (We could avoid preserving uw if we were more sophisticated in
     # distinguishing uw+vowel (to be left alone), uww (currently to be left alone,
     # but could reasonably be argued to be normalized to ūw), uw+consonant
     # (to be normalized) and final uw (to be normalized).
-    test("duuba", u"دوبة")
-    test(u"dúuba", u"دوبة")
-    test("duwba", u"دوبة")
-    test("du:ba", u"دوبة")
-    test(u"dūba", u"دوبة")
-    test(u"dū́ba", u"دوبة")
+    test("duuba", u"دوبة", "matched")
+    test(u"dúuba", u"دوبة", "matched")
+    test("duwba", u"دوبة", "unmatched")
+    test("du:ba", u"دوبة", "matched")
+    test(u"dūba", u"دوبة", "matched")
+    test(u"dū́ba", u"دوبة", "matched")
     # w definitely as a consonant, should be preserved
-    test("duwaba", u"دوبة")
+    test("duwaba", u"دوبة", "matched")
 
     # Similar but for ī and y
-    test("diiba", u"ديبة")
-    test(u"díiba", u"ديبة")
-    test("diyba", u"ديبة")
-    test("di:ba", u"ديبة")
-    test(u"dība", u"ديبة")
-    test(u"dī́ba", u"ديبة")
-    test("diyaba", u"ديبة")
+    test("diiba", u"ديبة", "matched")
+    test(u"díiba", u"ديبة", "matched")
+    test("diyba", u"ديبة", "unmatched")
+    test("di:ba", u"ديبة", "matched")
+    test(u"dība", u"ديبة", "matched")
+    test(u"dī́ba", u"ديبة", "matched")
+    test("diyaba", u"ديبة", "matched")
 
     # Test o's and e's
-    test(u"dōba", u"دوبة")
-    test(u"dōba", u"دُوبة")
-    test(u"telefōn", u"تلفون")
+    test(u"dōba", u"دوبة", "unmatched")
+    test(u"dōba", u"دُوبة", "unmatched")
+    test(u"telefōn", u"تلفون", "unmatched")
 
     # Test handling of tāʾ marbūṭa
     # test of "duuba" already done above.
-    test("duubah", u"دوبة") # should be reduced to -a
-    test("duubaa", u"دوباة") # should become -āh
-    test("duubaah", u"دوباة") # should become -āh
-    test("mir'aah", u"مرآة") # should become -āh
+    test("duubah", u"دوبة", "matched") # should be reduced to -a
+    test("duubaa", u"دوباة", "matched") # should become -āh
+    test("duubaah", u"دوباة", "matched") # should become -āh
+    test("mir'aah", u"مرآة", "matched") # should become -āh
 
     # Test the definite article and its rendering in Arabic
-    test("al-duuba", u"اَلدّوبة")
-    test("al-duuba", u"الدّوبة")
-    test("al-duuba", u"الدوبة")
-    test("al-kuuba", u"اَلْكوبة")
-    test("al-kuuba", u"الكوبة")
-    test("baitu l-kuuba", u"بيت الكوبة")
-    test("bait al-kuuba", u"بيت الكوبة")
-    test("baitu l-kuuba", u"بيت ٱلكوبة")
+    test("al-duuba", u"اَلدّوبة", "matched")
+    test("al-duuba", u"الدّوبة", "matched")
+    test("al-duuba", u"الدوبة", "matched")
+    test("ad-duuba", u"اَلدّوبة", "matched")
+    test("ad-duuba", u"الدّوبة", "matched")
+    test("ad-duuba", u"الدوبة", "matched")
+    test("al-kuuba", u"اَلْكوبة", "matched")
+    test("al-kuuba", u"الكوبة", "matched")
+    test("baitu l-kuuba", u"بيت الكوبة", "unmatched")
+    test("bait al-kuuba", u"بيت الكوبة", "matched")
+    test("baitu l-kuuba", u"بيت ٱلكوبة", "matched")
 
     # Test handling of tāʾ marbūṭa when non-final
-    test("ghurfatu l-kuuba", u"غرفة الكوبة")
-    test("ghurfat al-kuuba", u"غرفة الكوبة")
-    test("ghurfa l-kuuba", u"غرفة الكوبة")
-    test("ghurfa(t) al-kuuba", u"غرفة الكوبة")
-    test("ghurfatu l-kuuba", u"غرفة ٱلكوبة")
-    test("ghurfa l-kuuba", u"غرفة ٱلكوبة")
-    test("ghurfa", u"غرفةٌ")
+    test("ghurfatu l-kuuba", u"غرفة الكوبة", "unmatched")
+    test("ghurfat al-kuuba", u"غرفة الكوبة", "unmatched")
+    test("ghurfa l-kuuba", u"غرفة الكوبة", "unmatched")
+    test("ghurfa(t) al-kuuba", u"غرفة الكوبة", "matched")
+    test("ghurfatu l-kuuba", u"غرفة ٱلكوبة", "matched")
+    test("ghurfa l-kuuba", u"غرفة ٱلكوبة", "unmatched")
+    test("ghurfa", u"غرفةٌ", "matched")
 
     # Test handling of embedded links
-    test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]")
-    test(u"arqām hindiyya", u"[[أرقام]] [[هندية]]")
-    test(u"ʾufuq al-ħadaŧ", u"[[أفق]] [[حادثة|الحدث]]")
+    test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]", "unmatched")
+    test(u"arqām hindiyya", u"[[أرقام]] [[هندية]]", "matched")
+    test(u"ʾufuq al-ħadaŧ", u"[[أفق]] [[حادثة|الحدث]]", "matched")
 
     # Test transliteration that omits initial hamza (should be inferrable)
-    test(u"aṣdiqaa'", u"أَصدقاء")
-    test(u"aṣdiqā́'", u"أَصدقاء")
+    test(u"aṣdiqaa'", u"أَصدقاء", "matched")
+    test(u"aṣdiqā́'", u"أَصدقاء", "matched")
     # Test random hamzas
-    test(u"'aṣdiqā́'", u"أَصدقاء")
+    test(u"'aṣdiqā́'", u"أَصدقاء", "matched")
     # Test capital letters for emphatics
-    test(u"aSdiqaa'", u"أَصدقاء")
+    test(u"aSdiqaa'", u"أَصدقاء", "matched")
     # Test final otiose alif maqṣūra after fatḥatan
-    test("hudan", u"هُدًى")
+    test("hudan", u"هُدًى", "matched")
     # Check that final short Latin letter doesn't match to final
     # long vowel (this check is already present) and that an error doesn't
     # occur
-    test("'animi", u"أنمي") # should fail and return None
+    test("'animi", u"أنمي", "failed") # should fail and return None
 
     # Single quotes in Arabic
-    test("man '''huwa'''", u"من '''هو'''")
+    test("man '''huwa'''", u"من '''هو'''", "matched")
 
     # Alif madda
-    test("'aabaa'", u"آباء")
-    test("mir'aah", u"مرآة")
+    test("'aabaa'", u"آباء", "matched")
+    test("mir'aah", u"مرآة", "matched")
 
     # Bugs
-    test(u"qiṭṭ", u"قِطٌ")
+    test(u"qiṭṭ", u"قِطٌ", "unmatched")
+
+    # Final results
+    uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))
 
 if __name__ == "__main__":
     run_tests()
