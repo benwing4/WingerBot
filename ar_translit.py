@@ -171,8 +171,8 @@ before_diacritic_checking_subs = [
 # short vowels (ʾiʿrāb). FORCE_TRANSLATE causes even non-vocalized text to
 # be transliterated (normally the function checks for non-vocalized text and
 # returns None, since such text is ambiguous in transliteration).
-def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False,
-        gray_i3raab=False):
+def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=True,
+        force_translate=False):
     for sub in before_diacritic_checking_subs:
         text = rsub(text, sub[0], sub[1])
 
@@ -194,6 +194,13 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False,
     # convert shadda to double letter.
     text = rsub(text, u"(.)\u0651", u"\\1\\1")
     if not omit_i3raab and gray_i3raab: # show ʾiʿrāb grayed in transliteration
+        # decide whether to gray out the t in ة. If word begins with al-, yes.
+        # Otherwise, no if word ends in a/i/u, yes if ends in an/in/un.
+        text = rsub(text, u"((?:^|\\s)a?l-[^\\s]+)\u0629([\u064B\u064C\u064D\u064E\u064F\u0650])",
+            u"\\1<span color=C0C0C0>t</span>\\2")
+        text = rsub(text, u"\u0629([\u064E\u064F\u0650])", u"t\\1")
+        text = rsub(text, u"\u0629([\u064B\u064C\u064D])",
+            u"<span color=C0C0C0>t</span>\\1")
         text = rsub(text, u".", {
             u"\u064B":u"<span color=C0C0C0>an</span>",
             u"\u064D":u"<span color=C0C0C0>in</span>",
@@ -209,6 +216,7 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False,
             u"\u0650":u"<span color=C0C0C0>i</span>",
             u"\u064F":u"<span color=C0C0C0>u</span>"
         })
+        text = rsub(text, "</span><span color=C0C0C0>", "")
     elif omit_i3raab: # omit ʾiʿrāb in transliteration
         text = rsub(text, u"[\u064B\u064C\u064D]", u"")
         text = rsub(text, u"[\u064E\u064F\u0650]\\s", u" ")
@@ -903,6 +911,8 @@ def run_tests():
 
     # Test handling of tāʾ marbūṭa when non-final
     test("ghurfatu l-kuuba", u"غرفة الكوبة", "matched")
+    test("ghurfatun al-kuuba", u"غرفةٌ الكوبة", "matched")
+    test("al-ghurfatu l-kuuba", u"الغرفة الكوبة", "matched")
     test("ghurfat al-kuuba", u"غرفة الكوبة", "unmatched")
     test("ghurfa l-kuuba", u"غرفة الكوبة", "unmatched")
     test("ghurfa(t) al-kuuba", u"غرفة الكوبة", "matched")
