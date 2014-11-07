@@ -107,15 +107,15 @@ def search_category_for_missing_form(form, pos, templates, save, startFrom,
       else:
         msg("* %s not in {{l|ar|%s}}, nor {{temp|head|ar}}" % (' or '.join(templates), pagetitle))
     replsfound = 0
-    for m in re.finditer(r'===+%s===+\s*\{\{head\|ar\|(?:sc=Arab\|)?%s((?:\|[A-Za-z0-9_]+=(?:\[[^\]]*\]|[^|}])*)*)\}\} *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *((?:,[^,\n]*)*)(.*)' % (pos, form), text, re.I):
+    for m in re.finditer(r'(===+%s===+\s*)\{\{head\|ar\|(?:sc=Arab\|)?%s((?:\|[A-Za-z0-9_]+=(?:\[[^\]]*\]|[^|}])*)*)\}\} *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *((?:,[^,\n]*)*)(.*)' % (pos, form), text, re.I):
       replsfound += 1
       msg("Found match: %s" % m.group(0))
-      if m.group(4):
-        msg("WARNING: Trailing text %s" % m.group(4))
+      if m.group(5):
+        msg("WARNING: Trailing text %s" % m.group(5))
       head = ""
       g = ""
       tr = None
-      for infl in re.finditer(r"\|([A-Za-z0-9_]+)=((?:\[[^\]]*\]|[^|}])*)", m.group(1)):
+      for infl in re.finditer(r"\|([A-Za-z0-9_]+)=((?:\[[^\]]*\]|[^|}])*)", m.group(2)):
         msg("Found infl within head: %s" % infl.group(0))
         if infl.group(1) == "head":
           head = infl.group(2).replace("'", "")
@@ -127,37 +127,42 @@ def search_category_for_missing_form(form, pos, templates, save, startFrom,
           pass
         else:
           msg("WARNING: Unrecognized argument '%s'" % infl.group(1))
-      if m.group(2):
-        tr = m.group(2)
-      infls = parse_infls(m.group(3), tr)
+      if m.group(3):
+        tr = m.group(3)
+      infls = parse_infls(m.group(4), tr)
       repl = "{{%s|%s|%s%s}}" % (repltemplate, head, g, infls)
       repl = remove_empty_args(repl)
-      repl = repl + m.group(4) # Include trailing text
+      repl = m.group(1) + repl + m.group(5) # Include leading, trailing text
       msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
       newtext = text.replace(m.group(0), repl, 1)
       if newtext == text:
         msg("WARNING: Unable to do replacement")
       else:
         text = newtext
-    for m in re.finditer(r"===+%s===+\s*(?:'*\{\{(?:lang|l)\|ar\|(.*?)\}\}'*|'+([^{}']+)'+) *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *(?:\{\{g\|(.*?)\}\})? *((?:,[^,\n]*)*)(.*)" % pos, text, re.I):
+    for m in re.finditer(r"(===+%s===+\s*)(?:'*\{\{(?:lang|l)\|ar\|(.*?)\}\}'*|'+([^{}']+)'+) *(?:(?:\{\{IPAchar\|)?\((.*?)\)(?:\}\})?)? *(?:\{\{g\|(.*?)\}\})? *((?:,[^,\n]*)*)(.*)" % pos, text, re.I):
       replsfound += 1
       msg("Found match: %s" % m.group(0))
-      if m.group(6):
-        msg("WARNING: Trailing text %s" % m.group(6))
-      head = m.group(1) or m.group(2)
-      g = m.group(4) or ""
-      tr = m.group(3)
-      infls = parse_infls(m.group(5), tr)
+      if m.group(7):
+        msg("WARNING: Trailing text %s" % m.group(7))
+      head = m.group(2) or m.group(3)
+      g = m.group(5) or ""
+      tr = m.group(4)
+      infls = parse_infls(m.group(6), tr)
       repl = "{{%s|%s|%s%s}}" % (repltemplate, head, g, infls)
       repl = remove_empty_args(repl)
-      repl = repl + m.group(6) # Include trailing text
+      repl = m.group(1) + repl + m.group(7) # Include leading, trailing text
       msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
       newtext = text.replace(m.group(0), repl, 1)
       if newtext == text:
         msg("WARNING: Unable to do replacement")
       else:
         text = newtext
-      newtext = re.sub(r"\[\[Category:%s\]\]\n?" % cat, "", text, 1)
+      # If there's a blank line before and after the category, leave a single
+      # blank line
+      newtext, nsubs = \
+        re.subn(r"\n\n\[\[Category:%s\]\]\n\n" % cat, "\n\n", text, 1)
+      if nsubs == 0:
+        newtext = re.sub(r"\[\[Category:%s\]\]\n?" % cat, "", text, 1)
       if newtext != text:
         msg("Removed [[Category:%s]]" % cat)
         text = newtext
@@ -190,20 +195,33 @@ def correct_one_page_link_formatting(page, text):
   text = unicode(text)
   pagetitle = page.title()
   linkschanged = []
-  for m in re.finditer(r"\{\{l\|ar\|([^}]*?)\}\} *'*(?:(?:\{\{IPAchar\|)?\(([^{})]*?)\)(?:\}\})?)'*", text):
+  for m in re.finditer(r"\{\{l\|ar\|([^}]*?)\}\} *(?:'*(?:(?:\{\{IPAchar\|)?\(([^{})]*?)\)(?:\}\})?)'*)? *(?:\{\{g\|(.*?)\}\})?", text):
+    if not m.group(2) and not m.group(3):
+      continue
     msg("On page %s, found match: %s" % (pagetitle, m.group(0)))
     if "|tr=" in m.group(1):
       msg("Skipping because translit already present")
       continue
-    repl = "{{l|ar|%s|tr=%s}}" % (m.group(1), m.group(2))
+    if m.group(3):
+      if m.group(3) == "m|f":
+        gender = "|g=m|g2=f"
+      else:
+        gender = "|g=%s" % m.group(3)
+    else:
+      gender = ""
+    if m.group(2):
+      tr = "|tr=%s" % m.group(2)
+    else:
+      tr = ""
+    repl = "{{l|ar|%s%s%s}}" % (m.group(1), tr, gender)
     msg("Replacing\n%s\nwith\n%s" % (m.group(0), repl))
     newtext = text.replace(m.group(0), repl, 1)
     if newtext == text:
       msg("WARNING: Unable to do replacement")
     else:
       text = newtext
-      linkschanged.append(m.group(2))
-  return text, "incorporated translit into links: %s" % ', '.join(linkschanged)
+      linkschanged.append(m.group(1))
+  return text, "incorporated translit/gender into links: %s" % ', '.join(linkschanged)
 
 def correct_link_formatting(save, startFrom, upTo):
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
