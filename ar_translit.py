@@ -53,8 +53,9 @@ tt = {
     u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m", u"ن":u"n",
     u"ه":u"h",
     # tāʾ marbūṭa (special) - always after a fátḥa (a), silent at the end of
-    # an utterance, "t" in ʾiḍāfa or with pronounced tanwīn
-    # \u0629 = tāʾ marbūṭa = ة
+    # an utterance, "t" in ʾiḍāfa or with pronounced tanwīn. We catch
+    # most instances of tāʾ marbūṭa before we get to this stage.
+    u"\u0629":"t", # tāʾ marbūṭa = ة
     # control characters
     zwnj:"-", # ZWNJ (zero-width non-joiner)
     zwj:"-", # ZWJ (zero-width joiner)
@@ -71,9 +72,9 @@ tt = {
     u"ٱ":u"", # hamzatu l-waṣl = \u0671
     u"\u0670":u"ā", # ʾalif xanjariyya = dagger ʾalif (Koranic diacritic)
     # short vowels, šádda and sukūn
-    # \u064B = "an" = fatḥatan
-    # \u064C = "un" = ḍammatan
-    # \u064D = "in" = kasratan
+    u"\u064B":u"an", # fatḥatan
+    u"\u064C":u"un", # ḍammatan
+    u"\u064D":u"in", # kasratan
     u"\u064E":u"a", # fatḥa
     u"\u064F":u"u", # ḍamma
     u"\u0650":u"i", # kasra
@@ -100,6 +101,8 @@ ttsun2 = {}
 for ch in sun_letters:
     ttsun1[ch] = tt[ch]
     ttsun2["l-" + ch] = tt[ch] + "-" + ch
+# For use in implementing elision of al-
+sun_letters_tr = ''.join(ttsun1.values())
 
 consonants_needing_vowels = u"بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئءةﷲ"
 # consonants on the right side; includes alif madda
@@ -168,7 +171,8 @@ before_diacritic_checking_subs = [
 # short vowels (ʾiʿrāb). FORCE_TRANSLATE causes even non-vocalized text to
 # be transliterated (normally the function checks for non-vocalized text and
 # returns None, since such text is ambiguous in transliteration).
-def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False):
+def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False,
+        gray_i3raab=False):
     for sub in before_diacritic_checking_subs:
         text = rsub(text, sub[0], sub[1])
 
@@ -189,26 +193,53 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, force_translate=False):
     text = rsub(text, u"\u0650\u064A$", u"ī")
     # convert shadda to double letter.
     text = rsub(text, u"(.)\u0651", u"\\1\\1")
-    if not omit_i3raab: # show ʾiʿrāb (desinential inflection) in transliteration
-        # tāʾ marbūṭa should not be rendered by -t if word-final even when
-        # ʾiʿrāb is shown; instead, use (t) before whitespace, nothing when final;
-        # but render final -اة and -آة as -āh, consistent with Wehr's dictionary
-        text = rsub(text, u"([\u0627\u0622])\u0629$", u"\\1h")
-        text = rsub(text, u"\u0629$", u"")
-        text = rsub(text, u"\u0629\\s", u"(t) ")
+    if not omit_i3raab and gray_i3raab: # show ʾiʿrāb grayed in transliteration
         text = rsub(text, u".", {
-            u"\u0629":u"t", u"\u064B":u"an", u"\u064D":u"in", u"\u064C":u"un",
-            u"\u064E":u"a", u"\u0650":u"i" , u"\u064F":u"u"
+            u"\u064B":u"<span color=C0C0C0>an</span>",
+            u"\u064D":u"<span color=C0C0C0>in</span>",
+            u"\u064C":u"<span color=C0C0C0>un</span>"
         })
-    else:
-        text = rsub(text, u"([\u0627\u0622])\u0629$", u"\\1h")
-        text = rsub(text, u"\u0629$", u"")
-        text = rsub(text, u"\u0629", u"(t)")
+        text = rsub(text, u"([\u064E\u064F\u0650])\\s", {
+            u"\u064E":u"<span color=C0C0C0>a</span> ",
+            u"\u0650":u"<span color=C0C0C0>i</span> ",
+            u"\u064F":u"<span color=C0C0C0>u</span> "
+        })
+        text = rsub(text, u"[\u064E\u064F\u0650]$", {
+            u"\u064E":u"<span color=C0C0C0>a</span>",
+            u"\u0650":u"<span color=C0C0C0>i</span>",
+            u"\u064F":u"<span color=C0C0C0>u</span>"
+        })
+    elif omit_i3raab: # omit ʾiʿrāb in transliteration
         text = rsub(text, u"[\u064B\u064C\u064D]", u"")
         text = rsub(text, u"[\u064E\u064F\u0650]\\s", u" ")
         text = rsub(text, u"[\u064E\u064F\u0650]$", u"")
+    # tāʾ marbūṭa should not be rendered by -t if word-final even when
+    # ʾiʿrāb (desinential inflection) is shown; instead, use (t) before
+    # whitespace, nothing when final; but render final -اة and -آة as -āh,
+    # consistent with Wehr's dictionary
+    text = rsub(text, u"([\u0627\u0622])\u0629$", u"\\1h")
+    # Need to do the following after graying or omitting word-final ʾiʿrāb.
+    text = rsub(text, u"\u0629$", u"")
+    if not omit_i3raab: # show ʾiʿrāb in transliteration
+        text = rsub(text, u"\u0629\\s", u"(t) ")
+    else:
+        # When omitting ʾiʿrāb, show all non-absolutely-final instances of
+        # tāʾ marbūṭa as (t), with trailing ʾiʿrāb omitted.
+        text = rsub(text, u"\u0629", u"(t)")
     text = rsub(text, u".", tt)
     text = rsub(text, u"aā", u"ā")
+    # Implement elision of al- after a final vowel. We do this
+    # conservatively, only handling elision of the definite article rather
+    # than elision in other cases of hamzat al-waṣl (e.g. form-I imperatives
+    # or form-VII and above verbal nouns) partly because elision in
+    # these cases isn't so common in MSA and partly to avoid excessive
+    # elision in case of words written with initial bare alif instead of
+    # properly with hamzated alif. Possibly we should reconsider.
+    # At the very least we currently don't handle elision of الَّذِي (allaḏi)
+    # correctly because we special-case it to appear without the hyphen;
+    # perhaps we should reconsider that.
+    text = rsub(text, u"([aiuāīū](?:</span>)?) a([" + sun_letters_tr + "]-)",
+        u"\\1 \\2")
 
     return text
 
@@ -431,6 +462,10 @@ def post_canonicalize_latin(text):
     text = rsub(text, u"uū", u"ū")
     # Convert shadda back to double letter
     text = rsub(text, u"(.)\u0651", u"\\1\\1")
+    # Implement elision of al- after a word-final vowel. See comments above
+    # in tr().
+    text = rsub(text, u"([aiuāīū](?:</span>)?) a([" + sun_letters_tr + "]-)",
+        u"\\1 \\2")
     return text
 
 # Canonicalize a Latin transliteration to standard form, as much as is
@@ -857,12 +892,17 @@ def run_tests():
     test("ad-duuba", u"الدوبة", "matched")
     test("al-kuuba", u"اَلْكوبة", "matched")
     test("al-kuuba", u"الكوبة", "matched")
-    test("baitu l-kuuba", u"بيت الكوبة", "unmatched")
+    test("baitu l-kuuba", u"بيت الكوبة", "matched")
+    test("baitu al-kuuba", u"بيت الكوبة", "matched")
+    test("baitu d-duuba", u"بيت الدوبة", "matched")
+    test("baitu ad-duuba", u"بيت الدوبة", "matched")
+    test("baitu l-duuba", u"بيت الدوبة", "matched")
+    test("baitu al-duuba", u"بيت الدوبة", "matched")
     test("bait al-kuuba", u"بيت الكوبة", "matched")
     test("baitu l-kuuba", u"بيت ٱلكوبة", "matched")
 
     # Test handling of tāʾ marbūṭa when non-final
-    test("ghurfatu l-kuuba", u"غرفة الكوبة", "unmatched")
+    test("ghurfatu l-kuuba", u"غرفة الكوبة", "matched")
     test("ghurfat al-kuuba", u"غرفة الكوبة", "unmatched")
     test("ghurfa l-kuuba", u"غرفة الكوبة", "unmatched")
     test("ghurfa(t) al-kuuba", u"غرفة الكوبة", "matched")
@@ -871,7 +911,7 @@ def run_tests():
     test("ghurfa", u"غرفةٌ", "matched")
 
     # Test handling of embedded links
-    test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]", "unmatched")
+    test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]", "matched")
     test(u"arqām hindiyya", u"[[أرقام]] [[هندية]]", "matched")
     test(u"ʾufuq al-ħadaŧ", u"[[أفق]] [[حادثة|الحدث]]", "matched")
 
@@ -896,7 +936,7 @@ def run_tests():
     test("'aabaa'", u"آباء", "matched")
     test("mir'aah", u"مرآة", "matched")
 
-    # Bugs
+    # Bugs: This gets tr-matched into qiṭunn instead of qiṭṭun.
     test(u"qiṭṭ", u"قِطٌ", "unmatched")
 
     # Final results
