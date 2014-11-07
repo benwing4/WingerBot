@@ -197,26 +197,26 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=True,
         # decide whether to gray out the t in ة. If word begins with al-, yes.
         # Otherwise, no if word ends in a/i/u, yes if ends in an/in/un.
         text = rsub(text, u"((?:^|\\s)a?l-[^\\s]+)\u0629([\u064B\u064C\u064D\u064E\u064F\u0650])",
-            u"\\1<span color=C0C0C0>t</span>\\2")
+            u"\\1<span style=\"color: #888888\">t</span>\\2")
         text = rsub(text, u"\u0629([\u064E\u064F\u0650])", u"t\\1")
         text = rsub(text, u"\u0629([\u064B\u064C\u064D])",
-            u"<span color=C0C0C0>t</span>\\1")
+            u"<span style=\"color: #888888\">t</span>\\1")
         text = rsub(text, u".", {
-            u"\u064B":u"<span color=C0C0C0>an</span>",
-            u"\u064D":u"<span color=C0C0C0>in</span>",
-            u"\u064C":u"<span color=C0C0C0>un</span>"
+            u"\u064B":u"<span style=\"color: #888888\">an</span>",
+            u"\u064D":u"<span style=\"color: #888888\">in</span>",
+            u"\u064C":u"<span style=\"color: #888888\">un</span>"
         })
         text = rsub(text, u"([\u064E\u064F\u0650])\\s", {
-            u"\u064E":u"<span color=C0C0C0>a</span> ",
-            u"\u0650":u"<span color=C0C0C0>i</span> ",
-            u"\u064F":u"<span color=C0C0C0>u</span> "
+            u"\u064E":u"<span style=\"color: #888888\">a</span> ",
+            u"\u0650":u"<span style=\"color: #888888\">i</span> ",
+            u"\u064F":u"<span style=\"color: #888888\">u</span> "
         })
         text = rsub(text, u"[\u064E\u064F\u0650]$", {
-            u"\u064E":u"<span color=C0C0C0>a</span>",
-            u"\u0650":u"<span color=C0C0C0>i</span>",
-            u"\u064F":u"<span color=C0C0C0>u</span>"
+            u"\u064E":u"<span style=\"color: #888888\">a</span>",
+            u"\u0650":u"<span style=\"color: #888888\">i</span>",
+            u"\u064F":u"<span style=\"color: #888888\">u</span>"
         })
-        text = rsub(text, "</span><span color=C0C0C0>", "")
+        text = rsub(text, u"</span><span style=\"color: #888888\">", u"")
     elif omit_i3raab: # omit ʾiʿrāb in transliteration
         text = rsub(text, u"[\u064B\u064C\u064D]", u"")
         text = rsub(text, u"[\u064E\u064F\u0650]\\s", u" ")
