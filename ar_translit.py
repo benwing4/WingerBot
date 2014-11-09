@@ -528,7 +528,7 @@ def pre_canonicalize_arabic(unvoc):
     # word-initial al- + sun letter: convert l to assimilating_l_subst; will
     # convert back during post-canonicalization; during tr_matching(),
     # assimilating_l_subst will match the appropriate character, or "l"
-    unvoc = rsub(unvoc, u"(^|\\s)(\u0627\u064E?)\u0644([" + sun_letters + "])",
+    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?)\u0644([" + sun_letters + "])",
         u"\\1\\2" + assimilating_l_subst + u"\\3")
     unvoc = rsub(unvoc, u"(\u0671\u064E?)\u0644([" + sun_letters + "])",
         u"\\1" + assimilating_l_subst + u"\\2")
