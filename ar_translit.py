@@ -400,6 +400,8 @@ tt_to_arabic_matching = {
     u"]":u""
 }
 
+word_interrupting_chars = u"ـ[]"
+
 build_canonicalize_latin = {}
 for ch in "abcdefghijklmnopqrstuvwyz3":
     build_canonicalize_latin[ch] = "multiple"
@@ -559,6 +561,8 @@ def post_canonicalize_arabic(text):
          u"\\1\\2\\3\u0651")
     return text
 
+debug_tr_matching = False
+
 # Vocalize Arabic based on transliterated Latin, and canonicalize the
 # transliteration based on the Arabic.  This works by matching the Latin
 # to the unvocalized Arabic and inserting the appropriate diacritics in
@@ -566,6 +570,9 @@ def post_canonicalize_arabic(text):
 # correctly handled. Returns a tuple of Arabic, Latin. If unable to match,
 # throw an error if ERR, else return None.
 def tr_matching(arabic, latin, err=False):
+    def debprint(x):
+        if debug_tr_matching:
+            uniprint(x)
     latin = pre_canonicalize_latin(latin)
     # convert double consonant to consonant + shadda, but not multiple quotes
     latin = rsub(latin, u"([^'])\\1", u"\\1\u0651")
@@ -584,28 +591,16 @@ def tr_matching(arabic, latin, err=False):
     lind = [0] # index of next Latin character
     llen = len(la)
 
-    # attempt to match the current Arabic character against the current
-    # Latin character(s). If no match, return False; else, increment the
-    # Arabic and Latin pointers over the matched characters, add the Arabic
-    # character to the result characters and return True.
-    def match():
-        ac = ar[aind[0]]
-        # uniprint("ac is %s" % ac)
-        bow = aind[0] == 0 or ar[aind[0] - 1] in [u" ", u"[", u"|"]
-        eow = aind[0] == alen - 1 or ar[aind[0] + 1] in [u" ", u"]", u"|"]
+    def is_bow():
+        return aind[0] == 0 or ar[aind[0] - 1] in [u" ", u"[", u"|"]
+    def is_eow():
+        return aind[0] == alen - 1 or ar[aind[0] + 1] in [u" ", u"]", u"|"]
 
-        # Check for link of the form [[foo|bar]] and skip over the part
-        # up through the vertical bar, copying it
-        if ac == '[':
-            newpos = aind[0]
-            while newpos < alen and ar[newpos] != ']':
-                if ar[newpos] == '|':
-                    newpos += 1
-                    while aind[0] < newpos:
-                        res.append(ar[aind[0]])
-                        aind[0] += 1
-                    return True
-                newpos += 1
+    def get_matches():
+        ac = ar[aind[0]]
+        debprint("get_matches: ac is %s" % ac)
+        bow = is_bow()
+        eow = is_eow()
 
         # Special-case handling of the lām that gets assimilated to a sun
         # letter in transliteration. We build up the list of possible
@@ -622,7 +617,7 @@ def tr_matching(arabic, latin, err=False):
                 bow and tt_to_arabic_matching_bow.get(ac) or
                 eow and tt_to_arabic_matching_eow.get(ac) or
                 tt_to_arabic_matching.get(ac))
-        # uniprint("matches is %s" % matches)
+        debprint("get_matches: matches is %s" % matches)
         if matches == None:
             if True:
                 error("Encountered non-Arabic (?) character " + ac +
@@ -631,6 +626,30 @@ def tr_matching(arabic, latin, err=False):
                 matches = [ac]
         if type(matches) is not list:
             matches = [matches]
+        return matches
+
+    # attempt to match the current Arabic character against the current
+    # Latin character(s). If no match, return False; else, increment the
+    # Arabic and Latin pointers over the matched characters, add the Arabic
+    # character to the result characters and return True.
+    def match():
+        matches = get_matches()
+
+        ac = ar[aind[0]]
+
+        # Check for link of the form [[foo|bar]] and skip over the part
+        # up through the vertical bar, copying it
+        if ac == '[':
+            newpos = aind[0]
+            while newpos < alen and ar[newpos] != ']':
+                if ar[newpos] == '|':
+                    newpos += 1
+                    while aind[0] < newpos:
+                        res.append(ar[aind[0]])
+                        aind[0] += 1
+                    return True
+                newpos += 1
+
         for m in matches:
             preserve_latin = False
             if type(m) is list:
@@ -638,9 +657,9 @@ def tr_matching(arabic, latin, err=False):
                 m = m[0]
             l = lind[0]
             matched = True
-            # uniprint("m: %s" % m)
+            debprint("m: %s" % m)
             for cp in m:
-                # uniprint("cp: %s" % cp)
+                debprint("cp: %s" % cp)
                 if l < llen and la[l] == cp:
                     l = l + 1
                 else:
@@ -652,7 +671,7 @@ def tr_matching(arabic, latin, err=False):
                     for cp in m:
                         lres.append(cp)
                 elif ac == u"ة":
-                    if not eow:
+                    if not is_eow():
                         lres.append(u"t")
                     elif aind[0] > 0 and (ar[aind[0] - 1] == u"ا" or
                             ar[aind[0] - 1] == u"آ"):
@@ -666,7 +685,7 @@ def tr_matching(arabic, latin, err=False):
                         lres.append(cp)
                 lind[0] = l
                 aind[0] = aind[0] + 1
-                # uniprint("matched; lind is %s" % lind[0])
+                debprint("matched; lind is %s" % lind[0])
                 return True
         return False
 
@@ -681,6 +700,16 @@ def tr_matching(arabic, latin, err=False):
             error("Unable to match trailing Latin character %s at index %s" %
                 (la[lind[0]], lind[0]))
 
+    def check_unmatching():
+        debprint("Unmatched Latin: %s at %s" % (la[lind[0]], lind[0]))
+        unmatched = tt_to_arabic_unmatching.get(la[lind[0]])
+        if unmatched != None:
+            res.append(unmatched)
+            lres.append(la[lind[0]])
+            lind[0] = lind[0] + 1
+            return True
+        return False
+
     # Here we go through the unvocalized Arabic letter for letter, matching
     # up the consonants we encounter with the corresponding Latin consonants
     # using the dict in tt_to_arabic_matching and copying the Arabic
@@ -692,16 +721,31 @@ def tr_matching(arabic, latin, err=False):
 
     while aind[0] < alen or lind[0] < llen:
         matched = False
-        if aind[0] < alen and match():
+        # The effect of the first clause is to handle cases where the
+        # Arabic has a right bracket or similar character and the Latin has
+        # a short vowel or shadda that doesn't match and needs to go before
+        # the right bracket. FIXME: This still doesn't correctly handle the
+        # case below that gets rendered as qiṭunn instead of qiṭṭun.
+        # We can't easily expand the word_interrupting_chars check. We used
+        # to do so, calling get_matches() and looking where the match has
+        # only an empty string, but this messed up on words like زنىً (zinan)
+        # where the silent_alif_maqsuura_subst has only an empty string
+        # matching but we do want to consume it first before checking for
+        # short vowels. Even earlier we had an even more general check,
+        # calling get_matches() and checking that any of the matches are an
+        # empty string. This fixed the qiṭṭun problem but made it impossible
+        # to vocalize the ghurfatun al-kuuba example.
+        if (not is_bow() and aind[0] < alen and
+                ar[aind[0]] in word_interrupting_chars and
+                lind[0] < llen and check_unmatching()):
+            debprint("Matched: Clause 1")
             matched = True
-        elif lind[0] < llen:
-            # uniprint("Unmatched Latin: %s at %s" % (la[lind[0]], lind[0]))
-            unmatched = tt_to_arabic_unmatching.get(la[lind[0]])
-            if unmatched != None:
-                res.append(unmatched)
-                lres.append(la[lind[0]])
-                lind[0] = lind[0] + 1
-                matched = True
+        elif aind[0] < alen and match():
+            debprint("Matched: Clause 2")
+            matched = True
+        elif lind[0] < llen and check_unmatching():
+            debprint("Matched: Clause 3")
+            matched = True
         if not matched:
             if err:
                 cant_match()
@@ -934,6 +978,8 @@ def run_tests():
     test(u"aSdiqaa'", u"أَصدقاء", "matched")
     # Test final otiose alif maqṣūra after fatḥatan
     test("hudan", u"هُدًى", "matched")
+    # Test opposite with fatḥatan after alif otiose alif maqṣūra
+    test(u"zinan", u"زنىً", "matched")
     # Check that final short Latin letter doesn't match to final
     # long vowel (this check is already present) and that an error doesn't
     # occur
@@ -946,8 +992,19 @@ def run_tests():
     test("'aabaa'", u"آباء", "matched")
     test("mir'aah", u"مرآة", "matched")
 
+    # Test case where close bracket occurs at end of word and an unmatched
+    # vowel or shadda needs to be before it.
+    test(u"fuuliyy", u"[[فولي]]", "matched")
+    test(u"fuula", u"[[فول]]", "matched")
+    test(u"wa-'uxt", u"[[و]][[أخت]]", "unmatched")
+    # Here we test when an open bracket occurs in the middle of a word and
+    # an unmatched vowel or shadda needs to be before it.
+    test(u"wa-'uxt", u"و[[أخت]]", "unmatched")
+
     # Bugs: This gets tr-matched into qiṭunn instead of qiṭṭun.
-    test(u"qiṭṭ", u"قِطٌ", "unmatched")
+    test(u"qiṭṭ", u"قِطٌ", "unmatched") # Should be "matched"
+    # Should be handled?
+    test(u"al-infitaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
 
     # Final results
     uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))
