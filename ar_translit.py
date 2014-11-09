@@ -171,7 +171,7 @@ before_diacritic_checking_subs = [
 # short vowels (ʾiʿrāb). FORCE_TRANSLATE causes even non-vocalized text to
 # be transliterated (normally the function checks for non-vocalized text and
 # returns None, since such text is ambiguous in transliteration).
-def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=True,
+def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=False,
         force_translate=False):
     for sub in before_diacritic_checking_subs:
         text = rsub(text, sub[0], sub[1])
