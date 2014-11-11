@@ -499,7 +499,7 @@ def canonicalize_latin(text):
     return text
 
 def pre_canonicalize_arabic(unvoc):
-    # print "unvoc enter: %s" % unvoc
+    # uniprint("unvoc enter: %s" % unvoc)
     # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
     # replaced with short-vowel+shadda during NFC normalisation, which
     # MediaWiki does for all Unicode strings; however, it makes the
@@ -721,21 +721,36 @@ def tr_matching(arabic, latin, err=False):
 
     while aind[0] < alen or lind[0] < llen:
         matched = False
-        # The effect of the first clause is to handle cases where the
+        # The first clause ensures that shadda always gets processed first;
+        # necessary in the case of the qiṭṭun example below, which otherwise
+        # would be rendered as qiṭunn.
+        if lind[0] < llen and la[lind[0]] == u"\u0651":
+            debprint("Matched: Clause shadda")
+            if aind[0] < alen and ar[aind[0]] == u"\u0651":
+                aind[0] += 1
+            res.append(u"\u0651")
+            lres.append(u"\u0651")
+            lind[0] += 1
+            matched = True
+        # The effect of the next clause is to handle cases where the
         # Arabic has a right bracket or similar character and the Latin has
         # a short vowel or shadda that doesn't match and needs to go before
-        # the right bracket. FIXME: This still doesn't correctly handle the
-        # case below that gets rendered as qiṭunn instead of qiṭṭun.
-        # We can't easily expand the word_interrupting_chars check. We used
-        # to do so, calling get_matches() and looking where the match has
-        # only an empty string, but this messed up on words like زنىً (zinan)
-        # where the silent_alif_maqsuura_subst has only an empty string
-        # matching but we do want to consume it first before checking for
-        # short vowels. Even earlier we had an even more general check,
-        # calling get_matches() and checking that any of the matches are an
-        # empty string. This fixed the qiṭṭun problem but made it impossible
-        # to vocalize the ghurfatun al-kuuba example.
-        if (not is_bow() and aind[0] < alen and
+        # the right bracket. The is_bow() check is necessary because
+        # left-bracket is part of word_interrupting_chars and when the
+        # left bracket is word-initial opposite a short vowel, the bracket
+        # needs to be handled first. Similarly for word-initial tatwil, etc.
+        #
+        # Note that we can't easily generalize the word_interrupting_chars
+        # check. We used to do so, calling get_matches() and looking where
+        # the match has only an empty string, but this messed up on words
+        # like زنىً (zinan) where the silent_alif_maqsuura_subst has only
+        # an empty string matching but we do want to consume it first
+        # before checking for short vowels. Even earlier we had an even
+        # more general check, calling get_matches() and checking that any
+        # of the matches are an empty string. This had the side-effect of
+        # fixing the qiṭṭun problem but made it impossible to vocalize the
+        # ghurfatun al-kuuba example, among others.
+        elif (not is_bow() and aind[0] < alen and
                 ar[aind[0]] in word_interrupting_chars and
                 lind[0] < llen and check_unmatching()):
             debprint("Matched: Clause 1")
@@ -1001,9 +1016,10 @@ def run_tests():
     # an unmatched vowel or shadda needs to be before it.
     test(u"wa-'uxt", u"و[[أخت]]", "unmatched")
 
-    # Bugs: This gets tr-matched into qiṭunn instead of qiṭṭun.
-    test(u"qiṭṭ", u"قِطٌ", "unmatched") # Should be "matched"
-    # Should be handled?
+    # Case where shadda and -un are opposite each other; need to handle
+    # shadda first.
+    test(u"qiṭṭ", u"قِطٌ", "matched")
+    # Bugs: Should be handled?
     test(u"al-infitaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
 
     # Final results
