@@ -576,8 +576,11 @@ def post_canonicalize_arabic(text):
     # remove sukūn after kasra + yā'
     text = rsub(text, u"\u0650\u064A\u0652", u"\u0650\u064A")
     # initial al + consonant + sukūn + sun letter: convert to shadda
-    text = rsub(text, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644)\u0652([" + sun_letters + "])",
+    text = rsub(text, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644)\u0652([" + sun_letters + "])",
          u"\\1\\2\\3\u0651")
+    # same for hamzat al-waṣl + l + consonant + sukūn + sun letters anywhere
+    text = rsub(text, u"(\u0671\u064E?\u0644)\u0652([" + sun_letters + "])",
+         u"\\1\\2\u0651")
     # Undo shadda+short-vowel reversal at beginning of pre_canonicalize_arabic.
     # Not strictly necessary as MediaWiki will automatically do this
     # reversal but ensures that e.g. we don't keep trying to revocalize and
