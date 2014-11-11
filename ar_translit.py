@@ -584,9 +584,10 @@ def post_canonicalize_arabic(text):
     # Undo shadda+short-vowel reversal at beginning of pre_canonicalize_arabic.
     # Not strictly necessary as MediaWiki will automatically do this
     # reversal but ensures that e.g. we don't keep trying to revocalize and
-    # save a page with a shadda in it.
+    # save a page with a shadda in it. Don't undo shadda+dagger-alif because
+    # that sequence may not get reversed to begin with.
     text = rsub(text,
-        u"\u0651([\u064B\u064C\u064D\u064E\u064F\u0650\u0670])", u"\\1\u0651")
+        u"\u0651([\u064B\u064C\u064D\u064E\u064F\u0650])", u"\\1\u0651")
     return text
 
 debug_tr_matching = False
