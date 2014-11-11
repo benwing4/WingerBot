@@ -248,6 +248,8 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=False,
     # perhaps we should reconsider that.
     text = rsub(text, u"([aiuāīū](?:</span>)?) a([" + sun_letters_tr + "]-)",
         u"\\1 \\2")
+    # Special-case the transliteration of allāh, without the hyphen
+    text = rsub(text, u"(^|\\s)(a?)l-lāh", u"\\1\\2llāh")
 
     return text
 
@@ -299,6 +301,7 @@ silent_alif_subst = u"\ufff1"
 silent_alif_maqsuura_subst = u"\ufff2"
 multi_single_quote_subst = u"\ufff3"
 assimilating_l_subst = u"\ufff4"
+double_l_subst = u"\ufff5"
 hamza_match=[u"ʾ",u"’",u"'",u"`"]
 hamza_match_or_empty=[u"ʾ",u"’",u"'",u"`",u""]
 
@@ -379,7 +382,8 @@ tt_to_arabic_matching = {
     u"\u064E":u"a", # fatḥa
     u"\u064F":[[u"u"],[u"o"]], # ḍamma
     u"\u0650":[[u"i"],[u"e"]], # kasra
-    u"\u0651":u"\u0651", # šadda - doubled consonant
+    # u"\u0651":u"\u0651", # šadda - doubled consonant - handled specially
+    # double_l_subst:u"\u0651", # handled specially
     u"\u0652":u"", #sukūn - no vowel
     # ligatures
     u"ﻻ":u"lā",
@@ -499,6 +503,8 @@ def canonicalize_latin(text):
     return text
 
 def pre_canonicalize_arabic(unvoc):
+    # convert llh for allāh into ll+shadda+dagger-alif+h
+    unvoc = rsub(unvoc, u"لله", u"للّٰه")
     # uniprint("unvoc enter: %s" % unvoc)
     # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
     # replaced with short-vowel+shadda during NFC normalisation, which
@@ -524,14 +530,26 @@ def pre_canonicalize_arabic(unvoc):
     # common)
     unvoc = rsub(unvoc, u"\u0627\u064B", silent_alif_subst + u"\u064B")
     unvoc = rsub(unvoc, u"\u0649\u064B", silent_alif_maqsuura_subst + u"\u064B")
-    # initial al + consonant + shadda: remove shadda
-    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644[" + lconsonants + u"])\u0651",
+    # word-initial al + consonant + shadda: remove shadda
+    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644[" + lconsonants + u"])\u0651",
         u"\\1\\2")
-    # word-initial al- + sun letter: convert l to assimilating_l_subst; will
+    # same for hamzat al-waṣl + l + consonant + shadda, anywhere
+    unvoc = rsub(unvoc, u"(\u0671\u064E?\u0644[" + lconsonants + u"])\u0651",
+        u"\\1")
+    # word-initial al + l + dagger-alif + h (allāh): convert second l
+    # to double_l_subst; will match shadda in Latin allāh during tr_matching(),
+    # will be converted back during post-canonicalization
+    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644)\u0644(\u0670?ه)",
+        u"\\1\\2" + double_l_subst + u"\\3")
+    # same for hamzat al-waṣl + l + dagger-alif + h occurring anywhere.
+    unvoc = rsub(unvoc, u"(\u0671\u064E?\u0644)\u0644(\u0670?ه)",
+        u"\\1" + double_l_subst + u"\\2")
+    # word-initial al + sun letter: convert l to assimilating_l_subst; will
     # convert back during post-canonicalization; during tr_matching(),
     # assimilating_l_subst will match the appropriate character, or "l"
     unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?)\u0644([" + sun_letters + "])",
         u"\\1\\2" + assimilating_l_subst + u"\\3")
+    # same for hamzat al-waṣl + l + sun letter occurring anywhere.
     unvoc = rsub(unvoc, u"(\u0671\u064E?)\u0644([" + sun_letters + "])",
         u"\\1" + assimilating_l_subst + u"\\2")
     return unvoc
@@ -540,6 +558,7 @@ def post_canonicalize_arabic(text):
     text = rsub(text, silent_alif_subst, u"ا")
     text = rsub(text, silent_alif_maqsuura_subst, u"ى")
     text = rsub(text, assimilating_l_subst, u"ل")
+    text = rsub(text, double_l_subst, u"ل")
 
     # add sukūn between adjacent consonants, but not in the first part of
     # a link of the sort [[foo|bar]], which we don't vocalize
@@ -732,11 +751,14 @@ def tr_matching(arabic, latin, err=False):
         # would be rendered as qiṭunn.
         if lind[0] < llen and la[lind[0]] == u"\u0651":
             debprint("Matched: Clause shadda")
-            if aind[0] < alen and ar[aind[0]] == u"\u0651":
-                aind[0] += 1
-            res.append(u"\u0651")
-            lres.append(u"\u0651")
             lind[0] += 1
+            lres.append(u"\u0651")
+            if aind[0] < alen and (
+                    ar[aind[0]] == u"\u0651" or ar[aind[0]] == double_l_subst):
+                res.append(ar[aind[0]])
+                aind[0] += 1
+            else:
+                res.append(u"\u0651")
             matched = True
         # The effect of the next clause is to handle cases where the
         # Arabic has a right bracket or similar character and the Latin has
@@ -1027,6 +1049,9 @@ def run_tests():
     test(u"qiṭṭ", u"قِطٌ", "matched")
     # Bugs: Should be handled?
     test(u"al-infitaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
+
+    # Allāh
+    test(u"allāh", u"الله", "matched")
 
     # Final results
     uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))
