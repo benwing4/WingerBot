@@ -559,6 +559,12 @@ def post_canonicalize_arabic(text):
     # initial al + consonant + sukūn + sun letter: convert to shadda
     text = rsub(text, u"(^|\\s|\[\[|\|)([\u0627\u0671]\u064E?\u0644)\u0652([" + sun_letters + "])",
          u"\\1\\2\\3\u0651")
+    # Undo shadda+short-vowel reversal at beginning of pre_canonicalize_arabic.
+    # Not strictly necessary as MediaWiki will automatically do this
+    # reversal but ensures that e.g. we don't keep trying to revocalize and
+    # save a page with a shadda in it.
+    text = rsub(text,
+        u"\u0651([\u064B\u064C\u064D\u064E\u064F\u0650\u0670])", u"\\1\u0651")
     return text
 
 debug_tr_matching = False
