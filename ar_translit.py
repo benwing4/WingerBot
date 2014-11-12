@@ -364,6 +364,8 @@ tt_to_arabic_matching = {
     u"پ":u"p", u"چ":[u"č",u"ch"], u"ڤ":u"v", u"گ":u"g", u"ڨ":u"g", u"ڧ":u"q",
     # semivowels or long vowels, alif, hamza, special letters
     u"ا":u"ā", # ʾalif = \u0627
+    # put empty string in list so not considered logically false, which can
+    # mess with the logic
     silent_alif_subst:[u""],
     silent_alif_maqsuura_subst:[u""],
     # hamzated letters
@@ -373,6 +375,8 @@ tt_to_arabic_matching = {
     u"ي":[[u"y"],[u"ī"],[u"ē"]],
     u"ى":u"ā", # ʾalif maqṣūra = \u0649
     u"آ":[u"ʾaā",u"’aā",u"'aā",u"`aā"], # ʾalif madda = \u0622
+    # put empty string in list so not considered logically false, which can
+    # mess with the logic
     u"ٱ":[u""], # hamzatu l-waṣl = \u0671
     u"\u0670":u"aā", # ʾalif xanjariyya = dagger ʾalif (Koranic diacritic)
     # short vowels, šadda and sukūn
@@ -382,13 +386,14 @@ tt_to_arabic_matching = {
     u"\u064E":u"a", # fatḥa
     u"\u064F":[[u"u"],[u"o"]], # ḍamma
     u"\u0650":[[u"i"],[u"e"]], # kasra
-    # u"\u0651":u"\u0651", # šadda - doubled consonant - handled specially
-    # double_l_subst:u"\u0651", # handled specially
+    u"\u0651":u"\u0651", # šadda - handled specially when matching Latin šadda
+    double_l_subst:u"\u0651", # handled specially when matching šadda in Latin
     u"\u0652":u"", #sukūn - no vowel
     # ligatures
     u"ﻻ":u"lā",
     u"ﷲ":u"llāh",
-    # taṭwīl
+    # put empty string in list so not considered logically false, which can
+    # mess with the logic
     u"ـ":[u""], # taṭwīl, no sound
     # numerals
     u"١":u"1", u"٢":u"2", u"٣":u"3", u"٤":u"4", u"٥":u"5",
@@ -566,6 +571,10 @@ def post_canonicalize_arabic(text):
     index = 0
     for part in re.split(r'(\[\[[^]]*\|)', text):
         if (index % 2) == 0:
+            # do this twice because a sequence of three consonants won't be
+            # matched by the initial one, since the replacement does
+            # non-overlapping subs
+            part = rsub(part, u"([" + lconsonants + u"])([" + rconsonants + u"])", u"\\1\u0652\\2")
             part = rsub(part, u"([" + lconsonants + u"])([" + rconsonants + u"])", u"\\1\u0652\\2")
         splitparts.append(part)
         index += 1
@@ -1053,6 +1062,10 @@ def run_tests():
     test(u"qiṭṭ", u"قِطٌ", "matched")
     # Bugs: Should be handled?
     test(u"al-infitaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
+
+    # 3 consonants in a row
+    test(u"Kūlūmbīyā", u"كولومبيا", "matched")
+    test(u"fustra", u"فسترة", "matched")
 
     # Allāh
     test(u"allāh", u"الله", "matched")
