@@ -1070,6 +1070,12 @@ def run_tests():
     # Allāh
     test(u"allāh", u"الله", "matched")
 
+    # Test dagger alif, alif maqṣūra
+    test(u"raḥmān", u"رَحْمٰن", "matched")
+    test(u"fusḥā", u"فسحى", "matched")
+    test(u"fusḥā", u"فُسْحَى", "matched")
+    test(u"'āxir", u"آخر", "matched")
+
     # Final results
     uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))
 
