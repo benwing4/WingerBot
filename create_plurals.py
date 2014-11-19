@@ -27,30 +27,33 @@ verbose = True
 def remove_diacritics(word):
   return re.sub(u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670]", "", word)
 
-# Create or insert a section describing the plural of a given word.
-# PLTR and SINGTR are the associated manual transliterations (if any).
-# POS is the part of speech of the word (capitalized, e.g. "Noun").
-# Only save the changed page if SAVE is true.
-def create_plural(plural, pltr, singular, singtr, pos, save):
+# Create or insert a section describing the plural or similar inflection
+# of a given word. PLTR and SINGTR are the associated manual transliterations
+# (if any). POS is the part of speech of the word (capitalized, e.g. "Noun").
+# Only save the changed page if SAVE is true. PLWORD is e.g. "plural" or
+# "feminine"; SINGWORD is e.g. "singular" or "masculine"; PLTEMP is e.g.
+# "ar-plural" or "ar-feminine"; SINGTEMP is e.g. "plural of" or "feminine of".
+def create_inflection(save, plural, pltr, singular, singtr, pos,
+    plword, singword, pltemp, singtemp):
   if plural == "-":
-    msg("Not creating plural entry - for singular %s%s" % (
-      singular, " (%s)" % singtr if singtr else ""))
+    msg("Not creating %s entry - for %s %s%s" % (
+      plword, singword, singular, " (%s)" % singtr if singtr else ""))
     return
   # FIXME! Need to split off trailing interwiki links
-  msg("Creating plural entry %s%s for singular %s%s" % (
-    plural, " (%s)" % pltr if pltr else "",
-    singular, " (%s)" % singtr if singtr else ""))
+  msg("Creating %s entry %s%s for %s %s%s" % (
+    plword, plural, " (%s)" % pltr if pltr else "",
+    singword, singular, " (%s)" % singtr if singtr else ""))
   pagename = remove_diacritics(plural)
   pl_no_vowels = pagename
   sing_no_vowels = remove_diacritics(singular)
   page = pywikibot.Page(site, pagename)
-  newposbody = u"""{{ar-plural|%s%s%s}}
+  newposbody = u"""{{%s|%s%s%s}}
 
-# {{plural of|%s%s|lang=ar}}
-""" % (plural,
-    "|m-p" if pos == "Adjective" else "",
+# {{%s|%s%s|lang=ar}}
+""" % (pltemp, plural,
+    "|m-p" if pos == "Adjective" and plword == "plural" else "",
     "|tr=%s" % pltr if pltr else "",
-    singular,
+    singtemp, singular,
     "|tr=%s" % singtr if singtr else "")
   newpos = "===%s===\n" % pos + newposbody
   newposl4 = "====%s====\n" % pos + newposbody
@@ -58,8 +61,8 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
   comment = None
   if not page.exists():
     msg("Page %s: creating" % pagename)
-    comment = "Create page for Arabic plural %s of %s, pos=%s" % (
-        plural, singular, pos)
+    comment = "Create page for Arabic %s %s of %s, pos=%s" % (
+        plword, plural, singular, pos)
     page.text = newsection
     if verbose:
       msg("New text is [[%s]]" % page.text)
@@ -101,7 +104,7 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
             # sets of vocalizations. For this case, require that the
             # existing versions match exactly, rather than matching with
             # removed diacritics.
-            must_match_exactly = pl_no_vowels == u"قطء" and sing_no_vowels == u"قطءة"
+            must_match_exactly = plword == "plural" and pl_no_vowels == u"قطء" and sing_no_vowels == u"قطءة"
             for template in parsed.filter_templates():
               def compare_param(param, value):
                 paramval = blib.getparam(template, param)
@@ -109,39 +112,39 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
                   return paramval == value
                 else:
                   return remove_diacritics(paramval) == remove_diacritics(value)
-              if (template.name == "ar-coll-noun" and compare_param("1", plural)
+              if (plword == "plural" and template.name == "ar-coll-noun" and compare_param("1", plural)
                   and compare_param("sing", singular)):
                 headword_collective_template = template
                 break
-              if template.name == "ar-plural" and compare_param("1", plural):
+              if template.name == pltemp and compare_param("1", plural):
                 headword_template = template
-              if template.name == "plural of" and compare_param("1", singular):
+              if template.name == singtemp and compare_param("1", singular):
                 inflection_template = template
                 break
             if headword_collective_template:
-              msg("Page %s: exists and has Arabic section and found collective noun with plural %s already in it; taking no action"
-                  % (pagename, plural))
+              msg("Page %s: exists and has Arabic section and found collective noun with %s %s already in it; taking no action"
+                  % (pagename, plword, plural))
               break
             if inflection_template and headword_template:
-              msg("Page %s: exists and has Arabic section and found plural %s already in it"
-                  % (pagename, plural))
-              comment = "Update plural/singular with more vocalized versions pl=%s sing=%s pos=%s" % (
-                  plural, singular, pos)
+              msg("Page %s: exists and has Arabic section and found %s %s already in it"
+                  % (pagename, plword, plural))
+              comment = "Update Arabic with more vocalized versions: %s %s, %s %s, pos=%s" % (
+                  plword, plural, singword, singular, pos)
               existing_pl = blib.getparam(headword_template, "1")
               if len(plural) > len(existing_pl):
-                msg("Page %s: updating existing ar-plural %s with %s" %
-                    (pagename, existing_pl, plural))
+                msg("Page %s: updating existing %s %s with %s" %
+                    (pagename, pltemp, existing_pl, plural))
                 headword_template.add("1", plural)
                 if pltr:
                   headword_template.add("tr", pltr)
               existing_sing = blib.getparam(inflection_template, "1")
               if len(singular) > len(existing_sing):
-                msg("Page %s: updating existing 'plural of' %s with %s" %
-                    (pagename, existing_sing, singular))
+                msg("Page %s: updating existing '%s' %s with %s" %
+                    (pagename, singtemp, existing_sing, singular))
                 inflection_template.add("1", singular)
                 if singtr:
                   inflection_template.add("tr", singtr)
-              if pos == "Adjective":
+              if pos == "Adjective" and plword == "plural":
                 headword_template.add("2", "m-p")
               subsections[j] = unicode(parsed)
               sections[i] = ''.join(subsections)
@@ -163,13 +166,13 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
             while ("\n===Etymology %s===\n" % j) in sections[i]:
               j += 1
             msg("Page %s: found multiple etymologies, adding new section \"Etymology %s\"" % (pagename, j))
-            comment = "Append entry (Etymology %s) for plural %s of %s, pos=%s in existing Arabic section" % (
-              j, plural, singular, pos)
+            comment = "Append entry (Etymology %s) for %s %s of %s, pos=%s in existing Arabic section" % (
+              j, plword, plural, singular, pos)
             sections[i] += "\n===Etymology %s===\n\n" % j + newposl4
           else:
             msg("Page %s: wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"" % pagename)
-            comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for plural %s of %s, pos=%s" % (
-                plural, singular, pos)
+            comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for %s %s of %s, pos=%s" % (
+                plword, plural, singular, pos)
             # Wrap existing text in "Etymology 1" and increase the indent level
             # by one of all headers
             sections[i] = re.sub("^\n*==Arabic==\n+", "", sections[i])
@@ -187,14 +190,14 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
       elif m.group(1) > "Arabic":
         msg("Page %s: exists; inserting before %s section" %
             (pagename, m.group(1)))
-        comment = "Create Arabic section and entry for plural %s of %s, pos=%s; insert before %s section" % (
-            plural, singular, pos, m.group(1))
+        comment = "Create Arabic section and entry for %s %s of %s, pos=%s; insert before %s section" % (
+            plword, plural, singular, pos, m.group(1))
         sections[i:i] = [newsection, "\n----\n\n"]
         break
     else:
       msg("Page %s: exists; adding section to end" % pagename)
-      comment = "Create Arabic section and entry for plural %s of %s, pos=%s; append at end" % (
-          plural, singular, pos)
+      comment = "Create Arabic section and entry for %s %s of %s, pos=%s; append at end" % (
+          plword, plural, singular, pos)
       # Make sure there are two trailing newlines
       if sections[-1].endswith("\n\n"):
         pass
@@ -212,33 +215,57 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
     if save:
       page.save(comment = comment)
 
-def create_plurals(pos, tempname, save, startFrom, upTo):
+def create_plural(save, plural, pltr, singular, singtr, pos):
+  return create_inflection(save, plural, pltr, singular, singtr, pos,
+      "plural", "singular", "ar-plural", "plural of")
+
+def create_feminine(save, plural, pltr, singular, singtr, pos):
+  return create_inflection(save, plural, pltr, singular, singtr, pos,
+      "feminine", "masculine", "ar-feminine", "feminine of")
+
+def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
   for cat in [u"Arabic %ss" % pos.lower()]:
     for page in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
         if template.name == tempname:
           sing = blib.getparam(template, "1")
           singtr = blib.getparam(template, "tr")
-          pl = blib.getparam(template, "pl")
-          pltr = blib.getparam(template, "pltr")
+          pl = blib.getparam(template, param)
+          pltr = blib.getparam(template, param + "tr")
           if pl:
-            create_plural(pl, pltr, sing, singtr, pos, save)
+            createfn(save, pl, pltr, sing, singtr, pos)
           i = 2
           while pl:
-            pl = blib.getparam(template, "pl" + str(i))
-            pltr = blib.getparam(template, "pl" + str(i) + "tr")
+            pl = blib.getparam(template, param + str(i))
+            pltr = blib.getparam(template, param + str(i) + "tr")
             if pl:
-              create_plural(pl, pltr, sing, singtr, pos, save)
+              createfn(save, pl, pltr, sing, singtr, pos)
             i += 1
 
-pa = argparse.ArgumentParser(description="Create Arabic plurals")
+def create_plurals(save, pos, tempname, startFrom, upTo):
+  return create_inflections(save, pos, tempname, startFrom, upTo,
+      create_plural, "pl")
+
+def create_feminines(save, pos, tempname, startFrom, upTo):
+  return create_inflections(save, pos, tempname, startFrom, upTo,
+      create_feminine, "f")
+
+pa = argparse.ArgumentParser(description="Create Arabic inflections")
 pa.add_argument("-s", "--save", action='store_true',
     help="Save changed pages")
+pa.add_argument("-p", "--plural", action='store_true',
+    help="Do plural inflections")
+pa.add_argument("-f", "--feminine", action='store_true',
+    help="Do feminine inflections")
 pa.add_argument("start", nargs="?", help="First page to work on")
 pa.add_argument("end", nargs="?", help="Last page to work on")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-create_plurals("Noun", "ar-noun", params.save, startFrom, upTo)
-create_plurals("Adjective", "ar-adj", params.save, startFrom, upTo)
+if params.plural:
+  create_plurals(params.save, "Noun", "ar-noun", startFrom, upTo)
+  create_plurals(params.save, "Adjective", "ar-adj", startFrom, upTo)
+if params.feminine:
+  create_feminines(params.save, "Noun", "ar-noun", startFrom, upTo)
+  create_feminines(params.save, "Adjective", "ar-adj", startFrom, upTo)
