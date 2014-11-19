@@ -58,7 +58,7 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
   comment = None
   if not page.exists():
     msg("Page %s: creating" % pagename)
-    comment = "Creating page for Arabic plural %s of %s, pos=%s" % (
+    comment = "Create page for Arabic plural %s of %s, pos=%s" % (
         plural, singular, pos)
     page.text = newsection
     if verbose:
@@ -125,6 +125,8 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
             if inflection_template and headword_template:
               msg("Page %s: exists and has Arabic section and found plural %s already in it"
                   % (pagename, plural))
+              comment = "Update plural/singular with more vocalized versions pl=%s sing=%s pos=%s" % (
+                  plural, singular, pos)
               existing_pl = blib.getparam(headword_template, "1")
               if len(plural) > len(existing_pl):
                 msg("Page %s: updating existing ar-plural %s with %s" %
@@ -141,16 +143,12 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
                   inflection_template.add("tr", singtr)
               if pos == "Adjective":
                 headword_template.add("2", "m-p")
-              comment = "Updating plural/singular with more vocalized versions pl=%s sing=%s pos=%s" % (
-                  plural, singular, pos)
               subsections[j] = unicode(parsed)
               sections[i] = ''.join(subsections)
               break
         else:
           msg("Page %s: exists and has Arabic section, appending to end of section"
               % pagename)
-          comment = "Creating entry in existing Arabic section for plural %s of %s, pos=%s" % (
-              plural, singular, pos)
           # FIXME! Conceivably instead of inserting at end we should insert
           # next to any existing ===Noun=== (or corresponding POS, whatever
           # it is), in particular after the last one. However, this makes less
@@ -165,9 +163,13 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
             while ("\n===Etymology %s===\n" % j) in sections[i]:
               j += 1
             msg("Page %s: found multiple etymologies, adding new section \"Etymology %s\"" % (pagename, j))
+            comment = "Append entry (Etymology %s) for plural %s of %s, pos=%s in existing Arabic section" % (
+              j, plural, singular, pos)
             sections[i] += "\n===Etymology %s===\n\n" % j + newposl4
           else:
             msg("Page %s: wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"" % pagename)
+            comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for plural %s of %s, pos=%s" % (
+                plural, singular, pos)
             # Wrap existing text in "Etymology 1" and increase the indent level
             # by one of all headers
             sections[i] = re.sub("^\n*==Arabic==\n+", "", sections[i])
@@ -185,13 +187,13 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
       elif m.group(1) > "Arabic":
         msg("Page %s: exists; inserting before %s section" %
             (pagename, m.group(1)))
-        comment = "Creating Arabic section and entry for plural %s of %s, pos=%s" % (
-            plural, singular, pos)
+        comment = "Create Arabic section and entry for plural %s of %s, pos=%s; insert before %s section" % (
+            plural, singular, pos, m.group(1))
         sections[i:i] = [newsection, "\n----\n\n"]
         break
     else:
       msg("Page %s: exists; adding section to end" % pagename)
-      comment = "Creating Arabic section and entry for plural %s of %s, pos=%s" % (
+      comment = "Create Arabic section and entry for plural %s of %s, pos=%s; append at end" % (
           plural, singular, pos)
       # Make sure there are two trailing newlines
       if sections[-1].endswith("\n\n"):
