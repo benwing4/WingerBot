@@ -44,7 +44,10 @@ def dump(page):
   msg(u'Contents of [[{0}]]:\n{1}\n----------'.format(page.title(), old))
 
 def parse(page):
-  return mwparserfromhell.parser.Parser().parse(page.text,
+  return parse_text(page.text)
+
+def parse_text(text):
+  return mwparserfromhell.parser.Parser().parse(text,
     skip_style_tags=True)
 
 def getparam(template, param):
