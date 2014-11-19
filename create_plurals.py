@@ -25,26 +25,33 @@ site = pywikibot.Site()
 verbose = True
 
 def remove_diacritics(word):
-  return re.sub(u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0652\u0670]", "", word)
+  return re.sub(u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670]", "", word)
 
 # Create or insert a section describing the plural of a given word.
 # PLTR and SINGTR are the associated manual transliterations (if any).
 # POS is the part of speech of the word (capitalized, e.g. "Noun").
 # Only save the changed page if SAVE is true.
 def create_plural(plural, pltr, singular, singtr, pos, save):
+  if plural == "-":
+    msg("Not creating plural entry - for singular %s%s" % (
+      singular, " (%s)" % singtr if singtr else ""))
+    return
+  # FIXME! Need to split off trailing interwiki links
   msg("Creating plural entry %s%s for singular %s%s" % (
     plural, " (%s)" % pltr if pltr else "",
     singular, " (%s)" % singtr if singtr else ""))
   pagename = remove_diacritics(plural)
+  pl_no_vowels = pagename
+  sing_no_vowels = remove_diacritics(singular)
   page = pywikibot.Page(site, pagename)
   newposbody = u"""{{ar-plural|%s%s}}
 
-# {{plural of|lang=ar|%s%s}}
+# {{plural of|%s%s|lang=ar}}
 """ % (plural, "|tr=%s" % pltr if pltr else "", singular,
     "|tr=%s" % singtr if singtr else "")
   newpos = "===%s===\n" % pos + newposbody
   newposl4 = "====%s====\n" % pos + newposbody
-  newsection = "==Arabic==\n" + newpos
+  newsection = "==Arabic==\n\n" + newpos
   comment = None
   if not page.exists():
     msg("Page %s: creating" % pagename)
@@ -54,18 +61,68 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
     if verbose:
       msg("New text is [[%s]]" % page.text)
   else:
-    sections = re.split("(^--+\n)", page.text, 0, re.M)
-    for i in xrange(sections):
+    # Split off interwiki links at end
+    m = re.match(r"^(.*?\n)(\n*(\[\[[a-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
+        page.text, re.S)
+    if m:
+      body = m.group(1)
+      tail = m.group(2)
+    else:
+      body = page.text
+      tail = ""
+    splitsections = re.split("(^==[^=\n]+==\n)", body, 0, re.M)
+    # Extract off head and recombine section headers with following text
+    head = splitsections[0]
+    sections = []
+    for i in xrange(1, len(splitsections)):
       if (i % 2) == 1:
-        continue
-      m = re.match("^==([^=]*)==$", sections[i], re.M)
+        sections.append("")
+      sections[-1] += splitsections[i]
+    for i in xrange(len(sections)):
+      m = re.match("^==([^=\n]+)==$", sections[i], re.M)
       if not m:
         msg("Page %s: Can't find language name in text: [[%s]]" % (pagename, sections[i]))
       elif m.group(1) == "Arabic":
-        if re.match(r"===+%s===+\s+\{\{ar-plural\|%s[|}]" % (pos, plural), sections[i]):
-          msg("Page %s: exists and has Arabic section with plural %s already in it, taking no action"
-              % (pagename, plural))
-          break
+        # Extract off trailing separator
+        mm = re.match(r"^(.*?\n)(\n*--+\n*)$", sections[i], re.S)
+        if mm:
+          sections[i:i+1] = [mm.group(1), mm.group(2)]
+        subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
+        for j in xrange(len(subsections)):
+          if j > 0 and (j % 2) == 0 and re.match("^===+%s===+\n" % pos, subsections[j - 1]):
+            parsed = blib.parse_text(subsections[j])
+            headword_template = None
+            inflection_template = None
+            for template in parsed.filter_templates():
+              if template.name == "ar-plural":
+                if remove_diacritics(blib.getparam(template, "1")) == pl_no_vowels:
+                  headword_template = template
+              if template.name == "plural of":
+                if remove_diacritics(blib.getparam(template, "1")) == sing_no_vowels:
+                  inflection_template = template
+                  break
+            if inflection_template and headword_template:
+              msg("Page %s: exists and has Arabic section and found plural %s already in it"
+                  % (pagename, plural))
+              existing_pl = blib.getparam(headword_template, "1")
+              if len(plural) > len(existing_pl):
+                msg("Page %s: updating existing ar-plural %s with %s" %
+                    (pagename, existing_pl, plural))
+                headword_template.add("1", plural)
+                if pltr:
+                  headword_template.add("tr", pltr)
+              existing_sing = blib.getparam(inflection_template, "1")
+              if len(singular) > len(existing_sing):
+                msg("Page %s: updating existing 'plural of' %s with %s" %
+                    (pagename, existing_sing, singular))
+                inflection_template.add("1", singular)
+                if singtr:
+                  inflection_template.add("tr", singtr)
+              comment = "Updating plural/singular with more vocalized versions pl=%s sing=%s pos=%s" % (
+                  plural, singular, pos)
+              subsections[j] = unicode(parsed)
+              sections[i] = ''.join(subsections)
+              break
         else:
           msg("Page %s: exists and has Arabic section, appending to end of section"
               % pagename)
@@ -82,31 +139,46 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
           # an existing Arabic entry?)
           if "\n===Etymology 1===\n" in sections[i]:
             j = 2
-            while ("\n===Etymology %s===\n" % j) in section[i]:
+            while ("\n===Etymology %s===\n" % j) in sections[i]:
               j += 1
             msg("Page %s: found multiple etymologies, adding new section \"Etymology %s\"" % (pagename, j))
-            sections[i] += "\n===Etymology %s===\n" % j + newposl4
+            sections[i] += "\n===Etymology %s===\n\n" % j + newposl4
           else:
             msg("Page %s: wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"" % pagename)
             # Wrap existing text in "Etymology 1" and increase the indent level
             # by one of all headers
-            sections[i] = ("===Etymology 1===\n" +
+            sections[i] = re.sub("^\n*==Arabic==\n+", "", sections[i])
+            wikilink_re = r"^(\{\{wikipedia\|.*?\}\})\n*"
+            mmm = re.match(wikilink_re, sections[i])
+            wikilink = (mmm.group(1) + "\n") if mmm else ""
+            if mmm:
+              sections[i] = re.sub(wikilink_re, "", sections[i])
+            sections[i] = re.sub("^===Etymology===\n", "", sections[i])
+            sections[i] = ("==Arabic==\n" + wikilink + "\n===Etymology 1===\n" +
+                ("\n" if sections[i].startswith("==") else "") +
                 re.sub("^==(.*?)==$", r"===\1===", sections[i], 0, re.M) +
-                "\n===Etymology 2===\n" + newposl4)
-          break
+                "\n===Etymology 2===\n\n" + newposl4)
+        break
       elif m.group(1) > "Arabic":
         msg("Page %s: exists; inserting before %s section" %
             (pagename, m.group(1)))
         comment = "Creating Arabic section and entry for plural %s of %s, pos=%s" % (
             plural, singular, pos)
-        sections[i:i] = [newsection, "----"]
+        sections[i:i] = [newsection, "\n----\n\n"]
         break
     else:
       msg("Page %s: exists; adding section to end" % pagename)
       comment = "Creating Arabic section and entry for plural %s of %s, pos=%s" % (
           plural, singular, pos)
-      sections += ["----", newsection]
-    newtext = ''.join(sections)
+      # Make sure there are two trailing newlines
+      if sections[-1].endswith("\n\n"):
+        pass
+      elif sections[-1].endswith("\n"):
+        sections[-1] += "\n"
+      else:
+        sections[-1] += "\n\n"
+      sections += ["----\n\n", newsection]
+    newtext = head + ''.join(sections) + tail
     if verbose:
       msg("Replacing [[%s]] with [[%s]]" % (page.text, newtext))
     page.text = newtext
@@ -116,7 +188,7 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
       page.save(comment = comment)
 
 def create_plurals(pos, tempname, save, startFrom, upTo):
-  for cat in [u"Arabic %ss" % pos]:
+  for cat in [u"Arabic %ss" % pos.lower()]:
     for page in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
         if template.name == tempname:
