@@ -44,10 +44,13 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
   pl_no_vowels = pagename
   sing_no_vowels = remove_diacritics(singular)
   page = pywikibot.Page(site, pagename)
-  newposbody = u"""{{ar-plural|%s%s}}
+  newposbody = u"""{{ar-plural|%s%s%s}}
 
 # {{plural of|%s%s|lang=ar}}
-""" % (plural, "|tr=%s" % pltr if pltr else "", singular,
+""" % (plural,
+    "|m-p" if pos == "Adjective" else "",
+    "|tr=%s" % pltr if pltr else "",
+    singular,
     "|tr=%s" % singtr if singtr else "")
   newpos = "===%s===\n" % pos + newposbody
   newposl4 = "====%s====\n" % pos + newposbody
@@ -92,15 +95,33 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
           if j > 0 and (j % 2) == 0 and re.match("^===+%s===+\n" % pos, subsections[j - 1]):
             parsed = blib.parse_text(subsections[j])
             headword_template = None
+            headword_collective_template = None
             inflection_template = None
+            # For singular قطءة and plural قطء, three different possible
+            # sets of vocalizations. For this case, require that the
+            # existing versions match exactly, rather than matching with
+            # removed diacritics.
+            must_match_exactly = pl_no_vowels == u"قطء" and sing_no_vowels == u"قطءة"
             for template in parsed.filter_templates():
-              if template.name == "ar-plural":
-                if remove_diacritics(blib.getparam(template, "1")) == pl_no_vowels:
-                  headword_template = template
-              if template.name == "plural of":
-                if remove_diacritics(blib.getparam(template, "1")) == sing_no_vowels:
-                  inflection_template = template
-                  break
+              def compare_param(param, value):
+                paramval = blib.getparam(template, param)
+                if must_match_exactly:
+                  return paramval == value
+                else:
+                  return remove_diacritics(paramval) == remove_diacritics(value)
+              if (template.name == "ar-coll-noun" and compare_param("1", plural)
+                  and compare_param("sing", singular)):
+                headword_collective_template = template
+                break
+              if template.name == "ar-plural" and compare_param("1", plural):
+                headword_template = template
+              if template.name == "plural of" and compare_param("1", singular):
+                inflection_template = template
+                break
+            if headword_collective_template:
+              msg("Page %s: exists and has Arabic section and found collective noun with plural %s already in it; taking no action"
+                  % (pagename, plural))
+              break
             if inflection_template and headword_template:
               msg("Page %s: exists and has Arabic section and found plural %s already in it"
                   % (pagename, plural))
@@ -118,6 +139,8 @@ def create_plural(plural, pltr, singular, singtr, pos, save):
                 inflection_template.add("1", singular)
                 if singtr:
                   inflection_template.add("tr", singtr)
+              if pos == "Adjective":
+                headword_template.add("2", "m-p")
               comment = "Updating plural/singular with more vocalized versions pl=%s sing=%s pos=%s" % (
                   plural, singular, pos)
               subsections[j] = unicode(parsed)
