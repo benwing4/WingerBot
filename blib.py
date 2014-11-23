@@ -57,6 +57,7 @@ def getparam(template, param):
     return ""
 
 def do_edit(page, func=None, null=False, save=False):
+  title = page.title()
   while True:
     try:
       if func:
@@ -68,27 +69,30 @@ def do_edit(page, func=None, null=False, save=False):
           if page.text != new:
             page.text = new
             if save:
+              msg(u'Page %s: Saving with comment = %s' % (title, comment))
               page.save(comment = comment)
+            else:
+              msg(u'Page %s: Would save with comment = %s' % (title, comment))
           elif null:
-            msg(u'Purged page cache for [[{0}]]'.format(page.title()))
+            msg(u'Page %s: Purged page cache' % title)
             page.purge(forcelinkupdate = True)
           else:
-            msg(u'Skipped [[{0}]]: no changes'.format(page.title()))
+            msg(u'Page %s: Skipped, no changes' % title)
         elif null:
-          msg(u'Purged page cache for [[{0}]]'.format(page.title()))
+          msg(u'Page %s: Purged page cache' % title)
           page.purge(forcelinkupdate = True)
         else:
-          msg(u'Skipped [[{0}]]: {1}'.format(page.title(), comment))
+          msg(u'Page %s: Skipped: %s' % (title, comment))
       else:
-        msg(u'Purged page cache for [[{0}]]'.format(page.title()))
+        msg(u'Page %s: Purged page cache' % title)
         page.purge(forcelinkupdate = True)
     except (pywikibot.LockedPage, pywikibot.NoUsername):
-      errmsg(u'Skipped [[{0}]], page is protected'.format(page.title()))
+      errmsg(u'Page %s: Skipped, page is protected' % title)
     except urllib2.HTTPError as e:
       if e.code != 503:
         raise
     except:
-      errmsg(u'Error on [[{0}]]'.format(page.title()))
+      errmsg(u'Page %s: Error' % title)
       raise
 
     break
