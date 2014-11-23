@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, json
+import pywikibot, mwparserfromhell, re, sys, urllib2, datetime, json, argparse
 
 site = pywikibot.Site()
 
@@ -232,6 +232,14 @@ def parse_start_end(startsort, endsort):
       endsort = str.decode(endsort, "utf-8")
 
   return (startsort, endsort)
+
+def init_argparser(desc):
+  pa = argparse.ArgumentParser(description=desc)
+  pa.add_argument("-s", "--save", action='store_true',
+      help="Save changed pages")
+  pa.add_argument("start", nargs="?", help="First page to work on")
+  pa.add_argument("end", nargs="?", help="Last page to work on")
+  return pa
 
 languages = None
 languages_byCode = None

@@ -14,8 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, string, sys, codecs
-import argparse
+import re
 
 import blib, pywikibot
 from blib import msg
@@ -188,13 +187,9 @@ def vocalize_links(save, startFrom, upTo):
 
   return blib.process_links(save, startFrom, upTo, process_param, join_actions)
 
-pa = argparse.ArgumentParser(description="Correct vocalization and translit")
-pa.add_argument("-s", "--save", action='store_true',
-    help="Save changed pages")
+pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Vocalize links")
-pa.add_argument("start", nargs="?", help="First page to work on")
-pa.add_argument("end", nargs="?", help="Last page to work on")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)

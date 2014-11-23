@@ -14,8 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, string
-import argparse
+import re
 
 import blib, pywikibot
 from blib import msg
@@ -250,15 +249,11 @@ def create_feminines(save, pos, tempname, startFrom, upTo):
   return create_inflections(save, pos, tempname, startFrom, upTo,
       create_feminine, "f")
 
-pa = argparse.ArgumentParser(description="Create Arabic inflections")
-pa.add_argument("-s", "--save", action='store_true',
-    help="Save changed pages")
+pa = blib.init_argparser("Create Arabic inflections")
 pa.add_argument("-p", "--plural", action='store_true',
     help="Do plural inflections")
 pa.add_argument("-f", "--feminine", action='store_true',
     help="Do feminine inflections")
-pa.add_argument("start", nargs="?", help="First page to work on")
-pa.add_argument("end", nargs="?", help="Last page to work on")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)

@@ -14,8 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, string
-import argparse
+import re
 
 import blib, pywikibot
 from blib import msg
@@ -77,12 +76,7 @@ def clean_verb_headword(save, startFrom, upTo):
     for page in blib.cat_articles(cat, startFrom, upTo):
       blib.do_edit(page, clean_one_page_verb_headword, save=save)
 
-pa = argparse.ArgumentParser(description="Clean up verb headword templates")
-pa.add_argument("-s", "--save", action='store_true',
-    help="Save changed pages")
-pa.add_argument("start", nargs="?", help="First page to work on")
-pa.add_argument("end", nargs="?", help="Last page to work on")
-
+pa = blib.init_argparser("Clean up verb headword templates")
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
