@@ -158,12 +158,16 @@ def process_head(page, template):
 def process_one_page_headwords(page, text):
   actions = []
   for template in text.filter_templates():
-    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-plural"]: # ar-adj-color, # ar-nisba
+    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun",
+        "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep",
+        "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
+        "ar-adj-pl", "ar-noun-dual", "ar-adj-dual", "ar-nisba"]: # ar-adj-color
       thisactions = []
       tr = blib.getparam(template, "tr")
       thisactions += process_head(page, template)
-      for param in ["pl", "cpl", "fpl", "f", "el", "sing", "coll", "d", "pauc", "obl",
-          "fobl", "plobl", "dobl"]:
+      for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
+          "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
+          "pauc", "cons"]:
         thisactions += process_param_chain(page, template, param)
       if len(thisactions) > 0:
         actions.append("%s: %s" % (template.name, ', '.join(thisactions)))
