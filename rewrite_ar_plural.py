@@ -23,13 +23,13 @@ def rewrite_one_page_ar_plural(page, text):
 
   return text, "rename {{temp|ar-plural}} to {{temp|ar-noun-pl}}"
 
-def rewrite_ar_plural(save, startFrom, upTo):
+def rewrite_ar_plural(save, verbose, startFrom, upTo):
   for cat in [u"Arabic plurals"]:
     for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, rewrite_one_page_ar_plural, save=save)
+      blib.do_edit(page, rewrite_one_page_ar_plural, save=save, verbose=verbose)
 
 pa = blib.init_argparser("Rewrite ar-plural to ar-noun-pl templates")
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-rewrite_ar_plural(parms.save, startFrom, upTo)
+rewrite_ar_plural(params.save, params.verbose, startFrom, upTo)
