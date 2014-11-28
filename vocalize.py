@@ -150,10 +150,14 @@ def vocalize_one_page_headwords(page, text):
   actions_taken = []
   for template in text.filter_templates():
     paramschanged = []
-    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-plural"]: # ar-adj-color, # ar-nisba
+    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun",
+        "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep",
+        "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
+        "ar-adj-pl", "ar-noun-dual", "ar-adj-dual", "ar-nisba"]: # ar-adj-color
       paramschanged += vocalize_head(page, template)
-      for param in ["pl", "cpl", "fpl", "f", "el", "sing", "coll", "d", "pauc", "obl",
-          "fobl", "plobl", "dobl"]:
+      for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
+          "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
+          "pauc", "cons"]:
         paramschanged += vocalize_param_chain(template, param)
       if len(paramschanged) > 0:
         if template.has("tr"):
