@@ -173,7 +173,8 @@ def vocalize_one_page_headwords(page, text):
 # Vocalize headword templates on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
 def vocalize_headwords(save, startFrom, upTo):
-  #for current in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
+  #for page in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
+  #for page in blib.references("Template:ar-nisba", startFrom, upTo):
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
     for page in blib.cat_articles(cat, startFrom, upTo):
       blib.do_edit(page, vocalize_one_page_headwords, save=save)
