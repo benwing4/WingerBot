@@ -56,7 +56,7 @@ def getparam(template, param):
   else:
     return ""
 
-def do_edit(page, func=None, null=False, save=False):
+def do_edit(page, func=None, null=False, save=False, verbose=False):
   title = page.title()
   while True:
     try:
@@ -67,6 +67,8 @@ def do_edit(page, func=None, null=False, save=False):
           new = unicode(new)
 
           if page.text != new:
+            if verbose:
+              msg('Replacing [[%s]] with [[%s]]' % (page.text, new))
             page.text = new
             if save:
               msg(u'Page %s: Saving with comment = %s' % (title, comment))
@@ -237,6 +239,8 @@ def init_argparser(desc):
   pa = argparse.ArgumentParser(description=desc)
   pa.add_argument("-s", "--save", action='store_true',
       help="Save changed pages")
+  pa.add_argument("-v", "--verbose", action='store_true',
+      help="Show changes in detail")
   pa.add_argument("start", nargs="?", help="First page to work on")
   pa.add_argument("end", nargs="?", help="Last page to work on")
   return pa
