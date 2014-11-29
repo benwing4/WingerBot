@@ -31,7 +31,8 @@ def remove_diacritics(word):
 # (if any). POS is the part of speech of the word (capitalized, e.g. "Noun").
 # Only save the changed page if SAVE is true. PLWORD is e.g. "plural" or
 # "feminine"; SINGWORD is e.g. "singular" or "masculine"; PLTEMP is e.g.
-# "ar-plural" or "ar-feminine"; SINGTEMP is e.g. "plural of" or "feminine of".
+# "ar-noun-pl", "ar-adj-pl" or "ar-feminine"; SINGTEMP is e.g. "plural of",
+# "masculine plural of" or "feminine of".
 def create_inflection(save, plural, pltr, singular, singtr, pos,
     plword, singword, pltemp, singtemp):
   if plural == "-":
@@ -50,7 +51,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
 
 # {{%s|%s%s|lang=ar}}
 """ % (pltemp, plural,
-    "|m-p" if pos == "Adjective" and plword == "plural" else "",
+    "", #"|m-p" if pos == "Adjective" and plword == "plural" else "",
     "|tr=%s" % pltr if pltr else "",
     singtemp, singular,
     "|tr=%s" % singtr if singtr else "")
@@ -143,8 +144,8 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
                 inflection_template.add("1", singular)
                 if singtr:
                   inflection_template.add("tr", singtr)
-              if pos == "Adjective" and plword == "plural":
-                headword_template.add("2", "m-p")
+              #if pos == "Adjective" and plword == "plural":
+              #  headword_template.add("2", "m-p")
               subsections[j] = unicode(parsed)
               sections[i] = ''.join(subsections)
               break
@@ -214,11 +215,19 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
     if save:
       page.save(comment = comment)
 
-def create_plural(save, plural, pltr, singular, singtr, pos):
+def create_noun_plural(save, plural, pltr, singular, singtr, pos):
   return create_inflection(save, plural, pltr, singular, singtr, pos,
-      "plural", "singular", "ar-plural", "plural of")
+      "plural", "singular", "ar-noun-pl", "plural of")
 
-def create_feminine(save, plural, pltr, singular, singtr, pos):
+def create_adj_plural(save, plural, pltr, singular, singtr, pos):
+  return create_inflection(save, plural, pltr, singular, singtr, pos,
+      "plural", "singular", "ar-adj-pl", "masculine plural of")
+
+def create_noun_feminine(save, plural, pltr, singular, singtr, pos):
+  return create_inflection(save, plural, pltr, singular, singtr, pos,
+      "feminine", "masculine", None, "feminine of")
+
+def create_adj_feminine(save, plural, pltr, singular, singtr, pos):
   return create_inflection(save, plural, pltr, singular, singtr, pos,
       "feminine", "masculine", "ar-feminine", "feminine of")
 
@@ -243,11 +252,11 @@ def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
 
 def create_plurals(save, pos, tempname, startFrom, upTo):
   return create_inflections(save, pos, tempname, startFrom, upTo,
-      create_plural, "pl")
+      create_noun_plural if pos == "Noun" else create_adj_plural, "pl")
 
 def create_feminines(save, pos, tempname, startFrom, upTo):
   return create_inflections(save, pos, tempname, startFrom, upTo,
-      create_feminine, "f")
+      create_noun_feminine if pos == "Noun" else create_adj_feminine, "f")
 
 pa = blib.init_argparser("Create Arabic inflections")
 pa.add_argument("-p", "--plural", action='store_true',
@@ -262,5 +271,5 @@ if params.plural:
   create_plurals(params.save, "Noun", "ar-noun", startFrom, upTo)
   create_plurals(params.save, "Adjective", "ar-adj", startFrom, upTo)
 if params.feminine:
-  create_feminines(params.save, "Noun", "ar-noun", startFrom, upTo)
+  #create_feminines(params.save, "Noun", "ar-noun", startFrom, upTo)
   create_feminines(params.save, "Adjective", "ar-adj", startFrom, upTo)
