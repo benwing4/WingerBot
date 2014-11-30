@@ -245,6 +245,10 @@ def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
         if template.name == tempname:
           sing = blib.getparam(template, "1")
           singtr = blib.getparam(template, "tr")
+          # Handle blank head; use page title
+          if sing == "":
+            sing = page.title()
+            msg("Page %s: blank head in template %s (tr=%s)" % (sing, tempname, singtr))
           pl = blib.getparam(template, param)
           pltr = blib.getparam(template, param + "tr")
           if pl:
