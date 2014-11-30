@@ -26,6 +26,12 @@ verbose = True
 def remove_diacritics(word):
   return re.sub(u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670]", "", word)
 
+def remove_links(text):
+  text = re.sub(r"\[\[[^|\]]*?\|", "", text)
+  text = re.sub(r"\[\[", "", text)
+  text = re.sub(r"\]\]", "", text)
+  return text
+
 # Create or insert a section describing the plural or similar inflection
 # of a given word. PLTR and SINGTR are the associated manual transliterations
 # (if any). POS is the part of speech of the word (capitalized, e.g. "Noun").
@@ -39,6 +45,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
     msg("Not creating %s entry - for %s %s%s" % (
       plword, singword, singular, " (%s)" % singtr if singtr else ""))
     return
+  singular = remove_links(singular)
   # FIXME! Need to split off trailing interwiki links
   msg("Creating %s entry %s%s for %s %s%s" % (
     plword, plural, " (%s)" % pltr if pltr else "",
