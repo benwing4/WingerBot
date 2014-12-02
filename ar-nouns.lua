@@ -66,7 +66,7 @@ function export.detect_decl(stem, ispl)
 		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AAMAY .. "[" .. NUN .. HAMZA .. "]$") or -- laffāʾ "plump (fem.)"
 		rfind(stem, "^" .. HAMZA_OVER_ALIF .. AMAY .. CONS .. SK .. CONS .. A .. CONS .. "$") or -- ʾabyad
 		rfind(stem, "^" .. HAMZA_OVER_ALIF .. AMAY .. CONS .. A .. CONS .. SH .. "$") or -- ʾalaff
-		rfind(stem, "^" .. AMAD .. CONS .. A .. CONS .. "$") or -- ʾālam "more painful", ʾāḵar "other"
+		rfind(stem, "^" .. AMAD .. CONS .. A .. CONS .. "$") -- ʾālam "more painful", ʾāḵar "other"
 		) then
 		return 'di'
 	elseif rfind(stem, AMAQ .. "$") then -- kaslā, ḏikrā (spelled with alif maqṣūra)
