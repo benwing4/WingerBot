@@ -108,7 +108,12 @@ end
 -- The main entry point.
 -- This is the only function that can be invoked from a template.
 function export.show(frame)
-	local args = frame:getParent().args
+	local origargs = frame:getParent().args
+	local args = {}
+	-- Convert empty arguments to nil, and "" or '' arguments to empty
+	for k, v in pairs(origargs) do
+		args[k] = ine(v)
+	end
 	
 	local data = {forms = {}, title = nil, categories = {}}
 
@@ -119,10 +124,10 @@ function export.show(frame)
 		sg_combined_stem = "{{{1}}}"
 		pls = {{"{{{2}}}", "tri"}}
 	else
-		if not ine(args[1]) then error("Parameter 1 (singular inflection) may not be empty.") end
+		if not args[1] then error("Parameter 1 (singular inflection) may not be empty.") end
 		sg_combined_stem, sg_type = export.stem_and_type(args[1], args[1], "", false)
 		local i = 2
-		while ine(args[i]) do
+		while args[i] do
 			local pl_combined_stem, pl_type = export.stem_and_type(args[i], sg_combined_stem, sg_type, true)
 			table.insert(pls, {pl_combined_stem, pl_type})
 			i = i + 1
@@ -145,7 +150,7 @@ function export.show(frame)
 	-- If any plurals exist, generate duals
 	-- Don't do this if no plurals (e.g. proper noun)
 	if #pls > 0 then
-		local du = ine(args["du"])
+		local du = args["du"]
 		if du == "-" then
 			-- No dual
 		elseif not du then
@@ -165,7 +170,7 @@ function export.show(frame)
 			end
 			do_dual(du)
 			local i = 2
-			while ine(args["du" .. i]) do
+			while args["du" .. i] do
 				do_dual(args["du" .. i])
 				i = i + 1
 			end
@@ -707,7 +712,7 @@ function export.stem_and_type(word, sg, sgtype, ispl)
 	-- that isn't a wāw, yāʾ or ʾalif (i.e. indicating a missing diacritic,
 	-- which should be assumed a sukūn).
 	local function hamza_seat(word)
-		rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_OVER_YAA) -- i, ī or ay preceding
+		rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_OVER_YA) -- i, ī or ay preceding
 		rsub(word, "([" .. ALIF .. WAW .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA) -- ā, ū or aw preceding
 		rsub(word, U .. HAMZA_PLACEHOLDER, U .. HAMZA_OVER_WAW) -- u preceding
 		rsub(word, HAMZA_PLACEHOLDER, HAMZA_OVER_ALIF) -- a, sukūn or missing sukūn preceding
