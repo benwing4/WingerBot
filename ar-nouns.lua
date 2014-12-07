@@ -13,6 +13,7 @@ local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 
 local BOGUS_CHAR = u(0xFFFD)
+local HAMZA_PLACEHOLDER = u(0xFFF1)
 
 -- hamza variants
 local HAMZA            = u(0x0621) -- hamza on the line (stand-alone hamza) = ء
@@ -283,7 +284,7 @@ function triptote_diptote(stem, tr, data, n, is_dip, lc)
 	else
 		add_inflections(stem, tr, data, n,
 			{is_dip and U or UN,
-			 is_dip and A or AN .. ((rfind(stem, TA_M .. "$") or rfind(stem, ALIF .. HAMZA .. "$")) and "" or ALIF),
+			 is_dip and A or AN .. ((rfind(stem, "[" .. HAMZA_OVER_ALIF .. TA_M .. "]$") or rfind(stem, ALIF .. HAMZA .. "$")) and "" or ALIF),
 			 is_dip and A or IN,
 			 U, A, I,
 			 lc and UU or U,
@@ -389,7 +390,7 @@ inflections["imru"] = function(stem, tr, data, n)
 			})
 	else
 		add_inflections("", "", data, n,
-		{"اِمْرُؤٌ", "اِمْرَأًا", "اِمْرِئٍ",
+		{"اِمْرُؤٌ", "اِمْرَأً", "اِمْرِئٍ",
 			 "مَرْءُ", "مَرْءَ", "مَرْءِ",
 			 "اِمْرُؤُ", "اِمْرَأَ", "اِمْرِئِ",
 		 })
@@ -692,21 +693,38 @@ function export.stem_and_type(word, sg, sgtype, ispl)
 		error("Inference of form for inflection type '" .. word .. "' only allowed in plural")
 	end
 	
+	-- Supply the appropriate hamza seat for a placeholder hamza when
+	-- followed by a short a. FIXME: Merge with the code in [[Module:ar-verb]]
+	-- that also supplies the appropriate hamza seat, in a more general way.
+	-- That code currently has normal hamzas (the on-the-line variety) as the
+	-- placeholder, and uses a 'hamza_subst' char to indicate that a hamza
+	-- on the line is really desired, which is later replaced with a normal
+	-- hamza on the line. In this code we use HAMZA_PLACEHOLDER (whose
+	-- construction is analogous to 'hamza_subst') as the placeholder,
+	-- which allows us to control which hamzas we want replaced. We should
+	-- switch [[Module:ar-verb]] to the same system and modify it so that
+	-- it does something reasonable when it encounters a preceding letter
+	-- that isn't a wāw, yāʾ or ʾalif (i.e. indicating a missing diacritic,
+	-- which should be assumed a sukūn).
+	local function hamza_seat(word)
+		rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_OVER_YAA) -- i, ī or ay preceding
+		rsub(word, "([" .. ALIF .. WAW .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA) -- ā, ū or aw preceding
+		rsub(word, U .. HAMZA_PLACEHOLDER, U .. HAMZA_OVER_WAW) -- u preceding
+		rsub(word, HAMZA_PLACEHOLDER, HAMZA_OVER_ALIF) -- a, sukūn or missing sukūn preceding
+		return word
+	end
+
 	if word == "sf" then
 
 		local ret = (
-			sub("([" .. I .. YA .. "])" .. AMAD .. TA_M .. UNUOPT .. "$", "%1" .. HAMZA_OVER_YA .. AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -ʾāh preceded by i/ī
-			sub("([" .. U .. WAW .. "])" .. AMAD .. TA_M .. UNUOPT .. "$", "%1" .. HAMZA_OVER_WAW .. AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -ʾāh preceded by u/ū
-			sub(AMAD .. TA_M .. UNUOPT .. "$", HAMZA_OVER_ALIF .. AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -ʾāh preceded by anything else
+			sub(AMAD .. TA_M .. UNUOPT .. "$", HAMZA_PLACEHOLDER .. AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -ʾāh; hamza placeholder will be replaced below
 			sub(AOPTA .. TA_M .. UNUOPT .. "$", AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -āh
 			sub(AOPT .. TA_M .. UNUOPT .. "$", AAT, "a$", "āt", "atun?$", "āt") or -- ends in -a
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "an$", "ayāt") or -- ends in -an
 			sub(IN .. "$", I .. YA .. AAT, "in$", "iyāt") or -- ends in -in
 			sgtype == "inv" and (
 				sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "ā$", "ayāt") or -- ends in alif or alif maqṣūra
-	            sub("([" .. I .. YA .. "])" .. AMAD .. "$", "%1" .. HAMZA_OVER_YA .. AYAAT, "ā$", "ayāt") or -- ʾā preceded by i/ī
-	            sub("([" .. U .. WAW .. "])" .. AMAD .. "$", "%1" .. HAMZA_OVER_WAW .. AYAAT, "ā$", "ayāt") or -- ʾā preceded by u/ū
-	            sub(AMAD .. "$", HAMZA_OVER_ALIF .. AYAAT, "ā$", "ayāt") -- ʾā preceded by anything else
+	            sub(AMAD .. "$", HAMZA_PLACEHOLDER .. AYAAT, "ā$", "ayāt") -- ends in ʾā; hamza placeholder will be replaced below
 	        ) or
 			sgtype == "lwinv" and (
 				sub(AOPTA .. "$", AAT, "ā$", "āt") or -- loanword ending in tall alif
@@ -724,6 +742,7 @@ function export.stem_and_type(word, sg, sgtype, ispl)
 			sub(UNU .. "$", AAT, "un?$", "āt", "$", "āt") or -- anything else + -u(n)
 			sub("$", AAT, "$", "āt") -- anything else
 		)
+		ret = hamza_seat(ret)
 		return ret, "sf"
 	end
 
