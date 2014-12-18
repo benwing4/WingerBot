@@ -205,8 +205,8 @@ local function call_inflection(combined_stem, ty, data, numgen)
 end
 
 -- The main entry point for noun tables.
--- This is the only function that can be invoked from a template.
-function export.show(frame)
+-- This and show_adj are the only functions that can be invoked from a template.
+function export.show_noun(frame)
 	local origargs = frame:getParent().args
 	local args = {}
 	-- Convert empty arguments to nil, and "" or '' arguments to empty
@@ -373,7 +373,7 @@ function export.show_adj(frame)
 	call_inflections(fpls, data, "f", "pl")
 	
 	-- Make the table
-	return make_noun_table(data) .. m_utilities.format_categories(data.categories, lang)
+	return make_adj_table(data) .. m_utilities.format_categories(data.categories, lang)
 end
 
 
@@ -899,12 +899,12 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			sub(ELCD_START .. A .. CONSPAR .. SH .. UOPT .. "$",
 				"%1" .. A .. "%2" .. SH .. AA .. HAMZA, "ʾa(.)a(.)%2u?", "%1a%2%2āʾ") or -- ʾalaff
 			sub(ELCD_START .. SK .. CONSPAR .. AMAQ .. "$",
-				"%1" .. A .. "%2" .. SK .. YA .. AA .. HAMZA, "ʾa(.)(.)ā", "%1u%2yāʾ") -- ʾaʿmā
+				"%1" .. A .. "%2" .. SK .. YA .. AA .. HAMZA, "ʾa(.)(.)ā", "%1a%2yāʾ") -- ʾaʿmā
 		)
 		if not ret then
 			error("Singular base not a color/defect adjective: " .. sgar)
 		end
-		return ret, "di"
+		return ret, "cd" -- so plural will be correct
 	end
 
 	if word == "rf" then
@@ -935,25 +935,25 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 
 	if word == "f" then
 		if sgtype == "cd" then
-			return stem_and_type("cdf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("cdf", sg, sgtype, true, 'sg')
 		elseif sgtype == "el" then
-			return stem_and_type("elf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("elf", sg, sgtype, true, 'sg')
 		elseif is_intensive_adj(sgar) then
-			return stem_and_type("intf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("intf", sg, sgtype, true, 'sg')
 		else
-			return stem_and_type("rf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("rf", sg, sgtype, true, 'sg')
 		end
 	end
 
 	if word == "p" then
 		if sgtype == "cd" then
-			return stem_and_type("cdp", sg, sgtype, isfem, 'pl')
+			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl')
 		elseif isfem then
-			return stem_and_type("sfp", sg, sgtype, true, 'pl')
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl')
 		elseif sgtype == "an" then
-			return stem_and_type("awnp", sg, sgtype, false, 'pl')
+			return export.stem_and_type("awnp", sg, sgtype, false, 'pl')
 		else
-			return stem_and_type("smp", sg, sgtype, false, 'pl')
+			return export.stem_and_type("smp", sg, sgtype, false, 'pl')
 		end
 	end
 
