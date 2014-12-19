@@ -94,7 +94,7 @@ local export = {}
 -- Functions that do the actual inflecting by creating the forms of a basic term.
 local inflections = {}
 
-local function ine(x) -- If Not Empty
+function ine(x) -- If Not Empty
 	if x == nil then
 		return nil
 	elseif rfind(x, '^".*"$') then
@@ -111,7 +111,7 @@ local function ine(x) -- If Not Empty
 end
 
 -- true if array contains item
-local function contains(tab, item)
+function contains(tab, item)
 	for _, value in pairs(tab) do
 		if value == item then
 			return true
@@ -121,7 +121,7 @@ local function contains(tab, item)
 end
 
 -- append to array if element not already present
-local function insert_if_not(tab, item)
+function insert_if_not(tab, item)
 	if not contains(tab, item) then
 		table.insert(tab, item)
 	end
@@ -166,7 +166,7 @@ end
 -- as returned by stem_and_type(); DEFAULT is the default stem to use
 -- (typically either 'f', 'd' or 'p', or nil for no default); ISFEM is
 -- true if this is feminine gender; NUM is 'sg', 'du' or 'pl'.
-local function do_gender_number(args, arg, sgs, default, isfem, num)
+function do_gender_number(args, arg, sgs, default, isfem, num)
 	results = {}
 	local function handle_stem(stem)
 		insert_stems(stem, results, sgs, isfem, num)
@@ -191,7 +191,7 @@ end
 -- Generate inflections for the given combined stem and type, for NUMGEN
 -- (number or number-gender combination, of the sort that forms part of
 -- keys in DATA).
-local function call_inflection(combined_stem, ty, data, numgen)
+function call_inflection(combined_stem, ty, data, numgen)
 	if ty == "-" then
 		return
 	end
@@ -415,7 +415,7 @@ function add_inflections(stem, tr, data, numgen, endings)
 	assert(#endings == 9)
 	local function combine(ar, tr, ending)
 		local endingar, endingtr = split_arabic_tr(ending)
-		ar = ar .. endingar
+		ar = hamza_seat(ar .. endingar)
 		tr = tr .. endingtr
 		return ar .. "/" .. tr
 	end
@@ -636,12 +636,12 @@ end
 
 -- Duals
 inflections["d"] = function(stem, tr, data, numgen)
-	if not rfind(stem, "[" .. ALIF .. AMAD .. "]" .. NI .. "?$") then
+	stem = canon_hamza(stem)
+	if not rfind(stem, ALIF .. NI .. "?$") then
 		error("Dual stem should end in -ān(i): '" .. stem .. "'")
 	end
-	tr = rsub(tr, "āni?$", "")
-	-- FIXME! Handle alif madda
 	stem = rsub(stem, AOPTA .. NI .. "?$", "")
+	tr = rsub(tr, "āni?$", "")
 	add_inflections(stem, tr, data, numgen,
 		{AANI, AYNI, AYNI,
 		 AANI, AYNI, AYNI,
@@ -758,21 +758,31 @@ function export.detect_type(stem, isfem, num)
 	end
 end
 
--- Supply the appropriate hamza seat for a placeholder hamza when
--- followed by a short a. FIXME: Merge with the code in [[Module:ar-verb]]
+-- Replace hamza (of any sort) at the end of a word, possibly followed by
+-- a nominative case ending, with HAMZA_PLACEHOLDER, and replace any instance
+-- of alif madda with HAMZA_PLACEHOLDER plus fatḥa + alif. To undo these
+-- changes, use hamza_seat().
+function canon_hamza(word)
+	word = rsub(word, AMAD, HAMZA_PLACEHOLDER .. AA)
+	word = rsub(word, HAMZA_ANY .. "(" .. UNUOPT .. ")$", HAMZA_PLACEHOLDER .. "%1")
+	return word
+end
+
+-- Supply the appropriate hamza seat for a placeholder hamza when followed
+-- by a short or long a. FIXME: Merge with the code in [[Module:ar-verb]]
 -- that also supplies the appropriate hamza seat, in a more general way.
 -- That code currently has normal hamzas (the on-the-line variety) as the
--- placeholder, and uses a 'hamza_subst' char to indicate that a hamza
--- on the line is really desired, which is later replaced with a normal
--- hamza on the line. In this code we use HAMZA_PLACEHOLDER (whose
--- construction is analogous to 'hamza_subst') as the placeholder,
--- which allows us to control which hamzas we want replaced. We should
--- switch [[Module:ar-verb]] to the same system and modify it so that
--- it does something reasonable when it encounters a preceding letter
--- that isn't a wāw, yāʾ or ʾalif (i.e. indicating a missing diacritic,
--- which should be assumed a sukūn).
-local function hamza_seat(word)
+-- placeholder, and uses a 'hamza_subst' char to indicate that a hamza on
+-- the line is really desired, which is later replaced with a normal hamza
+-- on the line. In this code we use HAMZA_PLACEHOLDER (whose construction
+-- is analogous to 'hamza_subst') as the placeholder, which allows us to
+-- control which hamzas we want replaced. We should switch [[Module:ar-verb]]
+-- to the same system and modify it so that it does something reasonable
+-- when it encounters a preceding letter that isn't a wāw, yāʾ or ʾalif
+-- (i.e. indicating a missing diacritic, which should be assumed a sukūn).
+function hamza_seat(word)
 	if rfind(word, HAMZA_PLACEHOLDER) then -- optimization to avoid many regexp substs
+		word = rsub(word, HAMZA_PLACEHOLDER .. AOPTA, AMAD)
 		word = rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_OVER_YA) -- i, ī or ay preceding
 		word = rsub(word, "([" .. ALIF .. WAW .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA) -- ā, ū or aw preceding
 		word = rsub(word, U .. HAMZA_PLACEHOLDER, U .. HAMZA_OVER_WAW) -- u preceding
@@ -911,21 +921,19 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 		if rfind(sgar, TA_M .. UNUOPT .. "$") then
 			error("Singular base is already feminine: " .. sgar)
 		end
-		
+
+		sgar = canon_hamza(sgar)
+	
 		local ret = (
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AY .. AH, "an$", "aya") or -- ends in -an
 			sub(IN .. "$", IY .. AH, "in$", "iya") or -- ends in -in
 			sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AY .. AH, "ā$", "aya") or -- ends in alif or alif maqṣūra
-			sub(AMAD .. "$", HAMZA_PLACEHOLDER .. AY .. AH, "ā$", "aya") or -- ends in ʾā; hamza placeholder will be replaced below
 			-- We separate the ʾiʿrāb and no-ʾiʿrāb cases even though we can
 			-- do a single Arabic regexp to cover both because we want to
 			-- remove u(n) from the translit only when ʾiʿrāb is present to
 			-- lessen the risk of removing -un in the actual stem. We also
 			-- allow for cases where the ʾiʿrāb is present in Arabic but not
 			-- in translit.
-			sub(HAMZA_ANY .. UNU .. "$", HAMZA_PLACEHOLDER .. AH, "un?$", "a", "$", "a") or -- ends in hamza + -u(n)
-			sub(HAMZA_ANY .. "$", HAMZA_PLACEHOLDER .. AH, "$", "a") or -- ends in hamza
-			-- Same here as above
 			sub(UNU .. "$", AH, "un?$", "a", "$", "a") or -- anything else + -u(n)
 			sub("$", AH, "$", "a") -- anything else
 		)
@@ -965,21 +973,18 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 		elseif sgtype == "fam" then
 			return "فَمَان/famān", "d"
 		end
+		sgar = canon_hamza(sgar)
 		local ret = (
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AY .. AAN, "an$", "ayān") or -- ends in -an
 			sub(IN .. "$", IY .. AAN, "in$", "iyān") or -- ends in -in
 		    sgtype == "lwinv" and sub(AOPTA .. "$", AT .. AAN, "ā$", "atān") or -- lwinv, ends in alif
 			sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AY .. AAN, "ā$", "ayān") or -- ends in alif or alif maqṣūra
-			sub(AMAD .. "$", HAMZA_PLACEHOLDER .. AY .. AAN, "ā$", "ayān") or -- ends in ʾā; hamza placeholder will be replaced below
 			-- We separate the ʾiʿrāb and no-ʾiʿrāb cases even though we can
 			-- do a single Arabic regexp to cover both because we want to
 			-- remove u(n) from the translit only when ʾiʿrāb is present to
 			-- lessen the risk of removing -un in the actual stem. We also
 			-- allow for cases where the ʾiʿrāb is present in Arabic but not
 			-- in translit.
-			sub(HAMZA_ANY .. UNU .. "$", HAMZA_PLACEHOLDER .. AAN, "un?$", "ān", "$", "ān") or -- ends in hamza + -u(n)
-			sub(HAMZA_ANY .. "$", HAMZA_PLACEHOLDER .. AAN, "$", "ān") or -- ends in hamza
-			-- Same here as above
 			sub(TA_M .. UNU .. "$", TA .. AAN, "tun?$", "tān", "$", "tān") or -- ends in tāʾ marbuṭa + -u(n)
 			sub(TA_M .. "$", TA .. AAN, "$", "tān") or -- ends in tāʾ marbuṭa
 			-- Same here as above
@@ -991,19 +996,17 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 	end
 
 	if word == "sfp" then
+		sgar = canon_hamza(sgar)
 		local ret = (
-			sub(AMAD .. TA_M .. UNUOPT .. "$", HAMZA_PLACEHOLDER .. AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -ʾāh; hamza placeholder will be replaced below
 			sub(AOPTA .. TA_M .. UNUOPT .. "$", AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -āh
 			sub(AOPT .. TA_M .. UNUOPT .. "$", AAT, "a$", "āt", "atun?$", "āt") or -- ends in -a
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "an$", "ayāt") or -- ends in -an
 			sub(IN .. "$", IY .. AAT, "in$", "iyāt") or -- ends in -in
 			sgtype == "inv" and (
-				sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "ā$", "ayāt") or -- ends in alif or alif maqṣūra
-	            sub(AMAD .. "$", HAMZA_PLACEHOLDER .. AYAAT, "ā$", "ayāt") -- ends in ʾā; hamza placeholder will be replaced below
+				sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "ā$", "ayāt") -- ends in alif or alif maqṣūra
 	        ) or
 			sgtype == "lwinv" and (
-				sub(AOPTA .. "$", AAT, "ā$", "āt") or -- loanword ending in tall alif
-				sub(AMAD .. "$", AMAD .. TA, "ā$", "āt") -- loanword ending in ʾā
+				sub(AOPTA .. "$", AAT, "ā$", "āt") -- loanword ending in tall alif
 			) or
 			-- We separate the ʾiʿrāb and no-ʾiʿrāb cases even though we can
 			-- do a single Arabic regexp to cover both because we want to
@@ -1011,9 +1014,6 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			-- lessen the risk of removing -un in the actual stem. We also
 			-- allow for cases where the ʾiʿrāb is present in Arabic but not
 			-- in translit.
-			sub(HAMZA_ANY .. UNU .. "$", AMAD .. TA, "un?$", "āt", "$", "āt") or -- ends in hamza + -u(n)
-			sub(HAMZA_ANY .. "$", AMAD .. TA, "$", "āt") or -- ends in hamza
-			-- Same here as above
 			sub(UNU .. "$", AAT, "un?$", "āt", "$", "āt") or -- anything else + -u(n)
 			sub("$", AAT, "$", "āt") -- anything else
 		)
@@ -1074,7 +1074,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 	return artr, export.detect_type(ar, isfem, num)
 end
 
-local function show_form(form, use_parens)
+function show_form(form, use_parens)
 	if not form then
 		return "&mdash;"
 	elseif type(form) ~= "table" then
