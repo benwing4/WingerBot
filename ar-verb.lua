@@ -5,7 +5,8 @@ Author: User:Benwing; early version by User:Atitarev, User:ZxxZxxZ
 Todo:
  
 1. Finish unimplemented conjugation types.
-2. Fix hamza handling. The assumption is that radicals are specified as bare
+2. Add handling for 4-radical forms in show().
+3. Fix hamza handling. The assumption is that radicals are specified as bare
    hamza i.e. hamza-on-theline. Hamza handling needs to happen in a few places:
    (a) there need to be special checks for final hamza in I-hollow verbs,
    because the active participle ends in '-in';
@@ -25,7 +26,7 @@ Todo:
    hamza-under-alif, alif-madda, hamza-over-waw, hamza-over-yaa, or
    hamza-on-the-line depending on surrounding vowels, according to the rules in
    Wikipedia article "Hamza".
-3. Implement irregular verbs as special cases and recognize them, e.g.
+4. Implement irregular verbs as special cases and recognize them, e.g.
    -- sa'ala yas'alu "ask" with alternative jussive/imperative yasal/sal;
    -- ra'ā yarā "see";
    -- 'arā yurī "show";
@@ -343,6 +344,14 @@ conjugations["I-assimilated+defective"] = function(forms, args, rad1, rad2, rad3
 	make_form_i_defective_verb(forms, args, rad1, rad2, rad3, "assimilated")
 end
 
+conjugations["I-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["I-assimilated+defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
 conjugations["I-hollow"] = function(forms, args, rad1, rad2, rad3)
 	-- need to specify up to two vowels, past and non-past
 	local past_vowel = args[5] or rad2 == yaa and "i" or "u"
@@ -562,6 +571,114 @@ conjugations["IV-geminate"] = function(forms, args, rad1, rad2, rad3)
 	make_augmented_geminate_verb(forms, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, imper_stem_base,
 		vn, "IV")
+end
+
+conjugations["V-sound"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["V-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VI-sound"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VI-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VI-geminate"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VII-sound"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VII-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VII-hollow"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VII-geminate"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VIII-sound"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VIII-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VIII-hollow"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["VIII-geminate"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IX-sound"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IX-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["X-sound"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["X-defective"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["X-hollow"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["X-geminate"] = function(forms, args, rad1, rad2, rad3)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["Iq-sound"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["Iq-defective"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IIq-sound"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IIq-defective"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IIIq-sound"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IIIq-defective"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IVq-sound"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
+end
+
+conjugations["IVq-defective"] = function(forms, args, rad1, rad2, rad3, rad4)
+	error("FIXME: Not yet implemented")
 end
 
 -- Inflection functions
