@@ -344,14 +344,6 @@ conjugations["I-assimilated+defective"] = function(forms, args, rad1, rad2, rad3
 	make_form_i_defective_verb(forms, args, rad1, rad2, rad3, "assimilated")
 end
 
-conjugations["I-defective"] = function(forms, args, rad1, rad2, rad3)
-	error("FIXME: Not yet implemented")
-end
-
-conjugations["I-assimilated+defective"] = function(forms, args, rad1, rad2, rad3)
-	error("FIXME: Not yet implemented")
-end
-
 conjugations["I-hollow"] = function(forms, args, rad1, rad2, rad3)
 	-- need to specify up to two vowels, past and non-past
 	local past_vowel = args[5] or rad2 == yaa and "i" or "u"
