@@ -93,8 +93,7 @@ local HAMZA_ON_WAW     = u(0x0624)
 local HAMZA_UNDER_ALIF = u(0x0625)
 local HAMZA_ON_YA      = u(0x0626)
 local HAMZA_ANY        = "[" .. HAMZA .. HAMZA_ON_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_ON_WAW .. HAMZA_ON_YA .. "]"
-local HAMZA_SUBST      = u(0xfff0)
-
+local HAMZA_PH         = u(0xFFF0) -- hamza placeholder
 
 -- diacritics
 local A  = u(0x064E) -- fatḥa
@@ -3046,40 +3045,41 @@ local postprocess_subs = {
 	{HAMZA .. A .. HAMZA .. SK, HAMZA .. A .. ALIF},
  	{HAMZA .. I .. HAMZA .. SK, HAMZA .. I .. YA},
  	{HAMZA .. U .. HAMZA .. SK, HAMZA .. U .. WAW},
-	-- put initial hamza on a seat according to following vowel. alif-madda handled later.
- 	{"^" .. HAMZA .. A, HAMZA_ON_ALIF .. A},
- 	{"^" .. HAMZA .. I, HAMZA_UNDER_ALIF .. I},
- 	{"^" .. HAMZA .. U, HAMZA_ON_ALIF .. U},
+ 	
+ 	-------------------------- main hamza-handling code -----------------------
+ 	{HAMZA, HAMZA_PH},
+ 	
+	--------------------------- handle initial hamza --------------------------
+	-- put initial hamza on a seat according to following vowel.
+ 	{"^" .. HAMZA_PH .. A, HAMZA_ON_ALIF .. A},
+ 	{"^" .. HAMZA_PH .. I, HAMZA_UNDER_ALIF .. I},
+ 	{"^" .. HAMZA_PH .. U, HAMZA_ON_ALIF .. U},
 
 	----------------------------- handle final hamza --------------------------
 	-- "final" hamza may be followed by a short vowel or tanwīn sequence
 	-- use a previous short vowel to get the seat
-	{"(" .. AIU .. ")(" .. HAMZA .. ")(" .. DIACRITIC .. "?)$",
+	{"(" .. AIU .. ")(" .. HAMZA_PH .. ")(" .. DIACRITIC .. "?)$",
 		function(v, ham, diacrit)
 			ham = v == I and HAMZA_ON_YA or v == U and HAMZA_ON_WAW or HAMZA_ON_ALIF
 			return v .. ham .. diacrit
 		end
 	},
-	-- else hamza is on the line; use a special character to temporarily indicate
-	-- that hamza-on-line is the final seat, not the not-yet-determined seat
-	{HAMZA .. "(" .. DIACRITIC .. "?)$",
-		-- hamza_subst will be replaced with hamza (on the line) later on
-		HAMZA_SUBST .. "%1"},
+	-- else hamza is on the line
+	{HAMZA_PH .. "(" .. DIACRITIC .. "?)$", HAMZA .. "%1"},
 
 	---------------------------- handle medial hamza --------------------------
 	-- if long vowel or diphthong precedes, we need to ignore it.
-	{"([" .. ALIF .. WAW .. YA .. "]" .. SK .. "?)(" .. HAMZA .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
+	{"([" .. ALIF .. WAW .. YA .. "]" .. SK .. "?)(" .. HAMZA_PH .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
 		function(prec, ham, shad, v2)
 			ham = v2 == I and HAMZA_ON_YA or
 				v2 == U and HAMZA_ON_WAW or
 				rfind(prec, YA) and HAMZA_ON_YA or
-				-- hamza_subst will be replaced with hamza (on the line) later on
-				HAMZA_SUBST
+				HAMZA
 			return prec .. ham ..shad .. v2
 		end
 	},
 	-- otherwise, seat of medial hamza relates to vowels on one or both sides.
- 	{"(" .. AIUSK .. ")(" .. HAMZA .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
+ 	{"(" .. AIUSK .. ")(" .. HAMZA_PH .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
 		function(v1, ham, shad, v2)
 			ham = (v1 == I or v2 == I) and HAMZA_ON_YA or
 				(v1 == U or v2 == U) and HAMZA_ON_WAW or
@@ -3088,11 +3088,11 @@ local postprocess_subs = {
 		end
 	},
 	
-	------------------------ finally handle alif madda ------------------------
+	--------------------------- handle alif madda -----------------------------
 	{HAMZA_ON_ALIF .. A .. ALIF, AMAD},
-	
-	-------------------- undo the hamza-substituted character -----------------
-	{HAMZA_SUBST, HAMZA}
+
+	----------------------- catch any remaining hamzas ------------------------
+	{HAMZA_PH, HAMZA}
 }
 
 -- Post-process verb parts to eliminate phonological anomalies. Many of the changes,
