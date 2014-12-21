@@ -17,11 +17,11 @@ local HAMZA_PLACEHOLDER = u(0xFFF1)
 
 -- hamza variants
 local HAMZA            = u(0x0621) -- hamza on the line (stand-alone hamza) = ء
-local HAMZA_OVER_ALIF  = u(0x0623)
-local HAMZA_OVER_WAW   = u(0x0624)
+local HAMZA_ON_ALIF  = u(0x0623)
+local HAMZA_ON_WAW   = u(0x0624)
 local HAMZA_UNDER_ALIF = u(0x0625)
-local HAMZA_OVER_YA    = u(0x0626)
-local HAMZA_ANY = "[" .. HAMZA .. HAMZA_OVER_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_OVER_WAW .. HAMZA_OVER_YA .. "]"
+local HAMZA_ON_YA    = u(0x0626)
+local HAMZA_ANY = "[" .. HAMZA .. HAMZA_ON_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_ON_WAW .. HAMZA_ON_YA .. "]"
 
 -- various letters
 local ALIF   = u(0x0627) -- ʾalif = ا
@@ -88,7 +88,7 @@ local CONS = "[" .. lconsonants .. "]"
 local CONSPAR = "([" .. lconsonants .. "])"
 
 -- First syllable or so of elative/color-defect adjective
-local ELCD_START = "^" .. HAMZA_OVER_ALIF .. AOPT .. CONSPAR
+local ELCD_START = "^" .. HAMZA_ON_ALIF .. AOPT .. CONSPAR
 local export = {}
 
 -- Functions that do the actual inflecting by creating the forms of a basic term.
@@ -465,7 +465,7 @@ function triptote_diptote(stem, tr, data, n, is_dip, lc)
 	
 	add_inflections(stem, tr, data, n,
 		{is_dip and U or UN,
-		 is_dip and A or AN .. ((rfind(stem, "[" .. HAMZA_OVER_ALIF .. TA_M .. "]$") or rfind(stem, ALIF .. HAMZA .. "$")) and "" or ALIF),
+		 is_dip and A or AN .. ((rfind(stem, "[" .. HAMZA_ON_ALIF .. TA_M .. "]$") or rfind(stem, ALIF .. HAMZA .. "$")) and "" or ALIF),
 		 is_dip and A or IN,
 		 U, A, I,
 		 lc and UU or U,
@@ -783,10 +783,10 @@ end
 function hamza_seat(word)
 	if rfind(word, HAMZA_PLACEHOLDER) then -- optimization to avoid many regexp substs
 		word = rsub(word, HAMZA_PLACEHOLDER .. AOPTA, AMAD)
-		word = rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_OVER_YA) -- i, ī or ay preceding
+		word = rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_ON_YA) -- i, ī or ay preceding
 		word = rsub(word, "([" .. ALIF .. WAW .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA) -- ā, ū or aw preceding
-		word = rsub(word, U .. HAMZA_PLACEHOLDER, U .. HAMZA_OVER_WAW) -- u preceding
-		word = rsub(word, HAMZA_PLACEHOLDER, HAMZA_OVER_ALIF) -- a, sukūn or missing sukūn preceding
+		word = rsub(word, U .. HAMZA_PLACEHOLDER, U .. HAMZA_ON_WAW) -- u preceding
+		word = rsub(word, HAMZA_PLACEHOLDER, HAMZA_ON_ALIF) -- a, sukūn or missing sukūn preceding
 	end
 	return word
 end
@@ -894,7 +894,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			sub(ELCD_START .. SK .. CONSPAR .. AMAQ .. "$",
 				"%1" .. U .. "%2" .. SK .. YA .. ALIF, "ʾa(.)(.)ā", "%1u%2yā") or -- ʾadnā
 			sub("^" .. AMAD .. CONSPAR .. A .. CONSPAR .. UOPT .. "$",
-				HAMZA_OVER_ALIF .. U .. "%1" .. SK .. "%2" .. AMAQ, "ʾā(.)a(.)u?", "ʾu%1%2ā") -- ʾālam "more painful", ʾāḵar "other"
+				HAMZA_ON_ALIF .. U .. "%1" .. SK .. "%2" .. AMAQ, "ʾā(.)a(.)u?", "ʾu%1%2ā") -- ʾālam "more painful", ʾāḵar "other"
 		)
 		if not ret then
 			error("Singular base not an elative adjective: " .. sgar)
@@ -1026,8 +1026,8 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			sub(IN .. "$", UU .. NUN, "in$", "ūn") or -- ends in -in
 			-- See comments above for why we have two cases, one for UNU and
 			-- one for non-UNU
-			sub("[" .. HAMZA .. HAMZA_OVER_ALIF .. "]" .. UNU .. "$", HAMZA_OVER_WAW .. UU .. NUN, "un?$", "ūn", "$", "ūn") or -- ends in hamza + -u(n)
-			sub("[" .. HAMZA .. HAMZA_OVER_ALIF .. "]" .. "$", HAMZA_OVER_WAW .. UU .. NUN, "$", "ūn") or -- ends in hamza
+			sub("[" .. HAMZA .. HAMZA_ON_ALIF .. "]" .. UNU .. "$", HAMZA_ON_WAW .. UU .. NUN, "un?$", "ūn", "$", "ūn") or -- ends in hamza + -u(n)
+			sub("[" .. HAMZA .. HAMZA_ON_ALIF .. "]" .. "$", HAMZA_ON_WAW .. UU .. NUN, "$", "ūn") or -- ends in hamza
 			-- Here too we have UNU and non-UNU cases, see above
 			sub(UNU .. "$", UU .. NUN, "un?$", "ūn", "$", "ūn") or -- anything else + -u(n)
 			sub("$", UU .. NUN, "$", "ūn") -- anything else
