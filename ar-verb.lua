@@ -1,5 +1,5 @@
 --[[
- 
+
 Author: User:Benwing, from early version by User:Atitarev, User:ZxxZxxZ
  
 Todo:
@@ -12,44 +12,47 @@ Todo:
    -- laysa "to not be"; only exists in the past tense, no non-past, no
       imperative, no participles, no passive, no verbal noun. Irregular
       alternation las-/lays-.
-   -- ḥayya/ḥayiya yaḥyā "live" -- behaves like a normal final-weak verb
-      (e.g. past first singular ḥayītu) except in the past-tense forms with
+   -- istaḥā yastaḥī "be ashamed of" -- this is complex according to Hans Wehr
+      because there are two verbs, regular istaḥyā yastaḥyī "to spare
+      (someone)'s life" and irregular istaḥyā yastaḥyī "to be ashamed to face
+      (someone)", which is irregular because it has the alternate irregular
+      form istaḥā yastaḥī which only applies to this meaning. Currently we
+      follow Haywood and Nahmad in saying that both varieties can be spelled
+      istaḥyā/istaḥā/istaḥḥā, but we should instead use a variant= param
+      similar to حَيَّ to distinguish the two possibilities, and maybe not
+      include istaḥḥā.
+   -- ʿayya/ʿayiya yaʿayyu/yaʿyā "to not find the right way, be incapable of,
+      stammer, falter, fall ill". This appears to be a mixture of a geminate
+      and final-weak verb. Unclear what the whole paradigm looks like. Do
+      the consonant-ending parts in the past follow the final-weak paradigm?
+      Is it the same in the non-past? Or can you conjugate the non-past
+      fully as either geminate or final-weak?
+   -- اِنْمَحَى inmaḥā or يمَّحَى immaḥā "to be effaced, obliterated; to disappear, vanish"
+      has irregular assimilation of inm- to imm- as an alternative. inmalasa
+      "to become smooth; to glide; to slip away; to escape" also has immalasa
+      as an alternative. The only other form VII verbs in Hans Wehr beginning
+      with -m- are inmalaḵa "to be pulled out, torn out, wrenched" and inmāʿa
+      "to be melted, to melt, to dissolve", which are not listed with imm-
+      alternatives, but might have them; if so, we should handle this generally.
+3. Implement individual override parameters for each pardigm part. See
+   Module:fro-verb for an example of how to do this generally. Note that
+   {{temp|ar-conj-I}} and other of the older templates already had such
+   individual override params.
+
+Irregular verbs already implemented:
+
+   -- [ḥayya/ḥayiya yaḥyā "live" -- behaves like a normal final-weak verb
+      (e.g. past first singular ḥayītu) except in the past-tense parts with
       vowel-initial endings (all the third person except for the third feminine
       plural). The normal singular and dual endings have -yiya- in them, which
       compresses to -yya-, with the normal endings the less preferred ones.
       In masculine third plural, expected ḥayū is replaced by ḥayyū by
-      analogy to the -yy- forms, and the regular form is not given as an
+      analogy to the -yy- parts, and the regular form is not given as an
       alternant in John Mace. Barron's 201 verbs appears to have the regular
-      ḥayū as the form, however. Note also that final -yā appears with tall
+      ḥayū as the part, however. Note also that final -yā appears with tall
       alif. This appears to be a spelling convention of Arabic, also applying
       in ḥayyā (form II, "to keep (someone) alive") and 'aḥyā (form IV,
-      "to animate, revive, give birth to, give new life to").
-   -- `ayya/`ayiya ya`ayyu/ya`yā "to not find the right way, be incapable of,
-       stammer, falter, fall ill". This appears to be a mixture of a geminate
-       and final-weak verb. Unclear what the whole paradigm looks like. Do
-       the consonant-ending forms in the past follow the final-weak paradigm?
-       Is it the same in the non-past? Or can you conjugate the non-past
-       fully as either geminate or final-weak?
-3. Implement individual override parameters for each form. See Module:fro-verb
-   for an example of how to do this generally. Note that {{temp|ar-conj-I}}
-   and other of the older templates already have such individual override
-   params.
-4. Edit ar-verb so that quadriliteral verbs also go into
-   [Category:Arabic verbs with quadriliteral roots],
-   which also contains things like [Category:Arabic form-Iq verbs].
-
-Irregular verbs already implemented:
-
-   -- [istaḥā yastaḥī "be ashamed of" -- this is complex according to Hans Wehr
-      because there are two verbs, regular istaḥyā yastaḥyī "to spare
-      (someone)'s life" and irregular istaḥyā yastaḥyī "to be ashamed to face
-      (someone)", which is irregular because it has the alternate irregular
-      form istaḥā yastaḥī which only applies to this meaning. Presumably we
-      need a special parameter to handle this. However, given that e.g.
-      Haywood and Nahmad don't make the distinction between the two kinds and
-      say that both varieties can be spelled istaḥyā/istaḥā/istaḥḥā, we should
-      maybe do the same.] -- implemented the easier way, not distinguishing the
-      two meanings and allowing the alternates for both.
+      "to animate, revive, give birth to, give new life to").] -- implemented
    -- [ittaxadha yattaxidhu "take"] -- implemented
    -- [sa'ala yas'alu "ask" with alternative jussive/imperative yasal/sal] -- implemented
    -- [ra'ā yarā "see"] -- implemented
@@ -60,6 +63,7 @@ Irregular verbs already implemented:
 
 --]]
 
+local m_headword = require("Module:headword")
 local m_utilities = require("Module:utilities")
 local m_links = require("Module:links")
 local ar_translit = require("Module:ar-translit")
@@ -74,11 +78,12 @@ local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 local usub = mw.ustring.sub
 local ulen = mw.ustring.len
+local uchar = mw.ustring.char
 
 local export = {}
 
 -- Within this module, conjugations are the functions that do the actual
--- conjugating by creating the forms of a basic verb.
+-- conjugating by creating the parts of a basic verb.
 -- They are defined further down.
 local conjugations = {}
 local dia = {
@@ -117,7 +122,8 @@ local ii = dia.i .. yaa
 local uu = dia.u .. waw
 local ay = dia.a .. yaa
 local aw = dia.a .. waw
-local hamza_subst = "\239\191\176" -- Unicode U+FFF0
+local hamza_subst = uchar(0xfff0)
+local lrm = uchar(0x200e) -- left-to-right mark
 
 --------------------
 -- Utility functions
@@ -164,16 +170,16 @@ function rsub1(term, foo, bar)
 	return retval
 end
 
-local function links(text)
-	if word == "" or word == "&mdash;" then
-		return word
+local function links(text, face)
+	if text == "" or text == "?" or text == "&mdash;" or text == "—" then --mdash
+		return text
 	else
-		return m_links.language_link(text, nil, lang, nil, curtitle)
+		return m_links.full_link(text, nil, lang, nil, face, nil, {tr = "-"}, false)
 	end
 end
 
 local function tag_text(text, tag, class)
-	return m_links.full_link(nil, text, lang, nil, nil, nil, {["tr"] = "-"}, curtitle)
+	return m_links.full_link(nil, text, lang, nil, nil, nil, {tr = "-"}, false)
 end
 
 ---------------------------------------
@@ -217,6 +223,25 @@ local function form_probably_no_passive(form, weakness, past_vowel, nonpast_vowe
 		form == "IIIq" or form == "IVq"
 end
 
+local function form_is_quadriliteral(form)
+	return form == "Iq" or form == "IIq" or form == "IIIq" or form == "IVq"
+end
+
+-- Active forms II, III, IV, Iq use non-past prefixes in -u- instead of -a-.
+function prefix_vowel_from_form(form)
+	if form == "II" or form == "III" or form == "IV" or form == "Iq" then
+		return "u"
+	else
+		return "a"
+	end
+end
+
+-- true if the active non-past takes a-vowelling rather than i-vowelling
+-- in its last syllable
+function form_nonpast_a_vowel(form)
+	return form == "V" or form == "VI" or form == "XV" or form == "IIq"
+end
+
 ---------------------------------------------------
 -- Radicals associated with various irregular verbs
 ---------------------------------------------------
@@ -248,12 +273,248 @@ local function hayy_radicals(rad1, rad2, rad3)
 	return rad1 == "ح" and rad2 == yaa and rad3 == yaa
 end
 
+-----------------------
+-- sets of past endings
+-----------------------
+
+-- the 13 endings of the sound/hollow/geminate past tense
+local past_endings = {
+	-- singular
+	dia.s .. "تُ", dia.s .. "تَ", dia.s .. "تِ", dia.a, dia.a .. "تْ",
+	--dual
+	dia.s .. "تُمَا", aa, dia.a .. "تَا",
+	-- plural
+	dia.s .. "نَا", dia.s .. "تُمْ",
+	-- two Arabic diacritics don't work together in Wikimedia
+	--dia.s .. "تُنَّ",
+	dia.s .. "تُن" .. dia.sh_a, uu .. alif, dia.s .. "نَ"
+}
+
+-- make endings for final-weak past in -aytu or -awtu. AYAW is 'ay' or 'aw'
+-- as appropriate. Note that AA and AW are global variables.
+local function make_past_endings_ay_aw(ayaw, third_sg_masc)
+	return {
+	-- singular
+	ayaw .. dia.s .. "تُ", ayaw ..  dia.s .. "تَ", ayaw .. dia.s .. "تِ",
+	third_sg_masc, dia.a .. "تْ",
+	--dual
+	ayaw .. dia.s .. "تُمَا", ayaw .. aa, dia.a .. "تَا",
+	-- plural
+	ayaw .. dia.s .. "نَا", ayaw .. dia.s .. "تُمْ",
+	-- two Arabic diacritics don't work together in Wikimedia
+	--ayaw .. dia.s .. "تُنَّ",
+	ayaw .. dia.s .. "تُن" .. dia.sh_a, aw .. dia.s .. alif, ayaw .. dia.s .. "نَ"
+	}
+end
+
+-- past final-weak -aytu endings
+local past_endings_ay = make_past_endings_ay_aw(ay, aamaq)
+-- past final-weak -awtu endings
+local past_endings_aw = make_past_endings_ay_aw(aw, aa)
+
+-- Make endings for final-weak past in -ītu or -ūtu. IIUU is ī or ū as
+-- appropriate. Note that AA and UU are global variables.
+local function make_past_endings_ii_uu(iiuu)
+	return {
+	-- singular
+	iiuu .. "تُ", iiuu .. "تَ", iiuu .. "تِ", iiuu .. dia.a, iiuu .. dia.a .. "تْ",
+	--dual
+	iiuu .. "تُمَا", iiuu .. aa, iiuu .. dia.a .. "تَا",
+	-- plural
+	iiuu .. "نَا", iiuu .. "تُمْ",
+	-- two Arabic diacritics don't work together in Wikimedia
+	--iiuu .. "تُنَّ",
+	iiuu .. "تُن" .. dia.sh_a, uu .. alif, iiuu .. "نَ"
+	}
+end
+
+-- past final-weak -ītu endings
+local past_endings_ii = make_past_endings_ii_uu(ii)
+-- past final-weak -ūtu endings
+local past_endings_uu = make_past_endings_ii_uu(uu)
+
+----------------------------------------
+-- sets of non-past prefixes and endings
+----------------------------------------
+
+-- prefixes for non-past forms in -a-
+local nonpast_prefixes_a = {
+	-- singular
+	hamza .. dia.a, "تَ", "تَ", "يَ", "تَ",
+	--dual
+	"تَ", "يَ", "تَ",
+	-- plural
+	"نَ", "تَ", "تَ", "يَ", "يَ"
+}
+
+-- prefixes for non-past forms in -u- (passive; active forms II, III, IV, Iq)
+local nonpast_prefixes_u = {
+	-- singular
+	hamza .. dia.u, "تُ", "تُ", "يُ", "تُ",
+	--dual
+	"تُ", "يُ", "تُ",
+	-- plural
+	"نُ", "تُ", "تُ", "يُ", "يُ"
+}
+
+-- There are only five distinct endings in all non-past verbs. Make any set of
+-- non-past endings given these five distinct endings.
+local function make_nonpast_endings(null, fem, dual, pl, fempl)
+	return {
+	-- singular
+	null, null, fem, null, null,
+	-- dual
+	dual, dual, dual,
+	-- plural
+	null, pl, fempl, pl, fempl
+	}
+end
+
+-- endings for non-past indicative
+local indic_endings = make_nonpast_endings(
+	dia.u,
+	dia.i .. "ينَ",
+	dia.a .. "انِ",
+	dia.u .. "ونَ",
+	dia.s .. "نَ"
+)
+
+-- make the endings for non-past subjunctive/jussive, given the vowel diacritic
+-- used in "null" endings (1s/2sm/3sm/3sf/1p)
+local function make_subj_juss_endings(dia_null) 
+	return make_nonpast_endings(
+	dia_null,
+	dia.i .. "ي",
+	dia.a .. "ا",
+	dia.u .. "و",
+	dia.s .. "نَ"
+	)
+end
+
+-- endings for non-past subjunctive
+local subj_endings = make_subj_juss_endings(dia.a)
+
+-- endings for non-past jussive
+local juss_endings = make_subj_juss_endings(dia.s)
+
+-- endings for alternative geminate non-past jussive in -a; same as subjunctive
+local juss_endings_alt_a = subj_endings
+
+-- endings for alternative geminate non-past jussive in -i
+local juss_endings_alt_i = make_subj_juss_endings(dia.i)
+
+-- endings for final-weak non-past indicative in -ā. Note that AY, AW and
+-- AAMAQ are global variables.
+local indic_endings_aa = make_nonpast_endings(
+	aamaq,
+	ay .. dia.s .. "نَ",
+	ay .. dia.a .. "انِ",
+	aw .. dia.s .. "نَ",
+	ay .. dia.s .. "نَ"
+)
+
+-- make endings for final-weak non-past indicative in -ī or -ū; IIUU is
+-- ī or ū as appropriate. Note that II and UU are global variables.
+local function make_indic_endings_ii_uu(iiuu)
+	return make_nonpast_endings(
+	iiuu,
+	ii .. "نَ",
+	iiuu .. dia.a .. "انِ",
+	uu .. "نَ",
+	iiuu .. "نَ"
+	)
+end
+
+-- endings for final-weak non-past indicative in -ī
+local indic_endings_ii = make_indic_endings_ii_uu(ii)
+
+-- endings for final-weak non-past indicative in -ū
+local indic_endings_uu = make_indic_endings_ii_uu(uu)
+
+-- endings for final-weak non-past subjunctive in -ā. Note that AY, AW, ALIF,
+-- AAMAQ are global variables.
+local subj_endings_aa = make_nonpast_endings(
+	aamaq,
+	ay .. dia.s,
+	ay .. aa,
+	aw .. dia.s .. alif,
+	ay .. dia.s .. "نَ"
+)
+
+-- make endings for final-weak non-past subjunctive in -ī or -ū. IIUU is
+-- ī or ū as appropriate. Note that AA, II, UU, ALIF are global variables.
+local function make_subj_endings_ii_uu(iiuu)
+	return make_nonpast_endings(
+	iiuu .. dia.a,
+	ii,
+	iiuu .. aa,
+	uu .. alif,
+	iiuu .. "نَ"
+	)
+end
+
+-- endings for final-weak non-past subjunctive in -ī
+local subj_endings_ii = make_subj_endings_ii_uu(ii)
+
+-- endings for final-weak non-past subjunctive in -ū
+local subj_endings_uu = make_subj_endings_ii_uu(uu)
+
+-- endings for final-weak non-past jussive in -ā
+local juss_endings_aa = make_nonpast_endings(
+	dia.a,
+	ay .. dia.s,
+	ay .. aa,
+	aw .. dia.s .. alif,
+	ay .. dia.s .. "نَ"
+)
+
+-- Make endings for final-weak non-past jussive in -ī or -ū. IU is short i or u,
+-- IIUU is long ī or ū as appropriate. Note that AA, II, UU, ALIF are global
+-- variables.
+local function make_juss_endings_ii_uu(iu, iiuu)
+	return make_nonpast_endings(
+	iu,
+	ii,
+	iiuu .. aa,
+	uu .. alif,
+	iiuu .. "نَ"
+	)
+end
+
+-- endings for final-weak non-past jussive in -ī
+local juss_endings_ii = make_juss_endings_ii_uu(dia.i, ii)
+
+-- endings for final-weak non-past jussive in -ū
+local juss_endings_uu = make_juss_endings_ii_uu(dia.u, uu)
+
+-----------------------------
+-- sets of imperative endings
+-----------------------------
+
+-- extract the second person jussive endings to get corresponding imperative
+-- endings
+local function imperative_endings_from_jussive(endings)
+	return {endings[2], endings[3], endings[6], endings[10], endings[11]}
+end
+
+-- normal imperative endings
+local impr_endings = imperative_endings_from_jussive(juss_endings)
+-- alternative geminate imperative endings in -a
+local impr_endings_alt_a = imperative_endings_from_jussive(juss_endings_alt_a)
+-- alternative geminate imperative endings in -i
+local impr_endings_alt_i = imperative_endings_from_jussive(juss_endings_alt_i)
+-- final-weak imperative endings in -ā
+local impr_endings_aa = imperative_endings_from_jussive(juss_endings_aa)
+-- final-weak imperative endings in -ī
+local impr_endings_ii = imperative_endings_from_jussive(juss_endings_ii)
+-- final-weak imperative endings in -ū
+local impr_endings_uu = imperative_endings_from_jussive(juss_endings_uu)
+
 -----------------------------
 -- Main conjugation functions
 -----------------------------
 
--- The main entry point.
--- This is the only function that can be invoked from a template.
+-- Implement {{ar-conj}}.
 function export.show(frame)
 	local origargs = frame:getParent().args
 	local args = {}
@@ -262,44 +523,20 @@ function export.show(frame)
 		args[k] = ine(v)
 	end
 	
-	local conj_type = args[1] or frame.args[1] or
-		error("Conjugation type has not been specified. Please pass parameter 1 to the template or module invocation.")
+	local conj_type = args[1] or
+		error("Form (conjugation type) has not been specified. " ..
+			"Please pass parameter 1 to the template invocation.")
 
-	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 2, conj_type)
+	local data, form, weakness, past_vowel, nonpast_vowel =
+		conjugate(args, 2, conj_type)
 	
-	-- if the value is "impers", the verb has only impersonal passive;
-	-- if the value is "yes" or variants, verb has a passive;
-	-- if the value is "no" or variants, the verb has no passive.
-	-- If not specified, default is yes, but no for forms VII, IX,
-	-- XII - XV and IIq - IVq, and "impers" for form VI.
-	local passive = args["passive"]
-	if passive == "impers" then
-	elseif not passive then
-		passive = form_probably_impersonal_passive(form) and "impers" or
-			not form_probably_no_passive(form, weakness, past_vowel,
-				nonpast_vowel) and true or false
-	else
-		passive = yesno(passive, "unknown")
-		if passive == "unknown" then
-			error("Unrecognized value '" .. args["passive"] ..
-				"' to argument passive=; use 'impers', 'yes'/'y'/'true'/'1' or 'no'/'n'/'false'/'0'")
-		end
-	end
-	if passive == "impers" then
-		table.insert(data.categories, "Arabic verbs with impersonal passive")
-	elseif passive then
-		table.insert(data.categories, "Arabic verbs with full passive")
-	else
-		table.insert(data.categories, "Arabic verbs with no passive")
-	end
-
 	-- if the value is "yes" or variants, the verb is intransitive;
 	-- if the value is "no" or variants, the verb is transitive.
 	-- If not specified, default is intransitive if passive == false or
 	-- passive == "impers", else transitive.
 	local intrans = args["intrans"]
 	if not intrans then
-		intrans = passive == false or passive == "impers" and true or false
+		intrans = data.passive == false or data.passive == "impers" or data.passive == "only-impers"
 	else
 		intrans = yesno(intrans, "unknown")
 		if intrans == "unknown" then
@@ -317,16 +554,17 @@ function export.show(frame)
 	-- (FIXME should it be by form?)
 	local title = "form-" .. form .. " " .. weakness
 
+	if data.passive == "only" or data.passive == "only-impers" then
+		title = title .. " passive"
+	end
+	
 	if data.irregular then
 		table.insert(data.categories, "Arabic irregular verbs")
 		title = title .. " irregular"
 	end
 
-	return make_table(data, title, passive, intrans) ..
+	return make_table(data, title, form, intrans) ..
 		m_utilities.format_categories(data.categories, lang)
-	-- for testing forms only, comment out the line above and
-	-- uncomment to see all forms with their names
-	--return test_forms(data, title)
 end
 
 -- Version of main entry point meant for calling from the debug console.
@@ -335,36 +573,185 @@ function export.show2(args, parargs)
 	return export.show(frame)
 end
 
+-- TODO: Move this into [[Module:ar-headword]]
+function export.headword(frame)
+	local origargs = frame:getParent().args
+	local args = {}
+	-- Convert empty arguments to nil, and "" or '' arguments to empty
+	for k, v in pairs(origargs) do
+		args[k] = ine(v)
+	end
+	
+	local conj_type = args['form'] or
+		error("Form (conjugation type) has not been specified. " ..
+			"Please pass a value to parameter form= in the template invocation.")
+
+	local data, form, weakness, past_vowel, nonpast_vowel =
+		conjugate(args, 1, conj_type)
+	local use_params = form == "I" or args["useparam"]
+
+	local arabic_3sm_perf, latin_3sm_perf
+	local arabic_3sm_imperf, latin_3sm_imperf
+	if data.passive == "only" or data.passive == "only-impers" then
+		arabic_3sm_perf, latin_3sm_perf = get_spans(data.forms["3sm-ps-perf"])
+		arabic_3sm_imperf, latin_3sm_imperf = get_spans(data.forms["3sm-ps-impf"])
+	else
+		arabic_3sm_perf, latin_3sm_perf = get_spans(data.forms["3sm-perf"])
+		arabic_3sm_imperf, latin_3sm_imperf = get_spans(data.forms["3sm-impf"])
+	end
+
+	local PAGENAME = mw.title.getCurrentTitle().text
+	-- set to PAGENAME if left empty
+	local head, tr
+	if use_params and form ~= "I" then
+		table.insert(data.headword_categories, "Arabic augmented verbs with parameter override")
+	end
+	if use_params and args["head"] then
+		head = {args["head"], args["head2"], args["head3"]}
+		tr = {args["tr"], args["tr2"], args["tr3"]}
+		if form == "I" then
+			table.insert(data.headword_categories, "Arabic form-I verbs with headword perfect determined through param, not past vowel")
+		end
+	elseif use_params and args["tr"] then
+		head = PAGENAME
+		tr = args["tr"]
+		if form == "I" then
+			table.insert(data.headword_categories, "Arabic form-I verbs with headword perfect determined through param, not past vowel")
+		end
+	elseif form == "I" and #past_vowel == 0 then
+		head = PAGENAME
+		table.insert(data.headword_categories, "Arabic form-I verbs with missing past vowel in headword")
+	else
+		-- Massive hack to get the order correct. It gets reversed for some
+		-- reason, possibly due to being surrounded by lang=ar or
+		-- class=Arabic headword, so reverse the order before concatenating.
+		headrev = {}
+		for _, ar in ipairs(arabic_3sm_perf) do
+			table.insert(headrev, 1, ar)
+		end
+		head = table.concat(headrev, " <small style=\"color: #888\">or</small> ")
+		tr = table.concat(latin_3sm_perf, " <small style=\"color: #888\">or</small> ")
+	end
+
+	local form_text = ' <span class="gender">[[Appendix:Arabic verbs#Form ' .. form .. '|<abbr title="Verb form ' ..
+	  form .. '">' .. form .. '</abbr>]]</span>'
+
+	local impf_arabic, impf_tr
+	if use_params and args["impf"] then
+		impf_arabic = args["impfhead"] or args["impf"]
+		impf_tr = args["impftr"] or ar_translit.tr(impf_arabic, nil, nil, nil)
+		impf_arabic = {impf_arabic}
+		if form == "I" then
+			table.insert(data.headword_categories, "Arabic form-I verbs with headword imperfect determined through param, not non-past vowel")
+		end
+	elseif form == "I" and #nonpast_vowel == 0 then
+		impf_arabic = {}
+		table.insert(data.headword_categories, "Arabic form-I verbs with missing non-past vowel in headword")
+	else
+		impf_arabic = arabic_3sm_imperf
+		impf_tr = table.concat(latin_3sm_imperf, " <small style=\"color: #888\">or</small> ")
+	end
+
+	-- convert Arabic terms to bolded links
+	for i, entry in ipairs(impf_arabic) do
+		impf_arabic[i] = links(entry, "bold")
+	end
+	-- create non-past text by concatenating Arabic spans and adding
+	-- transliteration, but only if we can do it non-ambiguously (either we're
+	-- not form I or the non-past vowel was specified)
+	local impf_text = ""
+	if #impf_arabic > 0 then
+		impf_text = ', <i>non-past</i> ' .. table.concat(impf_arabic, " <small style=\"color: #888\">or</small> ")
+		if impf_tr then
+			impf_text = impf_text .. lrm .. " (" .. impf_tr .. ")"
+		end
+	end
+
+	return
+		m_headword.full_headword(lang, nil, head, tr, nil, nil, {"Arabic verbs"}, args["sort"]) ..
+		form_text .. impf_text ..
+		m_utilities.format_categories(data.headword_categories, lang)
+end	
+
+-- Version of headword entry point meant for calling from the debug console.
+function export.headword2(args, parargs)
+	local frame = {args = args, getParent = function() return {args = parargs} end}
+	return export.headword(frame)
+end
+
+-- Generate the 3rd singular masculine past tense (the dictionary form), given
+-- the form, radicals and (for form I) past/non-past vowels (the non-past
+-- vowel is ignored, but specified for compatibility with export.headword()
+-- and export.show()). Form, radicals, past/non-past vowel arguments are the
+-- same as for export.show(). If there are multiple alternatives,
+-- return only the first one.
+function export.past3sm(frame)
+	local origargs = frame:getParent().args
+	local args = {}
+	-- Convert empty arguments to nil, and "" or '' arguments to empty
+	for k, v in pairs(origargs) do
+		args[k] = ine(v)
+	end
+	
+	local conj_type = args[1] or
+		error("Form (conjugation type) has not been specified. " ..
+			"Please pass a value to parameter 1 in the template invocation.")
+
+	local data, form, weakness, past_vowel, nonpast_vowel =
+		conjugate(args, 2, conj_type)
+
+	local arabic_3sm_perf, latin_3sm_perf
+	if data.passive == "only" or data.passive == "only-impers" then
+		arabic_3sm_perf, latin_3sm_perf = get_spans(data.forms["3sm-ps-perf"])
+	else
+		arabic_3sm_perf, latin_3sm_perf = get_spans(data.forms["3sm-perf"])
+	end
+
+	return arabic_3sm_perf[1]
+end
+
+-- Version of past3sm entry point meant for calling from the debug console.
+function export.past3sm2(args, parargs)
+	local frame = {args = args, getParent = function() return {args = parargs} end}
+	return export.past3sm(frame)
+end
+
+-- TODO: Move this into [[Module:ar-headword]]
+-- Generate an arbitrary part of the verbal paradigm. If there are multiple
+-- possible alternatives, return only the first one.
+function export.verb_part(frame)
+	local origargs = frame:getParent().args
+	local args = {}
+	-- Convert empty arguments to nil, and "" or '' arguments to empty
+	for k, v in pairs(origargs) do
+		args[k] = ine(v)
+	end
+	
+	local part = args[1]
+	local conj_type = args[2] or
+		error("Form (conjugation type) has not been specified. " ..
+			"Please pass a value to parameter 2 in the template invocation.")
+
+	local data, form, weakness, past_vowel, nonpast_vowel = 
+		conjugate(args, 3, conj_type)
+
+	local arabic, latin = get_spans(data.forms[part])
+
+	return arabic[1]
+end
+
+-- Version of verb_part entry point meant for calling from the debug console.
+function export.verb_part2(args, parargs)
+	local frame = {args = args, getParent = function() return {args = parargs} end}
+	return export.verb_part(frame)
+end
+
 -- Guts of conjugation functions. Shared between {{temp|ar-conj}} and
 -- {{temp|ar-verb}}. ARGS is the frame parent arguments, ARGIND is the index
 -- of the first numbered argument after any verb-form argument, and
 -- CONJ_TYPE is the value of the verb-form argument.
 function conjugate(args, argind, conj_type)
 	local data = {forms = {}, categories = {}, headword_categories = {}}
-
-	-- check to see if an argument ends in a ?. If so, strip the ? and return
-	-- true. Otherwise, return false.
-	local function check_for_uncertainty(arg)
-		if args[arg] and rfind(args[arg], "%?$") then
-			args[arg] = rsub(args[arg], "%?$", "")
-			if args[arg] == "" then
-				args[arg] = nil
-			end
-			return true
-		else
-			return false
-		end
-	end
-
-	-- allow a ? at the end of vn= and passive=; if so, putting the page into
-	-- special categories indicating the need to check the property in
-	-- question, and remove the ?.
-	if check_for_uncertainty("vn") then
-		table.insert(data.categories, "Arabic verbs needing verbal noun checked")
-	end
-	if check_for_uncertainty("passive") then
-		table.insert(data.categories, "Arabic verbs needing passive checked")
-	end
 
 	PAGENAME = mw.title.getCurrentTitle().text
 	NAMESPACE = mw.title.getCurrentTitle().nsText
@@ -485,21 +872,11 @@ function conjugate(args, argind, conj_type)
 		end
 	end
 
-	-- Create headword categories based on the radicals. Do the following before
-	-- converting the Latin radicals into Arabic ones so we don't create
-	-- categories based on ambiguous radicals.
-	if rad1 == waw or rad1 == yaa or rad1 == hamza then
-		table.insert(data.headword_categories, "Arabic form-" .. form ..
-			" verbs with " .. rad1 .. " as first radical")
-	end
-	if rad2 == waw or rad2 == yaa or rad2 == hamza then
-		table.insert(data.headword_categories, "Arabic form-" .. form ..
-			" verbs with " .. rad2 .. " as second radical")
-	end
-	if rad3 == waw or rad3 == yaa or rad3 == hamza then
-		table.insert(data.headword_categories, "Arabic form-" .. form ..
-			" verbs with " .. rad3 .. " as third radical")
-	end
+	-- Store unregularized radicals for later use in creating categories
+	data.unreg_rad1 = rad1
+	data.unreg_rad2 = rad2
+	data.unreg_rad3 = rad3
+	data.unreg_rad4 = rad4
 	
 	-- Convert the Latin radicals indicating ambiguity into the corresponding
 	-- Arabic radicals.
@@ -572,9 +949,58 @@ function conjugate(args, argind, conj_type)
 	-- hamza on top of various letters, alif maqṣūra, tā' marbūṭa.
 	check_radicals(form, weakness, rad1, rad2, rad3, rad4)
 
+	-- check to see if an argument ends in a ?. If so, strip the ? and return
+	-- true. Otherwise, return false.
+	local function check_for_uncertainty(arg)
+		if args[arg] and rfind(args[arg], "%?$") then
+			args[arg] = rsub(args[arg], "%?$", "")
+			if args[arg] == "" then
+				args[arg] = nil
+			end
+			return true
+		else
+			return false
+		end
+	end
+
+	-- allow a ? at the end of vn= and passive=; if so, putting the page into
+	-- special categories indicating the need to check the property in
+	-- question, and remove the ?. Also put into category for vn= if empty
+	-- and form is I.
+	if check_for_uncertainty("vn") or form == "I" and not args["vn"] then
+		table.insert(data.categories, "Arabic verbs needing verbal noun checked")
+	end
+	if check_for_uncertainty("passive") then
+		table.insert(data.categories, "Arabic verbs needing passive checked")
+	end
+
+	-- parse value of passive.
+	--
+	-- if the value is "impers", the verb has only impersonal passive;
+	-- if the value is "only", the verb has only a passive, no active;
+	-- if the value is "only-impers", the verb has only an impersonal passive;
+	-- if the value is "yes" or variants, verb has a passive;
+	-- if the value is "no" or variants, the verb has no passive.
+	-- If not specified, default is yes, but no for forms VII, IX,
+	-- XII - XV and IIq - IVq, and "impers" for form VI.
+	local passive = args["passive"]
+	if passive == "impers" or passive == "only" or passive == "only-impers" then
+	elseif not passive then
+		passive = form_probably_impersonal_passive(form) and "impers" or
+			not form_probably_no_passive(form, weakness, past_vowel,
+				nonpast_vowel) and true or false
+	else
+		passive = yesno(passive, "unknown")
+		if passive == "unknown" then
+			error("Unrecognized value '" .. args["passive"] ..
+				"' to argument passive=; use 'impers', 'only', 'only-impers', " ..
+				"'yes'/'y'/'true'/'1' or 'no'/'n'/'false'/'0'")
+		end
+	end
+	data.passive = passive
+
 	-- Initialize categories related to form and weakness.
-	initialize_categories(data.categories, data.headword_categories,
-		form, weakness, rad1, rad2, rad3, rad4)
+	initialize_categories(data,	form, weakness, rad1, rad2, rad3, rad4)
 
 	-- Reconstruct conjugation type from form and (possibly inferred) weakness.
 	conj_type = form .. "-" .. weakness
@@ -589,11 +1015,11 @@ function conjugate(args, argind, conj_type)
 	-- quadriliteral verbs.
 	--
 	-- The way the conjugation functions work is they always add entries to the
-	-- appropriate forms of the paradigm (each of which is an array), rather
+	-- appropriate parts of the paradigm (each of which is an array), rather
 	-- than setting the values. This makes it possible to call more than one
 	-- conjugation function and essentially get a paradigm of the "either
 	-- A or B" kind. Doing this may insert duplicate entries into a particular
-	-- paradigm form, but this is not a problem because we remove duplicate
+	-- paradigm part, but this is not a problem because we remove duplicate
 	-- entries (in get_spans()) before generating the actual table.
 	if quadlit then
 		conjugations[conj_type](data, args, rad1, rad2, rad3, rad4)
@@ -918,6 +1344,8 @@ function export.infer_radicals(headword, form)
 				end
 			elseif form == "I" and rad1 == waw then
 				weakness = "assimilated"
+			elseif rad2 == rad3 and (form == "III" or form == "VI") then
+				weakness = "geminate"
 			else
 				weakness = "sound"
 			end
@@ -1026,7 +1454,7 @@ function check_radicals(form, weakness, rad1, rad2, rad3, rad4)
 	end
 end
 
-function initialize_categories(categories, headword_categories, form, weakness, rad1, rad2, rad3, rad4)
+function initialize_categories(data, form, weakness, rad1, rad2, rad3, rad4)
 	-- We have to distinguish weakness by form and weakness by conjugation.
 	-- Weakness by form merely indicates the presence of weak letters in
 	-- certain positions in the radicals. Weakness by conjugation is related
@@ -1042,10 +1470,14 @@ function initialize_categories(categories, headword_categories, form, weakness, 
 	-- we name the categories appropriately, where e.g. "Arabic hollow verbs"
 	-- means by form, "Arabic hollow verbs by conjugation" means by
 	-- conjugation.
-	table.insert(categories, "Arabic form-" .. form .. " verbs")
-	table.insert(headword_categories, "Arabic form-" .. form .. " verbs")
-	table.insert(categories, "Arabic " .. weakness .. " verbs by conjugation")
-	table.insert(headword_categories, "Arabic " .. weakness .. " verbs by conjugation")
+	table.insert(data.categories, "Arabic form-" .. form .. " verbs")
+	table.insert(data.headword_categories, "Arabic form-" .. form .. " verbs")
+	table.insert(data.categories, "Arabic " .. weakness .. " verbs by conjugation")
+	table.insert(data.headword_categories, "Arabic " .. weakness .. " verbs by conjugation")
+	if form_is_quadriliteral(form) then
+		table.insert(data.categories, "Arabic verbs with quadriliteral roots")
+		table.insert(data.headword_categories, "Arabic verbs with quadriliteral roots")
+	end
 	local formweak = {}
 	if is_waw_yaa(rad1) then
 		table.insert(formweak, "assimilated")
@@ -1062,18 +1494,64 @@ function initialize_categories(categories, headword_categories, form, weakness, 
 	if rad1 == hamza or rad2 == hamza or rad3 == hamza or rad4 == hamza then
 		table.insert(formweak, "hamzated")
 	end
-	if not is_waw_yaa(rad1) and not is_waw_yaa(rad2) and not is_waw_yaa(rad3) and
-			not is_waw_yaa(rad4) and rad1 ~= hamza and rad2 ~= hamza and
-			rad3 ~= hamza and rad4 ~= hamza then
+	if #formweak == 0 then
 		table.insert(formweak, "sound")
 	end
 	for _, fw in ipairs(formweak) do
-		table.insert(categories, "Arabic " .. fw .. " form-" .. form .. " verbs")
-		table.insert(categories, "Arabic " .. fw .. " verbs")
-		table.insert(headword_categories, "Arabic " .. fw .. " form-" .. form .. " verbs")
-		table.insert(headword_categories, "Arabic " .. fw .. " verbs")
+		table.insert(data.categories, "Arabic " .. fw .. " form-" .. form .. " verbs")
+		table.insert(data.categories, "Arabic " .. fw .. " verbs")
+		table.insert(data.headword_categories, "Arabic " .. fw .. " form-" .. form .. " verbs")
+		table.insert(data.headword_categories, "Arabic " .. fw .. " verbs")
 	end
-	return formweak
+	
+
+	local function radical_is_ambiguous(rad)
+		return rad == "t" or rad == "w" or rad == "y"
+	end
+	local function radical_is_weak(rad)
+		return rad == waw or rad == yaa or rad == hamza
+	end
+
+	local ur1, ur2, ur3, ur4 =
+		data.unreg_rad1, data.unreg_rad2, data.unreg_rad3, data.unreg_rad4
+	-- Create headword categories based on the radicals. Do the following before
+	-- converting the Latin radicals into Arabic ones so we distinguish
+	-- between ambiguous and non-ambiguous radicals.
+	if radical_is_ambiguous(ur1) or radical_is_ambiguous(ur2) or
+			radical_is_ambiguous(ur3) or radical_is_ambiguous(ur4) then
+		table.insert(data.headword_categories,
+			"Arabic verbs with ambiguous radicals")
+	end
+	if radical_is_weak(ur1) then
+		table.insert(data.headword_categories, "Arabic form-" .. form ..
+			" verbs with " .. ur1 .. " as first radical")
+	end
+	if radical_is_weak(ur2) then
+		table.insert(data.headword_categories, "Arabic form-" .. form ..
+			" verbs with " .. ur2 .. " as second radical")
+	end
+	if radical_is_weak(ur3) then
+		table.insert(data.headword_categories, "Arabic form-" .. form ..
+			" verbs with " .. ur3 .. " as third radical")
+	end
+	if radical_is_weak(ur4) then
+		table.insert(data.headword_categories, "Arabic form-" .. form ..
+			" verbs with " .. ur4 .. " as fourth radical")
+	end
+	
+	if data.passive == "only" then
+		table.insert(data.categories, "Arabic passive-only verbs")
+		table.insert(data.categories, "Arabic verbs with full passive")
+	elseif data.passive == "only-impers" then
+		table.insert(data.categories, "Arabic passive-only verbs")
+		table.insert(data.categories, "Arabic verbs with impersonal passive")
+	elseif data.passive == "impers" then
+		table.insert(data.categories, "Arabic verbs with impersonal passive")
+	elseif data.passive then
+		table.insert(data.categories, "Arabic verbs with full passive")
+	else
+		table.insert(data.categories, "Arabic verbs with no passive")
+	end
 end
 
 -------------------------------------------------------
@@ -1169,13 +1647,13 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 		(rad1 == hamza and short_to_long_vowel(dia[imper_vowel]) or rad1 .. dia.s)
 	local imper_stem = imper_stem_base .. imper_stem_suffix
 
-	-- make forms
+	-- make parts
 	make_sound_verb(data, past_stem, ps_past_stem, nonpast_stem,
 		ps_nonpast_stem, imper_stem, "a")
 
 	-- Check for irregular verb سَأَلَ with alternative jussive and imperative.
 	-- Calling this after make_sound_verb() adds additional entries to the
-	-- paradigm forms.
+	-- paradigm parts.
 	if saal_radicals(rad1, rad2, rad3) then
 		data.irregular = true
 		nonpast_1stem_conj(data, "juss", "a", "سَل")
@@ -1184,9 +1662,9 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	end
 
 	-- active participle
-	insert_form(data, "ap", rad1 .. aa .. rad2 .. dia.i .. rad3 .. dia.un)
+	insert_part(data, "ap", rad1 .. aa .. rad2 .. dia.i .. rad3 .. dia.un)
 	-- passive participle
-	insert_form(data, "pp", ma .. rad1 .. dia.s .. rad2 .. dia.u .. "و" .. rad3 .. dia.un)
+	insert_part(data, "pp", ma .. rad1 .. dia.s .. rad2 .. dia.u .. "و" .. rad3 .. dia.un)
 end
 	
 conjugations["I-sound"] = function(data, args, rad1, rad2, rad3,
@@ -1201,10 +1679,70 @@ conjugations["I-assimilated"] = function(data, args, rad1, rad2, rad3,
 		past_vowel, nonpast_vowel, "assimilated")
 end
 
+local function make_form_i_hayy_verb(data, args)
+	-- Verbal nouns (maṣādir) for form I are unpredictable and have to be supplied
+	insert_verbal_noun(data, args, {})
+
+	data.irregular = true
+
+	-- past and non-past stems, active and passive, and imperative stem
+	local past_c_stem = "حَيِي"
+	local past_v_stem_long = past_c_stem
+	local past_v_stem_short = "حَيّ"
+	local ps_past_c_stem = "حُيِي"
+	local ps_past_v_stem_long = ps_past_c_stem
+	local ps_past_v_stem_short = "حُيّ"
+
+	local nonpast_stem = "حْي"
+	local ps_nonpast_stem = nonpast_stem
+	local imper_stem = "اِ" .. nonpast_stem
+
+	-- make parts
+
+	past_2stem_conj(data, "perf", "-", past_c_stem)
+	past_2stem_conj(data, "ps-perf", "-", ps_past_c_stem)
+	local variant = args["variant"]
+	if variant == "short" or variant == "both" then
+		past_2stem_conj(data, "perf", past_v_stem_short, "-")
+		past_2stem_conj(data, "ps-perf", ps_past_v_stem_short, "-")
+	end
+	function inflect_long_variant(tense, long_stem, short_stem)
+		inflect_tense_1(data, tense, "",
+			{long_stem, long_stem, long_stem, long_stem, short_stem},
+			{past_endings[4], past_endings[5], past_endings[7], past_endings[8],
+			 past_endings[12]},
+			{"3sm", "3sf", "3dm", "3df", "3pm"})
+	end
+	if variant == "long" or variant == "both" then
+		inflect_long_variant("perf", past_v_stem_long, past_v_stem_short)
+		inflect_long_variant("ps-perf", ps_past_v_stem_long, ps_past_v_stem_short)
+	end
+
+	nonpast_1stem_conj(data, "impf", "a", nonpast_stem, indic_endings_aa)
+	nonpast_1stem_conj(data, "subj", "a", nonpast_stem, subj_endings_aa)
+	nonpast_1stem_conj(data, "juss", "a", nonpast_stem, juss_endings_aa)
+	nonpast_1stem_conj(data, "ps-impf", "u", ps_nonpast_stem, indic_endings_aa)
+	nonpast_1stem_conj(data, "ps-subj", "u", ps_nonpast_stem, subj_endings_aa)
+	nonpast_1stem_conj(data, "ps-juss", "u", ps_nonpast_stem, juss_endings_aa)
+	inflect_tense_impr(data, imper_stem, impr_endings_aa)
+
+	-- active participle apparently does not exist for this verb
+	insert_part(data, "ap", {})
+	-- passive participle apparently does not exist for this verb
+	insert_part(data, "pp", {})
+end
+
 -- Implement form-I final-weak assimilated+final-weak verb. ASSIMILATED is true
 -- for assimilated verbs.
 local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 		past_vowel, nonpast_vowel, assimilated)
+
+	-- حَيَّ or حَيِيَ is weird enough that we handle it as a separate function
+	if hayy_radicals(rad1, rad2, rad3) then
+		make_form_i_hayy_verb(data, args)
+		return
+	end
+	
 	-- need to provide two vowels - past and non-past
 	local past_vowel = past_vowel or "a"
 	local nonpast_vowel = nonpast_vowel or past_vowel == "i" and "a" or
@@ -1240,15 +1778,38 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 		end
 	end
 
-	-- make forms
-	make_form_i_final_weak_verb_from_stems(data, past_stem, ps_past_stem,
-		nonpast_stem, ps_nonpast_stem, imper_stem, rad3, past_vowel,
-		nonpast_vowel)
+	-- make parts
+	local past_suffs =
+		rad3 == yaa and past_vowel == "a" and past_endings_ay or
+		rad3 == waw and past_vowel == "a" and past_endings_aw or
+		past_vowel == "i" and past_endings_ii or
+		past_endings_uu
+	local indic_suffs, subj_suffs, juss_suffs, impr_suffs
+	if nonpast_vowel == "a" then
+		indic_suffs = indic_endings_aa
+		subj_suffs = subj_endings_aa
+		juss_suffs = juss_endings_aa
+		impr_suffs = impr_endings_aa
+	elseif nonpast_vowel == "i" then
+		indic_suffs = indic_endings_ii
+		subj_suffs = subj_endings_ii
+		juss_suffs = juss_endings_ii
+		impr_suffs = impr_endings_ii
+	else
+		assert(nonpast_vowel == "u")
+		indic_suffs = indic_endings_uu
+		subj_suffs = subj_endings_uu
+		juss_suffs = juss_endings_uu
+		impr_suffs = impr_endings_uu
+	end
+	make_final_weak_verb(data, past_stem, ps_past_stem, nonpast_stem,
+		ps_nonpast_stem, imper_stem, past_suffs, indic_suffs,
+		subj_suffs, juss_suffs, impr_suffs, "a")
 
 	-- active participle
-	insert_form(data, "ap", rad1 .. aa .. rad2 .. dia.in_)
+	insert_part(data, "ap", rad1 .. aa .. rad2 .. dia.in_)
 	-- passive participle
-	insert_form(data, "pp", ma .. rad1 .. dia.s .. rad2 ..
+	insert_part(data, "pp", ma .. rad1 .. dia.s .. rad2 ..
 		(rad3 == yaa and ii or uu) .. dia.sh .. dia.un)
 end
 	
@@ -1267,12 +1828,22 @@ end
 conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 		past_vowel, nonpast_vowel)
 	-- need to specify up to two vowels, past and non-past
+	-- default past vowel to short equivalent of middle radical
 	local past_vowel = past_vowel or rad2 == yaa and "i" or "u"
-	local nonpast_vowel = nonpast_vowel or past_vowel
+	-- default non-past vowel to past vowel, unless it's "a", in which case
+	-- we default to short equivalent of middle radical
+	local nonpast_vowel = nonpast_vowel or past_vowel ~= "a" and past_vowel or
+		rad2 == yaa and "i" or "u"
 	check_aiu("past", past_vowel)
 	check_aiu("non-past", nonpast_vowel)
+	-- Formerly we signaled an error when past_vowel is "a" but that seems
+	-- too harsh. We can interpret a past vowel of "a" as meaning to use the
+	-- non-past vowel in forms requiring a short vowel. If the non-past vowel
+	-- is "a" then the past vowel can only be "i" (e.g. in nāma yanāmu with
+	-- first singular past of nimtu).
 	if past_vowel == "a" then
-		error("For form I hollow, past vowel cannot be 'a'")
+		-- error("For form I hollow, past vowel cannot be 'a'")
+		past_vowel = nonpast_vowel == "a" and "i" or nonpast_vowel
 	end
 	local lengthened_nonpast = nonpast_vowel == "u" and uu or
 		nonpast_vowel == "i" and ii or aa
@@ -1303,16 +1874,16 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 	local imper_v_stem = nonpast_v_stem
 	local imper_c_stem = nonpast_c_stem
 
-	-- make forms
+	-- make parts
 	make_hollow_geminate_verb(data, past_v_stem, past_c_stem, ps_past_v_stem,
 		ps_past_c_stem, nonpast_v_stem, nonpast_c_stem, ps_nonpast_v_stem,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", false)
 	
 	-- active participle
-	insert_form(data, "ap", rad3 == hamza and rad1 .. aa .. hamza .. dia.in_ or
+	insert_part(data, "ap", rad3 == hamza and rad1 .. aa .. hamza .. dia.in_ or
 		rad1 .. aa .. hamza .. dia.i .. rad3 .. dia.un)
 	-- passive participle
-	insert_form(data, "pp", ma .. rad1 .. (rad2 == yaa and ii or uu) .. rad3 .. dia.un)
+	insert_part(data, "pp", ma .. rad1 .. (rad2 == yaa and ii or uu) .. rad3 .. dia.un)
 end
 
 conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
@@ -1352,15 +1923,15 @@ conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
 		(rad1 == hamza and short_to_long_vowel(dia[imper_vowel]) or rad1 .. dia.s) ..
 		rad2 .. dia[nonpast_vowel] .. rad2
 
-	-- make forms
+	-- make parts
 	make_hollow_geminate_verb(data, past_v_stem, past_c_stem, ps_past_v_stem,
 		ps_past_c_stem, nonpast_v_stem, nonpast_c_stem, ps_nonpast_v_stem,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", "geminate")
 	
 	-- active participle
-	insert_form(data, "ap", rad1 .. aa .. rad2 .. dia.sh .. dia.un)
+	insert_part(data, "ap", rad1 .. aa .. rad2 .. dia.sh .. dia.un)
 	-- passive participle
-	insert_form(data, "pp", ma .. rad1 .. dia.s .. rad2 .. dia.u .. "و" .. rad2 .. dia.un)
+	insert_part(data, "pp", ma .. rad1 .. dia.s .. rad2 .. dia.u .. "و" .. rad2 .. dia.un)
 end
 
 -- Make form II or V sound or final-weak verb. Final-weak verbs are identified
@@ -1380,7 +1951,7 @@ function make_form_ii_v_sound_final_weak_verb(data, args, rad1, rad2, rad3, form
 	local nonpast_stem_base = past_stem_base
 	local ps_past_stem_base = tu_pref .. rad1 .. dia.u .. rad2 .. dia.sh
 
-	-- make forms
+	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, form)
 end
@@ -1410,7 +1981,7 @@ function make_form_iii_vi_sound_final_weak_verb(data, args, rad1, rad2, rad3, fo
 	local nonpast_stem_base = past_stem_base
 	local ps_past_stem_base = tu_pref .. rad1 .. uu .. rad2
 
-	-- make forms
+	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, form)
 end
@@ -1425,7 +1996,7 @@ end
 
 -- Make form III or VI geminate verb. FORM distinguishes III from VI.
 function make_form_iii_vi_geminate_verb(data, args, rad1, rad2, form)
-	-- alternative verbal noun فِعَالٌ will be inserted when we add sound forms below
+	-- alternative verbal noun فِعَالٌ will be inserted when we add sound parts below
 	local vn = form == "VI" and
 		{"تَ" .. rad1 .. aa .. rad2 .. dia.sh .. dia.un} or
 		{mu .. rad1 .. aa .. rad2 .. dia.sh .. ah .. dia.un}
@@ -1437,11 +2008,11 @@ function make_form_iii_vi_geminate_verb(data, args, rad1, rad2, form)
 	local nonpast_stem_base = past_stem_base
 	local ps_past_stem_base = tu_pref .. rad1 .. uu
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, form)
 	
-	-- Also add alternative sound (non-compressed) forms. This will lead to
+	-- Also add alternative sound (non-compressed) parts. This will lead to
 	-- some duplicate entries, but they are removed in get_spans().
 	make_form_iii_vi_sound_final_weak_verb(data, args, rad1, rad2, rad2, form)
 end
@@ -1475,7 +2046,7 @@ function make_form_iv_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 	local nonpast_stem_base = stem_core
 	local ps_past_stem_base = hamza .. dia.u .. stem_core
 
-	-- make forms
+	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "IV")
 end
@@ -1497,7 +2068,7 @@ conjugations["IV-hollow"] = function(data, args, rad1, rad2, rad3)
 	local nonpast_stem_base = rad1
 	local ps_past_stem_base = hamza .. dia.u .. rad1
 
-	-- make forms
+	-- make parts
 	make_augmented_hollow_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "IV")
 end
@@ -1510,7 +2081,7 @@ conjugations["IV-geminate"] = function(data, args, rad1, rad2, rad3)
 	local nonpast_stem_base = rad1
 	local ps_past_stem_base = hamza .. dia.u .. rad1
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "IV")
 end
@@ -1547,8 +2118,8 @@ end
 -- Populate a sound or final-weak verb for any of the various high-numbered
 -- augmented forms (form VII and up) that have up to 5 consonants in two
 -- clusters in the stem and the same pattern of vowels between.
--- Some of these consonants in certain forms are w's, which leads to apparent
--- anomalies in certain stems of these forms, but these anomalies are handled
+-- Some of these consonants in certain verb parts are w's, which leads to apparent
+-- anomalies in certain stems of these parts, but these anomalies are handled
 -- automatically in postprocessing, where we resolve sequences of iwC -> īC,
 -- uwC -> ūC, w + sukūn + w -> w + shadda. 
 --
@@ -1564,7 +2135,7 @@ function make_high_form_sound_final_weak_verb(data, args, rad12, rad34, rad5, fo
 	local past_stem_base = "اِ" .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. rad12 .. dia.u .. rad34
 
-	-- make forms
+	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad5,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, form)
 end
@@ -1592,7 +2163,7 @@ conjugations["VII-hollow"] = function(data, args, rad1, rad2, rad3)
 	local past_stem_base = "اِ" ..nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. nrad1
 
-	-- make forms
+	-- make parts
 	make_augmented_hollow_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "VII")
 end
@@ -1606,7 +2177,7 @@ conjugations["VII-geminate"] = function(data, args, rad1, rad2, rad3)
 	local past_stem_base = "اِ" .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. nrad1 .. dia.u
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "VII")
 end
@@ -1650,7 +2221,7 @@ function make_form_viii_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 	make_high_form_sound_final_weak_verb(data, args, join_taa(rad1), rad2, rad3,
 		"VIII")
 
-	-- Add alternative forms if verb is first-hamza. Any duplicates are
+	-- Add alternative parts if verb is first-hamza. Any duplicates are
 	-- removed in get_spans().
 	if rad1 == hamza then
 		local vn = form_viii_verbal_noun(rad1, rad2, rad3)
@@ -1678,11 +2249,11 @@ conjugations["VIII-hollow"] = function(data, args, rad1, rad2, rad3)
 	local past_stem_base = "اِ" .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. nonpast_stem_base
 
-	-- make forms
+	-- make parts
 	make_augmented_hollow_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "VIII")
 
-	-- Add alternative forms if verb is first-hamza. Any duplicates are
+	-- Add alternative parts if verb is first-hamza. Any duplicates are
 	-- removed in get_spans().
 	if rad1 == hamza then
 		local past_stem_base2 = "اِيت"
@@ -1701,11 +2272,11 @@ conjugations["VIII-geminate"] = function(data, args, rad1, rad2, rad3)
 	local past_stem_base = "اِ" .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. join_taa(rad1) .. dia.u
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "VIII")
 
-	-- Add alternative forms if verb is first-hamza. Any duplicates are
+	-- Add alternative parts if verb is first-hamza. Any duplicates are
 	-- removed in get_spans().
 	if rad1 == hamza then
 		local past_stem_base2 = "اِيتَ"
@@ -1725,7 +2296,7 @@ conjugations["IX-sound"] = function(data, args, rad1, rad2, rad3)
 	local past_stem_base = ipref .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. rad1 .. dia.s .. rad2 .. dia.u
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "IX")
 end
@@ -1736,8 +2307,8 @@ end
 
 -- Populate a sound or final-weak verb for any of the various high-numbered
 -- augmented forms that have 5 consonants in the stem and the same pattern of
--- vowels. Some of these consonants in certain forms are w's, which leads to
--- apparent anomalies in certain stems of these forms, but these anomalies
+-- vowels. Some of these consonants in certain verb parts are w's, which leads to
+-- apparent anomalies in certain stems of these parts, but these anomalies
 -- are handled automatically in postprocessing, where we resolve sequences of
 -- iwC -> īC, uwC -> ūC, w + sukūn + w -> w + shadda. 
 function make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, rad3, rad4, rad5, form)
@@ -1754,8 +2325,8 @@ function make_form_x_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 		data.irregular = true
 		-- Add alternative entries to the verbal paradigms. Any duplicates are
 		-- removed in get_spans().
-		make_high_form_sound_final_weak_verb(data, args, siin .. taa, rad1, rad3, "X")
-		make_high_form_sound_final_weak_verb(data, args, siin .. taa, rad1 .. dia.sh, rad3, "X")
+		make_high_form_sound_final_weak_verb(data, args, siin .. dia.s .. taa, rad1, rad3, "X")
+		make_high_form_sound_final_weak_verb(data, args, siin .. dia.s .. taa, rad1 .. dia.sh, rad3, "X")
 	end
 end
 
@@ -1775,7 +2346,7 @@ conjugations["X-hollow"] = function(data, args, rad1, rad2, rad3)
 	local nonpast_stem_base = "سْتَ" .. rad1
 	local ps_past_stem_base = "اُسْتُ" .. rad1
 
-	-- make forms
+	-- make parts
 	make_augmented_hollow_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "X")
 end
@@ -1788,7 +2359,7 @@ conjugations["X-geminate"] = function(data, args, rad1, rad2, rad3)
 	local nonpast_stem_base = "سْتَ" .. rad1
 	local ps_past_stem_base = "اُسْتُ" .. rad1
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "X")
 end
@@ -1802,7 +2373,7 @@ conjugations["XI-sound"] = function(data, args, rad1, rad2, rad3)
 	local past_stem_base = ipref .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. rad1 .. dia.s .. rad2 .. uu
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad3,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "XI")
 end
@@ -1880,7 +2451,7 @@ function make_form_iq_iiq_sound_final_weak_verb(data, args, rad1, rad2, rad3, ra
 	local nonpast_stem_base = past_stem_base
 	local ps_past_stem_base = tu_pref .. rad1 .. dia.u .. rad2 .. dia.s .. rad3
 
-	-- make forms
+	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad4,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, form)
 end
@@ -1924,17 +2495,19 @@ conjugations["IVq-sound"] = function(data, args, rad1, rad2, rad3, rad4)
 	local nonpast_stem_base = rad1 .. dia.s .. rad2 .. dia.a .. rad3
 	local ps_past_stem_base = "اُ" .. rad1 .. dia.s .. rad2 .. dia.u .. rad3
 
-	-- make forms
+	-- make parts
 	make_augmented_geminate_verb(data, args, rad4,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, "IVq")
 end
 
 -- probably no form IVq final-weak, since already geminate in form; would behave as IVq-sound
 
--- Inflection functions
+------------------------------------
+-- Basic functions to inflect tenses
+------------------------------------
 
 -- Implementation of inflect_tense(). See that function. Also used directly
--- to add the imperative, which has only five forms.
+-- to add the imperative, which has only five parts.
 function inflect_tense_1(data, tense, prefixes, stems, endings, pnums)
 	if prefixes == nil then
 		error("For tense '" .. tense .. "', prefixes = nil")
@@ -1978,18 +2551,18 @@ function inflect_tense_1(data, tense, prefixes, stems, endings, pnums)
 			-- allow some inflections to be skipped; useful for generating
 			-- partly irregular inflections
 			if prefix ~= "-" and stem ~= "-" then
-				local form = prefix .. stem .. ending
-				if ine(form) and form ~= "-"
+				local part = prefix .. stem .. ending
+				if ine(part) and part ~= "-"
 						-- and (not data.impers or pnums[i] == "3sg")
 						then
-					table.insert(data.forms[pnums[i] .. "-" .. tense], form)
+					table.insert(data.forms[pnums[i] .. "-" .. tense], part)
 				end
 			end
 		end
 	end
 end
 
--- Add to FORMS the inflections for the tense indicated by TENSE (the suffix
+-- Add to DATA the inflections for the tense indicated by TENSE (the suffix
 -- in the forms names, e.g. 'perf'), formed by combining the PREFIXES
 -- (either a single string or a sequence of 13 strings), STEMS
 -- (either a single string or a sequence of 13 strings) with the
@@ -2005,7 +2578,7 @@ function inflect_tense(data, tense, prefixes, stems, endings)
 	inflect_tense_1(data, tense, prefixes, stems, endings, pnums)
 end
 
--- Like inflect_tense() but for the imperative, which has only five forms
+-- Like inflect_tense() but for the imperative, which has only five parts
 -- instead of 13.
 function inflect_tense_impr(data, stems, endings)
 	local pnums = {"2sm", "2sf", "2d", "2pm", "2pf"}
@@ -2014,7 +2587,7 @@ end
 
 -- Add VALUE (a string or array) to the end of any entries in DATA.forms[NAME],
 -- initializing it to an empty array if needed.
-function insert_form(data, name, value)
+function insert_part(data, name, value)
 	if data.forms[name] == nil then
 		data.forms[name] = {}
 	end
@@ -2030,68 +2603,8 @@ end
 -- Insert verbal noun VN into DATA.forms["vn"], but allow it to be overridden by
 -- ARGS["vn"].
 function insert_verbal_noun(data, args, vn)
-	insert_form(data, "vn", args["vn"] and rsplit(args["vn"], "[,،]") or vn)
+	insert_part(data, "vn", args["vn"] and rsplit(args["vn"], "[,،]") or vn)
 end
-
------------------------
--- sets of past endings
------------------------
-
--- the 13 endings of the sound/hollow/geminate past tense
-local past_endings = {
-	-- singular
-	dia.s .. "تُ", dia.s .. "تَ", dia.s .. "تِ", dia.a, dia.a .. "تْ",
-	--dual
-	dia.s .. "تُمَا", aa, dia.a .. "تَا",
-	-- plural
-	dia.s .. "نَا", dia.s .. "تُمْ",
-	-- two Arabic diacritics don't work together in Wikimedia
-	--dia.s .. "تُنَّ",
-	dia.s .. "تُن" .. dia.sh_a, uu .. alif, dia.s .. "نَ"
-}
-
--- make endings for final-weak past in -aytu or -awtu. AYAW is 'ay' or 'aw'
--- as appropriate. Note that AA and AW are global variables.
-local function make_past_endings_ay_aw(ayaw, third_sg_masc)
-	return {
-	-- singular
-	ayaw .. dia.s .. "تُ", ayaw ..  dia.s .. "تَ", ayaw .. dia.s .. "تِ",
-	third_sg_masc, dia.a .. "تْ",
-	--dual
-	ayaw .. dia.s .. "تُمَا", ayaw .. aa, dia.a .. "تَا",
-	-- plural
-	ayaw .. dia.s .. "نَا", ayaw .. dia.s .. "تُمْ",
-	-- two Arabic diacritics don't work together in Wikimedia
-	--ayaw .. dia.s .. "تُنَّ",
-	ayaw .. dia.s .. "تُن" .. dia.sh_a, aw .. dia.s .. alif, ayaw .. dia.s .. "نَ"
-	}
-end
-
--- past final-weak -aytu endings
-local past_endings_ay = make_past_endings_ay_aw(ay, aamaq)
--- past final-weak -awtu endings
-local past_endings_aw = make_past_endings_ay_aw(aw, aa)
-
--- Make endings for final-weak past in -ītu or -ūtu. IIUU is ī or ū as
--- appropriate. Note that AA and UU are global variables.
-local function make_past_endings_ii_uu(iiuu)
-	return {
-	-- singular
-	iiuu .. "تُ", iiuu .. "تَ", iiuu .. "تِ", iiuu .. dia.a, iiuu .. dia.a .. "تْ",
-	--dual
-	iiuu .. "تُمَا", iiuu .. aa, iiuu .. dia.a .. "تَا",
-	-- plural
-	iiuu .. "نَا", iiuu .. "تُمْ",
-	-- two Arabic diacritics don't work together in Wikimedia
-	--iiuu .. "تُنَّ",
-	iiuu .. "تُن" .. dia.sh_a, uu .. alif, iiuu .. "نَ"
-	}
-end
-
--- past final-weak -ītu endings
-local past_endings_ii = make_past_endings_ii_uu(ii)
--- past final-weak -ūtu endings
-local past_endings_uu = make_past_endings_ii_uu(uu)
 
 --------------------------------------
 -- functions to inflect the past tense
@@ -2115,160 +2628,6 @@ end
 function past_1stem_conj(data, tense, stem)
 	past_2stem_conj(data, tense, stem, stem)
 end
-
-----------------------------------------
--- sets of non-past prefixes and endings
-----------------------------------------
-
--- prefixes for non-past forms in -a-
-local nonpast_prefixes_a = {
-	-- singular
-	hamza .. dia.a, "تَ", "تَ", "يَ", "تَ",
-	--dual
-	"تَ", "يَ", "تَ",
-	-- plural
-	"نَ", "تَ", "تَ", "يَ", "يَ"
-}
-
--- prefixes for non-past forms in -u- (passive; active forms II, III, IV, Iq)
-local nonpast_prefixes_u = {
-	-- singular
-	hamza .. dia.u, "تُ", "تُ", "يُ", "تُ",
-	--dual
-	"تُ", "يُ", "تُ",
-	-- plural
-	"نُ", "تُ", "تُ", "يُ", "يُ"
-}
-
--- There are only five distinct endings in all non-past verbs. Make any set of
--- non-past endings given these five distinct endings.
-local function make_nonpast_endings(null, fem, dual, pl, fempl)
-	return {
-	-- singular
-	null, null, fem, null, null,
-	-- dual
-	dual, dual, dual,
-	-- plural
-	null, pl, fempl, pl, fempl
-	}
-end
-
--- endings for non-past indicative
-local indic_endings = make_nonpast_endings(
-	dia.u,
-	dia.i .. "ينَ",
-	dia.a .. "انِ",
-	dia.u .. "ونَ",
-	dia.s .. "نَ"
-)
-
--- make the endings for non-past subjunctive/jussive, given the vowel diacritic
--- used in "null" endings (1s/2sm/3sm/3sf/1p)
-local function make_subj_juss_endings(dia_null) 
-	return make_nonpast_endings(
-	dia_null,
-	dia.i .. "ي",
-	dia.a .. "ا",
-	dia.u .. "و",
-	dia.s .. "نَ"
-	)
-end
-
--- endings for non-past subjunctive
-local subj_endings = make_subj_juss_endings(dia.a)
-
--- endings for non-past jussive
-local juss_endings = make_subj_juss_endings(dia.s)
-
--- endings for alternative geminate non-past jussive in -a; same as subjunctive
-local juss_endings_alt_a = subj_endings
-
--- endings for alternative geminate non-past jussive in -i
-local juss_endings_alt_i = make_subj_juss_endings(dia.i)
-
--- endings for final-weak non-past indicative in -ā. Note that AY, AW and
--- AAMAQ are global variables.
-local indic_endings_aa = make_nonpast_endings(
-	aamaq,
-	ay .. dia.s .. "نَ",
-	ay .. dia.a .. "انِ",
-	aw .. dia.s .. "نَ",
-	ay .. dia.s .. "نَ"
-)
-
--- make endings for final-weak non-past indicative in -ī or -ū; IIUU is
--- ī or ū as appropriate. Note that II and UU are global variables.
-local function make_indic_endings_ii_uu(iiuu)
-	return make_nonpast_endings(
-	iiuu,
-	ii .. "نَ",
-	iiuu .. dia.a .. "انِ",
-	uu .. "نَ",
-	iiuu .. "نَ"
-	)
-end
-
--- endings for final-weak non-past indicative in -ī
-local indic_endings_ii = make_indic_endings_ii_uu(ii)
-
--- endings for final-weak non-past indicative in -ū
-local indic_endings_uu = make_indic_endings_ii_uu(uu)
-
--- endings for final-weak non-past subjunctive in -ā. Note that AY, AW, ALIF,
--- AAMAQ are global variables.
-local subj_endings_aa = make_nonpast_endings(
-	aamaq,
-	ay .. dia.s,
-	ay .. aa,
-	aw .. dia.s .. alif,
-	ay .. dia.s .. "نَ"
-)
-
--- make endings for final-weak non-past subjunctive in -ī or -ū. IIUU is
--- ī or ū as appropriate. Note that AA, II, UU, ALIF are global variables.
-local function make_subj_endings_ii_uu(iiuu)
-	return make_nonpast_endings(
-	iiuu .. dia.a,
-	ii,
-	iiuu .. aa,
-	uu .. alif,
-	iiuu .. "نَ"
-	)
-end
-
--- endings for final-weak non-past subjunctive in -ī
-local subj_endings_ii = make_subj_endings_ii_uu(ii)
-
--- endings for final-weak non-past subjunctive in -ū
-local subj_endings_uu = make_subj_endings_ii_uu(uu)
-
--- endings for final-weak non-past jussive in -ā
-local juss_endings_aa = make_nonpast_endings(
-	dia.a,
-	ay .. dia.s,
-	ay .. aa,
-	aw .. dia.s .. alif,
-	ay .. dia.s .. "نَ"
-)
-
--- Make endings for final-weak non-past jussive in -ī or -ū. IU is short i or u,
--- IIUU is long ī or ū as appropriate. Note that AA, II, UU, ALIF are global
--- variables.
-local function make_juss_endings_ii_uu(iu, iiuu)
-	return make_nonpast_endings(
-	iu,
-	ii,
-	iiuu .. aa,
-	uu .. alif,
-	iiuu .. "نَ"
-	)
-end
-
--- endings for final-weak non-past jussive in -ī
-local juss_endings_ii = make_juss_endings_ii_uu(dia.i, ii)
-
--- endings for final-weak non-past jussive in -ū
-local juss_endings_uu = make_juss_endings_ii_uu(dia.u, uu)
 
 ---------------------------------------
 -- functions to inflect non-past tenses
@@ -2352,45 +2711,22 @@ function jussive_gem_conj(data, tense, prefixes, v_stem, c_stem)
 	nonpast_2stem_conj(data, tense, prefixes, v_stem, c_stem, juss_endings, "jussive")
 end
 
------------------------------
--- sets of imperative endings
------------------------------
-
--- extract the second person jussive endings to get corresponding imperative
--- endings
-local function imperative_endings_from_jussive(endings)
-	return {endings[2], endings[3], endings[6], endings[10], endings[11]}
-end
-
--- normal imperative endings
-local impr_endings = imperative_endings_from_jussive(juss_endings)
--- alternative geminate imperative endings in -a
-local impr_endings_alt_a = imperative_endings_from_jussive(juss_endings_alt_a)
--- alternative geminate imperative endings in -i
-local impr_endings_alt_i = imperative_endings_from_jussive(juss_endings_alt_i)
--- final-weak imperative endings in -ā
-local impr_endings_aa = imperative_endings_from_jussive(juss_endings_aa)
--- final-weak imperative endings in -ī
-local impr_endings_ii = imperative_endings_from_jussive(juss_endings_ii)
--- final-weak imperative endings in -ū
-local impr_endings_uu = imperative_endings_from_jussive(juss_endings_uu)
-
 --------------------------------------
 -- functions to inflect the imperative
 --------------------------------------
 
--- generate imperative forms for sound or assimilated verbs
+-- generate imperative parts for sound or assimilated verbs
 function make_1stem_imperative(data, stem)
 	inflect_tense_impr(data, stem, impr_endings)
 end
 
--- generate imperative forms for two-stem verbs (hollow or geminate)
+-- generate imperative parts for two-stem verbs (hollow or geminate)
 function make_2stem_imperative(data, v_stem, c_stem)
 	inflect_tense_impr(data,
 		{c_stem, v_stem, v_stem, v_stem, c_stem}, impr_endings)
 end
 
--- generate imperative forms for geminate verbs form I (also IV, VII, VIII, X)
+-- generate imperative parts for geminate verbs form I (also IV, VII, VIII, X)
 function make_gem_imperative(data, v_stem, c_stem)
 	inflect_tense_impr(data,
 		{v_stem, v_stem, v_stem, v_stem, c_stem}, impr_endings_alt_a)
@@ -2402,21 +2738,6 @@ end
 ------------------------------------
 -- functions to inflect entire verbs
 ------------------------------------
-
--- Active forms II, III, IV, Iq use non-past prefixes in -u- instead of -a-.
-function prefix_vowel_from_form(form)
-	if form == "II" or form == "III" or form == "IV" or form == "Iq" then
-		return "u"
-	else
-		return "a"
-	end
-end
-
--- true if the active non-past takes a-vowelling rather than i-vowelling
--- in its last syllable
-function is_form56(form)
-	return form == "V" or form == "VI" or form == "XV" or form == "IIq"
-end
 
 -- generate finite parts of a sound verb (also works for assimilated verbs)
 -- from five stems (past and non-past, active and passive, plus imperative)
@@ -2452,40 +2773,6 @@ function make_final_weak_verb(data, past_stem, ps_past_stem, nonpast_stem,
 	inflect_tense_impr(data, imper_stem, impr_suffs)
 end
 
--- generate finite parts of a form-I final-weak verb from five
--- stems (past and non-past, active and passive, plus imperative) plus the
--- the third radical and the past and non-past vowels
-function make_form_i_final_weak_verb_from_stems(data, past_stem, ps_past_stem,
-		nonpast_stem, ps_nonpast_stem, imper_stem, rad3, past_vowel,
-		nonpast_vowel)
-	local past_suffs =
-		rad3 == yaa and past_vowel == "a" and past_endings_ay or
-		rad3 == waw and past_vowel == "a" and past_endings_aw or
-		past_vowel == "i" and past_endings_ii or
-		past_endings_uu
-	local indic_suffs, subj_suffs, juss_suffs, impr_suffs
-	if nonpast_vowel == "a" then
-		indic_suffs = indic_endings_aa
-		subj_suffs = subj_endings_aa
-		juss_suffs = juss_endings_aa
-		impr_suffs = impr_endings_aa
-	elseif nonpast_vowel == "i" then
-		indic_suffs = indic_endings_ii
-		subj_suffs = subj_endings_ii
-		juss_suffs = juss_endings_ii
-		impr_suffs = impr_endings_ii
-	else
-		assert(nonpast_vowel == "u")
-		indic_suffs = indic_endings_uu
-		subj_suffs = subj_endings_uu
-		juss_suffs = juss_endings_uu
-		impr_suffs = impr_endings_uu
-	end
-	make_final_weak_verb(data, past_stem, ps_past_stem, nonpast_stem,
-		ps_nonpast_stem, imper_stem, past_suffs, indic_suffs,
-		subj_suffs, juss_suffs, impr_suffs, "a")
-end
-
 -- generate finite parts of an augmented (form II+) final-weak verb from five
 -- stems (past and non-past, active and passive, plus imperative) plus the
 -- prefix vowel in the active non-past ("a" or "u") and a flag indicating if
@@ -2518,7 +2805,7 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 
 	local final_weak = rad3 == nil
 	local prefix_vowel = prefix_vowel_from_form(form)
-	local form56 = is_form56(form)
+	local form56 = form_nonpast_a_vowel(form)
 	local a_base_suffix = final_weak and "" or dia.a .. rad3
 	local i_base_suffix = final_weak and "" or dia.i .. rad3
 	
@@ -2532,7 +2819,7 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 	local imper_stem = past_stem_base ..
 		(form56 and a_base_suffix or i_base_suffix)
 
-	-- make forms
+	-- make parts
 	if final_weak then
 		make_augmented_final_weak_verb(data, past_stem, ps_past_stem, nonpast_stem,
 			ps_nonpast_stem, imper_stem, prefix_vowel, form56)
@@ -2543,11 +2830,11 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 
 	-- active and passive participle
 	if final_weak then
-		insert_form(data, "ap", mu .. nonpast_stem .. dia.in_)
-		insert_form(data, "pp", mu .. ps_nonpast_stem .. dia.an .. amaq)
+		insert_part(data, "ap", mu .. nonpast_stem .. dia.in_)
+		insert_part(data, "pp", mu .. ps_nonpast_stem .. dia.an .. amaq)
 	else
-		insert_form(data, "ap", mu .. nonpast_stem .. dia.un)
-		insert_form(data, "pp", mu .. ps_nonpast_stem .. dia.un)
+		insert_part(data, "ap", mu .. nonpast_stem .. dia.un)
+		insert_part(data, "pp", mu .. ps_nonpast_stem .. dia.un)
 	end
 end
 
@@ -2620,15 +2907,15 @@ function make_augmented_hollow_verb(data, args, rad3,
 	local imper_c_stem = past_stem_base ..
 		(form410 and i_base_suffix_c or a_base_suffix_c)
 
-	-- make forms
+	-- make parts
 	make_hollow_geminate_verb(data, past_v_stem, past_c_stem, ps_past_v_stem,
 		ps_past_c_stem, nonpast_v_stem, nonpast_c_stem, ps_nonpast_v_stem,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, prefix_vowel, false)
 
 	-- active participle
-	insert_form(data, "ap", mu .. nonpast_v_stem .. dia.un)
+	insert_part(data, "ap", mu .. nonpast_v_stem .. dia.un)
 	-- passive participle
-	insert_form(data, "pp", mu .. ps_nonpast_v_stem .. dia.un)
+	insert_part(data, "pp", mu .. ps_nonpast_v_stem .. dia.un)
 end
 
 -- generate finite parts of an augmented (form II+) geminate verb,
@@ -2669,50 +2956,38 @@ function make_augmented_geminate_verb(data, args, rad3,
 	local past_v_stem = past_stem_base .. a_base_suffix_v
 	local past_c_stem = past_stem_base .. a_base_suffix_c
 	local nonpast_v_stem = nonpast_stem_base ..
-		(is_form56(form) and a_base_suffix_v or i_base_suffix_v)
+		(form_nonpast_a_vowel(form) and a_base_suffix_v or i_base_suffix_v)
 	local nonpast_c_stem = nonpast_stem_base ..
-		(is_form56(form) and a_base_suffix_c or i_base_suffix_c)
-	local ps_past_v_stem = ps_past_stem_base .. i_base_suffix_v
+		(form_nonpast_a_vowel(form) and a_base_suffix_c or i_base_suffix_c)
+	-- form III and VI passive past do not have contracted parts, only
+	-- uncontracted parts, which are added separately by those functions
+	local ps_past_v_stem = (form == "III" or form == "VI") and "-" or
+		ps_past_stem_base .. i_base_suffix_v
 	local ps_past_c_stem = ps_past_stem_base .. i_base_suffix_c
 	local ps_nonpast_v_stem = nonpast_stem_base .. a_base_suffix_v
 	local ps_nonpast_c_stem = nonpast_stem_base .. a_base_suffix_c
 
 	-- imperative stem
 	local imper_v_stem = past_stem_base ..
-		(form == "VI" and a_base_suffix_v or i_base_suffix_v)
+		(form_nonpast_a_vowel(form) and a_base_suffix_v or i_base_suffix_v)
 	local imper_c_stem = past_stem_base ..
-		(form == "VI" and a_base_suffix_c or i_base_suffix_c)
+		(form_nonpast_a_vowel(form) and a_base_suffix_c or i_base_suffix_c)
 
-	-- make forms
+	-- make parts
 	make_hollow_geminate_verb(data, past_v_stem, past_c_stem, ps_past_v_stem,
 		ps_past_c_stem, nonpast_v_stem, nonpast_c_stem, ps_nonpast_v_stem,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, prefix_vowel,
 		"geminate")
 
 	-- active participle
-	insert_form(data, "ap", mu .. nonpast_v_stem .. dia.un)
+	insert_part(data, "ap", mu .. nonpast_v_stem .. dia.un)
 	-- passive participle
-	insert_form(data, "pp", mu .. ps_nonpast_v_stem .. dia.un)
+	insert_part(data, "pp", mu .. ps_nonpast_v_stem .. dia.un)
 end
 
 ----------------------------------------
 -- functions to create inflection tables
 ----------------------------------------
-
--- Test function - shows all data, see "show" function's comments
-function test_forms(data, title)
-
-	local text = "<br/>"
-	for key, form in pairs(forms) do
-		-- check for empty strings and nil's
-		if form ~= "" and form then
-			--text =  key .. [=[: {{Arab|]=] .. data.forms[key] .. [=[}}{{LR}}, ]=] 
-			text = text .. key .. ": " .. data.forms[key] .. ", <br/>" 
-		end
-	end
-
-   return text
-end
 
 -- Pattern matching short vowels
 local re_aiu = "[" .. dia.a .. dia.i .. dia.u .. "]"
@@ -2740,7 +3015,7 @@ local postprocess_subs = {
 	{dia.u .. yaa .. dia.s, uu},
 
     -------------- final -yā uses tall alif not alif maqṣūra ------------------
-    {yaa .. dia.a .. amaq, yaa .. dia.a .. alif},
+    {"(" .. yaa ..  dia.sh .. "?" .. dia.a .. ")" .. amaq, "%1" .. alif},
 
 	-------------------------- handle initial hamza ---------------------------
 	-- initial hamza + short-vowel + hamza + sukūn -> hamza + long vowel
@@ -2796,12 +3071,18 @@ local postprocess_subs = {
 	{hamza_subst, hamza}
 }
 
--- Post-process forms to eliminate phonological anomalies. Many of the changes,
+-- Post-process verb parts to eliminate phonological anomalies. Many of the changes,
 -- particularly the tricky ones, involve converting hamza to have the proper
 -- seat. The rules for this are complicated and are documented on the
 -- [[w:Hamza]] Wikipedia page. In some cases there are alternatives allowed,
 -- and we handle them below by returning multiple possibilities.
 function postprocess_term(term)
+	-- if term is regular hyphen/dash, ndash or mdash, return mdash
+	if term == "-" or term == "–" or term == "—" then
+		return {"—"} -- mdash
+	elseif term == "?" then
+		return {"?"}
+	end
 	-- do the main post-processing, based on the pattern substitutions in
 	-- postprocess_subs
 	for _, sub in ipairs(postprocess_subs) do
@@ -2817,9 +3098,9 @@ function postprocess_term(term)
 	elseif rfind(term, yaa .. "ؤُو") then
 		return {rsub1(term, yaa .. "ؤُو", yaa .. "ئُو"), term}
 	elseif rfind(term, alif .. "ؤُو") then
-		-- Here John Mace "Arabic Verbs" is inconsistent. In past-tense data,
+		-- Here John Mace "Arabic Verbs" is inconsistent. In past-tense parts,
 		-- the preferred alternative has hamza on the line, whereas in
-		-- non-past forms the preferred alternative has hamza-on-yaa even
+		-- non-past parts the preferred alternative has hamza-on-yaa even
 		-- though the sequence of vowels is identical. It's too complicated to
 		-- propagate information about tense through to here so pick one.
 		return {rsub1(term, alif .. "ؤُو", alif .. "ئُو"), term}
@@ -2833,66 +3114,94 @@ function postprocess_term(term)
 	end
 end
 
--- For each paradigm form, postprocess the entries, remove duplicates and
+-- For each paradigm part, postprocess the entries, remove duplicates and
 -- return the set of Arabic and transliterated Latin entries as two return
 -- values.
-function get_spans(form)
-	if type(form) == "string" then
-		form = {form}
+function get_spans(part)
+	if type(part) == "string" then
+		part = {part}
 	end
-	local form_nondup = {}
+	local part_nondup = {}
 	-- for each entry, postprocess it, which may potentially return
 	-- multiple entries; insert each into an array, checking and
 	-- omitting duplicates
-	for _, entry in ipairs(form) do
+	for _, entry in ipairs(part) do
 		for _, e in ipairs(postprocess_term(entry)) do
-			insert_if_not(form_nondup, e)
+			insert_if_not(part_nondup, e)
 		end
 	end
 	-- convert each individual entry into Arabic and Latin span
 	local arabic_spans = {}
 	local latin_spans = {}
-	for _, entry in ipairs(form_nondup) do
+	for _, entry in ipairs(part_nondup) do
 		table.insert(arabic_spans, entry)
-		-- multiple Arabic entries may map to the same Latin entry
-		-- (happens particularly with variant ways of spelling hamza)
-		insert_if_not(latin_spans, ar_translit.tr(entry, nil, nil, nil))
+		if entry ~= "—" and entry ~= "?" then
+			-- multiple Arabic entries may map to the same Latin entry
+			-- (happens particularly with variant ways of spelling hamza)
+			insert_if_not(latin_spans, ar_translit.tr(entry, nil, nil, nil))
+		end
 	end
 	return arabic_spans, latin_spans
 end
 
 -- Make the conjugation table. Called from export.show().
-function make_table(data, title, passive, intrans)
+function make_table(data, title, form, intrans)
 
 	local forms = data.forms
-	local arabic_spans_3sm_perf, _ = get_spans(forms["3sm-perf"])
+	local arabic_spans_3sm_perf, _
+	if data.passive == "only" or data.passive == "only-impers" then
+		arabic_spans_3sm_perf, _ = get_spans(forms["3sm-ps-perf"])
+	else
+		arabic_spans_3sm_perf, _ = get_spans(forms["3sm-perf"])
+	end
 	-- convert Arabic terms to spans
 	for i, entry in ipairs(arabic_spans_3sm_perf) do
 		arabic_spans_3sm_perf[i] = "<b lang=\"ar\" class=\"Arab\">" .. entry .. "</b>"
 	end
 	-- concatenate spans
-	local form_3sm_perf = '<div style="display: inline-block">' ..
+	local part_3sm_perf = '<div style="display: inline-block">' ..
 		table.concat(arabic_spans_3sm_perf, " <small style=\"color: #888\">or</small> ") .. "</div>"
-	local title = 'Conjugation of ' .. form_3sm_perf
-		.. (title and " (" .. title .. ")" or "")
 
 	-- compute # of verbal nouns before we collapse them
 	local num_vns = type(forms["vn"]) == "table" and #forms["vn"] or 1
-	
-	-- Format and and add transliterations to all forms
-	for key, form in pairs(forms) do
-		-- check for empty strings, empty arrays and nil's
-		if form and #form > 0 then
-			local arabic_spans, latin_spans = get_spans(form)
+
+	-- also extract list of verbal nouns and preceding text "verbal noun" or
+	-- "verbal nouns", for the conjugation table title
+	local vn_spans, _ = get_spans(forms["vn"])
+	-- convert verbal nouns to spans
+	for i, entry in ipairs(vn_spans) do
+		vn_spans[i] = '<span lang="ar" class="Arab" style="font-weight: normal">' .. entry .. '</span>'
+	end
+	local vn_list = #vn_spans == 0 and "?" or
+		table.concat(vn_spans, " <small style=\"color: #888\">or</small> ")
+	local vn_prefix = #vn_spans > 1 and "verbal nouns" or "verbal noun"
+	local vn_text = vn_prefix .. " " .. vn_list
+
+	-- construct conjugation table title
+	local title = 'Conjugation of ' .. part_3sm_perf
+		.. (form == "I" and " (" .. title .. ", " .. vn_text .. ")" or " (" .. title .. ")")
+
+	-- Format and add transliterations to all parts
+	for key, part in pairs(forms) do
+		-- check for nil, empty array, size-one array holding a dash or ?
+		if part and #part > 0 then
+			local arabic_spans, latin_spans = get_spans(part)
 			-- convert Arabic terms to links
 			for i, entry in ipairs(arabic_spans) do
-				arabic_spans[i] = "<span lang=\"ar\" class=\"Arab\">[[" .. entry .. "]]</span>"
+				arabic_spans[i] = links(entry)
 			end
 			-- concatenate spans
 			forms[key] = '<div style="display: inline-block">' .. table.concat(arabic_spans, " <small style=\"color: #888\">or</small> ") .. "</div>" .. "<br/>" ..
 				"<span style=\"color: #888\">" .. table.concat(latin_spans, " <small>or</small> ") .. "</span>"
+		-- if no verbal nouns, it's normally because they're unknown or
+		-- unspecified rather than non-existent. For an actually non-existent
+		-- verbal noun, put a hyphen or mdash explicitly as the value of the
+		-- paradigm part, and it will be handled appropriately (no attempt to
+		-- transliterate).
+		elseif key == "vn" then
+			forms[key] = "?"
 		else
-			forms[key] = "&mdash;"
+			forms[key] = "—"
 		end
 	end
 
@@ -2902,253 +3211,259 @@ function make_table(data, title, passive, intrans)
 
 {| border="1" color="#cdcdcd" style="border-collapse:collapse; border:1px solid #555555; background:#fdfdfd; width:100%; text-align:center" class="inflection-table"
 |-
-! colspan="6" style="background:#dedede" | verbal noun]=] .. (num_vns > 1 and "s" or "") .. "<br />" .. tag_text(num_vns > 1 and "المصادر" or "المصدر") .. [=[
+! colspan="6" style="background:#dedede" | verbal noun]=] .. (num_vns > 1 and "s" or "") .. "<br />" .. tag_text(num_vns > 1 and "المَصَادِر" or "المَصْدَر") .. [=[
 
-| colspan="7" | ]=] .. links(forms["vn"]) .. [=[
+| colspan="7" | ]=] .. forms["vn"]
 
-|-
-! colspan="6" style="background:#dedede" | active participle<br />]=] .. tag_text("اسم الفاعل") .. [=[
-
-| colspan="7" | ]=] .. links(forms["ap"])
-
-	if passive then
+	if data.passive ~= "only" and data.passive ~= "only-impers" then
 		text = text .. [=[
 
 |-
-! colspan="6" style="background:#dedede" | passive participle<br />]=] .. tag_text("اسم المفعول") .. [=[
+! colspan="6" style="background:#dedede" | active participle<br />]=] .. tag_text("اِسْم الفَاعِل") .. [=[
 
-| colspan="7" | ]=] .. links(forms["pp"])
+| colspan="7" | ]=] .. forms["ap"]
 	end
 
-	text = text .. [=[
-
-|-
-! colspan="12" style="background:#bcbcbc" | active voice<br />]=] .. tag_text("الفعل المعلوم") .. [=[
-
-|-
-! colspan="2" style="background:#cdcdcd" | 
-! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المفرد") .. [=[
-
-! rowspan="12" style="background:#cdcdcd;width:.5em" | 
-! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المثنى") .. [=[
-
-! rowspan="12" style="background:#cdcdcd;width:.5em" | 
-! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجمع") .. [=[
-
-|-
-! colspan="2" style="background:#cdcdcd" | 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المتكلم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
-
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المتكلم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
-
-|-
-! rowspan="2" style="background:#cdcdcd" | perfect indicative<br />]=] .. tag_text("الماضي") .. [=[
-
-! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-perf"]) .. [=[
-
-| ]=] .. links(forms["2sm-perf"]) .. [=[
-
-| ]=] .. links(forms["3sm-perf"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["2d-perf"]) .. [=[
-
-| ]=] .. links(forms["3dm-perf"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["1p-perf"]) .. [=[
-
-| ]=] .. links(forms["2pm-perf"]) .. [=[
-
-| ]=] .. links(forms["3pm-perf"]) .. [=[
-
-|-
-! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-perf"]) .. [=[
-
-| ]=] .. links(forms["3sf-perf"]) .. [=[
-
-| ]=] .. links(forms["3df-perf"]) .. [=[
-
-| ]=] .. links(forms["2pf-perf"]) .. [=[
-
-| ]=] .. links(forms["3pf-perf"]) .. [=[
-
-|-
-! rowspan="2" style="background:#cdcdcd" | imperfect indicative<br />]=] .. tag_text("المضارع") .. [=[
-
-! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-impf"]) .. [=[
-
-| ]=] .. links(forms["2sm-impf"]) .. [=[
-
-| ]=] .. links(forms["3sm-impf"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["2d-impf"]) .. [=[
-
-| ]=] .. links(forms["3dm-impf"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["1p-impf"]) .. [=[
-
-| ]=] .. links(forms["2pm-impf"]) .. [=[
-
-| ]=] .. links(forms["3pm-impf"]) .. [=[
-
-|-
-! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-impf"]) .. [=[
-
-| ]=] .. links(forms["3sf-impf"]) .. [=[
-
-| ]=] .. links(forms["3df-impf"]) .. [=[
-
-| ]=] .. links(forms["2pf-impf"]) .. [=[
-
-| ]=] .. links(forms["3pf-impf"]) .. [=[
-
-|-
-! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المضارع المنصوب") .. [=[
-
-! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-subj"]) .. [=[
-
-| ]=] .. links(forms["2sm-subj"]) .. [=[
-
-| ]=] .. links(forms["3sm-subj"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["2d-subj"]) .. [=[
-
-| ]=] .. links(forms["3dm-subj"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["1p-subj"]) .. [=[
-
-| ]=] .. links(forms["2pm-subj"]) .. [=[
-
-| ]=] .. links(forms["3pm-subj"]) .. [=[
-
-|-
-! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-subj"]) .. [=[
-
-| ]=] .. links(forms["3sf-subj"]) .. [=[
-
-| ]=] .. links(forms["3df-subj"]) .. [=[
-
-| ]=] .. links(forms["2pf-subj"]) .. [=[
-
-| ]=] .. links(forms["3pf-subj"]) .. [=[
-
-|-
-! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المضارع المجزوم") .. [=[
-
-! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-juss"]) .. [=[
-
-| ]=] .. links(forms["2sm-juss"]) .. [=[
-
-| ]=] .. links(forms["3sm-juss"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["2d-juss"]) .. [=[
-
-| ]=] .. links(forms["3dm-juss"]) .. [=[
-
-| rowspan="2" | ]=] .. links(forms["1p-juss"]) .. [=[
-
-| ]=] .. links(forms["2pm-juss"]) .. [=[
-
-| ]=] .. links(forms["3pm-juss"]) .. [=[
-
-|-
-! style="background:#dedede" | ''f''
-
-| ]=] .. links(forms["2sf-juss"]) .. [=[
-
-| ]=] .. links(forms["3sf-juss"]) .. [=[
-
-| ]=] .. links(forms["3df-juss"]) .. [=[
-
-| ]=] .. links(forms["2pf-juss"]) .. [=[
-
-| ]=] .. links(forms["3pf-juss"]) .. [=[
-
-|-
-! rowspan="2" style="background:#cdcdcd" | imperative<br />]=] .. tag_text("الأمر") .. [=[
-
-! style="background:#dedede" | ''m''
-| rowspan="2" | 
-| ]=] .. links(forms["2sm-impr"]) .. [=[
-
-| rowspan="2" | 
-
-| rowspan="2" | ]=] .. links(forms["2d-impr"]) .. [=[
-
-| rowspan="2" | 
-
-| rowspan="2" | 
-| ]=] .. links(forms["2pm-impr"]) .. [=[
-
-| rowspan="2" | 
-
-|-
-! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-impr"]) .. [=[
-
-| ]=] .. links(forms["2pf-impr"])
-
-	if passive == "impers" then
+	if data.passive then
 		text = text .. [=[
 
 |-
-! colspan="12" style="background:#bcbcbc" | passive voice<br />]=] .. tag_text("الفعل المجهول") .. [=[
+! colspan="6" style="background:#dedede" | passive participle<br />]=] .. tag_text("اِسْم المَفْعُول") .. [=[
+
+| colspan="7" | ]=] .. forms["pp"]
+	end
+
+	if data.passive ~= "only" and data.passive ~= "only-impers" then
+		text = text .. [=[
+
+|-
+! colspan="12" style="background:#bcbcbc" | active voice<br />]=] .. tag_text("الفِعْل المَعْلُوم") .. [=[
+
+|-
+! colspan="2" style="background:#cdcdcd" | 
+! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المُفْرَد") .. [=[
+
+! rowspan="12" style="background:#cdcdcd;width:.5em" | 
+! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المُثَنَّى") .. [=[
+
+! rowspan="12" style="background:#cdcdcd;width:.5em" | 
+! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجَمْع") .. [=[
+
+|-
+! colspan="2" style="background:#cdcdcd" | 
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
+
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
+
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
+
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
+
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
+
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
+
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
+
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
+
+|-
+! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />]=] .. tag_text("المَاضِي") .. [=[
+
+! style="background:#dedede" | ''m''
+| rowspan="2" | ]=] .. forms["1s-perf"] .. [=[
+
+| ]=] .. forms["2sm-perf"] .. [=[
+
+| ]=] .. forms["3sm-perf"] .. [=[
+
+| rowspan="2" | ]=] .. forms["2d-perf"] .. [=[
+
+| ]=] .. forms["3dm-perf"] .. [=[
+
+| rowspan="2" | ]=] .. forms["1p-perf"] .. [=[
+
+| ]=] .. forms["2pm-perf"] .. [=[
+
+| ]=] .. forms["3pm-perf"] .. [=[
+
+|-
+! style="background:#dedede" | ''f''
+| ]=] .. forms["2sf-perf"] .. [=[
+
+| ]=] .. forms["3sf-perf"] .. [=[
+
+| ]=] .. forms["3df-perf"] .. [=[
+
+| ]=] .. forms["2pf-perf"] .. [=[
+
+| ]=] .. forms["3pf-perf"] .. [=[
+
+|-
+! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />]=] .. tag_text("المُضَارِع") .. [=[
+
+! style="background:#dedede" | ''m''
+| rowspan="2" | ]=] .. forms["1s-impf"] .. [=[
+
+| ]=] .. forms["2sm-impf"] .. [=[
+
+| ]=] .. forms["3sm-impf"] .. [=[
+
+| rowspan="2" | ]=] .. forms["2d-impf"] .. [=[
+
+| ]=] .. forms["3dm-impf"] .. [=[
+
+| rowspan="2" | ]=] .. forms["1p-impf"] .. [=[
+
+| ]=] .. forms["2pm-impf"] .. [=[
+
+| ]=] .. forms["3pm-impf"] .. [=[
+
+|-
+! style="background:#dedede" | ''f''
+| ]=] .. forms["2sf-impf"] .. [=[
+
+| ]=] .. forms["3sf-impf"] .. [=[
+
+| ]=] .. forms["3df-impf"] .. [=[
+
+| ]=] .. forms["2pf-impf"] .. [=[
+
+| ]=] .. forms["3pf-impf"] .. [=[
+
+|-
+! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المُضَارِع المَنْصُوب") .. [=[
+
+! style="background:#dedede" | ''m''
+| rowspan="2" | ]=] .. forms["1s-subj"] .. [=[
+
+| ]=] .. forms["2sm-subj"] .. [=[
+
+| ]=] .. forms["3sm-subj"] .. [=[
+
+| rowspan="2" | ]=] .. forms["2d-subj"] .. [=[
+
+| ]=] .. forms["3dm-subj"] .. [=[
+
+| rowspan="2" | ]=] .. forms["1p-subj"] .. [=[
+
+| ]=] .. forms["2pm-subj"] .. [=[
+
+| ]=] .. forms["3pm-subj"] .. [=[
+
+|-
+! style="background:#dedede" | ''f''
+| ]=] .. forms["2sf-subj"] .. [=[
+
+| ]=] .. forms["3sf-subj"] .. [=[
+
+| ]=] .. forms["3df-subj"] .. [=[
+
+| ]=] .. forms["2pf-subj"] .. [=[
+
+| ]=] .. forms["3pf-subj"] .. [=[
+
+|-
+! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المُضَارِع المَجْزُوم") .. [=[
+
+! style="background:#dedede" | ''m''
+| rowspan="2" | ]=] .. forms["1s-juss"] .. [=[
+
+| ]=] .. forms["2sm-juss"] .. [=[
+
+| ]=] .. forms["3sm-juss"] .. [=[
+
+| rowspan="2" | ]=] .. forms["2d-juss"] .. [=[
+
+| ]=] .. forms["3dm-juss"] .. [=[
+
+| rowspan="2" | ]=] .. forms["1p-juss"] .. [=[
+
+| ]=] .. forms["2pm-juss"] .. [=[
+
+| ]=] .. forms["3pm-juss"] .. [=[
+
+|-
+! style="background:#dedede" | ''f''
+
+| ]=] .. forms["2sf-juss"] .. [=[
+
+| ]=] .. forms["3sf-juss"] .. [=[
+
+| ]=] .. forms["3df-juss"] .. [=[
+
+| ]=] .. forms["2pf-juss"] .. [=[
+
+| ]=] .. forms["3pf-juss"] .. [=[
+
+|-
+! rowspan="2" style="background:#cdcdcd" | imperative<br />]=] .. tag_text("الأَمْر") .. [=[
+
+! style="background:#dedede" | ''m''
+| rowspan="2" | 
+| ]=] .. forms["2sm-impr"] .. [=[
+
+| rowspan="2" | 
+
+| rowspan="2" | ]=] .. forms["2d-impr"] .. [=[
+
+| rowspan="2" | 
+
+| rowspan="2" | 
+| ]=] .. forms["2pm-impr"] .. [=[
+
+| rowspan="2" | 
+
+|-
+! style="background:#dedede" | ''f''
+| ]=] .. forms["2sf-impr"] .. [=[
+
+| ]=] .. forms["2pf-impr"]
+	end
+
+	if data.passive == "impers" or data.passive == "only-impers" then
+		text = text .. [=[
+
+|-
+! colspan="12" style="background:#bcbcbc" | passive voice<br />]=] .. tag_text("الفِعْل المَجْهُول") .. [=[
 
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المفرد") .. [=[
+! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المُفْرَد") .. [=[
 
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المثنى") .. [=[
+! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المُثَنَّى") .. [=[
 
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجمع") .. [=[
+! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجَمْع") .. [=[
 
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المتكلم") .. [=[
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
 
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
 
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
 
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
 
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المتكلم") .. [=[
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
 
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
 
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
 
 |-
-! rowspan="2" style="background:#cdcdcd" | perfect indicative<br />]=] .. tag_text("الماضي") .. [=[
+! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />]=] .. tag_text("المَاضِي") .. [=[
 
 ! style="background:#dedede" | ''m''
 | rowspan="2" | &mdash;
 
 | &mdash;
 
-| ]=] .. links(forms["3sm-ps-perf"]) .. [=[
+| ]=] .. forms["3sm-ps-perf"] .. [=[
 
 | rowspan="2" | &mdash;
 
@@ -3173,14 +3488,14 @@ function make_table(data, title, passive, intrans)
 | &mdash;
 
 |-
-! rowspan="2" style="background:#cdcdcd" | imperfect indicative<br />]=] .. tag_text("المضارع") .. [=[
+! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />]=] .. tag_text("المُضَارِع") .. [=[
 
 ! style="background:#dedede" | ''m''
 | rowspan="2" | &mdash;
 
 | &mdash;
 
-| ]=] .. links(forms["3sm-ps-impf"]) .. [=[
+| ]=] .. forms["3sm-ps-impf"] .. [=[
 
 | rowspan="2" | &mdash;
 
@@ -3205,14 +3520,14 @@ function make_table(data, title, passive, intrans)
 | &mdash;
 
 |-
-! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المضارع المنصوب") .. [=[
+! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المُضَارِع المَنْصُوب") .. [=[
 
 ! style="background:#dedede" | ''m''
 | rowspan="2" | &mdash;
 
 | &mdash;
 
-| ]=] .. links(forms["3sm-ps-subj"]) .. [=[
+| ]=] .. forms["3sm-ps-subj"] .. [=[
 
 | rowspan="2" | &mdash;
 
@@ -3237,7 +3552,7 @@ function make_table(data, title, passive, intrans)
 | &mdash;
 
 |-
-! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المضارع المجزوم") .. [=[
+! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المُضَارِع المَجْزُوم") .. [=[
 
 ! style="background:#dedede" | ''m''
 | rowspan="2" | ]=]
@@ -3245,7 +3560,7 @@ function make_table(data, title, passive, intrans)
 
 | &mdash;
 
-| ]=] .. links(forms["3sm-ps-juss"]) .. [=[
+| ]=] .. forms["3sm-ps-juss"] .. [=[
 
 | rowspan="2" | &mdash;
 
@@ -3269,168 +3584,168 @@ function make_table(data, title, passive, intrans)
 
 | &mdash;]=]
 
-	elseif passive then
+	elseif data.passive then
 		text = text .. [=[
 
 |-
-! colspan="12" style="background:#bcbcbc" | passive voice<br />]=] .. tag_text("الفعل المجهول") .. [=[
+! colspan="12" style="background:#bcbcbc" | passive voice<br />]=] .. tag_text("الفِعْل المَجْهُول") .. [=[
 
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المفرد") .. [=[
+! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المُفْرَد") .. [=[
 
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المثنى") .. [=[
+! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المُثَنَّى") .. [=[
 
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجمع") .. [=[
+! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجَمْع") .. [=[
 
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المتكلم") .. [=[
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
 
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
 
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
 
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
 
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المتكلم") .. [=[
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
 
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المخاطب") .. [=[
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
 
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغائب") .. [=[
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
 
 |-
-! rowspan="2" style="background:#cdcdcd" | perfect indicative<br />]=] .. tag_text("الماضي") .. [=[
+! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />]=] .. tag_text("المَاضِي") .. [=[
 
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-ps-perf"]) .. [=[
+| rowspan="2" | ]=] .. forms["1s-ps-perf"] .. [=[
 
-| ]=] .. links(forms["2sm-ps-perf"]) .. [=[
+| ]=] .. forms["2sm-ps-perf"] .. [=[
 
-| ]=] .. links(forms["3sm-ps-perf"]) .. [=[
+| ]=] .. forms["3sm-ps-perf"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["2d-ps-perf"]) .. [=[
+| rowspan="2" | ]=] .. forms["2d-ps-perf"] .. [=[
 
-| ]=] .. links(forms["3dm-ps-perf"]) .. [=[
+| ]=] .. forms["3dm-ps-perf"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["1p-ps-perf"]) .. [=[
+| rowspan="2" | ]=] .. forms["1p-ps-perf"] .. [=[
 
-| ]=] .. links(forms["2pm-ps-perf"]) .. [=[
+| ]=] .. forms["2pm-ps-perf"] .. [=[
 
-| ]=] .. links(forms["3pm-ps-perf"]) .. [=[
+| ]=] .. forms["3pm-ps-perf"] .. [=[
 
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-ps-perf"]) .. [=[
+| ]=] .. forms["2sf-ps-perf"] .. [=[
 
-| ]=] .. links(forms["3sf-ps-perf"]) .. [=[
+| ]=] .. forms["3sf-ps-perf"] .. [=[
 
-| ]=] .. links(forms["3df-ps-perf"]) .. [=[
+| ]=] .. forms["3df-ps-perf"] .. [=[
 
-| ]=] .. links(forms["2pf-ps-perf"]) .. [=[
+| ]=] .. forms["2pf-ps-perf"] .. [=[
 
-| ]=] .. links(forms["3pf-ps-perf"]) .. [=[
+| ]=] .. forms["3pf-ps-perf"] .. [=[
 
 |-
-! rowspan="2" style="background:#cdcdcd" | imperfect indicative<br />]=] .. tag_text("المضارع") .. [=[
+! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />]=] .. tag_text("المُضَارِع") .. [=[
 
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-ps-impf"]) .. [=[
+| rowspan="2" | ]=] .. forms["1s-ps-impf"] .. [=[
 
-| ]=] .. links(forms["2sm-ps-impf"]) .. [=[
+| ]=] .. forms["2sm-ps-impf"] .. [=[
 
-| ]=] .. links(forms["3sm-ps-impf"]) .. [=[
+| ]=] .. forms["3sm-ps-impf"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["2d-ps-impf"]) .. [=[
+| rowspan="2" | ]=] .. forms["2d-ps-impf"] .. [=[
 
-| ]=] .. links(forms["3dm-ps-impf"]) .. [=[
+| ]=] .. forms["3dm-ps-impf"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["1p-ps-impf"]) .. [=[
+| rowspan="2" | ]=] .. forms["1p-ps-impf"] .. [=[
 
-| ]=] .. links(forms["2pm-ps-impf"]) .. [=[
+| ]=] .. forms["2pm-ps-impf"] .. [=[
 
-| ]=] .. links(forms["3pm-ps-impf"]) .. [=[
+| ]=] .. forms["3pm-ps-impf"] .. [=[
 
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-ps-impf"]) .. [=[
+| ]=] .. forms["2sf-ps-impf"] .. [=[
 
-| ]=] .. links(forms["3sf-ps-impf"]) .. [=[
+| ]=] .. forms["3sf-ps-impf"] .. [=[
 
-| ]=] .. links(forms["3df-ps-impf"]) .. [=[
+| ]=] .. forms["3df-ps-impf"] .. [=[
 
-| ]=] .. links(forms["2pf-ps-impf"]) .. [=[
+| ]=] .. forms["2pf-ps-impf"] .. [=[
 
-| ]=] .. links(forms["3pf-ps-impf"]) .. [=[
+| ]=] .. forms["3pf-ps-impf"] .. [=[
 
 |-
-! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المضارع المنصوب") .. [=[
+! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المُضَارِع المَنْصُوب") .. [=[
 
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. links(forms["1s-ps-subj"]) .. [=[
+| rowspan="2" | ]=] .. forms["1s-ps-subj"] .. [=[
 
-| ]=] .. links(forms["2sm-ps-subj"]) .. [=[
+| ]=] .. forms["2sm-ps-subj"] .. [=[
 
-| ]=] .. links(forms["3sm-ps-subj"]) .. [=[
+| ]=] .. forms["3sm-ps-subj"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["2d-ps-subj"]) .. [=[
+| rowspan="2" | ]=] .. forms["2d-ps-subj"] .. [=[
 
-| ]=] .. links(forms["3dm-ps-subj"]) .. [=[
+| ]=] .. forms["3dm-ps-subj"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["1p-ps-subj"]) .. [=[
+| rowspan="2" | ]=] .. forms["1p-ps-subj"] .. [=[
 
-| ]=] .. links(forms["2pm-ps-subj"]) .. [=[
+| ]=] .. forms["2pm-ps-subj"] .. [=[
 
-| ]=] .. links(forms["3pm-ps-subj"]) .. [=[
+| ]=] .. forms["3pm-ps-subj"] .. [=[
 
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-ps-subj"]) .. [=[
+| ]=] .. forms["2sf-ps-subj"] .. [=[
 
-| ]=] .. links(forms["3sf-ps-subj"]) .. [=[
+| ]=] .. forms["3sf-ps-subj"] .. [=[
 
-| ]=] .. links(forms["3df-ps-subj"]) .. [=[
+| ]=] .. forms["3df-ps-subj"] .. [=[
 
-| ]=] .. links(forms["2pf-ps-subj"]) .. [=[
+| ]=] .. forms["2pf-ps-subj"] .. [=[
 
-| ]=] .. links(forms["3pf-ps-subj"]) .. [=[
+| ]=] .. forms["3pf-ps-subj"] .. [=[
 
 |-
-! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المضارع المجزوم") .. [=[
+! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المُضَارِع المَجْزُوم") .. [=[
 
 ! style="background:#dedede" | ''m''
 | rowspan="2" | ]=]
-	text = text .. links(forms["1s-ps-juss"]) .. [=[
+	text = text .. forms["1s-ps-juss"] .. [=[
 
-| ]=] .. links(forms["2sm-ps-juss"]) .. [=[
+| ]=] .. forms["2sm-ps-juss"] .. [=[
 
-| ]=] .. links(forms["3sm-ps-juss"]) .. [=[
+| ]=] .. forms["3sm-ps-juss"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["2d-ps-juss"]) .. [=[
+| rowspan="2" | ]=] .. forms["2d-ps-juss"] .. [=[
 
-| ]=] .. links(forms["3dm-ps-juss"]) .. [=[
+| ]=] .. forms["3dm-ps-juss"] .. [=[
 
-| rowspan="2" | ]=] .. links(forms["1p-ps-juss"]) .. [=[
+| rowspan="2" | ]=] .. forms["1p-ps-juss"] .. [=[
 
-| ]=] .. links(forms["2pm-ps-juss"]) .. [=[
+| ]=] .. forms["2pm-ps-juss"] .. [=[
 
-| ]=] .. links(forms["3pm-ps-juss"]) .. [=[
+| ]=] .. forms["3pm-ps-juss"] .. [=[
 
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. links(forms["2sf-ps-juss"]) .. [=[
+| ]=] .. forms["2sf-ps-juss"] .. [=[
 
-| ]=] .. links(forms["3sf-ps-juss"]) .. [=[
+| ]=] .. forms["3sf-ps-juss"] .. [=[
 
-| ]=] .. links(forms["3df-ps-juss"]) .. [=[
+| ]=] .. forms["3df-ps-juss"] .. [=[
 
-| ]=] .. links(forms["2pf-ps-juss"]) .. [=[
+| ]=] .. forms["2pf-ps-juss"] .. [=[
 
-| ]=] .. links(forms["3pf-ps-juss"])
+| ]=] .. forms["3pf-ps-juss"]
 	end
 
 	text = text .. [=[
