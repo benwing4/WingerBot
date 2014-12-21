@@ -78,7 +78,7 @@ local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 local usub = mw.ustring.sub
 local ulen = mw.ustring.len
-local uchar = mw.ustring.char
+local u = mw.ustring.char
 
 local export = {}
 
@@ -86,44 +86,75 @@ local export = {}
 -- conjugating by creating the parts of a basic verb.
 -- They are defined further down.
 local conjugations = {}
-local dia = {
-	s = "\217\146",
-	a = "\217\142",
-	i = "\217\144",
-	u = "\217\143",
-	an = "\217\139",
-	in_ = "\217\141",
-	un = "\217\140",
-	sh = "\217\145",
-	sh_a = "\217\142\217\145",
-	sh_i = "\217\144\217\145",
-	sh_u = "\217\143\217\145"
-	}
-local alif = "ا"
-local amaq = "ى" -- alif maqṣūra
-local yaa = "ي"
-local waw = "و"
-local taa = "ت"
-local siin = "س"
-local nuun = "ن"
-local hamza = "ء"
-local hamza_on_alif = "أ"
-local hamza_under_alif = "إ"
-local hamza_on_waw = "ؤ"
-local hamza_on_yaa = "ئ"
-local amad = "آ" -- alif madda
-local ma = "م" .. dia.a
-local mu = "م" .. dia.u
-local aa = dia.a .. alif
-local aamaq = dia.a .. amaq
-local ah = dia.a .. "ة"
-local aah = aa .. "ة"
-local ii = dia.i .. yaa
-local uu = dia.u .. waw
-local ay = dia.a .. yaa
-local aw = dia.a .. waw
-local hamza_subst = uchar(0xfff0)
-local lrm = uchar(0x200e) -- left-to-right mark
+-- hamza variants
+local HAMZA            = u(0x0621) -- hamza on the line (stand-alone hamza) = ء
+local HAMZA_ON_ALIF    = u(0x0623)
+local HAMZA_ON_WAW     = u(0x0624)
+local HAMZA_UNDER_ALIF = u(0x0625)
+local HAMZA_ON_YA      = u(0x0626)
+local HAMZA_ANY        = "[" .. HAMZA .. HAMZA_ON_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_ON_WAW .. HAMZA_ON_YA .. "]"
+local HAMZA_SUBST      = u(0xfff0)
+
+
+-- diacritics
+local A  = u(0x064E) -- fatḥa
+local AN = u(0x064B) -- fatḥatān (fatḥa tanwīn)
+local U  = u(0x064F) -- ḍamma
+local UN = u(0x064C) -- ḍammatān (ḍamma tanwīn)
+local I  = u(0x0650) -- kasra
+local IN = u(0x064D) -- kasratān (kasra tanwīn)
+local SK = u(0x0652) -- sukūn = no vowel
+local SH = u(0x0651) -- šadda = gemination of consonants
+local DAGGER_ALIF = u(0x0670)
+local DIACRITIC_ANY_BUT_SH = "[" .. A .. I .. U .. AN .. IN .. UN .. SK .. DAGGER_ALIF .. "]"
+-- Pattern matching short vowels
+local AIU = "[" .. A .. I .. U .. "]"
+-- Pattern matching short vowels or sukūn
+local AIUSK = "[" .. A .. I .. U .. SK .. "]"
+-- Pattern matching any diacritics that may be on a consonant
+local DIACRITIC = SH .. "?" .. DIACRITIC_ANY_BUT_SH
+
+local dia = {a = A, i = I, u = U}
+
+-- various letters and signs
+local ALIF   = u(0x0627) -- ʾalif = ا
+local AMAQ   = u(0x0649) -- ʾalif maqṣūra = ى
+local AMAD   = u(0x0622) -- ʾalif madda = آ
+local TA_M   = u(0x0629) -- tāʾ marbūṭa = ة
+local TA     = u(0x062A) -- tāʾ = ت
+local HYPHEN = u(0x0640)
+local NUN    = u(0x0646) -- nūn = ن
+local WAW    = u(0x0648) -- wāw = و
+local YA     = u(0x064A) -- yā = ي
+local SIN    = "س"
+local MIM    = "م"
+local LRM    = u(0x200e) -- left-to-right mark
+
+-- common combinations
+local AH    = A .. TA_M
+local AT    = A .. TA
+local AA    = A .. ALIF
+local AAMAQ = A .. AMAQ
+local AAH   = AA .. TA_M
+local AAT   = AA .. TA
+local II    = I .. YA
+local IY    = II
+local UU    = U .. WAW
+local AY    = A .. YA
+local AW    = A .. WAW
+local AYSK  = AY .. SK
+local AWSK  = AW .. SK
+local NA    = NUN .. A
+local NI    = NUN .. I
+local AAN   = AA .. NUN
+local AANI  = AA .. NI
+local AYNI  = AYSK .. NI
+local AWNA  = AWSK .. NA
+local AYNA  = AYSK .. NA
+local AYAAT = AY .. AAT
+local UNU   = "[" .. UN .. U .. "]"
+local MA    = MIM .. A
+local MU    = MIM .. U
 
 --------------------
 -- Utility functions
@@ -248,29 +279,29 @@ end
 
 -- Form-I verb أخذ or form-VIII verb اتخذ
 local function axadh_radicals(rad1, rad2, rad3)
-	return rad1 == hamza and rad2 == "خ" and rad3 == "ذ"
+	return rad1 == HAMZA and rad2 == "خ" and rad3 == "ذ"
 end
 
 -- Form-I verb whose imperative has a reduced form: أكل and أخذ and أمر
 local function reduced_imperative_verb(rad1, rad2, rad3)
-	return axadh_radicals(rad1, rad2, rad3) or rad1 == hamza and (
+	return axadh_radicals(rad1, rad2, rad3) or rad1 == HAMZA and (
 		rad2 == "ك" and rad3 == "ل" or
 		rad2 == "م" and rad3 == "ر")
 end
 
 -- Form-I verb رأى and form-IV verb أرى
 local function raa_radicals(rad1, rad2, rad3)
-	return rad1 == "ر" and rad2 == hamza and rad3 == yaa
+	return rad1 == "ر" and rad2 == HAMZA and rad3 == YA
 end
 
 -- Form-I verb سأل
 local function saal_radicals(rad1, rad2, rad3)
-	return rad1 == "س" and rad2 == hamza and rad3 == "ل"
+	return rad1 == "س" and rad2 == HAMZA and rad3 == "ل"
 end
 
 -- Form-I verb حيّ or حيي and form-X verb استحيا or استحى or يستحّى
 local function hayy_radicals(rad1, rad2, rad3)
-	return rad1 == "ح" and rad2 == yaa and rad3 == yaa
+	return rad1 == "ح" and rad2 == YA and rad3 == YA
 end
 
 -----------------------
@@ -280,58 +311,58 @@ end
 -- the 13 endings of the sound/hollow/geminate past tense
 local past_endings = {
 	-- singular
-	dia.s .. "تُ", dia.s .. "تَ", dia.s .. "تِ", dia.a, dia.a .. "تْ",
+	SK .. "تُ", SK .. "تَ", SK .. "تِ", A, A .. "تْ",
 	--dual
-	dia.s .. "تُمَا", aa, dia.a .. "تَا",
+	SK .. "تُمَا", AA, A .. "تَا",
 	-- plural
-	dia.s .. "نَا", dia.s .. "تُمْ",
+	SK .. "نَا", SK .. "تُمْ",
 	-- two Arabic diacritics don't work together in Wikimedia
-	--dia.s .. "تُنَّ",
-	dia.s .. "تُن" .. dia.sh_a, uu .. alif, dia.s .. "نَ"
+	--SK .. "تُنَّ",
+	SK .. "تُن" .. SH .. A, UU .. ALIF, SK .. "نَ"
 }
 
--- make endings for final-weak past in -aytu or -awtu. AYAW is 'ay' or 'aw'
+-- make endings for final-weak past in -aytu or -awtu. AYAW is AY or AW 
 -- as appropriate. Note that AA and AW are global variables.
 local function make_past_endings_ay_aw(ayaw, third_sg_masc)
 	return {
 	-- singular
-	ayaw .. dia.s .. "تُ", ayaw ..  dia.s .. "تَ", ayaw .. dia.s .. "تِ",
-	third_sg_masc, dia.a .. "تْ",
+	ayaw .. SK .. "تُ", ayaw ..  SK .. "تَ", ayaw .. SK .. "تِ",
+	third_sg_masc, A .. "تْ",
 	--dual
-	ayaw .. dia.s .. "تُمَا", ayaw .. aa, dia.a .. "تَا",
+	ayaw .. SK .. "تُمَا", ayaw .. AA, A .. "تَا",
 	-- plural
-	ayaw .. dia.s .. "نَا", ayaw .. dia.s .. "تُمْ",
+	ayaw .. SK .. "نَا", ayaw .. SK .. "تُمْ",
 	-- two Arabic diacritics don't work together in Wikimedia
-	--ayaw .. dia.s .. "تُنَّ",
-	ayaw .. dia.s .. "تُن" .. dia.sh_a, aw .. dia.s .. alif, ayaw .. dia.s .. "نَ"
+	--ayaw .. SK .. "تُنَّ",
+	ayaw .. SK .. "تُن" .. SH .. A, AW .. SK .. ALIF, ayaw .. SK .. "نَ"
 	}
 end
 
 -- past final-weak -aytu endings
-local past_endings_ay = make_past_endings_ay_aw(ay, aamaq)
+local past_endings_ay = make_past_endings_ay_aw(AY, AAMAQ)
 -- past final-weak -awtu endings
-local past_endings_aw = make_past_endings_ay_aw(aw, aa)
+local past_endings_aw = make_past_endings_ay_aw(AW, AA)
 
 -- Make endings for final-weak past in -ītu or -ūtu. IIUU is ī or ū as
 -- appropriate. Note that AA and UU are global variables.
 local function make_past_endings_ii_uu(iiuu)
 	return {
 	-- singular
-	iiuu .. "تُ", iiuu .. "تَ", iiuu .. "تِ", iiuu .. dia.a, iiuu .. dia.a .. "تْ",
+	iiuu .. "تُ", iiuu .. "تَ", iiuu .. "تِ", iiuu .. A, iiuu .. A .. "تْ",
 	--dual
-	iiuu .. "تُمَا", iiuu .. aa, iiuu .. dia.a .. "تَا",
+	iiuu .. "تُمَا", iiuu .. AA, iiuu .. A .. "تَا",
 	-- plural
 	iiuu .. "نَا", iiuu .. "تُمْ",
 	-- two Arabic diacritics don't work together in Wikimedia
 	--iiuu .. "تُنَّ",
-	iiuu .. "تُن" .. dia.sh_a, uu .. alif, iiuu .. "نَ"
+	iiuu .. "تُن" .. SH .. A, UU .. ALIF, iiuu .. "نَ"
 	}
 end
 
 -- past final-weak -ītu endings
-local past_endings_ii = make_past_endings_ii_uu(ii)
+local past_endings_ii = make_past_endings_ii_uu(II)
 -- past final-weak -ūtu endings
-local past_endings_uu = make_past_endings_ii_uu(uu)
+local past_endings_uu = make_past_endings_ii_uu(UU)
 
 ----------------------------------------
 -- sets of non-past prefixes and endings
@@ -340,7 +371,7 @@ local past_endings_uu = make_past_endings_ii_uu(uu)
 -- prefixes for non-past forms in -a-
 local nonpast_prefixes_a = {
 	-- singular
-	hamza .. dia.a, "تَ", "تَ", "يَ", "تَ",
+	HAMZA .. A, "تَ", "تَ", "يَ", "تَ",
 	--dual
 	"تَ", "يَ", "تَ",
 	-- plural
@@ -350,7 +381,7 @@ local nonpast_prefixes_a = {
 -- prefixes for non-past forms in -u- (passive; active forms II, III, IV, Iq)
 local nonpast_prefixes_u = {
 	-- singular
-	hamza .. dia.u, "تُ", "تُ", "يُ", "تُ",
+	HAMZA .. U, "تُ", "تُ", "يُ", "تُ",
 	--dual
 	"تُ", "يُ", "تُ",
 	-- plural
@@ -372,11 +403,11 @@ end
 
 -- endings for non-past indicative
 local indic_endings = make_nonpast_endings(
-	dia.u,
-	dia.i .. "ينَ",
-	dia.a .. "انِ",
-	dia.u .. "ونَ",
-	dia.s .. "نَ"
+	U,
+	I .. "ينَ",
+	A .. "انِ",
+	U .. "ونَ",
+	SK .. "نَ"
 )
 
 -- make the endings for non-past subjunctive/jussive, given the vowel diacritic
@@ -384,33 +415,33 @@ local indic_endings = make_nonpast_endings(
 local function make_subj_juss_endings(dia_null) 
 	return make_nonpast_endings(
 	dia_null,
-	dia.i .. "ي",
-	dia.a .. "ا",
-	dia.u .. "و",
-	dia.s .. "نَ"
+	I .. "ي",
+	A .. "ا",
+	U .. "و",
+	SK .. "نَ"
 	)
 end
 
 -- endings for non-past subjunctive
-local subj_endings = make_subj_juss_endings(dia.a)
+local subj_endings = make_subj_juss_endings(A)
 
 -- endings for non-past jussive
-local juss_endings = make_subj_juss_endings(dia.s)
+local juss_endings = make_subj_juss_endings(SK)
 
 -- endings for alternative geminate non-past jussive in -a; same as subjunctive
 local juss_endings_alt_a = subj_endings
 
 -- endings for alternative geminate non-past jussive in -i
-local juss_endings_alt_i = make_subj_juss_endings(dia.i)
+local juss_endings_alt_i = make_subj_juss_endings(I)
 
 -- endings for final-weak non-past indicative in -ā. Note that AY, AW and
 -- AAMAQ are global variables.
 local indic_endings_aa = make_nonpast_endings(
-	aamaq,
-	ay .. dia.s .. "نَ",
-	ay .. dia.a .. "انِ",
-	aw .. dia.s .. "نَ",
-	ay .. dia.s .. "نَ"
+	AAMAQ,
+	AYSK .. "نَ",
+	AY .. A .. "انِ",
+	AWSK .. "نَ",
+	AYSK .. "نَ"
 )
 
 -- make endings for final-weak non-past indicative in -ī or -ū; IIUU is
@@ -418,54 +449,54 @@ local indic_endings_aa = make_nonpast_endings(
 local function make_indic_endings_ii_uu(iiuu)
 	return make_nonpast_endings(
 	iiuu,
-	ii .. "نَ",
-	iiuu .. dia.a .. "انِ",
-	uu .. "نَ",
+	II .. "نَ",
+	iiuu .. A .. "انِ",
+	UU .. "نَ",
 	iiuu .. "نَ"
 	)
 end
 
 -- endings for final-weak non-past indicative in -ī
-local indic_endings_ii = make_indic_endings_ii_uu(ii)
+local indic_endings_ii = make_indic_endings_ii_uu(II)
 
 -- endings for final-weak non-past indicative in -ū
-local indic_endings_uu = make_indic_endings_ii_uu(uu)
+local indic_endings_uu = make_indic_endings_ii_uu(UU)
 
 -- endings for final-weak non-past subjunctive in -ā. Note that AY, AW, ALIF,
 -- AAMAQ are global variables.
 local subj_endings_aa = make_nonpast_endings(
-	aamaq,
-	ay .. dia.s,
-	ay .. aa,
-	aw .. dia.s .. alif,
-	ay .. dia.s .. "نَ"
+	AAMAQ,
+	AYSK,
+	AY .. AA,
+	AWSK .. ALIF,
+	AYSK .. "نَ"
 )
 
 -- make endings for final-weak non-past subjunctive in -ī or -ū. IIUU is
 -- ī or ū as appropriate. Note that AA, II, UU, ALIF are global variables.
 local function make_subj_endings_ii_uu(iiuu)
 	return make_nonpast_endings(
-	iiuu .. dia.a,
-	ii,
-	iiuu .. aa,
-	uu .. alif,
+	iiuu .. A,
+	II,
+	iiuu .. AA,
+	UU .. ALIF,
 	iiuu .. "نَ"
 	)
 end
 
 -- endings for final-weak non-past subjunctive in -ī
-local subj_endings_ii = make_subj_endings_ii_uu(ii)
+local subj_endings_ii = make_subj_endings_ii_uu(II)
 
 -- endings for final-weak non-past subjunctive in -ū
-local subj_endings_uu = make_subj_endings_ii_uu(uu)
+local subj_endings_uu = make_subj_endings_ii_uu(UU)
 
 -- endings for final-weak non-past jussive in -ā
 local juss_endings_aa = make_nonpast_endings(
-	dia.a,
-	ay .. dia.s,
-	ay .. aa,
-	aw .. dia.s .. alif,
-	ay .. dia.s .. "نَ"
+	A,
+	AYSK,
+	AY .. AA,
+	AWSK .. ALIF,
+	AYSK .. "نَ"
 )
 
 -- Make endings for final-weak non-past jussive in -ī or -ū. IU is short i or u,
@@ -474,18 +505,18 @@ local juss_endings_aa = make_nonpast_endings(
 local function make_juss_endings_ii_uu(iu, iiuu)
 	return make_nonpast_endings(
 	iu,
-	ii,
-	iiuu .. aa,
-	uu .. alif,
+	II,
+	iiuu .. AA,
+	UU .. ALIF,
 	iiuu .. "نَ"
 	)
 end
 
 -- endings for final-weak non-past jussive in -ī
-local juss_endings_ii = make_juss_endings_ii_uu(dia.i, ii)
+local juss_endings_ii = make_juss_endings_ii_uu(I, II)
 
 -- endings for final-weak non-past jussive in -ū
-local juss_endings_uu = make_juss_endings_ii_uu(dia.u, uu)
+local juss_endings_uu = make_juss_endings_ii_uu(U, UU)
 
 -----------------------------
 -- sets of imperative endings
@@ -663,7 +694,7 @@ function export.headword(frame)
 	if #impf_arabic > 0 then
 		impf_text = ', <i>non-past</i> ' .. table.concat(impf_arabic, " <small style=\"color: #888\">or</small> ")
 		if impf_tr then
-			impf_text = impf_text .. lrm .. " (" .. impf_tr .. ")"
+			impf_text = impf_text .. LRM .. " (" .. impf_tr .. ")"
 		end
 	end
 
@@ -841,9 +872,9 @@ function conjugate(args, argind, conj_type)
 		-- get an error if the appropriate radical is given but not others.
 		if form == "I" and (rad2 == "w" or rad2 == "y") then
 			if contains(nonpast_vowel, "i") then
-				rad2 = yaa
+				rad2 = YA
 			elseif contains(nonpast_vowel, "u") then
-				rad2 = waw
+				rad2 = WAW
 			else
 				error("Unable to guess middle radical of hollow form I verb; " ..
 					"need to specify radical explicitly")
@@ -882,11 +913,11 @@ function conjugate(args, argind, conj_type)
 	-- Arabic radicals.
 	local function regularize_inferred_radical(rad)
 		if rad == "t" then
-			return taa
+			return TA
 		elseif rad == "w" then
-			return waw
+			return WAW
 		elseif rad == "y" then
-			return yaa
+			return YA
 		else
 			return rad
 		end
@@ -901,33 +932,33 @@ function conjugate(args, argind, conj_type)
 	
 	--if not quadlit then
 	--	-- default radicals to ف-ع-ل (or ف-ل-ل for geminate, or with the
-	--	-- appropriate radical replaced by waw for assimilated/hollow/final-weak)
+	--	-- appropriate radical replaced by wāw for assimilated/hollow/final-weak)
 	--	rad1 = rad1 or
-	--		(weakness == "assimilated" or weakness == "assimilated+final-weak") and waw or "ف"
-	--	rad2 = rad2 or weakness == "hollow" and waw or
+	--		(weakness == "assimilated" or weakness == "assimilated+final-weak") and WAW or "ف"
+	--	rad2 = rad2 or weakness == "hollow" and WAW or
 	--		weakness == "geminate" and "ل" or "ع"
-	--	rad3 = rad3 or (weakness == "final-weak" or weakness == "assimilated+final-weak") and waw or
+	--	rad3 = rad3 or (weakness == "final-weak" or weakness == "assimilated+final-weak") and WAW or
 	--		weakness == "geminate" and rad2 or "ل"
 	--else
 	--	-- default to ف-ع-ل-ق (or ف-ع-ل-و for final-weak)
 	--	rad1 = rad1 or "ف"
 	--	rad2 = rad2 or "ع"
 	--	rad3 = rad3 or "ل"
-	--	rad4 = rad4 or weakness == "final-weak" and waw or "ق"
+	--	rad4 = rad4 or weakness == "final-weak" and WAW or "ق"
 	--end
 
 	-- If weakness unspecified, derive from radicals.
 	if not quadlit then
 		if weakness == nil then
-			if is_waw_yaa(rad3) and rad1 == waw and form == "I" then
+			if is_waw_ya(rad3) and rad1 == WAW and form == "I" then
 				weakness = "assimilated+final-weak"
-			elseif is_waw_yaa(rad3) and form_supports_final_weak(form) then
+			elseif is_waw_ya(rad3) and form_supports_final_weak(form) then
 				weakness = "final-weak"
 			elseif rad2 == rad3 and form_supports_geminate(form) then
 				weakness = "geminate"
-			elseif is_waw_yaa(rad2) and form_supports_hollow(form) then
+			elseif is_waw_ya(rad2) and form_supports_hollow(form) then
 				weakness = "hollow"
-			elseif rad1 == waw and form == "I" then
+			elseif rad1 == WAW and form == "I" then
 				weakness = "assimilated"
 			else
 				weakness = "sound"
@@ -935,7 +966,7 @@ function conjugate(args, argind, conj_type)
 		end
 	else
 		if weakness == nil then
-			if is_waw_yaa(rad4) then
+			if is_waw_ya(rad4) then
 				weakness = "final-weak"
 			else
 				weakness = "sound"
@@ -1067,11 +1098,11 @@ end
 
 -- Infer radicals from headword and form. Throw an error if headword is
 -- malformed. Returned radicals may contain Latin letters "t", "w" or "y"
--- indicating ambiguous radicals guessed to be taa, waw or yaa respectively.
+-- indicating ambiguous radicals guessed to be tāʾ, wāw or yāʾ respectively.
 function export.infer_radicals(headword, form)
 	local letters = {}
 	-- sub out alif-madda for easier processing
-	headword = rsub(headword, amad, hamza .. alif)
+	headword = rsub(headword, AMAD, HAMZA .. ALIF)
 
 	local len = ulen(headword)
 
@@ -1120,40 +1151,40 @@ function export.infer_radicals(headword, form)
 		radstart = 2
 	elseif form == "III" then
 		rad1 = letters[1]
-		check(2, alif)
+		check(2, ALIF)
 		radstart = 3
 	elseif form == "IV" then
 		-- this would be alif-madda but we replaced it with hamza-alif above.
-		if letters[1] == hamza and letters[2] == alif then
-			rad1 = hamza
+		if letters[1] == HAMZA and letters[2] == ALIF then
+			rad1 = HAMZA
 		else
-			check(1, hamza_on_alif)
+			check(1, HAMZA_ON_ALIF)
 			rad1 = letters[2]
 		end
 		radstart = 3
 	elseif form == "V" then
-		check(1, taa)
+		check(1, TA)
 		rad1 = letters[2]
 		radstart = 3
 	elseif form == "VI" then
-		check(1, taa)
-		if letters[2] == amad then
-			rad1 = hamza
+		check(1, TA)
+		if letters[2] == AMAD then
+			rad1 = HAMZA
 			radstart = 3
 		else
 			rad1 = letters[2]
-			check(3, alif)
+			check(3, ALIF)
 			radstart = 4
 		end
 	elseif form == "VII" then
-		check(1, alif)
-		check(2, nuun)
+		check(1, ALIF)
+		check(2, NUN)
 		rad1 = letters[3]
 		radstart = 4
 	elseif form == "VIII" then
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
-		if rad1 == taa or rad1 == "د" or rad1 == "ث" or rad1 == "ذ" or rad1 == "ط" or rad1 == "ظ" then
+		if rad1 == TA or rad1 == "د" or rad1 == "ث" or rad1 == "ذ" or rad1 == "ط" or rad1 == "ظ" then
 			radstart = 3
 		elseif rad1 == "ز" then
 			check(3, "د")
@@ -1162,22 +1193,22 @@ function export.infer_radicals(headword, form)
 			check(3, "ط")
 			radstart = 4
 		else
-			check(3, taa)
+			check(3, TA)
 			radstart = 4
 		end
-		if rad1 == taa then
+		if rad1 == TA then
 			-- radical is ambiguous, might be ت or و or ي but doesn't affect
 			-- conjugation
 			rad1 = "t"
 		end
 	elseif form == "IX" then
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		radstart = 3
 	elseif form == "X" then
-		check(1, alif)
-		check(2, siin)
-		check(3, taa)
+		check(1, ALIF)
+		check(2, SIN)
+		check(3, TA)
 		rad1 = letters[4]
 		radstart = 5
 	elseif form == "Iq" then
@@ -1185,59 +1216,59 @@ function export.infer_radicals(headword, form)
 		rad2 = letters[2]
 		radstart = 3
 	elseif form == "IIq" then
-		check(1, taa)
+		check(1, TA)
 		rad1 = letters[2]
 		rad2 = letters[3]
 		radstart = 4
 	elseif form == "IIIq" then
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		rad2 = letters[3]
-		check(4, nuun)
+		check(4, NUN)
 		radstart = 5
 	elseif form == "IVq" then
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		rad2 = letters[3]
 		radstart = 4
 	elseif form == "XI" then
 		check_len(5, 5)
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		rad2 = letters[3]
-		check(4, alif)
+		check(4, ALIF)
 		rad3 = letters[5]
 		weakness = "sound"
 	elseif form == "XII" then
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		if letters[3] ~= letters[5] then
 			error("For form XII, letters 3 and 5 of headword " .. headword ..
 				" should be the same")
 		end
-		check(4, waw)
+		check(4, WAW)
 		radstart = 5
 	elseif form == "XIII" then
 		check_len(5, 5)
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		rad2 = letters[3]
-		check(4, waw)
+		check(4, WAW)
 		rad3 = letters[5]
-		if rad3 == amaq then
+		if rad3 == AMAQ then
 			weakness = "final-weak"
 		else
 			weakness = "sound"
 		end
 	elseif form == "XIV" then
 		check_len(6, 6)
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		rad2 = letters[3]
-		check(4, nuun)
+		check(4, NUN)
 		rad3 = letters[5]
-		if letters[6] == amaq then
-			check_waw_yaa(rad3)
+		if letters[6] == AMAQ then
+			check_waw_ya(rad3)
 			weakness = "final-weak"
 		else
 			if letters[5] ~= letters[6] then
@@ -1248,15 +1279,15 @@ function export.infer_radicals(headword, form)
 		end
 	elseif form == "XV" then
 		check_len(6, 6)
-		check(1, alif)
+		check(1, ALIF)
 		rad1 = letters[2]
 		rad2 = letters[3]
-		check(4, nuun)
+		check(4, NUN)
 		rad3 = letters[5]
-		if rad3 == yaa then
-			check(6, alif)
+		if rad3 == YA then
+			check(6, ALIF)
 		else
-			check(6, amaq)
+			check(6, AMAQ)
 		end
 		weakness = "sound"
 	else
@@ -1284,13 +1315,13 @@ function export.infer_radicals(headword, form)
 			-- process last two radicals of a quadriliteral form
 			rad3 = letters[radstart]
 			rad4 = letters[radstart + 1]
-			if rad4 == amaq or rad4 == alif and rad3 == yaa then
+			if rad4 == AMAQ or rad4 == ALIF and rad3 == YA then
 				if form_supports_final_weak(form) then
 					weakness = "final-weak"
-					-- ambiguous radical; randomly pick waw as radical (but avoid
-					-- two waws in a row); it could be waw or yaa, but doesn't
+					-- ambiguous radical; randomly pick wāw as radical (but avoid
+					-- two wāws in a row); it could be wāw or yāʾ, but doesn't
 					-- affect the conjugation
-					rad4 = rad3 == waw and "y" or "w"
+					rad4 = rad3 == WAW and "y" or "w"
 				else
 					error("For headword " .. headword ..
 						", last radical is " .. rad4 .. " but form " .. form ..
@@ -1303,21 +1334,21 @@ function export.infer_radicals(headword, form)
 			-- process last two radicals of a triliteral form
 			rad2 = letters[radstart]
 			rad3 = letters[radstart + 1]
-			if form == "I" and (is_waw_yaa(rad3) or rad3 == alif or rad3 == amaq) then
+			if form == "I" and (is_waw_ya(rad3) or rad3 == ALIF or rad3 == AMAQ) then
 				-- check for final-weak form I verb. It can end in tall alif
-				-- (rad3 = waw) or alif maqṣūra (rad3 = yaa) or a waw or yaa
+				-- (rad3 = wāw) or alif maqṣūra (rad3 = yāʾ) or a wāw or yāʾ
 				-- (with a past vowel of i or u, e.g. nasiya/yansā "forget").
-				if rad1 == waw then
+				if rad1 == WAW then
 					weakness = "assimilated+final-weak"
 				else
 					weakness = "final-weak"
 				end
-				if rad3 == alif then
-					rad3 = waw
-				elseif rad3 == amaq then
-					rad3 = yaa
+				if rad3 == ALIF then
+					rad3 = WAW
+				elseif rad3 == AMAQ then
+					rad3 = YA
 				end
-			elseif rad3 == amaq or rad2 == yaa and rad3 == alif then
+			elseif rad3 == AMAQ or rad2 == YA and rad3 == ALIF then
 				if form_supports_final_weak(form) then
 					weakness = "final-weak"
 				else
@@ -1325,14 +1356,14 @@ function export.infer_radicals(headword, form)
 						", last radical is " .. rad3 .. " but form " .. form ..
 						" doesn't support final-weak verbs")
 				end
-				-- ambiguous radical; randomly pick waw as radical (but avoid
-				-- two waws in a row); it could be waw or yaa, but doesn't
+				-- ambiguous radical; randomly pick wāw as radical (but avoid
+				-- two wāws in a row); it could be wāw or yāʾ, but doesn't
 				-- affect the conjugation
-				rad3 = rad2 == waw and "y" or "w"
-			elseif rad2 == alif then
+				rad3 = rad2 == WAW and "y" or "w"
+			elseif rad2 == ALIF then
 				if form_supports_hollow(form) then
 					weakness = "hollow"
-					-- ambiguous radical; could be waw or yaa; if form I,
+					-- ambiguous radical; could be wāw or yāʾ; if form I,
 					-- it's critical to get this right, and the caller checks
 					-- for this situation, attempts to infer radical from
 					-- non-past vowel, and if that fails, signals an error
@@ -1342,7 +1373,7 @@ function export.infer_radicals(headword, form)
 						", second radical is alif but form " .. form ..
 						" doesn't support hollow verbs")
 				end
-			elseif form == "I" and rad1 == waw then
+			elseif form == "I" and rad1 == WAW then
 				weakness = "assimilated"
 			elseif rad2 == rad3 and (form == "III" or form == "VI") then
 				weakness = "geminate"
@@ -1356,13 +1387,13 @@ function export.infer_radicals(headword, form)
 	-- check for misplaced alif or alif maqṣūra; legitimate cases of these
 	-- letters are handled above)
 	local function convert(rad, index)
-		if rad == hamza_on_alif or rad == hamza_under_alif or
-			rad == hamza_on_waw or rad == hamza_on_yaa then
-			return hamza
-		elseif rad == amaq then
+		if rad == HAMZA_ON_ALIF or rad == HAMZA_UNDER_ALIF or
+			rad == HAMZA_ON_WAW or rad == HAMZA_ON_YA then
+			return HAMZA
+		elseif rad == AMAQ then
 			error("For form " .. form .. ", headword " .. headword ..
 				", radical " .. index .. " must not be alif maqṣūra")
-		elseif rad == alif then
+		elseif rad == ALIF then
 			error("For form " .. form .. ", headword " .. headword ..
 				", radical " .. index .. " must not be alif")
 		else
@@ -1378,23 +1409,23 @@ function export.infer_radicals(headword, form)
 end
 
 -- given form, weakness and radicals, check to make sure the radicals present
--- are allowable for the weakness. Hamzas on alif/waw/yaa seats are never
+-- are allowable for the weakness. Hamzas on alif/wāw/yāʾ seats are never
 -- allowed (should always appear as hamza-on-the-line), and various weaknesses
 -- have various strictures on allowable consonants.
 function check_radicals(form, weakness, rad1, rad2, rad3, rad4)
 	local function hamza_check(index, rad)
-		if rad == hamza_on_alif or rad == hamza_under_alif or
-			rad == hamza_on_waw or rad == hamza_on_yaa then
+		if rad == HAMZA_ON_ALIF or rad == HAMZA_UNDER_ALIF or
+			rad == HAMZA_ON_WAW or rad == HAMZA_ON_YA then
 			error("Radical " .. index .. " is " .. rad .. " but should be ء (hamza on the line)")
 		end
 	end
-	local function check_waw_yaa(index, rad)
-		if rad ~= waw and rad ~= yaa then
+	local function check_waw_ya(index, rad)
+		if rad ~= WAW and rad ~= YA then
 			error("Radical " .. index .. " is " .. rad .. " but should be و or ي")
 		end
 	end
-	local function check_not_waw_yaa(index, rad)
-		if rad == waw or rad == yaa then
+	local function check_not_waw_ya(index, rad)
+		if rad == WAW or rad == YA then
 			error("In a sound verb, radical " .. index .. " should not be و or ي")
 		end
 	end
@@ -1403,34 +1434,34 @@ function check_radicals(form, weakness, rad1, rad2, rad3, rad4)
 	hamza_check(rad3)
 	hamza_check(rad4)
 	if weakness == "assimilated" or weakness == "assimilated+final-weak" then
-		if rad1 ~= waw then
+		if rad1 ~= WAW then
 			error("Radical 1 is " .. rad1 .. " but should be و")
 		end
-	-- don't check that non-assimilated form I verbs don't have waw as their
-	-- first radical because some form-I verbs exist where a first-radical waw
+	-- don't check that non-assimilated form I verbs don't have wāw as their
+	-- first radical because some form-I verbs exist where a first-radical wāw
 	-- behaves as sound, e.g. wajuha yawjuhu "to be distinguished".
 	end
 	if weakness == "final-weak" or weakness == "assimilated+final-weak" then
 		if rad4 then
-			check_waw_yaa(4, rad4)
+			check_waw_ya(4, rad4)
 		else
-			check_waw_yaa(3, rad3)
+			check_waw_ya(3, rad3)
 		end
 	elseif form_supports_final_weak(form) then
 		-- non-final-weak verbs cannot have weak final radical if there's a corresponding
 		-- final-weak verb category. I think this is safe. We may have problems with
 		-- ḥayya/ḥayiya yaḥyā if we treat it as a geminate verb.
 		if rad4 then
-			check_not_waw_yaa(4, rad4)
+			check_not_waw_ya(4, rad4)
 		else
-			check_not_waw_yaa(3, rad3)
+			check_not_waw_ya(3, rad3)
 		end
 	end
 	if weakness == "hollow" then
-		check_waw_yaa(2, rad2)
+		check_waw_ya(2, rad2)
 	-- don't check that non-hollow verbs in forms that support hollow verbs
-	-- don't have waw or yaa as their second radical because some verbs exist
-	-- where a middle-radical waw/yaa behaves as sound, e.g. form-VIII izdawaja
+	-- don't have wāw or yāʾ as their second radical because some verbs exist
+	-- where a middle-radical wāw/yāʾ behaves as sound, e.g. form-VIII izdawaja
 	-- "to be in pairs".
 	end
 	if weakness == "geminate" then
@@ -1443,12 +1474,12 @@ function check_radicals(form, weakness, rad1, rad2, rad3, rad4)
 	elseif form_supports_geminate(form) then
 		-- non-geminate verbs cannot have second and third radical same if there's
 		-- a corresponding geminate verb category. I think this is safe. We
-		-- don't fuss over double waw or double yaa because this could legitimately
-		-- be a final-weak verb with middle waw/yaa, treated as sound.
+		-- don't fuss over double wāw or double yāʾ because this could legitimately
+		-- be a final-weak verb with middle wāw/yāʾ, treated as sound.
 		if rad4 then
 			error("Internal error. No quadrilaterals should support geminate verbs.")
 		end
-		if rad2 == rad3 and not is_waw_yaa(rad2) then
+		if rad2 == rad3 and not is_waw_ya(rad2) then
 			error("Weakness is '" .. weakness .. "'; radical 2 and 3 are same at " .. rad2 .. " but should not be; consider making weakness 'geminate'")
 		end
 	end
@@ -1459,8 +1490,8 @@ function initialize_categories(data, form, weakness, rad1, rad2, rad3, rad4)
 	-- Weakness by form merely indicates the presence of weak letters in
 	-- certain positions in the radicals. Weakness by conjugation is related
 	-- to how the verbs are conjugated. For example, form-II verbs that are
-	-- "hollow by form" (middle radical is waw or yaa) are conjugated as sound
-	-- verbs. Another example: form-I verbs with initial waw are "assimilated
+	-- "hollow by form" (middle radical is wāw or yāʾ) are conjugated as sound
+	-- verbs. Another example: form-I verbs with initial wāw are "assimilated
 	-- by form" and most are assimilated by conjugation as well, but a few
 	-- are sound by conjugation, e.g. wajuha yawjuhu "to be distinguished"
 	-- (rather than wajuha yajuhu); similarly for some hollow-by-form verbs
@@ -1479,19 +1510,19 @@ function initialize_categories(data, form, weakness, rad1, rad2, rad3, rad4)
 		table.insert(data.headword_categories, "Arabic verbs with quadriliteral roots")
 	end
 	local formweak = {}
-	if is_waw_yaa(rad1) then
+	if is_waw_ya(rad1) then
 		table.insert(formweak, "assimilated")
 	end
-	if is_waw_yaa(rad2) and rad4 == nil then
+	if is_waw_ya(rad2) and rad4 == nil then
 		table.insert(formweak, "hollow")
 	end
-	if is_waw_yaa(rad4) or rad4 == nil and is_waw_yaa(rad3) then
+	if is_waw_ya(rad4) or rad4 == nil and is_waw_ya(rad3) then
 		table.insert(formweak, "final-weak")
 	end
 	if rad4 == nil and rad2 == rad3 then
 		table.insert(formweak, "geminate")
 	end
-	if rad1 == hamza or rad2 == hamza or rad3 == hamza or rad4 == hamza then
+	if rad1 == HAMZA or rad2 == HAMZA or rad3 == HAMZA or rad4 == HAMZA then
 		table.insert(formweak, "hamzated")
 	end
 	if #formweak == 0 then
@@ -1509,7 +1540,7 @@ function initialize_categories(data, form, weakness, rad1, rad2, rad3, rad4)
 		return rad == "t" or rad == "w" or rad == "y"
 	end
 	local function radical_is_weak(rad)
-		return rad == waw or rad == yaa or rad == hamza
+		return rad == WAW or rad == YA or rad == HAMZA
 	end
 
 	local ur1, ur2, ur3, ur4 =
@@ -1567,21 +1598,21 @@ function check_aiu(vtype, vowel)
 	end
 end
 
--- Is radical waw (و) or yaa (ي)?
-function is_waw_yaa(rad)
-	return rad == waw or rad == yaa
+-- Is radical wāw (و) or yāʾ (ي)?
+function is_waw_ya(rad)
+	return rad == WAW or rad == YA
 end
 
--- Check that radical is waw (و) or yaa (ي), error if not
-function check_waw_yaa(rad)
-	if not is_waw_yaa(rad) then
-		error("Expecting weak radical: '" .. rad .. "' should be " .. waw .. " or " .. yaa)
+-- Check that radical is wāw (و) or yāʾ (ي), error if not
+function check_waw_ya(rad)
+	if not is_waw_ya(rad) then
+		error("Expecting weak radical: '" .. rad .. "' should be " .. WAW .. " or " .. YA)
 	end
 end
 
 -- Is radical guttural? This favors a non-past vowel of "a"
 function is_guttural(rad)
-	return rad == hamza or rad == "ه" or rad == "ع" or rad == "ح"
+	return rad == HAMZA or rad == "ه" or rad == "ع" or rad == "ح"
 end
 
 -- Derive default non-past vowel from past vowel. Most common possibilities are
@@ -1602,11 +1633,11 @@ function imper_vowel_from_nonpast(nonpast_vowel)
 	end
 end
 
--- Convert short vowel to equivalent long vowel (a -> alif, u -> waw, i -> yaa).
+-- Convert short vowel to equivalent long vowel (a -> alif, u -> wāw, i -> yāʾ).
 function short_to_long_vowel(vowel)
-	if vowel == dia.a then return alif
-	elseif vowel == dia.i then return yaa
-	elseif vowel == dia.u then return waw
+	if vowel == A then return ALIF
+	elseif vowel == I then return YA
+	elseif vowel == U then return WAW
 	else
 		error("Vowel '" .. vowel .. "' isn't a, i, or u, should have been caught earlier")
 	end
@@ -1626,11 +1657,11 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	insert_verbal_noun(data, args, {})
 
 	-- past and non-past stems, active and passive 
-	local past_stem = rad1 .. dia.a .. rad2 .. dia[past_vowel] .. rad3
+	local past_stem = rad1 .. A .. rad2 .. dia[past_vowel] .. rad3
 	local nonpast_stem = assimilated and rad2 .. dia[nonpast_vowel] .. rad3 or
-		rad1 .. dia.s .. rad2 .. dia[nonpast_vowel] .. rad3
-	local ps_past_stem = rad1 .. dia.u .. rad2 .. dia.i .. rad3
-	local ps_nonpast_stem = rad1 .. dia.s .. rad2 .. dia.a .. rad3
+		rad1 .. SK .. rad2 .. dia[nonpast_vowel] .. rad3
+	local ps_past_stem = rad1 .. U .. rad2 .. I .. rad3
+	local ps_nonpast_stem = rad1 .. SK .. rad2 .. A .. rad3
 
 	-- determine the imperative vowel based on non-past vowel
 	local imper_vowel = imper_vowel_from_nonpast(nonpast_vowel)
@@ -1643,8 +1674,8 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	end
 	local imper_stem_suffix = rad2 .. dia[nonpast_vowel] .. rad3
 	local imper_stem_base = (assimilated or reducedimp) and "" or
-		alif .. dia[imper_vowel] ..
-		(rad1 == hamza and short_to_long_vowel(dia[imper_vowel]) or rad1 .. dia.s)
+		ALIF .. dia[imper_vowel] ..
+		(rad1 == HAMZA and short_to_long_vowel(dia[imper_vowel]) or rad1 .. SK)
 	local imper_stem = imper_stem_base .. imper_stem_suffix
 
 	-- make parts
@@ -1662,9 +1693,9 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	end
 
 	-- active participle
-	insert_part(data, "ap", rad1 .. aa .. rad2 .. dia.i .. rad3 .. dia.un)
+	insert_part(data, "ap", rad1 .. AA .. rad2 .. I .. rad3 .. UN)
 	-- passive participle
-	insert_part(data, "pp", ma .. rad1 .. dia.s .. rad2 .. dia.u .. "و" .. rad3 .. dia.un)
+	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad3 .. UN)
 end
 	
 conjugations["I-sound"] = function(data, args, rad1, rad2, rad3,
@@ -1746,7 +1777,7 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 	-- need to provide two vowels - past and non-past
 	local past_vowel = past_vowel or "a"
 	local nonpast_vowel = nonpast_vowel or past_vowel == "i" and "a" or
-		past_vowel == "u" and "u" or rad3 == yaa and "i" or "u"
+		past_vowel == "u" and "u" or rad3 == YA and "i" or "u"
 	check_aiu("past", past_vowel)
 	check_aiu("non-past", nonpast_vowel)
 
@@ -1754,8 +1785,8 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 	insert_verbal_noun(data, args, {})
 
 	-- past and non-past stems, active and passive, and imperative stem
-	local past_stem = rad1 .. dia.a .. rad2
-	local ps_past_stem = rad1 .. dia.u .. rad2
+	local past_stem = rad1 .. A .. rad2
+	local ps_past_stem = rad1 .. U .. rad2
 	local nonpast_stem, ps_nonpast_stem, imper_stem
 	if raa_radicals(rad1, rad2, rad3) then
 		data.irregular = true
@@ -1763,7 +1794,7 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 		ps_nonpast_stem = rad1
 		imper_stem = rad1
 	else
-		ps_nonpast_stem = rad1 .. dia.s .. rad2
+		ps_nonpast_stem = rad1 .. SK .. rad2
 		if assimilated then
 			nonpast_stem = rad2
 			imper_stem = rad2
@@ -1771,17 +1802,17 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 			nonpast_stem = ps_nonpast_stem
 			-- determine the imperative vowel based on non-past vowel
 			local imper_vowel = imper_vowel_from_nonpast(nonpast_vowel)
-			imper_stem =  alif .. dia[imper_vowel] ..
-				(rad1 == hamza and short_to_long_vowel(dia[imper_vowel])
-					or rad1 .. dia.s) ..
+			imper_stem =  ALIF .. dia[imper_vowel] ..
+				(rad1 == HAMZA and short_to_long_vowel(dia[imper_vowel])
+					or rad1 .. SK) ..
 				rad2
 		end
 	end
 
 	-- make parts
 	local past_suffs =
-		rad3 == yaa and past_vowel == "a" and past_endings_ay or
-		rad3 == waw and past_vowel == "a" and past_endings_aw or
+		rad3 == YA and past_vowel == "a" and past_endings_ay or
+		rad3 == WAW and past_vowel == "a" and past_endings_aw or
 		past_vowel == "i" and past_endings_ii or
 		past_endings_uu
 	local indic_suffs, subj_suffs, juss_suffs, impr_suffs
@@ -1807,10 +1838,10 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 		subj_suffs, juss_suffs, impr_suffs, "a")
 
 	-- active participle
-	insert_part(data, "ap", rad1 .. aa .. rad2 .. dia.in_)
+	insert_part(data, "ap", rad1 .. AA .. rad2 .. IN)
 	-- passive participle
-	insert_part(data, "pp", ma .. rad1 .. dia.s .. rad2 ..
-		(rad3 == yaa and ii or uu) .. dia.sh .. dia.un)
+	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 ..
+		(rad3 == YA and II or UU) .. SH .. UN)
 end
 	
 conjugations["I-final-weak"] = function(data, args, rad1, rad2, rad3,
@@ -1829,11 +1860,11 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 		past_vowel, nonpast_vowel)
 	-- need to specify up to two vowels, past and non-past
 	-- default past vowel to short equivalent of middle radical
-	local past_vowel = past_vowel or rad2 == yaa and "i" or "u"
+	local past_vowel = past_vowel or rad2 == YA and "i" or "u"
 	-- default non-past vowel to past vowel, unless it's "a", in which case
 	-- we default to short equivalent of middle radical
 	local nonpast_vowel = nonpast_vowel or past_vowel ~= "a" and past_vowel or
-		rad2 == yaa and "i" or "u"
+		rad2 == YA and "i" or "u"
 	check_aiu("past", past_vowel)
 	check_aiu("non-past", nonpast_vowel)
 	-- Formerly we signaled an error when past_vowel is "a" but that seems
@@ -1845,14 +1876,14 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 		-- error("For form I hollow, past vowel cannot be 'a'")
 		past_vowel = nonpast_vowel == "a" and "i" or nonpast_vowel
 	end
-	local lengthened_nonpast = nonpast_vowel == "u" and uu or
-		nonpast_vowel == "i" and ii or aa
+	local lengthened_nonpast = nonpast_vowel == "u" and UU or
+		nonpast_vowel == "i" and II or AA
 
 	-- Verbal nouns (maṣādir) for form I are unpredictable and have to be supplied
 	insert_verbal_noun(data, args, {})
 
 	-- active past stems - vowel (v) and consonant (c)
-	local past_v_stem = rad1 .. aa .. rad3
+	local past_v_stem = rad1 .. AA .. rad3
 	local past_c_stem = rad1 .. dia[past_vowel] .. rad3
 
 	-- active non-past stems - vowel (v) and consonant (c)
@@ -1861,14 +1892,14 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 
 	-- passive past stems - vowel (v) and consonant (c)
 	-- 'ufīla, 'ufiltu
-	local ps_past_v_stem = rad1 .. ii .. rad3
-	local ps_past_c_stem = rad1 .. dia.i .. rad3
+	local ps_past_v_stem = rad1 .. II .. rad3
+	local ps_past_c_stem = rad1 .. I .. rad3
 
 	-- passive non-past stems - vowel (v) and consonant (c)
 	-- yufāla/yufalna
 	-- stem is built differently but conjugation is identical to sound verbs
-	local ps_nonpast_v_stem = rad1 .. aa .. rad3
-	local ps_nonpast_c_stem = rad1 .. dia.a .. rad3
+	local ps_nonpast_v_stem = rad1 .. AA .. rad3
+	local ps_nonpast_c_stem = rad1 .. A .. rad3
 
 	-- imperative stem
 	local imper_v_stem = nonpast_v_stem
@@ -1880,10 +1911,10 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", false)
 	
 	-- active participle
-	insert_part(data, "ap", rad3 == hamza and rad1 .. aa .. hamza .. dia.in_ or
-		rad1 .. aa .. hamza .. dia.i .. rad3 .. dia.un)
+	insert_part(data, "ap", rad3 == HAMZA and rad1 .. AA .. HAMZA .. IN or
+		rad1 .. AA .. HAMZA .. I .. rad3 .. UN)
 	-- passive participle
-	insert_part(data, "pp", ma .. rad1 .. (rad2 == yaa and ii or uu) .. rad3 .. dia.un)
+	insert_part(data, "pp", MA .. rad1 .. (rad2 == YA and II or UU) .. rad3 .. UN)
 end
 
 conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
@@ -1896,31 +1927,31 @@ conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
 	insert_verbal_noun(data, args, {})
 
 	-- active past stems - vowel (v) and consonant (c)
-	local past_v_stem = rad1 .. dia.a .. rad2 .. dia.sh
-	local past_c_stem = rad1 .. dia.a .. rad2 .. dia[past_vowel] .. rad2
+	local past_v_stem = rad1 .. A .. rad2 .. SH
+	local past_c_stem = rad1 .. A .. rad2 .. dia[past_vowel] .. rad2
 
 	-- active non-past stems - vowel (v) and consonant (c)
-	local nonpast_v_stem = rad1 .. dia[nonpast_vowel] .. rad2 .. dia.sh
-	local nonpast_c_stem = rad1 .. dia.s .. rad2 .. dia[nonpast_vowel] .. rad2
+	local nonpast_v_stem = rad1 .. dia[nonpast_vowel] .. rad2 .. SH
+	local nonpast_c_stem = rad1 .. SK .. rad2 .. dia[nonpast_vowel] .. rad2
 
 	-- passive past stems - vowel (v) and consonant (c)
 	-- dulla/dulilta
-	local ps_past_v_stem = rad1 .. dia.u .. rad2 .. dia.sh
-	local ps_past_c_stem = rad1 .. dia.u .. rad2 .. dia.i .. rad2
+	local ps_past_v_stem = rad1 .. U .. rad2 .. SH
+	local ps_past_c_stem = rad1 .. U .. rad2 .. I .. rad2
 
 	-- passive non-past stems - vowel (v) and consonant (c)
 	--yudallu/yudlalna
 	-- stem is built differently but conjugation is identical to sound verbs
-	local ps_nonpast_v_stem = rad1 .. dia.a .. rad2 .. dia.sh
-	local ps_nonpast_c_stem = rad1 .. dia.s .. rad2 .. dia.a .. rad2
+	local ps_nonpast_v_stem = rad1 .. A .. rad2 .. SH
+	local ps_nonpast_c_stem = rad1 .. SK .. rad2 .. A .. rad2
 
 	-- determine the imperative vowel based on non-past vowel
 	local imper_vowel = imper_vowel_from_nonpast(nonpast_vowel)
 
 	-- imperative stem
-	local imper_v_stem = rad1 .. dia[nonpast_vowel] .. rad2 .. dia.sh
-	local imper_c_stem = alif .. dia[imper_vowel] ..
-		(rad1 == hamza and short_to_long_vowel(dia[imper_vowel]) or rad1 .. dia.s) ..
+	local imper_v_stem = rad1 .. dia[nonpast_vowel] .. rad2 .. SH
+	local imper_c_stem = ALIF .. dia[imper_vowel] ..
+		(rad1 == HAMZA and short_to_long_vowel(dia[imper_vowel]) or rad1 .. SK) ..
 		rad2 .. dia[nonpast_vowel] .. rad2
 
 	-- make parts
@@ -1929,9 +1960,9 @@ conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", "geminate")
 	
 	-- active participle
-	insert_part(data, "ap", rad1 .. aa .. rad2 .. dia.sh .. dia.un)
+	insert_part(data, "ap", rad1 .. AA .. rad2 .. SH .. UN)
 	-- passive participle
-	insert_part(data, "pp", ma .. rad1 .. dia.s .. rad2 .. dia.u .. "و" .. rad2 .. dia.un)
+	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad2 .. UN)
 end
 
 -- Make form II or V sound or final-weak verb. Final-weak verbs are identified
@@ -1939,17 +1970,17 @@ end
 function make_form_ii_v_sound_final_weak_verb(data, args, rad1, rad2, rad3, form)
 	local final_weak = rad3 == nil
 	local vn = form == "V" and
-		"تَ" .. rad1 .. dia.a .. rad2 .. dia.sh ..
-			(final_weak and dia.in_ or dia.u .. rad3 .. dia.un) or
-		"تَ" .. rad1 .. dia.s .. rad2 .. dia.i .. "ي" ..
-			(final_weak and ah or rad3) .. dia.un
+		"تَ" .. rad1 .. A .. rad2 .. SH ..
+			(final_weak and IN or U .. rad3 .. UN) or
+		"تَ" .. rad1 .. SK .. rad2 .. I .. "ي" ..
+			(final_weak and AH or rad3) .. UN
 	local ta_pref = form == "V" and "تَ" or ""
 	local tu_pref = form == "V" and "تُ" or ""
 
 	-- various stem bases
-	local past_stem_base = ta_pref .. rad1 .. dia.a .. rad2 .. dia.sh
+	local past_stem_base = ta_pref .. rad1 .. A .. rad2 .. SH
 	local nonpast_stem_base = past_stem_base
-	local ps_past_stem_base = tu_pref .. rad1 .. dia.u .. rad2 .. dia.sh
+	local ps_past_stem_base = tu_pref .. rad1 .. U .. rad2 .. SH
 
 	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad3,
@@ -1969,17 +2000,17 @@ end
 function make_form_iii_vi_sound_final_weak_verb(data, args, rad1, rad2, rad3, form)
 	local final_weak = rad3 == nil
 	local vn = form == "VI" and
-		"تَ" .. rad1 .. aa .. rad2 ..
-			(final_weak and dia.in_ or dia.u .. rad3 .. dia.un) or
-		{mu .. rad1 .. aa .. rad2 .. (final_weak and aah or dia.a .. rad3 .. ah) .. dia.un,
-			rad1 .. dia.i .. rad2 .. aa .. (final_weak and hamza or rad3) .. dia.un}
+		"تَ" .. rad1 .. AA .. rad2 ..
+			(final_weak and IN or U .. rad3 .. UN) or
+		{MU .. rad1 .. AA .. rad2 .. (final_weak and AAH or A .. rad3 .. AH) .. UN,
+			rad1 .. I .. rad2 .. AA .. (final_weak and HAMZA or rad3) .. UN}
 	local ta_pref = form == "VI" and "تَ" or ""
 	local tu_pref = form == "VI" and "تُ" or ""
 
 	-- various stem bases
-	local past_stem_base = ta_pref .. rad1 .. aa .. rad2
+	local past_stem_base = ta_pref .. rad1 .. AA .. rad2
 	local nonpast_stem_base = past_stem_base
-	local ps_past_stem_base = tu_pref .. rad1 .. uu .. rad2
+	local ps_past_stem_base = tu_pref .. rad1 .. UU .. rad2
 
 	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad3,
@@ -1998,15 +2029,15 @@ end
 function make_form_iii_vi_geminate_verb(data, args, rad1, rad2, form)
 	-- alternative verbal noun فِعَالٌ will be inserted when we add sound parts below
 	local vn = form == "VI" and
-		{"تَ" .. rad1 .. aa .. rad2 .. dia.sh .. dia.un} or
-		{mu .. rad1 .. aa .. rad2 .. dia.sh .. ah .. dia.un}
+		{"تَ" .. rad1 .. AA .. rad2 .. SH .. UN} or
+		{MU .. rad1 .. AA .. rad2 .. SH .. AH .. UN}
 	local ta_pref = form == "VI" and "تَ" or ""
 	local tu_pref = form == "VI" and "تُ" or ""
 
 	-- various stem bases
-	local past_stem_base = ta_pref .. rad1 .. aa
+	local past_stem_base = ta_pref .. rad1 .. AA
 	local nonpast_stem_base = past_stem_base
-	local ps_past_stem_base = tu_pref .. rad1 .. uu
+	local ps_past_stem_base = tu_pref .. rad1 .. UU
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
@@ -2030,21 +2061,21 @@ function make_form_iv_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 	local stem_core
 	
 	-- check for irregular verb أَرَى
-	if raa_radicals(rad1, rad2, final_weak and yaa or rad3) then
+	if raa_radicals(rad1, rad2, final_weak and YA or rad3) then
 		data.irregular = true
 		stem_core = rad1
 	else
-		stem_core =	rad1 .. dia.s .. rad2
+		stem_core =	rad1 .. SK .. rad2
 	end
 
 	-- verbal noun
-	local vn = hamza .. dia.i .. stem_core .. aa ..
-		(final_weak and hamza or rad3) .. dia.un
+	local vn = HAMZA .. I .. stem_core .. AA ..
+		(final_weak and HAMZA or rad3) .. UN
 
 	-- various stem bases
-	local past_stem_base = hamza .. dia.a .. stem_core
+	local past_stem_base = HAMZA .. A .. stem_core
 	local nonpast_stem_base = stem_core
-	local ps_past_stem_base = hamza .. dia.u .. stem_core
+	local ps_past_stem_base = HAMZA .. U .. stem_core
 
 	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad3,
@@ -2061,12 +2092,12 @@ end
 
 conjugations["IV-hollow"] = function(data, args, rad1, rad2, rad3)
 	-- verbal noun
-	local vn = hamza .. dia.i .. rad1 .. aa .. rad3 .. ah .. dia.un
+	local vn = HAMZA .. I .. rad1 .. AA .. rad3 .. AH .. UN
 
 	-- various stem bases
-	local past_stem_base = hamza .. dia.a .. rad1
+	local past_stem_base = HAMZA .. A .. rad1
 	local nonpast_stem_base = rad1
-	local ps_past_stem_base = hamza .. dia.u .. rad1
+	local ps_past_stem_base = HAMZA .. U .. rad1
 
 	-- make parts
 	make_augmented_hollow_verb(data, args, rad3,
@@ -2074,12 +2105,12 @@ conjugations["IV-hollow"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["IV-geminate"] = function(data, args, rad1, rad2, rad3)
-	local vn = hamza .. dia.i .. rad1 .. dia.s .. rad2 .. aa .. rad2 .. dia.un
+	local vn = HAMZA .. I .. rad1 .. SK .. rad2 .. AA .. rad2 .. UN
 
 	-- various stem bases
-	local past_stem_base = hamza .. dia.a .. rad1
+	local past_stem_base = HAMZA .. A .. rad1
 	local nonpast_stem_base = rad1
-	local ps_past_stem_base = hamza .. dia.u .. rad1
+	local ps_past_stem_base = HAMZA .. U .. rad1
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
@@ -2111,8 +2142,8 @@ end
 -- second consonant cluster. RAD5 is the final consonant, or nil for final-weak
 -- verbs.
 function high_form_verbal_noun(rad12, rad34, rad5)
-	return "اِ" .. rad12 .. dia.i .. rad34 .. aa ..
-		(rad5 == nil and hamza or rad5) .. dia.un
+	return "اِ" .. rad12 .. I .. rad34 .. AA ..
+		(rad5 == nil and HAMZA or rad5) .. UN
 end
 
 -- Populate a sound or final-weak verb for any of the various high-numbered
@@ -2131,9 +2162,9 @@ function make_high_form_sound_final_weak_verb(data, args, rad12, rad34, rad5, fo
 	local vn = high_form_verbal_noun(rad12, rad34, rad5)
 
 	-- various stem bases
-	local nonpast_stem_base = rad12 .. dia.a .. rad34
+	local nonpast_stem_base = rad12 .. A .. rad34
 	local past_stem_base = "اِ" .. nonpast_stem_base
-	local ps_past_stem_base = "اُ" .. rad12 .. dia.u .. rad34
+	local ps_past_stem_base = "اُ" .. rad12 .. U .. rad34
 
 	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad5,
@@ -2156,7 +2187,7 @@ end
 
 conjugations["VII-hollow"] = function(data, args, rad1, rad2, rad3)
 	local nrad1 = "نْ" .. rad1
-	local vn = high_form_verbal_noun(nrad1, yaa, rad3)
+	local vn = high_form_verbal_noun(nrad1, YA, rad3)
 
 	-- various stem bases
 	local nonpast_stem_base = nrad1
@@ -2173,9 +2204,9 @@ conjugations["VII-geminate"] = function(data, args, rad1, rad2, rad3)
 	local vn = high_form_verbal_noun(nrad1, rad2, rad2)
 
 	-- various stem bases
-	local nonpast_stem_base = nrad1 .. dia.a
+	local nonpast_stem_base = nrad1 .. A
 	local past_stem_base = "اِ" .. nonpast_stem_base
-	local ps_past_stem_base = "اُ" .. nrad1 .. dia.u
+	local ps_past_stem_base = "اُ" .. nrad1 .. U
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
@@ -2185,8 +2216,8 @@ end
 -- Join the infixed tā' (ت) to the first radical in form VIII verbs. This may
 -- cause assimilation of the tā' to the radical or in some cases the radical to
 -- the tā'.
-function join_taa(rad)
-	if rad == waw or rad == yaa or rad == "ت" then return "تّ"
+function join_ta(rad)
+	if rad == WAW or rad == YA or rad == "ت" then return "تّ"
 	elseif rad == "د" then return "دّ"
 	elseif rad == "ث" then return "ثّ"
 	elseif rad == "ذ" then return "ذّ"
@@ -2195,16 +2226,16 @@ function join_taa(rad)
 	elseif rad == "ض" then return "ضْط"
 	elseif rad == "ط" then return "طّ"
 	elseif rad == "ظ" then return "ظّ"
-	else return rad .. dia.s .. "ت"
+	else return rad .. SK .. "ت"
 	end
 end
 
 -- Return Form VIII verbal noun. RAD3 is nil for final-weak verbs. If RAD1 is
 -- hamza, there are two alternatives.
 function form_viii_verbal_noun(rad1, rad2, rad3)
-	local vn = high_form_verbal_noun(join_taa(rad1), rad2, rad3)
-	if rad1 == hamza then
-		return {vn, high_form_verbal_noun(yaa .. taa, rad2, rad3)}
+	local vn = high_form_verbal_noun(join_ta(rad1), rad2, rad3)
+	if rad1 == HAMZA then
+		return {vn, high_form_verbal_noun(YA .. TA, rad2, rad3)}
 	else
 		return {vn}
 	end
@@ -2216,17 +2247,17 @@ function make_form_viii_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 	-- check for irregular verb اِتَّخَذَ
 	if axadh_radicals(rad1, rad2, rad3) then
 		data.irregular = true
-		rad1 = taa
+		rad1 = TA
 	end
-	make_high_form_sound_final_weak_verb(data, args, join_taa(rad1), rad2, rad3,
+	make_high_form_sound_final_weak_verb(data, args, join_ta(rad1), rad2, rad3,
 		"VIII")
 
 	-- Add alternative parts if verb is first-hamza. Any duplicates are
 	-- removed in get_spans().
-	if rad1 == hamza then
+	if rad1 == HAMZA then
 		local vn = form_viii_verbal_noun(rad1, rad2, rad3)
 		local past_stem_base2 = "اِيتَ" .. rad2
-		local nonpast_stem_base2 = join_taa(rad1) .. dia.a .. rad2
+		local nonpast_stem_base2 = join_ta(rad1) .. A .. rad2
 		local ps_past_stem_base2 = "اُوتُ" .. rad2
 		make_augmented_sound_final_weak_verb(data, args, rad3,
 			past_stem_base2, nonpast_stem_base2, ps_past_stem_base2, vn, "VIII")
@@ -2242,10 +2273,10 @@ conjugations["VIII-final-weak"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["VIII-hollow"] = function(data, args, rad1, rad2, rad3)
-	local vn = form_viii_verbal_noun(rad1, yaa, rad3)
+	local vn = form_viii_verbal_noun(rad1, YA, rad3)
 
 	-- various stem bases
-	local nonpast_stem_base = join_taa(rad1)
+	local nonpast_stem_base = join_ta(rad1)
 	local past_stem_base = "اِ" .. nonpast_stem_base
 	local ps_past_stem_base = "اُ" .. nonpast_stem_base
 
@@ -2255,7 +2286,7 @@ conjugations["VIII-hollow"] = function(data, args, rad1, rad2, rad3)
 
 	-- Add alternative parts if verb is first-hamza. Any duplicates are
 	-- removed in get_spans().
-	if rad1 == hamza then
+	if rad1 == HAMZA then
 		local past_stem_base2 = "اِيت"
 		local nonpast_stem_base2 = nonpast_stem_base
 		local ps_past_stem_base2 = "اُوت"
@@ -2268,9 +2299,9 @@ conjugations["VIII-geminate"] = function(data, args, rad1, rad2, rad3)
 	local vn = form_viii_verbal_noun(rad1, rad2, rad2)
 
 	-- various stem bases
-	local nonpast_stem_base = join_taa(rad1) .. dia.a
+	local nonpast_stem_base = join_ta(rad1) .. A
 	local past_stem_base = "اِ" .. nonpast_stem_base
-	local ps_past_stem_base = "اُ" .. join_taa(rad1) .. dia.u
+	local ps_past_stem_base = "اُ" .. join_ta(rad1) .. U
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
@@ -2278,7 +2309,7 @@ conjugations["VIII-geminate"] = function(data, args, rad1, rad2, rad3)
 
 	-- Add alternative parts if verb is first-hamza. Any duplicates are
 	-- removed in get_spans().
-	if rad1 == hamza then
+	if rad1 == HAMZA then
 		local past_stem_base2 = "اِيتَ"
 		local nonpast_stem_base2 = nonpast_stem_base
 		local ps_past_stem_base2 = "اُوتُ"
@@ -2289,12 +2320,12 @@ end
 
 conjugations["IX-sound"] = function(data, args, rad1, rad2, rad3)
 	local ipref = "اِ"
-	local vn = ipref .. rad1 .. dia.s .. rad2 .. dia.i .. rad3 .. aa .. rad3 .. dia.un
+	local vn = ipref .. rad1 .. SK .. rad2 .. I .. rad3 .. AA .. rad3 .. UN
 
 	-- various stem bases
-	local nonpast_stem_base = rad1 .. dia.s .. rad2 .. dia.a
+	local nonpast_stem_base = rad1 .. SK .. rad2 .. A
 	local past_stem_base = ipref .. nonpast_stem_base
-	local ps_past_stem_base = "اُ" .. rad1 .. dia.s .. rad2 .. dia.u
+	local ps_past_stem_base = "اُ" .. rad1 .. SK .. rad2 .. U
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad3,
@@ -2312,21 +2343,21 @@ end
 -- are handled automatically in postprocessing, where we resolve sequences of
 -- iwC -> īC, uwC -> ūC, w + sukūn + w -> w + shadda. 
 function make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, rad3, rad4, rad5, form)
-	make_high_form_sound_final_weak_verb(data, args, rad1 .. dia.s .. rad2,
-		rad3 .. dia.s .. rad4, rad5, form)
+	make_high_form_sound_final_weak_verb(data, args, rad1 .. SK .. rad2,
+		rad3 .. SK .. rad4, rad5, form)
 end
 
 -- Make form X sound or final-weak verb. Final-weak verbs are identified
 -- by RAD3 = nil.
 function make_form_x_sound_final_weak_verb(data, args, rad1, rad2, rad3)
-	make_high5_form_sound_final_weak_verb(data, args, siin, taa, rad1, rad2, rad3, "X")
+	make_high5_form_sound_final_weak_verb(data, args, SIN, TA, rad1, rad2, rad3, "X")
 	-- check for irregular verb اِسْتَحْيَا (also اِسْتَحَى or اِسْتَحَّى)
-	if hayy_radicals(rad1, rad2, rad3 or yaa) then
+	if hayy_radicals(rad1, rad2, rad3 or YA) then
 		data.irregular = true
 		-- Add alternative entries to the verbal paradigms. Any duplicates are
 		-- removed in get_spans().
-		make_high_form_sound_final_weak_verb(data, args, siin .. dia.s .. taa, rad1, rad3, "X")
-		make_high_form_sound_final_weak_verb(data, args, siin .. dia.s .. taa, rad1 .. dia.sh, rad3, "X")
+		make_high_form_sound_final_weak_verb(data, args, SIN .. SK .. TA, rad1, rad3, "X")
+		make_high_form_sound_final_weak_verb(data, args, SIN .. SK .. TA, rad1 .. SH, rad3, "X")
 	end
 end
 
@@ -2339,7 +2370,7 @@ conjugations["X-final-weak"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["X-hollow"] = function(data, args, rad1, rad2, rad3)
-	local vn = "اِسْتِ" .. rad1 .. aa .. rad3 .. ah .. dia.un
+	local vn = "اِسْتِ" .. rad1 .. AA .. rad3 .. AH .. UN
 
 	-- various stem bases
 	local past_stem_base = "اِسْتَ" .. rad1
@@ -2352,7 +2383,7 @@ conjugations["X-hollow"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["X-geminate"] = function(data, args, rad1, rad2, rad3)
-	local vn = "اِسْتِ" .. rad1 .. dia.s .. rad2 .. aa .. rad2 .. dia.un
+	local vn = "اِسْتِ" .. rad1 .. SK .. rad2 .. AA .. rad2 .. UN
 
 	-- various stem bases
 	local past_stem_base = "اِسْتَ" .. rad1
@@ -2366,12 +2397,12 @@ end
 
 conjugations["XI-sound"] = function(data, args, rad1, rad2, rad3)
 	local ipref = "اِ"
-	local vn = ipref .. rad1 .. dia.s .. rad2 .. ii .. rad3 .. aa .. rad3 .. dia.un
+	local vn = ipref .. rad1 .. SK .. rad2 .. II .. rad3 .. AA .. rad3 .. UN
 
 	-- various stem bases
-	local nonpast_stem_base = rad1 .. dia.s .. rad2 .. aa
+	local nonpast_stem_base = rad1 .. SK .. rad2 .. AA
 	local past_stem_base = ipref .. nonpast_stem_base
-	local ps_past_stem_base = "اُ" .. rad1 .. dia.s .. rad2 .. uu
+	local ps_past_stem_base = "اُ" .. rad1 .. SK .. rad2 .. UU
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad3,
@@ -2383,7 +2414,7 @@ end
 -- Make form XII sound or final-weak verb. Final-weak verbs are identified
 -- by RAD3 = nil.
 function make_form_xii_sound_final_weak_verb(data, args, rad1, rad2, rad3)
-	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, waw, rad2, rad3, "XII")
+	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, WAW, rad2, rad3, "XII")
 end
 
 conjugations["XII-sound"] = function(data, args, rad1, rad2, rad3)
@@ -2397,7 +2428,7 @@ end
 -- Make form XIII sound or final-weak verb. Final-weak verbs are identified
 -- by RAD3 = nil.
 function make_form_xiii_sound_final_weak_verb(data, args, rad1, rad2, rad3)
-	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, waw, waw, rad3, "XIII")
+	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, WAW, WAW, rad3, "XIII")
 end
 
 conjugations["XIII-sound"] = function(data, args, rad1, rad2, rad3)
@@ -2417,7 +2448,7 @@ end
 -- exactly what form XV is about.
 function make_form_xiv_xv_sound_final_weak_verb(data, args, rad1, rad2, rad3, final_weak, form)
 	local lastrad = not final_weak and rad3 or nil
-	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, nuun, rad3, lastrad, form)
+	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, NUN, rad3, lastrad, form)
 end
 
 conjugations["XIV-sound"] = function(data, args, rad1, rad2, rad3)
@@ -2439,17 +2470,17 @@ end
 function make_form_iq_iiq_sound_final_weak_verb(data, args, rad1, rad2, rad3, rad4, form)
 	local final_weak = rad4 == nil
 	local vn = form == "IIq" and
-		"تَ" .. rad1 .. dia.a .. rad2 .. dia.s .. rad3 ..
-			(final_weak and dia.in_ or dia.u .. rad4 .. dia.un) or
-		rad1 .. dia.a .. rad2 .. dia.s .. rad3 ..
-			(final_weak and aah or dia.a .. rad4 .. ah) .. dia.un
+		"تَ" .. rad1 .. A .. rad2 .. SK .. rad3 ..
+			(final_weak and IN or U .. rad4 .. UN) or
+		rad1 .. A .. rad2 .. SK .. rad3 ..
+			(final_weak and AAH or A .. rad4 .. AH) .. UN
 	local ta_pref = form == "IIq" and "تَ" or ""
 	local tu_pref = form == "IIq" and "تُ" or ""
 
 	-- various stem bases
-	local past_stem_base = ta_pref .. rad1 .. dia.a .. rad2 .. dia.s .. rad3
+	local past_stem_base = ta_pref .. rad1 .. A .. rad2 .. SK .. rad3
 	local nonpast_stem_base = past_stem_base
-	local ps_past_stem_base = tu_pref .. rad1 .. dia.u .. rad2 .. dia.s .. rad3
+	local ps_past_stem_base = tu_pref .. rad1 .. U .. rad2 .. SK .. rad3
 
 	-- make parts
 	make_augmented_sound_final_weak_verb(data, args, rad4,
@@ -2475,7 +2506,7 @@ end
 -- Make form IIIq sound or final-weak verb. Final-weak verbs are identified
 -- by RAD4 = nil.
 function make_form_iiiq_sound_final_weak_verb(data, args, rad1, rad2, rad3, rad4)
-	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, nuun, rad3, rad4, "IIIq")
+	make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, NUN, rad3, rad4, "IIIq")
 end
 
 conjugations["IIIq-sound"] = function(data, args, rad1, rad2, rad3, rad4)
@@ -2488,12 +2519,12 @@ end
 
 conjugations["IVq-sound"] = function(data, args, rad1, rad2, rad3, rad4)
 	local ipref = "اِ"
-	local vn = ipref .. rad1 .. dia.s .. rad2 .. dia.i .. rad3 .. dia.s .. rad4 .. aa .. rad4 .. dia.un
+	local vn = ipref .. rad1 .. SK .. rad2 .. I .. rad3 .. SK .. rad4 .. AA .. rad4 .. UN
 
 	-- various stem bases
-	local past_stem_base = ipref .. rad1 .. dia.s .. rad2 .. dia.a .. rad3
-	local nonpast_stem_base = rad1 .. dia.s .. rad2 .. dia.a .. rad3
-	local ps_past_stem_base = "اُ" .. rad1 .. dia.s .. rad2 .. dia.u .. rad3
+	local past_stem_base = ipref .. rad1 .. SK .. rad2 .. A .. rad3
+	local nonpast_stem_base = rad1 .. SK .. rad2 .. A .. rad3
+	local ps_past_stem_base = "اُ" .. rad1 .. SK .. rad2 .. U .. rad3
 
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad4,
@@ -2806,8 +2837,8 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 	local final_weak = rad3 == nil
 	local prefix_vowel = prefix_vowel_from_form(form)
 	local form56 = form_nonpast_a_vowel(form)
-	local a_base_suffix = final_weak and "" or dia.a .. rad3
-	local i_base_suffix = final_weak and "" or dia.i .. rad3
+	local a_base_suffix = final_weak and "" or A .. rad3
+	local i_base_suffix = final_weak and "" or I .. rad3
 	
 	-- past and non-past stems, active and passive 
 	local past_stem = past_stem_base .. a_base_suffix
@@ -2830,11 +2861,11 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 
 	-- active and passive participle
 	if final_weak then
-		insert_part(data, "ap", mu .. nonpast_stem .. dia.in_)
-		insert_part(data, "pp", mu .. ps_nonpast_stem .. dia.an .. amaq)
+		insert_part(data, "ap", MU .. nonpast_stem .. IN)
+		insert_part(data, "pp", MU .. ps_nonpast_stem .. AN .. AMAQ)
 	else
-		insert_part(data, "ap", mu .. nonpast_stem .. dia.un)
-		insert_part(data, "pp", mu .. ps_nonpast_stem .. dia.un)
+		insert_part(data, "ap", MU .. nonpast_stem .. UN)
+		insert_part(data, "pp", MU .. ps_nonpast_stem .. UN)
 	end
 end
 
@@ -2882,10 +2913,10 @@ function make_augmented_hollow_verb(data, args, rad3,
 	local a_base_suffix_v, a_base_suffix_c
 	local i_base_suffix_v, i_base_suffix_c
 	
-	a_base_suffix_v = aa .. rad3         -- 'af-āl-a, inf-āl-a
-	a_base_suffix_c = dia.a .. rad3      -- 'af-al-tu, inf-al-tu
-	i_base_suffix_v = ii .. rad3         -- 'uf-īl-a, unf-īl-a
-	i_base_suffix_c = dia.i .. rad3      -- 'uf-il-tu, unf-il-tu
+	a_base_suffix_v = AA .. rad3         -- 'af-āl-a, inf-āl-a
+	a_base_suffix_c = A .. rad3      -- 'af-al-tu, inf-al-tu
+	i_base_suffix_v = II .. rad3         -- 'uf-īl-a, unf-īl-a
+	i_base_suffix_c = I .. rad3      -- 'uf-il-tu, unf-il-tu
 	
 	-- past and non-past stems, active and passive, for vowel-initial and
 	-- consonant-initial endings
@@ -2913,9 +2944,9 @@ function make_augmented_hollow_verb(data, args, rad3,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, prefix_vowel, false)
 
 	-- active participle
-	insert_part(data, "ap", mu .. nonpast_v_stem .. dia.un)
+	insert_part(data, "ap", MU .. nonpast_v_stem .. UN)
 	-- passive participle
-	insert_part(data, "pp", mu .. ps_nonpast_v_stem .. dia.un)
+	insert_part(data, "pp", MU .. ps_nonpast_v_stem .. UN)
 end
 
 -- generate finite parts of an augmented (form II+) geminate verb,
@@ -2940,15 +2971,15 @@ function make_augmented_geminate_verb(data, args, rad3,
 	local i_base_suffix_v, i_base_suffix_c
 	
 	if form == "IV" or form == "X" or form == "IVq" then
-		a_base_suffix_v = dia.a .. rad3 .. dia.sh         -- 'af-all
-		a_base_suffix_c = dia.s .. rad3 .. dia.a .. rad3  -- 'af-lal
-		i_base_suffix_v = dia.i .. rad3 .. dia.sh         -- yuf-ill
-		i_base_suffix_c = dia.s .. rad3 .. dia.i .. rad3  -- yuf-lil
+		a_base_suffix_v = A .. rad3 .. SH         -- 'af-all
+		a_base_suffix_c = SK .. rad3 .. A .. rad3  -- 'af-lal
+		i_base_suffix_v = I .. rad3 .. SH         -- yuf-ill
+		i_base_suffix_c = SK .. rad3 .. I .. rad3  -- yuf-lil
 	else
-		a_base_suffix_v = rad3 .. dia.sh         -- fā-ll, infa-ll
-		a_base_suffix_c = rad3 .. dia.a .. rad3  -- fā-lal, infa-lal
-		i_base_suffix_v = rad3 .. dia.sh         -- yufā-ll, yanfa-ll
-		i_base_suffix_c = rad3 .. dia.i .. rad3  -- yufā-lil, yanfa-lil
+		a_base_suffix_v = rad3 .. SH         -- fā-ll, infa-ll
+		a_base_suffix_c = rad3 .. A .. rad3  -- fā-lal, infa-lal
+		i_base_suffix_v = rad3 .. SH         -- yufā-ll, yanfa-ll
+		i_base_suffix_c = rad3 .. I .. rad3  -- yufā-lil, yanfa-lil
 	end
 	
 	-- past and non-past stems, active and passive, for vowel-initial and
@@ -2980,95 +3011,88 @@ function make_augmented_geminate_verb(data, args, rad3,
 		"geminate")
 
 	-- active participle
-	insert_part(data, "ap", mu .. nonpast_v_stem .. dia.un)
+	insert_part(data, "ap", MU .. nonpast_v_stem .. UN)
 	-- passive participle
-	insert_part(data, "pp", mu .. ps_nonpast_v_stem .. dia.un)
+	insert_part(data, "pp", MU .. ps_nonpast_v_stem .. UN)
 end
 
 ----------------------------------------
 -- functions to create inflection tables
 ----------------------------------------
 
--- Pattern matching short vowels
-local re_aiu = "[" .. dia.a .. dia.i .. dia.u .. "]"
--- Pattern matching short vowels or sukūn
-local re_aius = "[" .. dia.a .. dia.i .. dia.u .. dia.s .. "]"
--- Pattern matching any diacritics that may be on a consonant
-local re_diacritic = dia.sh .. "?[" .. dia.a .. dia.i .. dia.u .. dia.an .. dia.in_ .. dia.un .. dia.s .. "]"
-
 -- array of substitutions; each element is a 2-entry array FROM, TO; do it
 -- this way so the concatenations only get evaluated once
 local postprocess_subs = {
 	-- reorder short-vowel + shadda -> shadda + short-vowel for easier processing
-	{"(" .. re_aiu .. ")" .. dia.sh, dia.sh .. "%1"},
+	{"(" .. AIU .. ")" .. SH, SH .. "%1"},
 
 	----------same letter separated by sukūn should instead use shadda---------
 	------------happens e.g. in kun-nā "we were".-----------------
-	{"(.)" .. dia.s .. "%1", "%1" .. dia.sh},
+	{"(.)" .. SK .. "%1", "%1" .. SH},
 
 	---------------------------- assimilated verbs ----------------------------
 	-- iw, iy -> ī (assimilated verbs)
-	{dia.i .. waw .. dia.s, ii},
-	{dia.i .. yaa .. dia.s, ii},
+	{I .. WAW .. SK, II},
+	{I .. YA .. SK, II},
 	-- uw, uy -> ū (assimilated verbs)
-	{dia.u .. waw .. dia.s, uu},
-	{dia.u .. yaa .. dia.s, uu},
+	{U .. WAW .. SK, UU},
+	{U .. YA .. SK, UU},
 
     -------------- final -yā uses tall alif not alif maqṣūra ------------------
-    {"(" .. yaa ..  dia.sh .. "?" .. dia.a .. ")" .. amaq, "%1" .. alif},
+    {"(" .. YA ..  SH .. "?" .. A .. ")" .. AMAQ, "%1" .. ALIF},
 
 	-------------------------- handle initial hamza ---------------------------
 	-- initial hamza + short-vowel + hamza + sukūn -> hamza + long vowel
-	{hamza .. dia.a .. hamza .. dia.s, hamza .. dia.a .. alif},
- 	{hamza .. dia.i .. hamza .. dia.s, hamza .. dia.i .. yaa},
- 	{hamza .. dia.u .. hamza .. dia.s, hamza .. dia.u .. waw},
+	{HAMZA .. A .. HAMZA .. SK, HAMZA .. A .. ALIF},
+ 	{HAMZA .. I .. HAMZA .. SK, HAMZA .. I .. YA},
+ 	{HAMZA .. U .. HAMZA .. SK, HAMZA .. U .. WAW},
 	-- put initial hamza on a seat according to following vowel. alif-madda handled later.
- 	{"^" .. hamza .. dia.a, hamza_on_alif .. dia.a},
- 	{"^" .. hamza .. dia.i, hamza_under_alif .. dia.i},
- 	{"^" .. hamza .. dia.u, hamza_on_alif .. dia.u},
+ 	{"^" .. HAMZA .. A, HAMZA_ON_ALIF .. A},
+ 	{"^" .. HAMZA .. I, HAMZA_UNDER_ALIF .. I},
+ 	{"^" .. HAMZA .. U, HAMZA_ON_ALIF .. U},
 
 	----------------------------- handle final hamza --------------------------
 	-- "final" hamza may be followed by a short vowel or tanwīn sequence
 	-- use a previous short vowel to get the seat
-	{"(" .. re_aiu .. ")(" .. hamza .. ")(" .. re_diacritic .. "?)$",
+	{"(" .. AIU .. ")(" .. HAMZA .. ")(" .. DIACRITIC .. "?)$",
 		function(v, ham, diacrit)
-			ham = v == dia.i and hamza_on_yaa or v == dia.u and hamza_on_waw or hamza_on_alif
+			ham = v == I and HAMZA_ON_YA or v == U and HAMZA_ON_WAW or HAMZA_ON_ALIF
 			return v .. ham .. diacrit
 		end
 	},
 	-- else hamza is on the line; use a special character to temporarily indicate
 	-- that hamza-on-line is the final seat, not the not-yet-determined seat
-	{hamza .. "(" .. re_diacritic .. "?)$",
+	{HAMZA .. "(" .. DIACRITIC .. "?)$",
 		-- hamza_subst will be replaced with hamza (on the line) later on
-		hamza_subst .. "%1"},
+		HAMZA_SUBST .. "%1"},
 
 	---------------------------- handle medial hamza --------------------------
 	-- if long vowel or diphthong precedes, we need to ignore it.
-	{"([" .. alif .. waw .. yaa .. "]" .. dia.s .. "?)(" .. hamza .. ")(" .. dia.sh .. "?)(" .. re_aius .. ")",
+	{"([" .. ALIF .. WAW .. YA .. "]" .. SK .. "?)(" .. HAMZA .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
 		function(prec, ham, shad, v2)
-			ham = v2 == dia.i and hamza_on_yaa or
-				v2 == dia.u and hamza_on_waw or
-				rfind(prec, yaa) and hamza_on_yaa or
+			ham = v2 == I and HAMZA_ON_YA or
+				v2 == U and HAMZA_ON_WAW or
+				rfind(prec, YA) and HAMZA_ON_YA or
 				-- hamza_subst will be replaced with hamza (on the line) later on
-				hamza_subst
+				HAMZA_SUBST
 			return prec .. ham ..shad .. v2
 		end
 	},
 	-- otherwise, seat of medial hamza relates to vowels on one or both sides.
- 	{"(" .. re_aius .. ")(" .. hamza .. ")(" .. dia.sh .. "?)(" .. re_aius .. ")",
+ 	{"(" .. AIUSK .. ")(" .. HAMZA .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
 		function(v1, ham, shad, v2)
-			ham = (v1 == dia.i or v2 == dia.i) and hamza_on_yaa or
-				(v1 == dia.u or v2 == dia.u) and hamza_on_waw or
-				hamza_on_alif
+			ham = (v1 == I or v2 == I) and HAMZA_ON_YA or
+				(v1 == U or v2 == U) and HAMZA_ON_WAW or
+				HAMZA_ON_ALIF
 			return v1 .. ham .. shad .. v2
 		end
 	},
 	
 	------------------------ finally handle alif madda ------------------------
-	{hamza_on_alif .. dia.a .. alif, amad},
+	{HAMZA_ON_ALIF .. A .. ALIF, AMAD},
 	
 	-------------------- undo the hamza-substituted character -----------------
-	{hamza_subst, hamza}
+	{HAMZA_SUBST, HAMZA}
 }
 
 -- Post-process verb parts to eliminate phonological anomalies. Many of the changes,
@@ -3088,27 +3112,27 @@ function postprocess_term(term)
 	for _, sub in ipairs(postprocess_subs) do
 		term = rsub(term, sub[1], sub[2])
 	end
-	-- sequence of hamza-on-waw + waw is problematic and leads to a preferred
+	-- sequence of hamza-on-wāw + wāw is problematic and leads to a preferred
 	-- alternative with some other type of hamza, as well as the original
-	-- sequence; sequence of waw + hamza-on-waw + waw is especially problematic
+	-- sequence; sequence of wāw + hamza-on-wāw + wāw is especially problematic
 	-- and leads to two different alternatives with the original sequence not
 	-- one of them
-	if rfind(term, waw .. "ؤُو") then
-		return {rsub1(term, waw .. "ؤُو", waw .. "ئُو"), rsub1(term, waw .. "ؤُو", waw .. "ءُو")}
-	elseif rfind(term, yaa .. "ؤُو") then
-		return {rsub1(term, yaa .. "ؤُو", yaa .. "ئُو"), term}
-	elseif rfind(term, alif .. "ؤُو") then
+	if rfind(term, WAW .. "ؤُو") then
+		return {rsub1(term, WAW .. "ؤُو", WAW .. "ئُو"), rsub1(term, WAW .. "ؤُو", WAW .. "ءُو")}
+	elseif rfind(term, YA .. "ؤُو") then
+		return {rsub1(term, YA .. "ؤُو", YA .. "ئُو"), term}
+	elseif rfind(term, ALIF .. "ؤُو") then
 		-- Here John Mace "Arabic Verbs" is inconsistent. In past-tense parts,
 		-- the preferred alternative has hamza on the line, whereas in
-		-- non-past parts the preferred alternative has hamza-on-yaa even
+		-- non-past parts the preferred alternative has hamza-on-yāʾ even
 		-- though the sequence of vowels is identical. It's too complicated to
 		-- propagate information about tense through to here so pick one.
-		return {rsub1(term, alif .. "ؤُو", alif .. "ئُو"), term}
-	elseif rfind(term, dia.a .. "ؤُو") then
-		return {rsub1(term, dia.a .. "ؤُو", dia.a .. hamza_on_alif .. dia.u .. waw), term}
-	-- no alternative spelling in sequence of dia.u + hamza-on-waw + dia.u + waw;
-	-- sequence of dia.i + hamza-on-waw + dia.u + waw does not occur (has
-	-- hamza-on-yaa instead)
+		return {rsub1(term, ALIF .. "ؤُو", ALIF .. "ئُو"), term}
+	elseif rfind(term, A .. "ؤُو") then
+		return {rsub1(term, A .. "ؤُو", A .. HAMZA_ON_ALIF .. U .. WAW), term}
+	-- no alternative spelling in sequence of U + hamza-on-wāw + U + wāw;
+	-- sequence of I + hamza-on-wāw + U + wāw does not occur (has
+	-- hamza-on-yāʾ instead)
 	else
 		return {term}
 	end
