@@ -1642,7 +1642,7 @@ end
 -- Make form VIII sound or final-weak verb. Final-weak verbs are identified
 -- by RAD3 = nil.
 function make_form_viii_sound_final_weak_verb(data, args, rad1, rad2, rad3)
-	-- check for irregular verb اِتَّخَذَ
+	-- check for irregular verb اِتَّخَذَ
 	if axadh_radicals(rad1, rad2, rad3) then
 		data.irregular = true
 		rad1 = taa
@@ -1749,7 +1749,7 @@ end
 -- by RAD3 = nil.
 function make_form_x_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 	make_high5_form_sound_final_weak_verb(data, args, siin, taa, rad1, rad2, rad3, "X")
-	-- check for irregular verb اِسْتَحْيَا (also اِسْتَحَى or اِسْتَحَّى)
+	-- check for irregular verb اِسْتَحْيَا (also اِسْتَحَى or اِسْتَحَّى)
 	if hayy_radicals(rad1, rad2, rad3 or yaa) then
 		data.irregular = true
 		-- Add alternative entries to the verbal paradigms. Any duplicates are
