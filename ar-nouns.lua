@@ -1,5 +1,8 @@
+-- Author: Benwing, based on early version by CodeCat.
+
 local m_utilities = require("Module:utilities")
 local m_links = require("Module:links")
+local ar_utilities = require("Module:ar-utilities")
 
 -- example of -an word with tall alif, besides ʿaṣan and riḍan (which can
 -- also be spelled with alif maqṣūra):
@@ -13,7 +16,6 @@ local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 
 local BOGUS_CHAR = u(0xFFFD)
-local HAMZA_PLACEHOLDER = u(0xFFF1)
 
 -- hamza variants
 local HAMZA            = u(0x0621) -- hamza on the line (stand-alone hamza) = ء
@@ -22,6 +24,7 @@ local HAMZA_ON_WAW   = u(0x0624)
 local HAMZA_UNDER_ALIF = u(0x0625)
 local HAMZA_ON_YA    = u(0x0626)
 local HAMZA_ANY = "[" .. HAMZA .. HAMZA_ON_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_ON_WAW .. HAMZA_ON_YA .. "]"
+local HAMZA_PH = u(0xFFF0) -- hamza placeholder
 
 -- various letters
 local ALIF   = u(0x0627) -- ʾalif = ا
@@ -133,6 +136,11 @@ function rsub1(term, foo, bar)
 	return retval
 end
 
+function make_link(arabic)
+	--return m_links.full_link(nil, arabic, lang, nil, "term", nil, {tr = "-"}, false)
+	return m_links.full_link(nil, arabic, lang, nil, "term", nil, {}, false)
+end
+
 function init_data()
 	return {forms = {}, title = nil, categories = {},
 		allgenders = {"m", "f"},
@@ -216,8 +224,7 @@ function export.show_noun(frame)
 	
 	local data = init_data()
 
-	local sgs = {}
-	local pls = {}
+	local sgs, pls
 	if not args[1] and not args[2] and mw.title.getCurrentTitle().nsText == "Template" then
 		sgs = {{"{{{1}}}", "tri"}}
 		pls = {{"{{{2}}}", "tri"}}
@@ -226,6 +233,7 @@ function export.show_noun(frame)
 		if args[1] == "-" then
 			sgs = {{"", "-"}}
 		else
+			sgs = {}
 			insert_stems(args[1], sgs, {{args[1], ""}}, false, 'sg')
 		end
 		local i = 2
@@ -234,11 +242,7 @@ function export.show_noun(frame)
 			insert_stems(arg, sgs, {{arg, ""}}, false, 'sg')
 			i = i + 1
 		end
-		i = 2
-		while args[i] do
-			insert_stems(args[i], pls, sgs, false, 'pl')
-			i = i + 1
-		end
+		pls = do_gender_number(args, "pl", sgs, nil, false, "pl")
 	end
 
 	-- Can manually specify which states are to appear.
@@ -292,7 +296,7 @@ function export.show_noun(frame)
 
 	-- Generate the singular, dual and plural forms
 	local dus = (contains(data.numbers, "du") and
-		do_gender_number(args, "du", sgs, "d", false, "du") or {})
+		do_gender_number(args, "d", sgs, "d", false, "du") or {})
 	call_inflections(sgs, data, "sg")
 	call_inflections(dus, data, "du")
 	call_inflections(pls, data, "pl")
@@ -347,9 +351,9 @@ function export.show_adj(frame)
 	end
 
 	local mdus = (contains(data.numbers, "du") and
-		do_gender_number(args, "du", msgs, "d", false, "du") or {})
+		do_gender_number(args, "d", msgs, "d", false, "du") or {})
 	local fdus = (contains(data.numbers, "du") and
-		do_gender_number(args, "fdu", fsgs, "d", true, "du") or {})
+		do_gender_number(args, "fd", fsgs, "d", true, "du") or {})
 	local mpls = (contains(data.numbers, "pl") and
 		do_gender_number(args, "pl", msgs, "p", false, "pl") or {})
 	local fpls = (contains(data.numbers, "pl") and
@@ -413,22 +417,30 @@ end
 -- nom, acc, gen.
 function add_inflections(stem, tr, data, numgen, endings)
 	assert(#endings == 9)
+	-- Return a list of combined of ar/tr forms, with the ending tacked on.
+	-- There may be more than one form because of alternative hamza seats that
+	-- may be supplied, e.g. مُبْتَدَؤُون or مُبْتَدَأُون (mubtadaʾūn "(grammatical) subjects").
 	local function combine(ar, tr, ending)
 		local endingar, endingtr = split_arabic_tr(ending)
-		ar = hamza_seat(ar .. endingar)
+		allar = hamza_seat(ar .. endingar)
 		tr = tr .. endingtr
-		return ar .. "/" .. tr
+		allartr = {}
+		for _, arval in ipairs(allar) do
+			table.insert(allartr, arval .. "/" .. tr)
+		end
+		return allartr
 	end
 	local function add_inflection(key, stem, tr, ending)
 		if data.forms[key] == nil then
 			data.forms[key] = {}
 		end
-		if type(ending) == "table" then
-			for _, val in ipairs(ending) do
-				table.insert(data.forms[key], combine(stem, tr, val))
+		if type(ending) ~= "table" then
+			ending = {ending}
+		end
+		for _, endingval in ipairs(ending) do
+			for _, combinedval in ipairs(combine(stem, tr, endingval)) do
+				insert_if_not(data.forms[key], combinedval)
 			end
-		else
-			table.insert(data.forms[key], combine(stem, tr, ending))
 		end
 	end
 	local defstem = "ال" .. stem
@@ -446,24 +458,40 @@ function add_inflections(stem, tr, data, numgen, endings)
 	add_inflection("gen_" .. numgen .. "_con", stem, tr, endings[9])
 end	
 
-function triptote_diptote(stem, tr, data, n, is_dip, lc)
+function insert_cat(data, numgen, catvalue, engvalue)
+	local singpl = rfind(numgen, "sg") and "singular" or "broken plural"
+	local adjnoun = rfind(numgen, "_") and "adjective" or "noun"
+	if singpl == "broken plural" and (rfind(catvalue, "SINGULAR") or rfind(engvalue, "SINGULAR")) then
+		table.insert(data.categories, "Arabic " .. adjnoun .. "s with broken plural")
+	end
+	catvalue = rsub(catvalue, "NOUN", adjnoun)
+	catvalue = rsub(catvalue, "SINGULAR", singpl)
+	engvalue = rsub(engvalue, "SINGULAR", singpl)
+	if catvalue ~= "" then
+		table.insert(data.categories, catvalue)
+	end
+	local key = numgen .. "_type"
+	if data.forms[key] == nil then
+		data.forms[key] = {}
+	end
+	table.insert(data.forms[key], engvalue)
+end
+
+function triptote_diptote(stem, tr, data, numgen, is_dip, lc)
 	-- Remove any case ending
 	if rfind(stem, "[" .. UN .. U .. "]$") then
 		stem = rsub(stem, "[" .. UN .. U .. "]$", "")
 		tr = rsub(tr, "un?$", "")
 	end
-	if rfind(stem, TA_M .. "$") and not rfind(tr, "t$") then
-		tr = tr .. "t"
+	if rfind(stem, TA_M .. "$") then
+		if rfind(tr, "h$") then
+			tr = rsub(tr, "h$", "t")
+		elseif not rfind(tr, "t$") then
+			tr = tr .. "t"
+		end
 	end
-	if rfind(stem, AAH .. "$") then
-		--data.title = "triptote singular in " .. m_links.full_link(nil, HYPHEN .. AAH, lang, nil, "term", nil, {tr = "-"}, false)
-	elseif rfind(stem, AH .. "$") then
-		--data.title = "triptote singular in " .. m_links.full_link(nil, HYPHEN .. AH, lang, nil, "term", nil, {tr = "-"}, false)
-	else
-		--data.title = "triptote singular"
-	end
-	
-	add_inflections(stem, tr, data, n,
+
+	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{is_dip and U or UN,
 		 is_dip and A or AN .. ((rfind(stem, "[" .. HAMZA_ON_ALIF .. TA_M .. "]$") or rfind(stem, ALIF .. HAMZA .. "$")) and "" or ALIF),
 		 is_dip and A or IN,
@@ -472,6 +500,23 @@ function triptote_diptote(stem, tr, data, n, is_dip, lc)
 		 lc and AA or A,
 		 lc and II or I,
 		})
+
+	local tote = lc and "long construct" or is_dip and "diptote" or "triptote"
+	local singpl_tote = "SINGULAR " .. tote
+	local cat_prefix = "Arabic NOUNs with " .. tote .. " SINGULAR"
+	if rfind(stem, "[" .. AMAD .. ALIF .. "]" .. TA_M .. "$") then
+		insert_cat(data, numgen, cat_prefix .. " in -āh",
+			singpl_tote .. " in " .. make_link(HYPHEN .. AAH))
+	elseif rfind(stem, TA_M .. "$") then
+		insert_cat(data, numgen, cat_prefix .. " in -a",
+			singpl_tote .. " in " .. make_link(HYPHEN .. AH))
+	elseif lc then
+		insert_cat(data, numgen, cat_prefix,
+			singpl_tote)
+	else
+		insert_cat(data, numgen, "Arabic NOUNs with basic " .. tote .. " SINGULAR",
+			"basic " .. singpl_tote)
+	end
 end
 
 -- Regular triptote
@@ -512,10 +557,12 @@ inflections["fam"] = function(stem, tr, data, numgen)
 	local FAM = "فَم"
 	local F = "ف"
 	add_inflections("", "", data, numgen,
-		{FAM .. UN, FAM .. AN, FAM .. IN,
+		{FAM .. UN, FAM .. AN .. ALIF, FAM .. IN,
 		 FAM .. U, FAM .. A, FAM .. I,
 		 {FAM .. U, F .. UU}, {FAM .. A, F .. AA}, {FAM .. I, F .. II},
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with irregular singular",
+		"singular of irregular noun")
 end
 
 -- The word اِمْرُؤ ("man")
@@ -525,6 +572,8 @@ inflections["imru"] = function(stem, tr, data, numgen)
 		 "مَرْءُ", "مَرْءَ", "مَرْءِ",
 		 "اِمْرُؤُ", "اِمْرَأَ", "اِمْرِئِ",
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with irregular singular",
+		"singular of irregular noun")
 end
 
 -- The word اِمْرُؤ ("man") in dual
@@ -534,6 +583,8 @@ inflections["imrud"] = function(stem, tr, data, numgen)
 		 "مَرْآنِ", "مَرْأَيْنِ", "مَرْأَيْنِ",
 		 "اِمْرَآ", "اِمْرَأَيْ", "اِمْرَأَيْ",
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with irregular dual",
+		"dual of irregular noun")
 end
 
 -- The word اِمْرَأَة ("woman")
@@ -545,6 +596,8 @@ inflections["imraa"] = function(stem, tr, data, numgen)
 		 MARA .. U, MARA .. A, MARA .. I,
 		 IMRAA .. U, IMRAA .. A, IMRAA .. I,
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with irregular singular",
+		"singular of irregular noun")
 end
 
 -- The word اِمْرَأَة ("woman") in dual
@@ -556,6 +609,8 @@ inflections["imraad"] = function(stem, tr, data, numgen)
 		 MARAT .. AANI, MARAT .. AYNI, MARAT .. AYNI,
 		 IMRAAT .. AA, IMRAAT .. AYSK, IMRAAT .. AYSK,
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with irregular dual",
+		"dual of irregular noun")
 end
 
 function in_defective(stem, tr, data, numgen, sgin)
@@ -565,16 +620,20 @@ function in_defective(stem, tr, data, numgen, sgin)
 	stem = rsub(stem, IN .. "$", "")
 	tr = rsub(tr, "in$", "")
 
-	add_inflections(stem, tr, data, numgen,
+	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{IN, sgin and IY .. AN or IY .. A, IN,
 		 II, IY .. A, II,
 		 II, IY .. A, II
 		})
+	local tote = sgin and "triptote" or "diptote"
+
+	insert_cat(data, numgen, "Arabic NOUNs with " .. tote .. " SINGULAR in -in",
+		"SINGULAR " .. tote .. " in " .. make_link(HYPHEN .. IN))
 end
 
 -- Defective in -in
 inflections["in"] = function(stem, tr, data, numgen)
-	in_defective(stem, tr, data, numgen, n == "sg")
+	in_defective(stem, tr, data, numgen, rfind(numgen, "sg"))
 end
 
 -- Defective in -in, force singular variant
@@ -602,18 +661,22 @@ inflections["an"] = function(stem, tr, data, numgen)
 	tr = rsub(tr, "an$", "")
 
 	if tall_alif then
-		add_inflections(stem, tr, data, numgen,
+		add_inflections(canon_hamza(stem), tr, data, numgen,
 			{AN .. ALIF, AN .. ALIF, AN .. ALIF,
 			 AA, AA, AA,
 			 AA, AA, AA,
 			})
 	else
-		add_inflections(stem, tr, data, numgen,
+		add_inflections(canon_hamza(stem), tr, data, numgen,
 			{AN .. AMAQ, AN .. AMAQ, AN .. AMAQ,
 			 AAMAQ, AAMAQ, AAMAQ,
 			 AAMAQ, AAMAQ, AAMAQ,
 			})
 	end
+
+	-- FIXME: Should we distinguish between tall alif and alif maqṣūra?
+	insert_cat(data, numgen, "Arabic NOUNs with SINGULAR in -an",
+		"SINGULAR in " .. make_link(HYPHEN .. AN .. (tall_alif and ALIF or AMAQ)))
 end
 
 function invariable(stem, tr, data, numgen)
@@ -622,6 +685,9 @@ function invariable(stem, tr, data, numgen)
 		 "", "", "",
 		 "", "", "",
 		})
+	
+	insert_cat(data, numgen, "Arabic NOUNs with invariable SINGULAR",
+		"SINGULAR invariable")
 end
 
 -- Invariable in -ā (non-loanword type)
@@ -636,17 +702,20 @@ end
 
 -- Duals
 inflections["d"] = function(stem, tr, data, numgen)
-	stem = canon_hamza(stem)
-	if not rfind(stem, ALIF .. NI .. "?$") then
+	if rfind(stem, ALIF .. NI .. "?$") then
+		stem = rsub(stem, AOPTA .. NI .. "?$", "")
+	elseif rfind(stem, AMAD .. NI .. "?$") then
+		stem = rsub(stem, AMAD .. NI .. "?$", HAMZA_PH)
+	else
 		error("Dual stem should end in -ān(i): '" .. stem .. "'")
 	end
-	stem = rsub(stem, AOPTA .. NI .. "?$", "")
 	tr = rsub(tr, "āni?$", "")
-	add_inflections(stem, tr, data, numgen,
+	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{AANI, AYNI, AYNI,
 		 AANI, AYNI, AYNI,
 		 AA, AYSK, AYSK,
 		})
+	insert_cat(data, numgen, "", "dual in " .. make_link(HYPHEN .. AANI))
 end
 
 -- Sound masculine plural
@@ -656,11 +725,13 @@ inflections["smp"] = function(stem, tr, data, numgen)
 	end
 	stem = rsub(stem, UU .. NA .. "?$", "")
 	tr = rsub(tr, "ūna?$", "")
-	add_inflections(stem, tr, data, numgen,
+	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{UU .. NA, II .. NA, II .. NA,
 		 UU .. NA, II .. NA, II .. NA,
 		 UU,       II,       II,
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with sound masculine plural",
+		"sound masculine plural")
 end
 
 -- Sound feminine plural
@@ -675,6 +746,8 @@ inflections["sfp"] = function(stem, tr, data, numgen)
 		 U,  I,  I,
 		 U,  I,  I,
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with sound feminine plural",
+		"sound feminine plural")
 end
 
 -- Plural of defective in -an
@@ -684,11 +757,13 @@ inflections["awnp"] = function(stem, tr, data, numgen)
 	end
 	stem = rsub(stem, AWNA .. "?$", "")
 	tr = rsub(tr, "awna?$", "")
-	add_inflections(stem, data, numgen,
+	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{AWNA, AYNA, AYNA,
 		 AWNA, AYNA, AYNA,
 		 AWSK, AYSK, AYSK,
 		})
+	insert_cat(data, numgen, "Arabic NOUNs with sound plural in -awna",
+		"sound plural in " .. make_link(HYPHEN .. AWNA))
 end
 
 -- Detect declension of noun or adjective stem or lemma. We allow triptotes,
@@ -759,37 +834,37 @@ function export.detect_type(stem, isfem, num)
 end
 
 -- Replace hamza (of any sort) at the end of a word, possibly followed by
--- a nominative case ending, with HAMZA_PLACEHOLDER, and replace any instance
--- of alif madda with HAMZA_PLACEHOLDER plus fatḥa + alif. To undo these
+-- a nominative case ending or -in or -an, with HAMZA_PH, and replace alif
+-- madda at the end of a word with HAMZA_PH plus fatḥa + alif. To undo these
 -- changes, use hamza_seat().
 function canon_hamza(word)
-	word = rsub(word, AMAD, HAMZA_PLACEHOLDER .. AA)
-	word = rsub(word, HAMZA_ANY .. "(" .. UNUOPT .. ")$", HAMZA_PLACEHOLDER .. "%1")
+	word = rsub(word, AMAD .. "$", HAMZA_PH .. AA)
+	word = rsub(word, HAMZA_ANY .. "([" .. UN .. U .. IN .. "]?)$", HAMZA_PH .. "%1")
+	word = rsub(word, HAMZA_ANY .. "(" .. AN .. "[" .. ALIF .. AMAQ .. "])$", HAMZA_PH .. "%1")
 	return word
 end
 
--- Supply the appropriate hamza seat for a placeholder hamza when followed
--- by a short or long a. FIXME: Merge with the code in [[Module:ar-verb]]
--- that also supplies the appropriate hamza seat, in a more general way.
--- That code currently has normal hamzas (the on-the-line variety) as the
--- placeholder, and uses a 'hamza_subst' char to indicate that a hamza on
--- the line is really desired, which is later replaced with a normal hamza
--- on the line. In this code we use HAMZA_PLACEHOLDER (whose construction
--- is analogous to 'hamza_subst') as the placeholder, which allows us to
--- control which hamzas we want replaced. We should switch [[Module:ar-verb]]
--- to the same system and modify it so that it does something reasonable
--- when it encounters a preceding letter that isn't a wāw, yāʾ or ʾalif
--- (i.e. indicating a missing diacritic, which should be assumed a sukūn).
+-- Supply the appropriate hamza seat(s) for a placeholder hamza.
 function hamza_seat(word)
-	if rfind(word, HAMZA_PLACEHOLDER) then -- optimization to avoid many regexp substs
-		word = rsub(word, HAMZA_PLACEHOLDER .. AOPTA, AMAD)
-		word = rsub(word, "([" .. I .. YA .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA_ON_YA) -- i, ī or ay preceding
-		word = rsub(word, "([" .. ALIF .. WAW .. "]" .. SK .. "?)" .. HAMZA_PLACEHOLDER, "%1" .. HAMZA) -- ā, ū or aw preceding
-		word = rsub(word, U .. HAMZA_PLACEHOLDER, U .. HAMZA_ON_WAW) -- u preceding
-		word = rsub(word, HAMZA_PLACEHOLDER, HAMZA_ON_ALIF) -- a, sukūn or missing sukūn preceding
+	if rfind(word, HAMZA_PH) then -- optimization to avoid many regexp substs
+		return ar_utilities.process_hamza(word)
+	end
+	return {word}
+end
+
+--[[
+-- Supply the appropriate hamza seat for a placeholder hamza in a combined
+-- Arabic/translation expression.
+function split_and_hamza_seat(word)
+	if rfind(word, HAMZA_PH) then -- optimization to avoid many regexp substs
+		local ar, tr = split_arabic_tr(word)
+		-- FIXME: Do something with all values returned
+		ar = ar_utilities.process_hamza(ar)[1]
+		return ar .. "/" .. tr
 	end
 	return word
 end
+--]]
 
 -- Return stem and type of an argument given the singular stem and whether
 -- this is a plural argument. WORD may be of the form ARABIC, ARABIC/TR,
@@ -837,7 +912,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 	-- substitutions made; else, return nil. The Arabic has ARFROM
 	-- replaced with ARTO, while the translit has TRFROM replaced with
 	-- TRTO, and if that doesn't match, replace TRFROM2 with TRTO2.
-	local function sub(arfrom, arto, trfrom, trto, trfrom2, trto2)
+	local function sub(arfrom, arto, trfrom, trto, trfrom2, trto2, trfrom3, trto3)
 		if rfind(sgar, arfrom) then
 			local arret = rsub(sgar, arfrom, arto)
 			local trret = sgtr
@@ -845,6 +920,8 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 				trret = rsub(sgtr, trfrom, trto)
 			elseif trfrom2 and rfind(sgtr, trfrom2) then
 				trret = rsub(sgtr, trfrom2, trto2)
+			elseif trfrom3 and rfind(sgtr, trfrom3) then
+				trret = rsub(sgtr, trfrom3, trto3)
 			elseif not rfind(sgtr, BOGUS_CHAR) then
 				error("Transliteration '" .. sgtr .."' does not have same ending as Arabic '" .. sgar .. "'")
 			end
@@ -937,7 +1014,6 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			sub(UNU .. "$", AH, "un?$", "a", "$", "a") or -- anything else + -u(n)
 			sub("$", AH, "$", "a") -- anything else
 		)
-		ret = hamza_seat(ret)
 		return ret, "tri"
 	end
 
@@ -985,18 +1061,23 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			-- lessen the risk of removing -un in the actual stem. We also
 			-- allow for cases where the ʾiʿrāb is present in Arabic but not
 			-- in translit.
-			sub(TA_M .. UNU .. "$", TA .. AAN, "tun?$", "tān", "$", "tān") or -- ends in tāʾ marbuṭa + -u(n)
-			sub(TA_M .. "$", TA .. AAN, "$", "tān") or -- ends in tāʾ marbuṭa
+			--
+			-- NOTE: Collapsing the "h$" and "$" cases into "h?$" doesn't work
+			-- in the case of words ending in -āh, which end up having the
+			-- translit end in -tāntān.
+			sub(TA_M .. UNU .. "$", TA .. AAN, "[ht]un?$", "tān", "h$", "tān", "$", "tān") or -- ends in tāʾ marbuṭa + -u(n)
+			sub(TA_M .. "$", TA .. AAN, "h$", "tān", "$", "tān") or -- ends in tāʾ marbuṭa
 			-- Same here as above
 			sub(UNU .. "$", AAN, "un?$", "ān", "$", "ān") or -- anything else + -u(n)
 			sub("$", AAN, "$", "ān") -- anything else
 		)
-		ret = hamza_seat(ret)
 		return ret, "d"
 	end
 
 	if word == "sfp" then
 		sgar = canon_hamza(sgar)
+		sgar = rsub(sgar, AMAD .. "(" .. TA_M .. UNUOPT .. ")$", HAMZA_PH .. AA .. "%1")
+		sgar = rsub(sgar, HAMZA_ANY .. "(" .. AOPT .. TA_M .. UNUOPT .. ")$", HAMZA_PH .. "%1")
 		local ret = (
 			sub(AOPTA .. TA_M .. UNUOPT .. "$", AYAAT, "ā[ht]$", "ayāt", "ātun?$", "ayāt") or -- ends in -āh
 			sub(AOPT .. TA_M .. UNUOPT .. "$", AAT, "a$", "āt", "atun?$", "āt") or -- ends in -a
@@ -1017,18 +1098,15 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			sub(UNU .. "$", AAT, "un?$", "āt", "$", "āt") or -- anything else + -u(n)
 			sub("$", AAT, "$", "āt") -- anything else
 		)
-		ret = hamza_seat(ret)
 		return ret, "sfp"
 	end
 
 	if word == "smp" then
+		sgar = canon_hamza(sgar)
 		local ret = (
 			sub(IN .. "$", UU .. NUN, "in$", "ūn") or -- ends in -in
 			-- See comments above for why we have two cases, one for UNU and
 			-- one for non-UNU
-			sub("[" .. HAMZA .. HAMZA_ON_ALIF .. "]" .. UNU .. "$", HAMZA_ON_WAW .. UU .. NUN, "un?$", "ūn", "$", "ūn") or -- ends in hamza + -u(n)
-			sub("[" .. HAMZA .. HAMZA_ON_ALIF .. "]" .. "$", HAMZA_ON_WAW .. UU .. NUN, "$", "ūn") or -- ends in hamza
-			-- Here too we have UNU and non-UNU cases, see above
 			sub(UNU .. "$", UU .. NUN, "un?$", "ūn", "$", "ūn") or -- anything else + -u(n)
 			sub("$", UU .. NUN, "$", "ūn") -- anything else
 		)
@@ -1073,6 +1151,8 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 	end
 	return artr, export.detect_type(ar, isfem, num)
 end
+
+local ortext = " <small style=\"color: #888\">or</small> "
 
 function show_form(form, use_parens)
 	if not form then
@@ -1120,7 +1200,6 @@ function show_form(form, use_parens)
 		end
 	end
 
-	local ortext = " <small style=\"color: #888\">or</small> "
 	if use_parens then
 		return table.concat(parenvals, ortext)
 	else
@@ -1129,7 +1208,11 @@ function show_form(form, use_parens)
 		return arabic_span .. "<br />" .. latin_span
 	end
 end
-	
+
+function show_type_form(form)
+	return table.concat(form, ortext)
+end
+
 -- Make the noun table
 function make_noun_table(data)
 	local function get_form(number, state)
@@ -1163,6 +1246,8 @@ function make_noun_table(data)
 			return show_form(data.forms["lemma"] or get_lemma("sg", "ind") or get_lemma(), "use parens")
 		elseif param == "info" then
 			return data.title and " (" .. data.title .. ")" or ""
+		elseif rfind(param, "type$") then
+			return show_type_form(data.forms[param])
 		else
 			return show_form(data.forms[param])
 		end
@@ -1181,17 +1266,19 @@ function make_noun_table(data)
 	end
 
 	local wikicode = [=[<div class="NavFrame">
-<div class="NavHead">Declension of {{{lemma}}}{{{info}}}</div>
+<div class="NavHead">Declension of noun {{{lemma}}}</div>
 <div class="NavContent">
 {| class="inflection-table" style="border-width: 1px; border-collapse: collapse; background:#F9F9F9; text-align:center; width:100%;"
 ]=]
 
 	if contains(data.numbers, "sg") then
 		wikicode = wikicode .. [=[|-
-! style="background: #CDCDCD; width:25%;" | Singular
-! style="background: #CDCDCD; width:25%;" | Indefinite
-! style="background: #CDCDCD; width:25%;" | Definite
-! style="background: #CDCDCD; width:25%;" | Construct
+! style="background: #CDCDCD;" rowspan=2 | Singular
+! style="background: #CDCDCD;" colspan=3 | {{{sg_type}}}
+|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
 |-
 ! style="background: #EFEFEF;" | Nominative
 | {{{nom_sg_ind}}}
@@ -1234,7 +1321,9 @@ function make_noun_table(data)
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
-! style="background: #CDCDCD;" | Plural
+! style="background: #CDCDCD;" rowspan=2 | Plural
+! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
+|-
 ! style="background: #CDCDCD;" | Indefinite
 ! style="background: #CDCDCD;" | Definite
 ! style="background: #CDCDCD;" | Construct
@@ -1272,22 +1361,27 @@ function make_adj_table(data)
 			return show_form(data.forms["lemma"] or data.forms["nom_m_sg_ind"], "use parens")
 		elseif param == "info" then
 			return data.title and " (" .. data.title .. ")" or ""
+		elseif rfind(param, "type$") then
+			return show_type_form(data.forms[param])
 		else
 			return show_form(data.forms[param])
 		end
 	end
 	
 	local wikicode = [=[<div class="NavFrame">
-<div class="NavHead">Declension of {{{lemma}}}{{{info}}}</div>
+<div class="NavHead">Declension of adjective {{{lemma}}}</div>
 <div class="NavContent">
 {| class="inflection-table" style="border-width: 1px; border-collapse: collapse; background:#F9F9F9; text-align:center; width:100%;"
 ]=]
 
 	if contains(data.numbers, "sg") then
 		wikicode = wikicode .. [=[|-
-! style="background: #CDCDCD;" rowspan=2 | Singular
+! style="background: #CDCDCD;" rowspan=3 | Singular
 ! style="background: #CDCDCD;" colspan=2 | Masculine
 ! style="background: #CDCDCD;" colspan=2 | Feminine
+|-
+! style="background: #CDCDCD;" colspan=2 | {{{m_sg_type}}}
+! style="background: #CDCDCD;" colspan=2 | {{{f_sg_type}}}
 |-
 ! style="background: #CDCDCD;" | Indefinite
 ! style="background: #CDCDCD;" | Definite
@@ -1345,9 +1439,12 @@ function make_adj_table(data)
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
-! style="background: #CDCDCD;" rowspan=2 | Plural
+! style="background: #CDCDCD;" rowspan=3 | Plural
 ! style="background: #CDCDCD;" colspan=2 | Masculine
 ! style="background: #CDCDCD;" colspan=2 | Feminine
+|-
+! style="background: #CDCDCD;" colspan=2 | {{{m_pl_type}}}
+! style="background: #CDCDCD;" colspan=2 | {{{f_pl_type}}}
 |-
 ! style="background: #CDCDCD;" | Indefinite
 ! style="background: #CDCDCD;" | Definite
