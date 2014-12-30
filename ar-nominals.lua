@@ -1,42 +1,18 @@
 -- Author: Benwing, based on early version by CodeCat.
 
 --[[
-{{ar-decl-adj|هٰذَا:inv|f=هٰذِهِ:inv|pl=هٰؤُلَاهِ:inv|fpl=هٰؤُلَاهِ:inv|d=هٰذَان|fd=هٰتَان|state=def|omitarticle=yes}}
-{{ar-decl-adj|ذٰلِكَ:inv|inf_m_sg_def=ذٰلِك|f=تِلْكَ:inv
-|pl=أُولٰئِكَ/ʾulāʾika:inv|fpl=أُولٰئِكَ/ʾulāʾika:inv
-|nom_m_du_def=ذَانِكَ|acc_m_du_def=ذَيْنِكَ|gen_m_du_def=ذَيْنِكَ|inf_m_du_def=ذَيْنِكَ
-|nom_f_du_def=تَانِكَ|acc_m_du_def=تَيْنِكَ|gen_m_du_def=تَيْنِكَ|inf_m_du_def=تَيْنِكَ
-|state=def|omitarticle=yes}}
-{{ar-decl-adj|اَلَّذِي:inv|f=اَلَّتِي:inv|pl=اَلَّذِينَ:inv|inf_m_pl_def=اَلَّذِين
-|fpl=اَللَّاتِي:inv|fpl2=اَللَّائِي:inv|fpl3=اَللَّوَاتِي:inv
-|d=اَللَّذَان|fd=اَللَّتَان
-|state=def|omitarticle=yes}}
-{{ar-decl-noun|فَم|pl=أَفْوَاه|nom_m_con=فَمُ؛فُو|acc_m_con=فَمَ؛فَا|gen_m_con=فَمِ؛فِي|inf_m_con=فَم؛فُو}}
-{{ar-decl-noun|اِمْرَأ|nom_sg_ind=اِمْرُؤٌ|acc_sg_ind=اِمْرَأً|gen_sg_ind=اِمْرِئٍ|inf_sg_ind=?
-|nom_sg_def=مَرْءُ|acc_sg_def=مَرْءَ|gen_sg_def=مَرْءِ|inf_sg_def=?
-|nom_sg_con=اِمْرُؤُ|acc_sg_con=اِمْرَأَ|gen_sg_con=اِمْرِئِ|inf_sg_con=?
-|nom_du_def=مَرْآنِ|acc_du_def=مَرْأَيْنِ|gen_du_def=مَرْأَيْنِ|inf_du_def=مَرْأَيْن
-|lemma=اِمْرُؤ
-|numbers=sg,du
-}}
-{{ar-decl-noun|اِمْرَأَة|nom_sg_def=مَرْأَةُ|acc_sg_def=مَرْأَةَ|gen_sg_def=مَرْأَةِ|inf_sg_def=مَرْأَة
-|nom_du_def=مَرْأَتَانِ|acc_du_def=مَرْأَتَيْنِ|gen_du_def=مَرْأَتَيْ|inf_du_def=مَرْأَتَيْن
-|pl=نِسَاء
-}}
-{{ar-decl-noun|ذ:lc|...|lemma=ذُو}}
-{{ar-decl-adj|مُسْتَثْنًى}} -- excepted, excluded (from مِن)
-{{ar-decl-adj|مُثَنًّى}} -- double, two-fold
-{{ar-decl-adj|مُرَبًّى}} -- raised, brought up; educated; well-bred; also jam, preserves
-{{ar-decl-adj|مُتَرَبٍّ}} -- well-bred
+FIXME: Nouns/adjectives to create to exemplify complex declensions:
+{{ar-decl-adj|مُثَنًّى}} -- double, two-fold
+{{ar-decl-adj|مُرَبًّى}} -- raised, brought up; educated; well-bred; also jam, preserves
+{{ar-decl-adj|مُتَرَبٍّ}} -- well-bred
+-- example of -an word with tall alif, besides ʿaṣan and riḍan (which can
+-- also be spelled with alif maqṣūra):
+-- qafan قَفَا "nape" m. and f.; pl. aqfiya/aqfin/aqfāʾ/qufiyy/qifiyy
 --]]
 
 local m_utilities = require("Module:utilities")
 local m_links = require("Module:links")
 local ar_utilities = require("Module:ar-utilities")
-
--- example of -an word with tall alif, besides ʿaṣan and riḍan (which can
--- also be spelled with alif maqṣūra):
--- qafan قَفَا "nape" m. and f.; pl. aqfiya/aqfin/aqfāʾ/qufiyy/qifiyy
 
 local lang = require("Module:languages").getByCode("ar")
 local u = mw.ustring.char
@@ -80,6 +56,8 @@ local DAGGER_ALIF = u(0x0670)
 local DIACRITIC_ANY_BUT_SH = "[" .. A .. I .. U .. AN .. IN .. UN .. SK .. DAGGER_ALIF .. "]"
 
 -- common combinations
+local NA    = N .. A
+local NI    = N .. I
 local AH    = A .. TAM
 local AT    = A .. T
 local AA    = A .. ALIF
@@ -97,8 +75,6 @@ local AY    = A .. Y
 local AW    = A .. W
 local AYSK  = AY .. SK
 local AWSK  = AW .. SK
-local NA    = N .. A
-local NI    = N .. I
 local AAN   = AA .. N
 local AANI  = AA .. NI
 local AYN   = AYSK .. N
@@ -125,6 +101,8 @@ local rconsonants = consonants_needing_vowels .. "ويآ"
 local lconsonants = consonants_needing_vowels .. "وي"
 local CONS = "[" .. lconsonants .. "]"
 local CONSPAR = "([" .. lconsonants .. "])"
+
+local LRM = u(0x200E)
 
 -- First syllable or so of elative/color-defect adjective
 local ELCD_START = "^" .. HAMZA_ON_ALIF .. AOPT .. CONSPAR
@@ -276,7 +254,7 @@ function handle_lemma_and_overrides(data, args)
 	local function handle_override(arg)
 		if args[arg] then
 			local ovval = {}
-			local alts1 = rsplit(args[args], "[;,؛،]")
+			local alts1 = rsplit(args[arg], "[;,؛،]")
 			for _, alt1 in ipairs(alts1) do
 				local alts2 = rsplit(alt1, "|")
 				table.insert(ovval, alts2)
@@ -1305,8 +1283,8 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 end
 
 -- local outersep = " <small style=\"color: #888\">or</small> "
-local outersep = "; "
-local innersep = "/"
+local outersep = LRM .. "; "
+local innersep = LRM .. "/"
 
 function show_form(form, use_parens)
 	if not form then
