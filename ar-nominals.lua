@@ -245,6 +245,7 @@ end
 -- use separating Arabic from translit).
 --
 -- Also determine lemma and allow it to be overridden.
+-- Also allow POS (part of speech) to be overridden.
 function handle_lemma_and_overrides(data, args)
 	local function handle_override(arg)
 		if args[arg] then
@@ -286,6 +287,10 @@ function handle_lemma_and_overrides(data, args)
 
 	data.forms["lemma"] = get_lemma()
 	handle_override("lemma")
+
+	if args["pos"] then
+		data.pos = args["pos"]
+	end
 end
 
 -- Find the stems associated with a particular gender/number combination.
@@ -345,6 +350,7 @@ function export.show_noun(frame)
 	end
 	
 	local data = init_data()
+	data.pos = "noun"
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
@@ -425,6 +431,7 @@ function export.show_adj(frame)
 	end
 	
 	local data = init_data()
+	data.pos = "adjective"
 	data.numgens = function()
 		local numgens = {}
 		for _, gender in ipairs(data.allgenders) do
@@ -1394,6 +1401,8 @@ function make_table(data, wikicode)
 	local function repl(param)
 		if param == "lemma" then
 			return show_form(data.forms["lemma"], "use parens")
+		elseif param == "pos" then
+			return data.pos
 		elseif param == "info" then
 			return data.title and " (" .. data.title .. ")" or ""
 		elseif rfind(param, "type$") then
@@ -1421,7 +1430,7 @@ end
 -- Make the noun table
 function make_noun_table(data)
 	local wikicode = [=[<div class="NavFrame">
-<div class="NavHead">Declension of noun {{{lemma}}}</div>
+<div class="NavHead">Declension of {{{pos}}} {{{lemma}}}</div>
 <div class="NavContent">
 {| class="inflection-table" style="border-width: 1px; border-collapse: collapse; background:#F9F9F9; text-align:center; width:100%;"
 ]=]
@@ -1524,7 +1533,7 @@ end
 -- Make the adjective table
 function make_adj_table(data)
 	local wikicode = [=[<div class="NavFrame">
-<div class="NavHead">Declension of adjective {{{lemma}}}</div>
+<div class="NavHead">Declension of {{{pos}}} {{{lemma}}}</div>
 <div class="NavContent">
 {| class="inflection-table" style="border-width: 1px; border-collapse: collapse; background:#F9F9F9; text-align:center; width:100%;"
 ]=]
