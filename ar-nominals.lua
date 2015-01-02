@@ -2,12 +2,7 @@
 
 --[[
 FIXME: Nouns/adjectives to create to exemplify complex declensions:
-{{ar-decl-adj|مُثَنًّى}} -- double, two-fold
-{{ar-decl-adj|مُرَبًّى}} -- raised, brought up; educated; well-bred; also jam, preserves
-{{ar-decl-adj|مُتَرَبٍّ}} -- well-bred
--- example of -an word with tall alif, besides ʿaṣan and riḍan (which can
--- also be spelled with alif maqṣūra):
--- qafan قَفَا "nape" m. and f.; pl. aqfiya/aqfin/aqfāʾ/qufiyy/qifiyy
+-- riḍan (رِضًا or رِضًى)
 --]]
 
 local m_utilities = require("Module:utilities")
@@ -102,7 +97,7 @@ local lconsonants = consonants_needing_vowels .. "وي"
 local CONS = "[" .. lconsonants .. "]"
 local CONSPAR = "([" .. lconsonants .. "])"
 
-local LRM = u(0x200E)
+local LRM = u(0x200E) --left-to-right mark
 
 -- First syllable or so of elative/color-defect adjective
 local ELCD_START = "^" .. HAMZA_ON_ALIF .. AOPT .. CONSPAR
@@ -277,15 +272,19 @@ function handle_lemma_and_overrides(data, args)
 		end
 	end
 
-	local lemma = nil
-	for _, numgen in ipairs(data.numgens()) do
-		local arg = "lemma_" .. numgen
-		if data.forms[arg] and #data.forms[arg] > 0 then
-			lemma = data.forms[arg]
-			break
+	function get_lemma()
+		for _, numgen in ipairs(data.numgens()) do
+			for _, state in ipairs(data.states) do
+				local arg = "lemma_" .. numgen .. "_" .. state
+				if data.forms[arg] and #data.forms[arg] > 0 then
+					return data.forms[arg]
+				end
+			end
 		end
+		return nil
 	end
-	data.forms["lemma"] = lemma
+
+	data.forms["lemma"] = get_lemma()
 	handle_override("lemma")
 end
 
@@ -554,9 +553,12 @@ end
 -- "m_sg", "f_pl", etc. for adjectives). ENDINGS is an array of 12 values,
 -- each of which is a string or array of alternatives. The order of ENDINGS
 -- is indefinite nom, acc, gen; definite nom, acc, gen; construct-state
--- nom, acc, gen; informal indefinite, definite, construct.
+-- nom, acc, gen; informal indefinite, definite, construct; lemma indefinite,
+-- definite, construct. (Normally the lemma is based off of the indefinite,
+-- but if the inflection has been restricted to particular states, it comes
+-- from one of those states, in the order indefinite, definite, construct.)
 function add_inflections(stem, tr, data, numgen, endings)
-	assert(#endings == 12)
+	assert(#endings == 15)
 	-- Return a list of combined of ar/tr forms, with the ending tacked on.
 	-- There may be more than one form because of alternative hamza seats that
 	-- may be supplied, e.g. مُبْتَدَؤُون or مُبْتَدَأُون (mubtadaʾūn "(grammatical) subjects").
@@ -582,11 +584,10 @@ function add_inflections(stem, tr, data, numgen, endings)
 	add_inflection(data, "inf_" .. numgen .. "_ind", stem, tr, endings[10])
 	add_inflection(data, "inf_" .. numgen .. "_def", defstem, deftr, endings[11])
 	add_inflection(data, "inf_" .. numgen .. "_con", stem, tr, endings[12])
+	add_inflection(data, "lemma_" .. numgen .. "_ind", stem, tr, endings[13])
+	add_inflection(data, "lemma_" .. numgen .. "_def", defstem, deftr, endings[14])
+	add_inflection(data, "lemma_" .. numgen .. "_con", stem, tr, endings[15])
 end	
-
-function set_lemma(data, numgen, stem, tr)
-	add_inflection(data, "lemma_" .. numgen, stem, tr, "")
-end
 
 -- Insert into a category and a type variable (e.g. m_sg_type) for the
 -- declension type of a particular declension (e.g. masculine singular for
@@ -648,49 +649,76 @@ function triptote_diptote(stem, tr, data, numgen, is_dip, lc)
 		 lc and AA or A,
 		 lc and II or I,
 		 {}, {}, {}, -- omit informal inflections
+		 {}, {}, {}, -- omit lemma inflections
 		})
 
-	-- add informal inflections, special-casing ending with -a but not -āh,
-	-- because informal pronunciation of -āh is -āt which is the same as the
-	-- normal translit stem.
-	if rfind(stem, "[^" .. AMAD .. ALIF .. "]" .. TAM .. "$") then
-		local inftr = rsub(tr, "t$", "")
-		add_inflections(stem, inftr, data, numgen,
-			{{}, {}, {},
-			 {}, {}, {},
-			 {}, {}, {},
-			 "", "", "/t",
-			})
-	else
-		add_inflections(stem, tr, data, numgen,
-			{{}, {}, {},
-			 {}, {}, {},
-			 {}, {}, {},
-			 "", "", lc and UU or "",
-			})
-	end
-
-	local lemmatr = tr
+	-- add category and informal and lemma inflections
 	local tote = lc and "long construct" or is_dip and "diptote" or "triptote"
 	local singpl_tote = "BROKSING " .. tote
 	local cat_prefix = "Arabic NOUNs with " .. tote .. " BROKSING"
 	if rfind(stem, "[" .. AMAD .. ALIF .. "]" .. TAM .. "$") then
-		lemmatr = rsub(lemmatr, "t$", "") .. "h"
+		add_inflections(stem, rsub(tr, "t$", ""), data, numgen,
+			{{}, {}, {},
+			 {}, {}, {},
+			 {}, {}, {},
+			 "/t", "/t", "/t", -- informal pron. is -āt
+			 "/h", "/h", "/t", -- lemma uses -āh
+			})
 		insert_cat(data, numgen, cat_prefix .. " in -āh",
 			singpl_tote .. " in " .. make_link(HYPHEN .. AAH))
 	elseif rfind(stem, TAM .. "$") then
-		lemmatr = rsub(lemmatr, "t$", "")
+		add_inflections(stem, rsub(tr, "t$", ""), data, numgen,
+			{{}, {}, {},
+			 {}, {}, {},
+			 {}, {}, {},
+			 "", "", "/t",
+			 "", "", "/t",
+			})
 		insert_cat(data, numgen, cat_prefix .. " in -a",
 			singpl_tote .. " in " .. make_link(HYPHEN .. AH))
 	elseif lc then
+		add_inflections(stem, tr, data, numgen,
+			{{}, {}, {},
+			 {}, {}, {},
+			 {}, {}, {},
+			 "", "", UU,
+			 "", "", UU,
+			})
 		insert_cat(data, numgen, cat_prefix,
 			singpl_tote)
 	else
+		-- also special-case the nisba ending, which has an informal
+		-- pronunciation.
+		if rfind(stem, IY .. SH .. "$") then
+			local infstem = rsub(stem, SH .. "$", "")
+			local inftr = rsub(tr, "iyy$", "ī")
+			-- add informal and lemma inflections separately
+			add_inflections(infstem, inftr, data, numgen,
+				{{}, {}, {},
+				 {}, {}, {},
+				 {}, {}, {},
+				 "", "", "",
+				 {}, {}, {},
+				})
+			add_inflections(stem, tr, data, numgen,
+				{{}, {}, {},
+				 {}, {}, {},
+				 {}, {}, {},
+				 {}, {}, {},
+				 "", "", "",
+				})
+		else
+			add_inflections(stem, tr, data, numgen,
+				{{}, {}, {},
+				 {}, {}, {},
+				 {}, {}, {},
+				 "", "", "",
+				 "", "", "",
+				})
+		end
 		insert_cat(data, numgen, "Arabic NOUNs with basic " .. tote .. " BROKSING",
 			"basic " .. singpl_tote)
 	end
-
-	set_lemma(data, numgen, stem, lemmatr)
 end
 
 -- Regular triptote
@@ -732,7 +760,6 @@ function in_defective(stem, tr, data, numgen, tri)
 	if not rfind(stem, IN .. "$") then
 		error("'in' declension stem should end in -in: '" .. stem .. "'")
 	end
-	set_lemma(data, numgen, stem, tr)
 
 	stem = rsub(stem, IN .. "$", "")
 	tr = rsub(tr, "in$", "")
@@ -742,6 +769,7 @@ function in_defective(stem, tr, data, numgen, tri)
 		 II, IY .. A, II,
 		 II, IY .. A, II,
 		 II, II, II,
+		 IN, II, II,
 		})
 	local tote = tri and "triptote" or "diptote"
 
@@ -775,7 +803,6 @@ end
 
 -- Defective in -an (comes in two variants, depending on spelling with tall alif or alif maqṣūra)
 inflections["an"] = function(stem, tr, data, numgen)
-	set_lemma(data, numgen, stem, tr)
 	local tall_alif
 	if rfind(stem, AN .. ALIF .. "$") then
 		tall_alif = true
@@ -794,6 +821,7 @@ inflections["an"] = function(stem, tr, data, numgen)
 			 AA, AA, AA,
 			 AA, AA, AA,
 			 AA, AA, AA,
+			 AN .. ALIF, AA, AA,
 			})
 	else
 		add_inflections(canon_hamza(stem), tr, data, numgen,
@@ -801,6 +829,7 @@ inflections["an"] = function(stem, tr, data, numgen)
 			 AAMAQ, AAMAQ, AAMAQ,
 			 AAMAQ, AAMAQ, AAMAQ,
 			 AAMAQ, AAMAQ, AAMAQ,
+			 AA .. AMAQ, AAMAQ, AAMAQ,
 			})
 	end
 
@@ -810,9 +839,9 @@ inflections["an"] = function(stem, tr, data, numgen)
 end
 
 function invariable(stem, tr, data, numgen)
-	set_lemma(data, numgen, stem, tr)
 	add_inflections(stem, tr, data, numgen,
 		{"", "", "",
+		 "", "", "",
 		 "", "", "",
 		 "", "", "",
 		 "", "", "",
@@ -842,12 +871,12 @@ inflections["d"] = function(stem, tr, data, numgen)
 		error("Dual stem should end in -ān(i): '" .. stem .. "'")
 	end
 	tr = rsub(tr, "āni?$", "")
-	set_lemma(data, numgen, stem .. AAN, tr .. "ān")
 	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{AANI, AYNI, AYNI,
 		 AANI, AYNI, AYNI,
 		 AA, AYSK, AYSK,
 		 AYN, AYN, AYSK,
+		 AAN, AAN, AA,
 		})
 	insert_cat(data, numgen, "", "dual in " .. make_link(HYPHEN .. AANI))
 end
@@ -859,12 +888,12 @@ inflections["smp"] = function(stem, tr, data, numgen)
 	end
 	stem = rsub(stem, UUNA .. "?$", "")
 	tr = rsub(tr, "ūna?$", "")
-	set_lemma(data, numgen, stem .. UUN, tr .. "ūn")
 	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{UUNA, IINA, IINA,
 		 UUNA, IINA, IINA,
 		 UU,   II,   II,
 		 IIN,  IIN,  II,
+		 UUN,  UUN,  UU,
 		})
 	insert_cat(data, numgen, "Arabic NOUNs with sound masculine plural",
 		"sound masculine plural")
@@ -877,11 +906,11 @@ inflections["sfp"] = function(stem, tr, data, numgen)
 	end
 	stem = rsub(stem, UN .. "$", "")
 	tr = rsub(tr, "un$", "")
-	set_lemma(data, numgen, stem, tr)
 	add_inflections(stem, tr, data, numgen,
 		{UN, IN, IN,
 		 U,  I,  I,
 		 U,  I,  I,
+		 "", "", "",
 		 "", "", "",
 		})
 	insert_cat(data, numgen, "Arabic NOUNs with sound feminine plural",
@@ -895,12 +924,12 @@ inflections["awnp"] = function(stem, tr, data, numgen)
 	end
 	stem = rsub(stem, AWNA .. "?$", "")
 	tr = rsub(tr, "awna?$", "")
-	set_lemma(data, numgen, stem .. AWN, tr .. "awn")
 	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{AWNA, AYNA, AYNA,
 		 AWNA, AYNA, AYNA,
 		 AWSK, AYSK, AYSK,
 		 AYN, AYN, AYSK,
+		 AWN, AWN, AWSK,
 		})
 	insert_cat(data, numgen, "Arabic NOUNs with sound plural in -awna",
 		"sound plural in " .. make_link(HYPHEN .. AWNA))
@@ -1283,6 +1312,8 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 end
 
 -- local outersep = " <small style=\"color: #888\">or</small> "
+-- need LRM here so multiple Arabic plurals end up agreeing in order with
+-- the transliteration
 local outersep = LRM .. "; "
 local innersep = LRM .. "/"
 
