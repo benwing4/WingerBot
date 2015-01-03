@@ -1468,6 +1468,34 @@ function make_table(data, wikicode)
 	return rsub(wikicode, "{{{([a-z_]+)}}}", repl)
 end
 
+function generate_noun_num(num)
+	return [=[|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_]=] .. num .. [=[_ind}}}
+| {{{inf_]=] .. num .. [=[_def}}}
+| {{{inf_]=] .. num .. [=[_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_]=] .. num .. [=[_ind}}}
+| {{{nom_]=] .. num .. [=[_def}}}
+| {{{nom_]=] .. num .. [=[_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_]=] .. num .. [=[_ind}}}
+| {{{acc_]=] .. num .. [=[_def}}}
+| {{{acc_]=] .. num .. [=[_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_]=] .. num .. [=[_ind}}}
+| {{{gen_]=] .. num .. [=[_def}}}
+| {{{gen_]=] .. num .. [=[_con}}}
+]=]
+end
+
 -- Make the noun table
 function make_noun_table(data)
 	local wikicode = [=[<div class="NavFrame">
@@ -1480,89 +1508,18 @@ function make_noun_table(data)
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Singular
 ! style="background: #CDCDCD;" colspan=3 | {{{sg_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_sg_ind}}}
-| {{{inf_sg_def}}}
-| {{{inf_sg_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_sg_ind}}}
-| {{{nom_sg_def}}}
-| {{{nom_sg_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_sg_ind}}}
-| {{{acc_sg_def}}}
-| {{{acc_sg_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_sg_ind}}}
-| {{{gen_sg_def}}}
-| {{{gen_sg_con}}}
-]=]
+]=] .. generate_noun_num('sg')
 	end
 	if contains(data.numbers, "du") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" | Dual
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_du_ind}}}
-| {{{inf_du_def}}}
-| {{{inf_du_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_du_ind}}}
-| {{{nom_du_def}}}
-| {{{nom_du_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_du_ind}}}
-| {{{acc_du_def}}}
-| {{{acc_du_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_du_ind}}}
-| {{{gen_du_def}}}
-| {{{gen_du_con}}}
-]=]
+]=] .. generate_noun_num('du')
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Plural
 ! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_pl_ind}}}
-| {{{inf_pl_def}}}
-| {{{inf_pl_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_pl_ind}}}
-| {{{nom_pl_def}}}
-| {{{nom_pl_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_pl_ind}}}
-| {{{acc_pl_def}}}
-| {{{acc_pl_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_pl_ind}}}
-| {{{gen_pl_def}}}
-| {{{gen_pl_con}}}
-]=]
+]=] .. generate_noun_num('pl')
 	end
 	wikicode = wikicode .. [=[|}
 </div>
@@ -1583,155 +1540,69 @@ function make_coll_noun_table(data)
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Collective
 ! style="background: #CDCDCD;" colspan=3 | {{{coll_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_coll_ind}}}
-| {{{inf_coll_def}}}
-| {{{inf_coll_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_coll_ind}}}
-| {{{nom_coll_def}}}
-| {{{nom_coll_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_coll_ind}}}
-| {{{acc_coll_def}}}
-| {{{acc_coll_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_coll_ind}}}
-| {{{gen_coll_def}}}
-| {{{gen_coll_con}}}
-]=]
+]=] .. generate_noun_num('coll')
 	end
 	if contains(data.numbers, "sing") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Singulative
 ! style="background: #CDCDCD;" colspan=3 | {{{sing_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_sing_ind}}}
-| {{{inf_sing_def}}}
-| {{{inf_sing_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_sing_ind}}}
-| {{{nom_sing_def}}}
-| {{{nom_sing_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_sing_ind}}}
-| {{{acc_sing_def}}}
-| {{{acc_sing_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_sing_ind}}}
-| {{{gen_sing_def}}}
-| {{{gen_sing_con}}}
-]=]
+]=] .. generate_noun_num('sing')
 	end
 	if contains(data.numbers, "du") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" | Dual
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_du_ind}}}
-| {{{inf_du_def}}}
-| {{{inf_du_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_du_ind}}}
-| {{{nom_du_def}}}
-| {{{nom_du_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_du_ind}}}
-| {{{acc_du_def}}}
-| {{{acc_du_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_du_ind}}}
-| {{{gen_du_def}}}
-| {{{gen_du_con}}}
-]=]
+]=] .. generate_noun_num('du')
 	end
 	if contains(data.numbers, "pauc") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Paucal (3-10)
 ! style="background: #CDCDCD;" colspan=3 | {{{pauc_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_pauc_ind}}}
-| {{{inf_pauc_def}}}
-| {{{inf_pauc_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_pauc_ind}}}
-| {{{nom_pauc_def}}}
-| {{{nom_pauc_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_pauc_ind}}}
-| {{{acc_pauc_def}}}
-| {{{acc_pauc_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_pauc_ind}}}
-| {{{gen_pauc_def}}}
-| {{{gen_pauc_con}}}
-]=]
+]=] .. generate_noun_num('pauc')
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Plural of variety
 ! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Construct
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_pl_ind}}}
-| {{{inf_pl_def}}}
-| {{{inf_pl_con}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_pl_ind}}}
-| {{{nom_pl_def}}}
-| {{{nom_pl_con}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_pl_ind}}}
-| {{{acc_pl_def}}}
-| {{{acc_pl_con}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_pl_ind}}}
-| {{{gen_pl_def}}}
-| {{{gen_pl_con}}}
-]=]
+]=] .. generate_noun_num('pl')
 	end
 	wikicode = wikicode .. [=[|}
 </div>
 </div>]=]
 
 	return make_table(data, wikicode)
+end
+
+function generate_adj_num(num)
+	return [=[|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_m_]=] .. num .. [=[_ind}}}
+| {{{inf_m_]=] .. num .. [=[_def}}}
+| {{{inf_f_]=] .. num .. [=[_ind}}}
+| {{{inf_f_]=] .. num .. [=[_def}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_m_]=] .. num .. [=[_ind}}}
+| {{{nom_m_]=] .. num .. [=[_def}}}
+| {{{nom_f_]=] .. num .. [=[_ind}}}
+| {{{nom_f_]=] .. num .. [=[_def}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_m_]=] .. num .. [=[_ind}}}
+| {{{acc_m_]=] .. num .. [=[_def}}}
+| {{{acc_f_]=] .. num .. [=[_ind}}}
+| {{{acc_f_]=] .. num .. [=[_def}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_m_]=] .. num .. [=[_ind}}}
+| {{{gen_m_]=] .. num .. [=[_def}}}
+| {{{gen_f_]=] .. num .. [=[_ind}}}
+| {{{gen_f_]=] .. num .. [=[_def}}}
+]=]
 end
 
 -- Make the adjective table
@@ -1750,72 +1621,14 @@ function make_adj_table(data)
 |-
 ! style="background: #CDCDCD;" colspan=2 | {{{m_sg_type}}}
 ! style="background: #CDCDCD;" colspan=2 | {{{f_sg_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_m_sg_ind}}}
-| {{{inf_m_sg_def}}}
-| {{{inf_f_sg_ind}}}
-| {{{inf_f_sg_def}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_m_sg_ind}}}
-| {{{nom_m_sg_def}}}
-| {{{nom_f_sg_ind}}}
-| {{{nom_f_sg_def}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_m_sg_ind}}}
-| {{{acc_m_sg_def}}}
-| {{{acc_f_sg_ind}}}
-| {{{acc_f_sg_def}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_m_sg_ind}}}
-| {{{gen_m_sg_def}}}
-| {{{gen_f_sg_ind}}}
-| {{{gen_f_sg_def}}}
-]=]
+]=] .. generate_adj_num('sg')
 	end
 	if contains(data.numbers, "du") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Dual
 ! style="background: #CDCDCD;" colspan=2 | Masculine
 ! style="background: #CDCDCD;" colspan=2 | Feminine
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_m_du_ind}}}
-| {{{inf_m_du_def}}}
-| {{{inf_f_du_ind}}}
-| {{{inf_f_du_def}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_m_du_ind}}}
-| {{{nom_m_du_def}}}
-| {{{nom_f_du_ind}}}
-| {{{nom_f_du_def}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_m_du_ind}}}
-| {{{acc_m_du_def}}}
-| {{{acc_f_du_ind}}}
-| {{{acc_f_du_def}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_m_du_ind}}}
-| {{{gen_m_du_def}}}
-| {{{gen_f_du_ind}}}
-| {{{gen_f_du_def}}}
-]=]
+]=] .. generate_adj_num('du')
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
@@ -1825,36 +1638,7 @@ function make_adj_table(data)
 |-
 ! style="background: #CDCDCD;" colspan=2 | {{{m_pl_type}}}
 ! style="background: #CDCDCD;" colspan=2 | {{{f_pl_type}}}
-|-
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-! style="background: #CDCDCD;" | Indefinite
-! style="background: #CDCDCD;" | Definite
-|-
-! style="background: #EFEFEF;" | Informal
-| {{{inf_m_pl_ind}}}
-| {{{inf_m_pl_def}}}
-| {{{inf_f_pl_ind}}}
-| {{{inf_f_pl_def}}}
-|-
-! style="background: #EFEFEF;" | Nominative
-| {{{nom_m_pl_ind}}}
-| {{{nom_m_pl_def}}}
-| {{{nom_f_pl_ind}}}
-| {{{nom_f_pl_def}}}
-|-
-! style="background: #EFEFEF;" | Accusative
-| {{{acc_m_pl_ind}}}
-| {{{acc_m_pl_def}}}
-| {{{acc_f_pl_ind}}}
-| {{{acc_f_pl_def}}}
-|-
-! style="background: #EFEFEF;" | Genitive
-| {{{gen_m_pl_ind}}}
-| {{{gen_m_pl_def}}}
-| {{{gen_f_pl_ind}}}
-| {{{gen_f_pl_def}}}
-]=]
+]=] .. generate_adj_num('pl')
 	end
 	wikicode = wikicode .. [=[|}
 </div>
