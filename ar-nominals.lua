@@ -181,7 +181,20 @@ function init_data()
 		allgenders = {"m", "f"},
 		allstates = {"ind", "def", "con"},
 		allnumbers = {"sg", "du", "pl"},
+		engnumbers = {sg="singular", du="dual", pl="plural",
+					  coll="collective", sing="singulative", pauc="paucal"},
 		allcases = {"nom", "acc", "gen", "inf"}}
+end
+
+function init(origargs)
+	local args = {}
+	-- Convert empty arguments to nil, and "" or '' arguments to empty
+	for k, v in pairs(origargs) do
+		args[k] = ine(v)
+	end
+
+	local data = init_data()
+	return args, origargs, data
 end
 
 -- Can manually specify which states are to appear, and whether to omit the
@@ -339,41 +352,46 @@ function call_inflection(combined_stem, ty, data, numgen)
 	inflections[ty](ar, tr, data, numgen)
 end
 
--- The main entry point for noun tables.
--- This and show_adj are the only functions that can be invoked from a template.
-function export.show_noun(frame)
-	local origargs = frame:getParent().args
-	local args = {}
-	-- Convert empty arguments to nil, and "" or '' arguments to empty
-	for k, v in pairs(origargs) do
-		args[k] = ine(v)
+local function call_inflections(stemtypes, data, numgen)
+	if contains(data.numbers, rsub(numgen, "^.*_", "")) then
+		for _, stemtype in ipairs(stemtypes) do
+			call_inflection(stemtype[1], stemtype[2], data, numgen)
+		end
 	end
-	
-	local data = init_data()
+end
+
+function get_heads(args, headtype)
+	if not args[1] and mw.title.getCurrentTitle().nsText == "Template" then
+		return {{"{{{1}}}", "tri"}}, true
+	end
+
+	local heads
+	if not args[1] then error("Parameter 1 (" .. headtype .. " stem) may not be empty.") end
+	if args[1] == "-" then
+		heads = {{"", "-"}}
+	else
+		heads = {}
+		insert_stems(args[1], heads, {{args[1], ""}}, false, 'sg')
+	end
+	local i = 2
+	while args['head' .. i] do
+		local arg = args['head' .. i]
+		insert_stems(arg, heads, {{arg, ""}}, false, 'sg')
+		i = i + 1
+	end
+	return heads, false
+end
+
+-- The main entry point for noun tables.
+function export.show_noun(frame)
+	local args, origargs, data = init(frame:getParent().args)
 	data.pos = "noun"
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
-	local sgs, pls
-	if not args[1] and not args["pl"] and mw.title.getCurrentTitle().nsText == "Template" then
-		sgs = {{"{{{1}}}", "tri"}}
-		pls = {{"{{{pl}}}", "tri"}}
-	else
-		if not args[1] then error("Parameter 1 (singular inflection) may not be empty.") end
-		if args[1] == "-" then
-			sgs = {{"", "-"}}
-		else
-			sgs = {}
-			insert_stems(args[1], sgs, {{args[1], ""}}, false, 'sg')
-		end
-		local i = 2
-		while args['head' .. i] do
-			local arg = args['head' .. i]
-			insert_stems(arg, sgs, {{arg, ""}}, false, 'sg')
-			i = i + 1
-		end
-		pls = do_gender_number(args, "pl", sgs, nil, false, "pl")
-	end
+	local sgs, is_template = get_heads(args, 'singular')
+	local pls = is_template and {{"{{{pl}}}", "tri"}} or
+		do_gender_number(args, "pl", sgs, nil, false, "pl")
 
 	parse_state_spec(data, args)
 
@@ -399,14 +417,6 @@ function export.show_noun(frame)
 		end
 	end
 
-	local function call_inflections(stemtypes, data, num)
-		if contains(data.numbers, num) then
-			for _, stemtype in ipairs(stemtypes) do
-				call_inflection(stemtype[1], stemtype[2], data, num)
-			end
-		end
-	end
-
 	-- Generate the singular, dual and plural forms
 	local dus = (contains(data.numbers, "du") and
 		do_gender_number(args, "d", sgs, "d", false, "du") or {})
@@ -420,17 +430,72 @@ function export.show_noun(frame)
 	return make_noun_table(data) .. m_utilities.format_categories(data.categories, lang)
 end
 
--- The main entry point for adjective tables.
--- This is the only function that can be invoked from a template.
-function export.show_adj(frame)
-	local origargs = frame:getParent().args
-	local args = {}
-	-- Convert empty arguments to nil, and "" or '' arguments to empty
-	for k, v in pairs(origargs) do
-		args[k] = ine(v)
+-- The main entry point for collective noun tables.
+function export.show_coll_noun(frame)
+	local args, origargs, data = init(frame:getParent().args)
+	data.pos = "noun"
+	data.allnumbers = {"coll", "sing", "du", "pauc", "pl"}
+	data.numgens = function() return data.numbers end
+	data.allnumgens = data.allnumbers
+
+	local colls, is_template = get_heads(args, 'collective')
+	local pls = is_template and {{"{{{pl}}}", "tri"}} or
+		do_gender_number(args, "pl", colls, nil, false, "pl")
+
+	parse_state_spec(data, args)
+
+	-- If collective noun is already feminine in form, don't try to
+	-- form a feminine singulative
+	local already_feminine = false
+	for _, stemtype in ipairs(colls) do
+		if rfind(stemtype[1], TAM .. UNUOPT .. "$") then
+			already_feminine = true
+		end
 	end
+
+	local sings = do_gender_number(args, "sing", colls,
+		not already_feminine and "f" or nil, true, "sg")
+	local dus = do_gender_number(args, "d", sings, "d", true, "du")
+	local paucs = do_gender_number(args, "pauc", sings, "sfp", true, "pl")
+
+	-- Can manually specify which numbers are to appear, and exactly those
+	-- numbers will appear. Otherwise, if any plurals given, plurals appear,
+	-- and if singulative given, dual and paucal appear.
+	if not parse_number_spec(data, args) then
+		data.numbers = {}
+		if args[1] ~= "-" then
+			table.insert(data.numbers, "coll")
+		end
+		if #sings > 0 then
+			table.insert(data.numbers, "sing")
+		end
+		if #dus > 0 then
+			table.insert(data.numbers, "du")
+		end
+		if #paucs > 0 then
+			table.insert(data.numbers, "pauc")
+		end
+		if #pls > 0 then
+			table.insert(data.numbers, "pl")
+		end
+	end
+
+	-- Generate the collective, singulative, dual, paucal and plural forms
+	call_inflections(colls, data, "coll")
+	call_inflections(sings, data, "sing")
+	call_inflections(dus, data, "du")
+	call_inflections(paucs, data, "pauc")
+	call_inflections(pls, data, "pl")
 	
-	local data = init_data()
+	handle_lemma_and_overrides(data, args)
+
+	-- Make the table
+	return make_coll_noun_table(data) .. m_utilities.format_categories(data.categories, lang)
+end
+
+-- The main entry point for adjective tables.
+function export.show_adj(frame)
+	local args, origargs, data = init(frame:getParent().args)
 	data.pos = "adjective"
 	data.numgens = function()
 		local numgens = {}
@@ -448,24 +513,7 @@ function export.show_adj(frame)
 		end
 	end
 
-	local msgs = {} -- masculine singular stems
-	if not args[1] and mw.title.getCurrentTitle().nsText == "Template" then
-		msgs = {{"{{{1}}}", "tri"}}
-	else
-		if not args[1] then error("Parameter 1 (singular inflection) may not be empty.") end
-		if args[1] == "-" then
-			msgs = {{"", "-"}}
-		else
-			insert_stems(args[1], msgs, {{args[1], ""}}, false, 'sg')
-		end
-		local i = 2
-		while args['head' .. i] do
-			local arg = args['head' .. i]
-			insert_stems(arg, msgs, {{arg, ""}}, false, 'sg')
-			i = i + 1
-		end
-	end
-
+	local msgs = get_heads(args, 'masculine singular')
 	local fsgs = do_gender_number(args, "f", msgs, "f", true, "sg")
 
 	parse_state_spec(data, args)
@@ -480,22 +528,13 @@ function export.show_adj(frame)
 	local fpls = (contains(data.numbers, "pl") and
 		do_gender_number(args, "fpl", fsgs, "p", true, "pl") or {})
 
-	local function call_inflections(stemtypes, data, gen, num)
-		if contains(data.numbers, num) then
-			for _, stemtype in ipairs(stemtypes) do
-				call_inflection(stemtype[1], stemtype[2], data,
-					gen .. "_" .. num)
-			end
-		end
-	end
-
 	-- Generate the singular, dual and plural forms
-	call_inflections(msgs, data, "m", "sg")
-	call_inflections(fsgs, data, "f", "sg")
-	call_inflections(mdus, data, "m", "du")
-	call_inflections(fdus, data, "f", "du")
-	call_inflections(mpls, data, "m", "pl")
-	call_inflections(fpls, data, "f", "pl")
+	call_inflections(msgs, data, "m_sg")
+	call_inflections(fsgs, data, "f_sg")
+	call_inflections(mdus, data, "m_du")
+	call_inflections(fdus, data, "f_du")
+	call_inflections(mpls, data, "m_pl")
+	call_inflections(fpls, data, "f_pl")
 	
 	handle_lemma_and_overrides(data, args)
 
@@ -600,14 +639,16 @@ end
 -- declension type of a particular declension (e.g. masculine singular for
 -- adjectives). CATVALUE is the category and ENGVALUE is the English
 -- description of the declension type. In these values, NOUN is replaced
--- with either "noun" or "adjective", SINGULAR is replaced with either
--- "singular", "dual" or "plural", and BROKSING is replaced with either
--- "singular", "dual" or "broken plural".
+-- with either "noun" or "adjective", SINGULAR is replaced with the English
+-- equivalent of the number in NUMGEN (e.g. "singular", "dual" or "plural")
+-- while BROKSING is the same but uses "broken plural" in place of "plural".
 function insert_cat(data, numgen, catvalue, engvalue)
-	local broksingpl = rfind(numgen, "sg") and "singular" or rfind(numgen, "du") and "dual" or "broken plural"
-	local singpl = rfind(numgen, "sg") and "singular" or rfind(numgen, "du") and "dual" or "plural"
-	local adjnoun = rfind(numgen, "_") and "adjective" or "noun"
-	if singpl == "broken plural" and (rfind(catvalue, "BROKSING") or rfind(engvalue, "BROKSING")) then
+	local singpl = data.engnumbers[rsub(numgen, "^.*_", "")]
+	assert(singpl != nil)
+	local broksingpl = rsub(singpl, "plural", "broken plural")
+	local adjnoun = data.pos
+	if rfind(broksingpl, "broken plural") and (rfind(catvalue, "BROKSING") or
+			rfind(engvalue, "BROKSING")) then
 		table.insert(data.categories, "Arabic " .. adjnoun .. "s with broken plural")
 	end
 	catvalue = rsub(catvalue, "NOUN", adjnoun)
@@ -1496,6 +1537,169 @@ function make_noun_table(data)
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Plural
+! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
+|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_pl_ind}}}
+| {{{inf_pl_def}}}
+| {{{inf_pl_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_pl_ind}}}
+| {{{nom_pl_def}}}
+| {{{nom_pl_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_pl_ind}}}
+| {{{acc_pl_def}}}
+| {{{acc_pl_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_pl_ind}}}
+| {{{gen_pl_def}}}
+| {{{gen_pl_con}}}
+]=]
+	end
+	wikicode = wikicode .. [=[|}
+</div>
+</div>]=]
+
+	return make_table(data, wikicode)
+end
+
+-- Make the collective noun table
+function make_coll_noun_table(data)
+	local wikicode = [=[<div class="NavFrame">
+<div class="NavHead">Declension of {{{pos}}} {{{lemma}}}</div>
+<div class="NavContent">
+{| class="inflection-table" style="border-width: 1px; border-collapse: collapse; background:#F9F9F9; text-align:center; width:100%;"
+]=]
+
+	if contains(data.numbers, "coll") then
+		wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" rowspan=2 | Collective
+! style="background: #CDCDCD;" colspan=3 | {{{coll_type}}}
+|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_coll_ind}}}
+| {{{inf_coll_def}}}
+| {{{inf_coll_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_coll_ind}}}
+| {{{nom_coll_def}}}
+| {{{nom_coll_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_coll_ind}}}
+| {{{acc_coll_def}}}
+| {{{acc_coll_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_coll_ind}}}
+| {{{gen_coll_def}}}
+| {{{gen_coll_con}}}
+]=]
+	end
+	if contains(data.numbers, "sing") then
+		wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" rowspan=2 | Singulative
+! style="background: #CDCDCD;" colspan=3 | {{{sing_type}}}
+|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_sing_ind}}}
+| {{{inf_sing_def}}}
+| {{{inf_sing_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_sing_ind}}}
+| {{{nom_sing_def}}}
+| {{{nom_sing_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_sing_ind}}}
+| {{{acc_sing_def}}}
+| {{{acc_sing_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_sing_ind}}}
+| {{{gen_sing_def}}}
+| {{{gen_sing_con}}}
+]=]
+	end
+	if contains(data.numbers, "du") then
+		wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" | Dual
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_du_ind}}}
+| {{{inf_du_def}}}
+| {{{inf_du_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_du_ind}}}
+| {{{nom_du_def}}}
+| {{{nom_du_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_du_ind}}}
+| {{{acc_du_def}}}
+| {{{acc_du_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_du_ind}}}
+| {{{gen_du_def}}}
+| {{{gen_du_con}}}
+]=]
+	end
+	if contains(data.numbers, "pauc") then
+		wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" rowspan=2 | Paucal (3-10)
+! style="background: #CDCDCD;" colspan=3 | {{{pauc_type}}}
+|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_pauc_ind}}}
+| {{{inf_pauc_def}}}
+| {{{inf_pauc_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_pauc_ind}}}
+| {{{nom_pauc_def}}}
+| {{{nom_pauc_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_pauc_ind}}}
+| {{{acc_pauc_def}}}
+| {{{acc_pauc_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_pauc_ind}}}
+| {{{gen_pauc_def}}}
+| {{{gen_pauc_con}}}
+]=]
+	end
+	if contains(data.numbers, "pl") then
+		wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" rowspan=2 | Plural of variety
 ! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
 |-
 ! style="background: #CDCDCD;" | Indefinite
