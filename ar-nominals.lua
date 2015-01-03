@@ -327,6 +327,12 @@ function do_gender_number(args, arg, sgs, default, isfem, num)
 		handle_stem(default)
 		return results
 	end
+	-- For explicitly specified arguments, make sure there's at least one
+	-- base to generate off of; otherwise specifying e.g. 'sing=- pauc=فُلَان'
+	-- won't override paucal.
+	if #sgs == 0 then
+		sgs = {{"", ""}}
+	end
 	handle_stem(args[arg])
 	local i = 2
 	while args[arg .. i] do
@@ -433,7 +439,7 @@ end
 -- The main entry point for collective noun tables.
 function export.show_coll_noun(frame)
 	local args, origargs, data = init(frame:getParent().args)
-	data.pos = "noun"
+	data.pos = "collective noun"
 	data.allnumbers = {"coll", "sing", "du", "pauc", "pl"}
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
@@ -644,7 +650,7 @@ end
 -- while BROKSING is the same but uses "broken plural" in place of "plural".
 function insert_cat(data, numgen, catvalue, engvalue)
 	local singpl = data.engnumbers[rsub(numgen, "^.*_", "")]
-	assert(singpl != nil)
+	assert(singpl ~= nil)
 	local broksingpl = rsub(singpl, "plural", "broken plural")
 	local adjnoun = data.pos
 	if rfind(broksingpl, "broken plural") and (rfind(catvalue, "BROKSING") or
@@ -685,8 +691,7 @@ function triptote_diptote(stem, tr, data, numgen, is_dip, lc)
 		end
 	end
 
-	stem = canon_hamza(stem)
-	add_inflections(stem, tr, data, numgen,
+	add_inflections(canon_hamza(stem), tr, data, numgen,
 		{is_dip and U or UN,
 		 is_dip and A or AN .. ((rfind(stem, "[" .. HAMZA_ON_ALIF .. TAM .. "]$")
 			or rfind(stem, "[" .. AMAD .. ALIF .. "]" .. HAMZA .. "$")
@@ -1469,8 +1474,7 @@ function make_table(data, wikicode)
 end
 
 function generate_noun_num(num)
-	return [=[|-
-! style="background: #CDCDCD;" | Indefinite
+	return [=[! style="background: #CDCDCD;" | Indefinite
 ! style="background: #CDCDCD;" | Definite
 ! style="background: #CDCDCD;" | Construct
 |-
@@ -1508,6 +1512,7 @@ function make_noun_table(data)
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Singular
 ! style="background: #CDCDCD;" colspan=3 | {{{sg_type}}}
+|-
 ]=] .. generate_noun_num('sg')
 	end
 	if contains(data.numbers, "du") then
@@ -1519,6 +1524,7 @@ function make_noun_table(data)
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Plural
 ! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
+|-
 ]=] .. generate_noun_num('pl')
 	end
 	wikicode = wikicode .. [=[|}
@@ -1540,12 +1546,14 @@ function make_coll_noun_table(data)
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Collective
 ! style="background: #CDCDCD;" colspan=3 | {{{coll_type}}}
+|-
 ]=] .. generate_noun_num('coll')
 	end
 	if contains(data.numbers, "sing") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Singulative
 ! style="background: #CDCDCD;" colspan=3 | {{{sing_type}}}
+|-
 ]=] .. generate_noun_num('sing')
 	end
 	if contains(data.numbers, "du") then
@@ -1557,12 +1565,14 @@ function make_coll_noun_table(data)
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Paucal (3-10)
 ! style="background: #CDCDCD;" colspan=3 | {{{pauc_type}}}
+|-
 ]=] .. generate_noun_num('pauc')
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Plural of variety
 ! style="background: #CDCDCD;" colspan=3 | {{{pl_type}}}
+|-
 ]=] .. generate_noun_num('pl')
 	end
 	wikicode = wikicode .. [=[|}
