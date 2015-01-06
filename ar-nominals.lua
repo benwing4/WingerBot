@@ -290,7 +290,7 @@ function handle_lemma_and_overrides(data, args)
 					local arg = mod .. case .. "_" .. numgen .. "_" .. state
 					handle_override(arg)
 					if args[arg] then
-						insert_cat(data, numgen,
+						insert_cat(data, mod, numgen,
 							"Arabic NOUNs with irregular SINGULAR",
 							"SINGULAR of irregular NOUN")
 					end
@@ -553,9 +553,11 @@ function export.show_sing_noun(frame)
 
 	-- If all singulative nouns feminine in form, form a masculine collective
 	local is_feminine = true
-	for _, stemtype in ipairs(sings) do
-		if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
-			is_feminine = false
+	for _, normalmod in pairs(sings) do
+		for _, stemtype in ipairs(normalmod) do
+			if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
+				is_feminine = false
+			end
 		end
 	end
 
@@ -722,7 +724,8 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 	for _, state in ipairs(data.allstates) do
 		for _, case in ipairs(data.allcases_with_lemma) do
 			local thestate = mod == "mod_" and data["modstate"] or state
-			local thecase = mod == "mod_" and data["modcase"] or case
+			local thecase = (case == "lemma" or case == "inf") and case or
+				mod == "mod_" and data["modcase"] or case
 			add_inflection(data, mod .. case .. "_" .. numgen .. "_" .. state,
 				stems[thestate], trs[thestate],
 				endings[data.statecases[thestate][thecase]])
@@ -756,7 +759,7 @@ function insert_cat(data, mod, numgen, catvalue, engvalue)
 	engvalue = rsub(engvalue, "NOUN", adjnoun)
 	engvalue = rsub(engvalue, "SINGULAR", singpl)
 	engvalue = rsub(engvalue, "BROKSING", broksingpl)
-	if catvalue ~= "" then
+	if mod == "" and catvalue ~= "" then
 		insert_if_not(data.categories, catvalue)
 	end
 	if engvalue ~= "" then
@@ -1539,6 +1542,8 @@ function show_form(form, mods, use_parens)
 					else
 						tr_subspan = (rfind(translit, BOGUS_CHAR) or rfind(trmod, BOGUS_CHAR)) and "?" or
 							"<span style=\"color: #888\">" .. translit .. trmod .. "</span>"
+						-- implement elision of al- after vowel
+						tr_subspan = rsub(tr_subspan, "([aeiouāēīōū]) a([sšṣtṯṭdḏḍzžẓnrḷl]%-)", "%1 %2")
 
 						if arabic:find("{{{") then
 							ar_subspan = m_links.full_link(nil, arabic .. armod, lang, nil, nil, nil, {tr = "-"}, false)
