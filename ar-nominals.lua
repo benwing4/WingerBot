@@ -206,14 +206,25 @@ function init(origargs)
 	return args, origargs, data
 end
 
--- Can manually specify which states are to appear, and whether to omit the
--- definite article in the definite state.
-function parse_state_spec(data, args)
-	if args["omitarticle"] then
-		data.omitarticle = true
+-- Can manually specify which states are to appear; whether to omit the
+-- definite article in the definite state; and how/whether to restrict
+-- modifiers to a particular state, case or number.
+function parse_state_etc_spec(data, args)
+	data.omitarticle = args["omitarticle"]
+
+	local function check(arg, allvalues)
+		if args[arg] and not contains(allvalues, args[arg]) then
+			error("For " .. arg .. "=, value '" .. args[arg] .. "' should be one of " ..
+				table.concat(allvalues, ", "))
+		end
+		data[arg] = args[arg]
 	end
-	data["modstate"] = args["modstate"]
-	data["modcase"] = args["modcase"]
+	check("modstate", data.allstates)
+	check("modcase", data.allcases)
+	check("modnumber", data.allnumgens)
+	check("modnumgen", data.allnumgens)
+	data.modnumgen = data.modnumgen or data.modnumber
+
 	if args["state"] then
 		data.states = rsplit(args["state"], ",")
 		for _, state in ipairs(data.states) do
@@ -380,6 +391,10 @@ function call_inflection(combined_stem, ty, data, mod, numgen)
 end
 
 function call_inflections(stemtypes, data, mod, numgen)
+	-- If modnumgen= is given, do nothing if NUMGEN isn't the same
+	if mod == "mod_" and data.modnumgen and data.modnumgen ~= numgen then
+		return
+	end
 	if contains(data.numbers, rsub(numgen, "^.*_", "")) then
 		for _, stemtype in ipairs(stemtypes) do
 			call_inflection(stemtype[1], stemtype[2], data, mod, numgen)
@@ -444,7 +459,7 @@ function export.show_noun(frame)
 	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(args, "pl", sgs, nil, false, "pl")
 
-	parse_state_spec(data, args)
+	parse_state_etc_spec(data, args)
 
 	-- Can manually specify which numbers are to appear, and exactly those
 	-- numbers will appear. Otherwise, if any plurals given, duals and plurals
@@ -492,14 +507,21 @@ function export.show_coll_noun(frame)
 	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(args, "pl", colls, nil, false, "pl")
 
-	parse_state_spec(data, args)
+	parse_state_etc_spec(data, args)
 
 	-- If collective noun is already feminine in form, don't try to
 	-- form a feminine singulative
 	local already_feminine = false
-	for _, stemtype in ipairs(colls) do
-		if rfind(stemtype[1], TAM .. UNUOPT .. "/") then
-			already_feminine = true
+	for _, normalmod in pairs(sings) do
+		-- Only check modifiers if modnumgen= not given. If not given, the
+		-- modifier needs to be declined for all numgens; else only for the
+		-- given numgen, which should be explicitly specified.
+		if not (normalmod == "mod_" and data.modnumgen) then
+			for _, stemtype in ipairs(normalmod) do
+				if rfind(stemtype[1], TAM .. UNUOPT .. "/") then
+					already_feminine = true
+				end
+			end
 		end
 	end
 
@@ -547,16 +569,21 @@ function export.show_sing_noun(frame)
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
-	parse_state_spec(data, args)
+	parse_state_etc_spec(data, args)
 
 	local sings, is_template = get_heads(args, 'singulative')
 
 	-- If all singulative nouns feminine in form, form a masculine collective
 	local is_feminine = true
 	for _, normalmod in pairs(sings) do
-		for _, stemtype in ipairs(normalmod) do
-			if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
-				is_feminine = false
+		-- Only check modifiers if modnumgen= not given. If not given, the
+		-- modifier needs to be declined for all numgens; else only for the
+		-- given numgen, which should be explicitly specified.
+		if not (normalmod == "mod_" and data.modnumgen) then
+			for _, stemtype in ipairs(normalmod) do
+				if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
+					is_feminine = false
+				end
 			end
 		end
 	end
@@ -621,7 +648,7 @@ function export.show_adj(frame)
 	local msgs = get_heads(args, 'masculine singular')
 	local fsgs = do_gender_number(args, "f", msgs, "f", true, "sg")
 
-	parse_state_spec(data, args)
+	parse_state_etc_spec(data, args)
 	parse_number_spec(data, args)
 
 	local mdus = (contains(data.numbers, "du") and
@@ -706,6 +733,13 @@ end
 -- one of those states, in the order indefinite, definite, construct.)
 function add_inflections(stem, tr, data, mod, numgen, endings)
 	assert(#endings == 15)
+	local ismod = mod == "mod_"
+	-- If working on modifier and modnumgen= is given, it better agree with
+	-- NUMGEN; the case where it doesn't agree should have been caught in
+	-- call_inflections().
+	if ismod and data.modnumgen then
+		assert(data.modnumgen == numgen)
+	end
 	-- Return a list of combined of ar/tr forms, with the ending tacked on.
 	-- There may be more than one form because of alternative hamza seats that
 	-- may be supplied, e.g. مُبْتَدَؤُون or مُبْتَدَأُون (mubtadaʾūn "(grammatical) subjects").
@@ -719,16 +753,19 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 		deftr = rsub("al-" .. tr, "^al%-([sšṣtṯṭdḏḍzžẓnrḷ])", "a%1-%1")
 	end
 
+	local numgens = ismod and data.modnumgen and data.numgens() or {numgen}
 	local stems = {ind = stem, def = defstem, con = stem}
 	local trs = {ind = tr, def = deftr, con = tr}
-	for _, state in ipairs(data.allstates) do
-		for _, case in ipairs(data.allcases_with_lemma) do
-			local thestate = mod == "mod_" and data["modstate"] or state
-			local thecase = (case == "lemma" or case == "inf") and case or
-				mod == "mod_" and data["modcase"] or case
-			add_inflection(data, mod .. case .. "_" .. numgen .. "_" .. state,
-				stems[thestate], trs[thestate],
-				endings[data.statecases[thestate][thecase]])
+	for _, ng in ipairs(numgens) do
+		for _, state in ipairs(data.allstates) do
+			for _, case in ipairs(data.allcases_with_lemma) do
+				local thestate = ismod and data.modstate or state
+				local thecase = (case == "lemma" or case == "inf") and case or
+					ismod and data.modcase or case
+				add_inflection(data, mod .. case .. "_" .. ng .. "_" .. state,
+					stems[thestate], trs[thestate],
+					endings[data.statecases[thestate][thecase]])
+			end
 		end
 	end
 end	
