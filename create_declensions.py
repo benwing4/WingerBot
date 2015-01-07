@@ -124,6 +124,8 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
           # Now fetch the parameters from the headword template, removing
           # any that we want to remove
           params = '|'.join([unicode(param) for param in headword_template.params if not name_should_be_removed(unicode(param.name))])
+          if tempname == "ar-nisba-noun" and not blib.getparam(headword_template, "pl"):
+            params += '|pl=smp'
           # Separate off any [[Category: Foo]] declarators, insert before them
           m = re.match(r"^(.*?\n+)((\[\[[A-Za-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
               subsections[j], re.S)
