@@ -512,7 +512,7 @@ function export.show_coll_noun(frame)
 	-- If collective noun is already feminine in form, don't try to
 	-- form a feminine singulative
 	local already_feminine = false
-	for _, normalmod in pairs(sings) do
+	for _, normalmod in pairs(colls) do
 		-- Only check modifiers if modnumgen= not given. If not given, the
 		-- modifier needs to be declined for all numgens; else only for the
 		-- given numgen, which should be explicitly specified.
