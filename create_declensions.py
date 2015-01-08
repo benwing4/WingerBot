@@ -90,6 +90,16 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
           headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
               ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
                 "ar-adj", "ar-nisba", "ar-nisba-noun"]]
+
+          # We don't check for {{alternative form of|...}}, because it's
+          # used for e.g. different ways of spelling "camera" in Arabic,
+          # some with -ā and some with -a, so we still want to create
+          # declensions for those.
+          altspelling_templates = [temp for temp in parsed.filter_templates() if temp.name in
+              ["alternative spelling of"]]
+          if len(altspelling_templates) > 0:
+            msg("Page %s: Alternative spelling redirect found in text, skipping: [[%s]]" % (pagename, subsections[j]))
+            continue
           if len(headword_templates) == 0:
             msg("Page %s: Can't find headword template in text, skipping: [[%s]]" % (pagename, subsections[j]))
             continue
@@ -123,27 +133,28 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
             msg("Page %s: Headword template head %s ends with explicit i3rab (U): [[%s]]" % (pagename, head, subsections[j]))
             # We don't continue here because we don't need to handle this case
 
-          # Check for explicit translit
-          broken = False
+          # Check for cpl
+          # FIXME: Convert cpl into pl and fpl
+          saw_cpl = False
           for param in headword_template.params:
-            if re.search("tr", unicode(param.name)):
-              msg("Page %s: Headword template for head %s has explicit translit in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
-              broken = True
-              break
             if re.match("cpl", unicode(param.name)):
               msg("Page %s: Headword template for head %s has cpl param in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
-              broken = True
+              saw_cpl = True
               break
-          if broken:
+          if saw_cpl:
             continue
 
-          # Check for empty head after explicit translit
+          # Check for empty head. If w/o explicit translit, skip; else,
+          # fetch head from page title.
           if not head:
-            msg("Page %s: Headword template head is empty, skipping: [[%s]]" % (pagename, subsections[j]))
-            continue
+            if not blib.getparam(headword_template, "tr"):
+              msg("Page %s: Headword template head is empty and without explicit translit, skipping: [[%s]]" % (pagename, subsections[j]))
+              continue
+            headword_template.add("1", page.title())
 
           # Now fetch the parameters from the headword template, removing
-          # any that we want to remove
+          # any that we want to remove, removing the i3rab -UN ending, and
+          # adding any specified manual translit as a / annotation.
 
           def name_should_be_removed(name):
             for param in removeparams:
@@ -160,9 +171,26 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
                 unicode(headword_template)))
             return re.sub(UN + "$", "", text)
 
-          params = '|'.join([remove_i3rab(param) for param in headword_template.params if not name_should_be_removed(unicode(param.name))])
+          def trparam(name):
+            if name == "1":
+              return "tr"
+            elif name.startswith("head"):
+              return name.replace("head", "tr")
+            else:
+              return name + "tr"
+
+          def process_param(param):
+            arabic = remove_i3rab(param)
+            tr = blib.getparam(headword_tempate, trparam(unicode(param.name)))
+            if tr:
+              return arabic + "/" + tr
+            else:
+              return arabic
+
+          params = '|'.join([process_param(param) for param in headword_template.params if not name_should_be_removed(unicode(param.name))])
           if (tempname == "ar-nisba-noun" or tempname == "ar-nisba") and not blib.getparam(headword_template, "pl"):
             params += '|pl=smp'
+
           # Separate off any [[Category: Foo]] declarators, insert before them
           m = re.match(r"^(.*?\n+)((\[\[[A-Za-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
               subsections[j], re.S)
@@ -216,7 +244,5 @@ create_declensions(params.save, "Adjective", "ar-nisba", "ar-decl-adj",
     startFrom, upTo, ["2", "g2", "collg", "cons", "dobl", "paucobl", "plobl"])
 create_declensions(params.save, "Noun", "ar-nisba-noun", "ar-decl-noun",
     startFrom, upTo, ["2", "g2", "f", "m", "cons", "dobl", "plobl"])
-# FIXME: Do this only when there's a plural available or when we change the
-# adjective handling to require an explicit masculine plural.
-#create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
-#    startFrom, upTo, ["el", "cons", "dobl", "cplobl", "plobl", "fplobl"])
+create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
+    startFrom, upTo, ["el", "cons", "dobl", "cplobl", "plobl", "fplobl"])
