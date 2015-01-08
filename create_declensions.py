@@ -89,7 +89,7 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
           # not try to add a declension table
           headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
               ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
-                "ar-adj"]]
+                "ar-adj", "ar-nisba", "ar-nisba-noun"]]
           if len(headword_templates) == 0:
             msg("Page %s: Can't find headword template in text, skipping: [[%s]]" % (pagename, subsections[j]))
             continue
@@ -101,9 +101,12 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
             msg("Page %s: Headword template should be '%s' but is not, skipping: [[%s]]" % (pagename, tempname, subsections[j]))
             continue
           head = blib.getparam(headword_template, "1")
-          if not head:
-            msg("Page %s: Headword template head is empty, skipping: [[%s]]" % (pagename, subsections[j]))
+
+          # Check for declension already present
+          if j + 1 < len(subsections) and re.match("^===+Declension===+\n", subsections[j + 1]):
+            msg("Page %s: Declension already found for head %s, skipping: [[%s]]" % (pagename, head, subsections[j]))
             continue
+
           if ' ' in head:
             msg("Page %s: Headword template head %s has space in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
             continue
@@ -115,8 +118,12 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
             continue
           if head.endswith(UN):
             msg("Page %s: Headword template head %s ends with explicit i3rab (UN): [[%s]]" % (pagename, head, subsections[j]))
+            # We don't continue here because we handle this case below
           elif head.endswith(U):
             msg("Page %s: Headword template head %s ends with explicit i3rab (U): [[%s]]" % (pagename, head, subsections[j]))
+            # We don't continue here because we don't need to handle this case
+
+          # Check for explicit translit
           broken = False
           for param in headword_template.params:
             if re.search("tr", unicode(param.name)):
@@ -129,8 +136,10 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
               break
           if broken:
             continue
-          if j + 1 < len(subsections) and re.match("^===+Declension===+\n", subsections[j + 1]):
-            msg("Page %s: Declension already found for head %s, skipping: [[%s]]" % (pagename, head, subsections[j]))
+
+          # Check for empty head after explicit translit
+          if not head:
+            msg("Page %s: Headword template head is empty, skipping: [[%s]]" % (pagename, subsections[j]))
             continue
 
           # Now fetch the parameters from the headword template, removing
@@ -152,7 +161,7 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
             return re.sub(UN + "$", "", text)
 
           params = '|'.join([remove_i3rab(param) for param in headword_template.params if not name_should_be_removed(unicode(param.name))])
-          if tempname == "ar-nisba-noun" and not blib.getparam(headword_template, "pl"):
+          if (tempname == "ar-nisba-noun" or tempname == "ar-nisba") and not blib.getparam(headword_template, "pl"):
             params += '|pl=smp'
           # Separate off any [[Category: Foo]] declarators, insert before them
           m = re.match(r"^(.*?\n+)((\[\[[A-Za-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
@@ -207,6 +216,7 @@ create_declensions(params.save, "Adjective", "ar-nisba", "ar-decl-adj",
     startFrom, upTo, ["2", "g2", "collg", "cons", "dobl", "paucobl", "plobl"])
 create_declensions(params.save, "Noun", "ar-nisba-noun", "ar-decl-noun",
     startFrom, upTo, ["2", "g2", "f", "m", "cons", "dobl", "plobl"])
-# FIXME: Do this only when there's a plural available.
+# FIXME: Do this only when there's a plural available or when we change the
+# adjective handling to require an explicit masculine plural.
 #create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
 #    startFrom, upTo, ["el", "cons", "dobl", "cplobl", "plobl", "fplobl"])
