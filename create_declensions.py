@@ -23,6 +23,9 @@ site = pywikibot.Site()
 
 verbose = True
 
+UN = u"\u064C"
+U  = u"\u064F"
+
 def remove_diacritics(word):
   return re.sub(u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670]", "", word)
 
@@ -41,27 +44,21 @@ def remove_links(text):
 # that are all alphabetic are expanded so that e.g. "f" will also remove
 # parameters named "f2", "f3", "f4", etc.
 def create_declension(page, save, pos, tempname, decltempname, removeparams):
-
-  def name_should_be_removed(name):
-    for param in removeparams:
-      if name == param:
-        return true
-      if re.match("^[a-z]+$", param) and re.match("^%s[0-9]+$" % param, name):
-        return true
-    return false
+  pagename = page.title()
+  comments = []
 
   # Split off interwiki links at end
   m = re.match(r"^(.*?\n)(\n*(\[\[[a-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
       page.text, re.S)
   if m:
-    body = m.group(1)
-    tail = m.group(2)
+    pagebody = m.group(1)
+    pagetail = m.group(2)
   else:
-    body = page.text
-    tail = ""
-  splitsections = re.split("(^==[^=\n]+==\n)", body, 0, re.M)
+    pagebody = page.text
+    pagetail = ""
+  splitsections = re.split("(^==[^=\n]+==\n)", pagebody, 0, re.M)
   # Extract off head and recombine section headers with following text
-  head = splitsections[0]
+  pagehead = splitsections[0]
   sections = []
   for i in xrange(1, len(splitsections)):
     if (i % 2) == 1:
@@ -73,12 +70,16 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
       msg("Page %s: Can't find language name in text: [[%s]]" % (pagename, sections[i]))
     elif m.group(1) == "Arabic":
       # Extract off trailing separator
-      mm = re.match(r"^(.*?\n)(\n*--+\n*)$", sections[i], re.S)
+      mm = re.match(r"^(.*?\n+)(--+\n*)$", sections[i], re.S)
       if mm:
-        sections[i:i+1] = [mm.group(1), mm.group(2)]
+        secbody = mm.group(1)
+        sectail = mm.group(2)
+      else:
+        secbody = sections[i]
+        sectail = ""
 
       # Split into subsections based on headers
-      subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
+      subsections = re.split("(^===+[^=\n]+===+\n)", secbody, 0, re.M)
       for j in xrange(len(subsections)):
         # Look for subsections matching the given POS
         if j > 0 and (j % 2) == 0 and re.match("^===+%s===+\n" % pos, subsections[j - 1]):
@@ -100,30 +101,57 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
             msg("Page %s: Headword template should be '%s' but is not, skipping: [[%s]]" % (pagename, tempname, subsections[j]))
             continue
           head = blib.getparam(headword_template, "1")
+          if not head:
+            msg("Page %s: Headword template head is empty, skipping: [[%s]]" % (pagename, subsections[j]))
+            continue
           if ' ' in head:
             msg("Page %s: Headword template head %s has space in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
             continue
           if '[' in head or ']' in head or '|' in head:
             msg("Page %s: Headword template head %s has link in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
             continue
-          broken = false
+          if head.startswith(u"ال") or head.startswith(u"اَل"):
+            msg("Page %s: Headword template head %s starts with definite article, skipping: [[%s]]" % (pagename, head, subsections[j]))
+            continue
+          if head.endswith(UN):
+            msg("Page %s: Headword template head %s ends with explicit i3rab (UN): [[%s]]" % (pagename, head, subsections[j]))
+          elif head.endswith(U):
+            msg("Page %s: Headword template head %s ends with explicit i3rab (U): [[%s]]" % (pagename, head, subsections[j]))
+          broken = False
           for param in headword_template.params:
             if re.search("tr", unicode(param.name)):
               msg("Page %s: Headword template for head %s has explicit translit in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
-              broken = true
+              broken = True
               break
             if re.match("cpl", unicode(param.name)):
               msg("Page %s: Headword template for head %s has cpl param in it, skipping: [[%s]]" % (pagename, head, subsections[j]))
-              broken = true
+              broken = True
               break
           if broken:
             continue
           if j + 1 < len(subsections) and re.match("^===+Declension===+\n", subsections[j + 1]):
             msg("Page %s: Declension already found for head %s, skipping: [[%s]]" % (pagename, head, subsections[j]))
+            continue
 
           # Now fetch the parameters from the headword template, removing
           # any that we want to remove
-          params = '|'.join([unicode(param) for param in headword_template.params if not name_should_be_removed(unicode(param.name))])
+
+          def name_should_be_removed(name):
+            for param in removeparams:
+              if name == param:
+                return True
+              if re.match("^[a-z]+$", param) and re.match("^%s[0-9]+$" % param, name):
+                return True
+            return False
+
+          def remove_i3rab(param):
+            text = unicode(param)
+            if text.endswith(UN):
+              msg("Page %s: Removing i3rab from %s: %s" % (pagename, text,
+                unicode(headword_template)))
+            return re.sub(UN + "$", "", text)
+
+          params = '|'.join([remove_i3rab(param) for param in headword_template.params if not name_should_be_removed(unicode(param.name))])
           if tempname == "ar-nisba-noun" and not blib.getparam(headword_template, "pl"):
             params += '|pl=smp'
           # Separate off any [[Category: Foo]] declarators, insert before them
@@ -145,14 +173,16 @@ def create_declension(page, save, pos, tempname, decltempname, removeparams):
           body += (subsections[j - 1].replace(pos, "=Declension=") +
               "{{%s|%s}}\n\n" % (decltempname, params))
           subsections[j] = body + tail
-          comment = "Added declension for %s %s" % (
-            tempname, blib.getparam(headword_template, "1"))
-          sections[i] = ''.join(subsections)
-  newtext = head + ''.join(sections) + tail
-  if verbose:
-    msg("Replacing [[%s]] with [[%s]]" % (page.text, newtext))
-  page.text = newtext
-  if comment:
+          comments.append("added declension for %s %s" % (
+            tempname, blib.getparam(headword_template, "1")))
+          sections[i] = ''.join(subsections) + sectail
+  newtext = pagehead + ''.join(sections) + pagetail
+  comment = '; '.join(comments)
+  assert((not comment) == (newtext == page.text))
+  if newtext != page.text:
+    if verbose:
+      msg("Replacing [[%s]] with [[%s]]" % (page.text, newtext))
+    page.text = newtext
     msg("For page %s, comment = %s" % (pagename, comment))
     if save:
       page.save(comment = comment)
@@ -175,9 +205,8 @@ create_declensions(params.save, "Noun", "ar-sing-noun", "ar-decl-sing-noun",
     startFrom, upTo, ["2", "g2", "collg", "cons", "dobl", "paucobl", "plobl"])
 create_declensions(params.save, "Adjective", "ar-nisba", "ar-decl-adj",
     startFrom, upTo, ["2", "g2", "collg", "cons", "dobl", "paucobl", "plobl"])
-# FIXME: Add pl=smp as argument.
-#create_declensions(params.save, "Noun", "ar-nisba-noun", "ar-decl-noun",
-#    startFrom, upTo, ["2", "g2", "f", "m", "cons", "dobl", "plobl"])
+create_declensions(params.save, "Noun", "ar-nisba-noun", "ar-decl-noun",
+    startFrom, upTo, ["2", "g2", "f", "m", "cons", "dobl", "plobl"])
 # FIXME: Do this only when there's a plural available.
 #create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
 #    startFrom, upTo, ["el", "cons", "dobl", "cplobl", "plobl", "fplobl"])
