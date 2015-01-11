@@ -1,7 +1,7 @@
 #!/bin/bash
 
 grep '^Page ' "$@" | perl -pe 's/Page (.*?):/Page :/;' \
-    -e 's/(head|from) [^ \n]*/$1/g;' \
+    -e 's/ (head|from|manual translit|of) [^ \n]*/ $1/g;' \
     -e "s/(Can't find headword template in text), skipping:"'/$1:/g;' \
     -e 's/(skipping:).*/$1/g;' \
     -e 's/(\{\{ar-[a-z-]*)\|.*?\}\}.*/$1\}\}/g;' \
