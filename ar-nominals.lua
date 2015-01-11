@@ -658,7 +658,7 @@ function export.show_adj(frame)
 	local mpls = (contains(data.numbers, "pl") and
 		do_gender_number(args, "pl", msgs, "p", false, "pl") or {})
 	local fpls = (contains(data.numbers, "pl") and
-		do_gender_number(args, "fpl", fsgs, "p", true, "pl") or {})
+		do_gender_number(args, "fpl", fsgs, "sp", true, "pl") or {})
 
 	-- Generate the singular, dual and plural forms
 	do_inflections_and_overrides(data, args,
@@ -744,7 +744,7 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 	-- There may be more than one form because of alternative hamza seats that
 	-- may be supplied, e.g. مُبْتَدَؤُون or مُبْتَدَأُون (mubtadaʾūn "(grammatical) subjects").
 	local defstem, deftr
-	if data.omitarticle then
+	if stem == "?" or data.omitarticle then
 		defstem = stem
 		deftr = tr
 	else
@@ -1015,7 +1015,7 @@ inflections["an"] = function(stem, tr, data, mod, numgen)
 			 AAMAQ, AAMAQ, AAMAQ,
 			 AAMAQ, AAMAQ, AAMAQ,
 			 AAMAQ, AAMAQ, AAMAQ,
-			 AA .. AMAQ, AAMAQ, AAMAQ,
+			 AN .. AMAQ, AAMAQ, AAMAQ,
 			})
 	end
 
@@ -1127,6 +1127,20 @@ inflections["awnp"] = function(stem, tr, data, mod, numgen)
 		"sound SINGULAR in " .. make_link(HYPHEN .. AWNA))
 end
 
+-- Unknown
+inflections["?"] = function(stem, tr, data, mod, numgen)
+	add_inflections("?", "?", data, mod, numgen,
+		{"", "", "",
+		 "", "", "",
+		 "", "", "",
+		 "", "", "",
+		 "", "", "",
+		})
+	
+	insert_cat(data, mod, numgen, "Arabic NOUNs with unknown SINGULAR",
+		"SINGULAR unknown")
+end
+
 -- Detect declension of noun or adjective stem or lemma. We allow triptotes,
 -- diptotes and sound plurals to either come with ʾiʿrāb or not. We detect
 -- some cases where vowels are missing, when it seems fairly unambiguous to
@@ -1164,7 +1178,10 @@ function export.detect_type(stem, isfem, num)
 		return 'tri'
 	elseif rfind(stem, U .. "$") then -- explicitly specified diptotes
 		return 'di'
-	elseif num == 'pl' and ( -- various diptote plural patterns
+	elseif -- num == 'pl' and
+		( -- various diptote plural patterns; these are diptote even in the singular (e.g. يَنَايِر yanāyir) and
+		  -- currently we sometimes end up with such plural patterns in the "singular" in a singular
+		  -- ʾidāfa construction with plural modifier. (FIXME: Handle these cases better.)
 		rfind(stem, "^" .. CONS .. AOPT .. CONS .. AOPTA .. CONS .. IOPT .. Y .. "?" .. CONS .. "$") or -- fawākih, daqāʾiq, makātib, mafātīḥ
 		rfind(stem, "^" .. CONS .. AOPT .. CONS .. AOPTA .. CONS .. SH .. "$") or -- maqāmm
 		rfind(stem, "^" .. CONS .. U .. CONS .. AOPT .. CONS .. AOPTA .. HAMZA .. "$") or -- wuzarāʾ
@@ -1296,7 +1313,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 		error("Inference of form for inflection type '" .. word .. "' only allowed in dual")
 	end
 	
-	if num ~= 'pl' and (word == "sfp" or word == "smp" or word == "awnp" or word == "cdp" or word == "p") then
+	if num ~= 'pl' and (word == "sfp" or word == "smp" or word == "awnp" or word == "cdp" or word == "sp" or word == "p") then
 		error("Inference of form for inflection type '" .. word .. "' only allowed in plural")
 	end
 
@@ -1408,7 +1425,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 		return export.stem_and_type("rm", sg, sgtype, false, 'sg')
 	end
 
-	if word == "p" then
+	if word == "sp" then
 		if sgtype == "cd" then
 			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl')
 		elseif isfem then
@@ -1417,6 +1434,14 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 			return export.stem_and_type("awnp", sg, sgtype, false, 'pl')
 		else
 			return export.stem_and_type("smp", sg, sgtype, false, 'pl')
+		end
+	end
+
+	if word == "p" then
+		if sgtype == "cd" then
+			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl')
+		else
+			return export.stem_and_type("?", sg, sgtype, isfem, 'pl')
 		end
 	end
 
@@ -1518,6 +1543,10 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 		return ret, "awnp"
 	end
 
+	if word == "?" then
+		return "", word
+	end
+	
 	--FIXME: Special nouns don't exist any more, delete this
 	--if rfind(word, "^[a-z]") then --special nouns like imru, imraa
 	--	return "", word
