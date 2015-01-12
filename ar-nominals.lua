@@ -103,8 +103,9 @@ local LRM = u(0x200E) --left-to-right mark
 local ELCD_START = "^" .. HAMZA_ON_ALIF .. AOPT .. CONSPAR
 local export = {}
 
--- Functions that do the actual inflecting by creating the forms of a basic term.
-local inflections = {}
+--------------------
+-- Utility functions
+--------------------
 
 function ine(x) -- If Not Empty
 	if x == nil then
@@ -167,6 +168,18 @@ function make_link(arabic)
 	return m_links.full_link(nil, arabic, lang, nil, "term", nil, {}, false)
 end
 
+function track(page)
+	require("Module:debug").track("ar-nominals/" .. page)
+	return true
+end
+
+-------------------------------------
+-- Functions for building inflections
+-------------------------------------
+
+-- Functions that do the actual inflecting by creating the forms of a basic term.
+local inflections = {}
+
 function init_data()
 	-- forms contains a table of forms for each inflectional category,
 	-- e.g. "nom_sg_ind" for nouns or "nom_m_sg_ind" for adjectives. The value
@@ -187,9 +200,13 @@ function init_data()
 			coll="Collective", sing="Singulative", pauc="Paucal (3-10)"},
 		allcases = {"nom", "acc", "gen", "inf"},
 		allcases_with_lemma = {"nom", "acc", "gen", "inf", "lemma"},
+		-- index into endings array indicating correct ending for given
+		-- combination of state and case
 	    statecases = {
 			ind = {nom = 1, acc = 2, gen = 3, inf = 10, lemma = 13},
 			def = {nom = 4, acc = 5, gen = 6, inf = 11, lemma = 14},
+			-- used for a definite adjective modifying a construct-state noun
+			defcon = {nom = 4, acc = 5, gen = 6, inf = 11, lemma = 14},
 			con = {nom = 7, acc = 8, gen = 9, inf = 12, lemma = 15},
 		},
 	}
@@ -263,13 +280,13 @@ end
 -- as appropriate), an array of length-two arrays of {COMBINED_STEM, TYPE} as
 -- returned by stem_and_type(); ISFEM is true if this is feminine gender;
 -- NUM is 'sg', 'du' or 'pl'.
-function insert_stems(stem, results, sgs, isfem, num)
+function insert_stems(stem, results, sgs, isfem, num, pos)
 	if stem == "-" then
 		return
 	end
 	for _, sg in ipairs(sgs) do
 		local combined_stem, ty = export.stem_and_type(stem,
-			sg[1], sg[2], isfem, num)
+			sg[1], sg[2], isfem, num, pos)
 		insert_if_not(results, {combined_stem, ty})
 	end
 end
@@ -339,10 +356,10 @@ end
 -- as returned by stem_and_type(); DEFAULT is the default stem to use
 -- (typically either 'f', 'd' or 'p', or nil for no default); ISFEM is
 -- true if this is feminine gender; NUM is 'sg', 'du' or 'pl'.
-function do_gender_number_1(args, arg, sgs, default, isfem, num)
+function do_gender_number_1(data, args, arg, sgs, default, isfem, num)
 	local results = {}
 	local function handle_stem(stem)
-		insert_stems(stem, results, sgs, isfem, num)
+		insert_stems(stem, results, sgs, isfem, num, data.pos)
 	end
 
 	if not args[arg] then
@@ -367,9 +384,9 @@ function do_gender_number_1(args, arg, sgs, default, isfem, num)
 	return results
 end
 
-function do_gender_number(args, arg, sgs, default, isfem, num)
-	local results = do_gender_number_1(args, arg, sgs["normal"], default, isfem, num)
-	local mod_results = do_gender_number_1(args, "mod" .. arg, sgs["mod"] or {}, default, isfem, num)
+function do_gender_number(data, args, arg, sgs, default, isfem, num)
+	local results = do_gender_number_1(data, args, arg, sgs["normal"], default, isfem, num)
+	local mod_results = do_gender_number_1(data, args, "mod" .. arg, sgs["mod"] or {}, default, isfem, num)
 	return {normal=results, mod=mod_results}
 end
 
@@ -417,7 +434,7 @@ function do_inflections_and_overrides(data, args, inflections)
 	handle_lemma_and_overrides(data, args)
 end
 
-function get_heads_1(args, arg1, argn)
+function get_heads_1(data, args, arg1, argn)
 	if not args[arg1] then
 		return {}
 	end
@@ -426,25 +443,26 @@ function get_heads_1(args, arg1, argn)
 		heads = {{"", "-"}}
 	else
 		heads = {}
-		insert_stems(args[arg1], heads, {{args[arg1], ""}}, false, 'sg')
+		insert_stems(args[arg1], heads, {{args[arg1], ""}}, false, 'sg',
+			data.pos)
 	end
 	local i = 2
 	while args[argn .. i] do
 		local arg = args[argn .. i]
-		insert_stems(arg, heads, {{arg, ""}}, false, 'sg')
+		insert_stems(arg, heads, {{arg, ""}}, false, 'sg', data.pos)
 		i = i + 1
 	end
 	return heads
 end
 
-function get_heads(args, headtype)
+function get_heads(data, args, headtype)
 	if not args[1] and mw.title.getCurrentTitle().nsText == "Template" then
 		return {normal={{"{{{1}}}", "tri"}}}, true
 	end
 
 	if not args[1] then error("Parameter 1 (" .. headtype .. " stem) may not be empty.") end
-	local normal = get_heads_1(args, 1, "head")
-	local mod = get_heads_1(args, "mod", "mod")
+	local normal = get_heads_1(data, args, 1, "head")
+	local mod = get_heads_1(data, args, "mod", "mod")
 	return {normal=normal, mod=mod}, false
 end
 
@@ -455,9 +473,9 @@ function export.show_noun(frame)
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
-	local sgs, is_template = get_heads(args, 'singular')
+	local sgs, is_template = get_heads(data, args, 'singular')
 	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
-		do_gender_number(args, "pl", sgs, nil, false, "pl")
+		do_gender_number(data, args, "pl", sgs, nil, false, "pl")
 
 	parse_state_etc_spec(data, args)
 
@@ -485,7 +503,7 @@ function export.show_noun(frame)
 
 	-- Generate the singular, dual and plural forms
 	local dus = (contains(data.numbers, "du") and
-		do_gender_number(args, "d", sgs, "d", false, "du") or {})
+		do_gender_number(data, args, "d", sgs, "d", false, "du") or {})
 
 	do_inflections_and_overrides(data, args,
 		{{sgs, "sg"}, {dus, "du"}, {pls, "pl"}})
@@ -503,9 +521,9 @@ function export.show_coll_noun(frame)
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
-	local colls, is_template = get_heads(args, 'collective')
+	local colls, is_template = get_heads(data, args, 'collective')
 	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
-		do_gender_number(args, "pl", colls, nil, false, "pl")
+		do_gender_number(data, args, "pl", colls, nil, false, "pl")
 
 	parse_state_etc_spec(data, args)
 
@@ -525,10 +543,10 @@ function export.show_coll_noun(frame)
 		end
 	end
 
-	local sings = do_gender_number(args, "sing", colls,
+	local sings = do_gender_number(data, args, "sing", colls,
 		not already_feminine and "f" or nil, true, "sg")
-	local dus = do_gender_number(args, "d", sings, "d", true, "du")
-	local paucs = do_gender_number(args, "pauc", sings, "sfp", true, "pl")
+	local dus = do_gender_number(data, args, "d", sings, "d", true, "du")
+	local paucs = do_gender_number(data, args, "pauc", sings, "sfp", true, "pl")
 
 	-- Can manually specify which numbers are to appear, and exactly those
 	-- numbers will appear. Otherwise, if any plurals given, plurals appear,
@@ -571,7 +589,7 @@ function export.show_sing_noun(frame)
 
 	parse_state_etc_spec(data, args)
 
-	local sings, is_template = get_heads(args, 'singulative')
+	local sings, is_template = get_heads(data, args, 'singulative')
 
 	-- If all singulative nouns feminine in form, form a masculine collective
 	local is_feminine = true
@@ -588,12 +606,12 @@ function export.show_sing_noun(frame)
 		end
 	end
 
-	local colls = do_gender_number(args, "coll", sings,
+	local colls = do_gender_number(data, args, "coll", sings,
 		is_feminine and "m" or nil, false, "sg")
-	local dus = do_gender_number(args, "d", sings, "d", true, "du")
-	local paucs = do_gender_number(args, "pauc", sings, "sfp", true, "pl")
+	local dus = do_gender_number(data, args, "d", sings, "d", true, "du")
+	local paucs = do_gender_number(data, args, "pauc", sings, "sfp", true, "pl")
 	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
-		do_gender_number(args, "pl", colls, nil, false, "pl")
+		do_gender_number(data, args, "pl", colls, nil, false, "pl")
 
 	-- Can manually specify which numbers are to appear, and exactly those
 	-- numbers will appear. Otherwise, if any plurals given, plurals appear;
@@ -645,20 +663,20 @@ function export.show_adj(frame)
 		end
 	end
 
-	local msgs = get_heads(args, 'masculine singular')
-	local fsgs = do_gender_number(args, "f", msgs, "f", true, "sg")
+	local msgs = get_heads(data, args, 'masculine singular')
+	local fsgs = do_gender_number(data, args, "f", msgs, "f", true, "sg")
 
 	parse_state_etc_spec(data, args)
 	parse_number_spec(data, args)
 
 	local mdus = (contains(data.numbers, "du") and
-		do_gender_number(args, "d", msgs, "d", false, "du") or {})
+		do_gender_number(data, args, "d", msgs, "d", false, "du") or {})
 	local fdus = (contains(data.numbers, "du") and
-		do_gender_number(args, "fd", fsgs, "d", true, "du") or {})
+		do_gender_number(data, args, "fd", fsgs, "d", true, "du") or {})
 	local mpls = (contains(data.numbers, "pl") and
-		do_gender_number(args, "pl", msgs, "p", false, "pl") or {})
+		do_gender_number(data, args, "pl", msgs, "p", false, "pl") or {})
 	local fpls = (contains(data.numbers, "pl") and
-		do_gender_number(args, "fpl", fsgs, "sp", true, "pl") or {})
+		do_gender_number(data, args, "fpl", fsgs, "sp", true, "pl") or {})
 
 	-- Generate the singular, dual and plural forms
 	do_inflections_and_overrides(data, args,
@@ -673,7 +691,7 @@ end
 -- Inflection functions
 
 function do_translit(term)
-	return lang:transliterate(term) or BOGUS_CHAR
+	return lang:transliterate(term) or track("cant-translit") and BOGUS_CHAR
 end
 
 function split_arabic_tr(term)
@@ -754,12 +772,17 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 	end
 
 	local numgens = ismod and data.modnumgen and data.numgens() or {numgen}
-	local stems = {ind = stem, def = defstem, con = stem}
-	local trs = {ind = tr, def = deftr, con = tr}
+	-- "defcon" means definite adjective modifying construct state noun. We
+	-- add a ... before the adjective (and after the construct-state noun) to
+	-- indicate that a nominal modifier would go between noun and adjective.
+	local stems = {ind = stem, def = defstem, con = stem,
+	  defcon = "... " .. defstem}
+	local trs = {ind = tr, def = deftr, con = tr, defcon = "... " .. deftr}
 	for _, ng in ipairs(numgens) do
 		for _, state in ipairs(data.allstates) do
 			for _, case in ipairs(data.allcases_with_lemma) do
-				local thestate = ismod and data.modstate or state
+				local thestate = ismod and data.modstate or
+				  ismod and state == "con" and "defcon" or state
 				local thecase = (case == "lemma" or case == "inf") and case or
 					ismod and data.modcase or case
 				add_inflection(data, mod .. case .. "_" .. ng .. "_" .. state,
@@ -1146,7 +1169,7 @@ end
 -- some cases where vowels are missing, when it seems fairly unambiguous to
 -- do so. ISFEM is true if we are dealing with a feminine stem. NUM is
 -- 'sg', 'du', or 'pl', depending on the number of the stem.
-function export.detect_type(stem, isfem, num)
+function export.detect_type(stem, isfem, num, pos)
 	-- Not strictly necessary because the caller (stem_and_type) already
 	-- reorders, but won't hurt, and may be necessary if this function is
 	-- called from an external caller.
@@ -1190,12 +1213,13 @@ function export.detect_type(stem, isfem, num)
 	    ) then
 		return 'di'
 	elseif num == 'sg' and ( -- diptote singular patterns (mostly adjectives)
-		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. "[" .. N .. HAMZA .. "]$") or -- kaslān "lazy", qamrāʾ "moon-white, moonlight"
-		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. "[" .. N .. HAMZA .. "]$") or -- laffāʾ "plump (fem.)"
-		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") or -- ʾabyad
-		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") or -- ʾalaff
+		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and track("kaslaan-" .. pos) or -- kaslān "lazy"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. HAMZA .. "$") and track("qamraa-" .. pos) or -- qamrāʾ "moon-white, moonlight"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. "[" .. N .. HAMZA .. "]$") and track("laffaa-" .. pos) or -- laffāʾ "plump (fem.)"
+		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") and track("abyad-" .. pos) or -- ʾabyad
+		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") and track("alaff-" .. pos) or -- ʾalaff
 		-- do the following on the origstem so we can check specifically for alif madda
-		rfind(origstem, "^" .. AMAD .. CONS .. A .. CONS .. "$") -- ʾālam "more painful", ʾāḵar "other"
+		rfind(origstem, "^" .. AMAD .. CONS .. A .. CONS .. "$") and track("aalam" .. pos) -- ʾālam "more painful", ʾāḵar "other"
 		) then
 		return 'di'
 	elseif rfind(stem, AMAQ .. "$") then -- kaslā, ḏikrā (spelled with alif maqṣūra)
@@ -1204,6 +1228,12 @@ function export.detect_type(stem, isfem, num)
 		return 'inv'
 	elseif rfind(stem, ALIF .. "$") then -- kāmērā, lībiyā (spelled with tall alif; we catch dunyā and hadāyā above)
 		return 'lwinv'
+	elseif rfind(stem, II .. "$") then -- cases like كُوبْرِي kubrī "bridge" and صَوَانِي ṣawānī pl. of ṣīniyya; modern words that would probably be -in
+		track("ii")
+		return 'inv'
+	elseif rfind(stem, UU .. "$") then -- FIXME: Does this occur? Check the tracking
+		track("uu")
+		return 'inv'
 	else
 		return 'tri'
 	end
@@ -1253,7 +1283,7 @@ end
 -- regular rules. SG may be of the form ARABIC/TR or ARABIC. ISFEM is true
 -- if WORD is a feminine stem. NUM is either 'sg', 'du' or 'pl' according to
 -- the number of the stem. The return value will be in the ARABIC/TR format.
-function export.stem_and_type(word, sg, sgtype, isfem, num)
+function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	local rettype = nil
 	if rfind(word, ":") then
 		local split = rsplit(word, ":")
@@ -1393,13 +1423,13 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 
 	if word == "f" then
 		if sgtype == "cd" then
-			return export.stem_and_type("cdf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("cdf", sg, sgtype, true, 'sg', pos)
 		elseif sgtype == "el" then
-			return export.stem_and_type("elf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("elf", sg, sgtype, true, 'sg', pos)
 		elseif is_intensive_adj(sgar) then
-			return export.stem_and_type("intf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("intf", sg, sgtype, true, 'sg', pos)
 		else
-			return export.stem_and_type("rf", sg, sgtype, true, 'sg')
+			return export.stem_and_type("rf", sg, sgtype, true, 'sg', pos)
 		end
 	end
 
@@ -1422,26 +1452,26 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 		-- FIXME: handle cd (color-defect)
 		-- FIXME: handle el (elative)
 		-- FIXME: handle int (intensive)
-		return export.stem_and_type("rm", sg, sgtype, false, 'sg')
+		return export.stem_and_type("rm", sg, sgtype, false, 'sg', pos)
 	end
 
 	if word == "sp" then
 		if sgtype == "cd" then
-			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl')
+			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
 		elseif isfem then
-			return export.stem_and_type("sfp", sg, sgtype, true, 'pl')
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
 		elseif sgtype == "an" then
-			return export.stem_and_type("awnp", sg, sgtype, false, 'pl')
+			return export.stem_and_type("awnp", sg, sgtype, false, 'pl', pos)
 		else
-			return export.stem_and_type("smp", sg, sgtype, false, 'pl')
+			return export.stem_and_type("smp", sg, sgtype, false, 'pl', pos)
 		end
 	end
 
 	if word == "p" then
 		if sgtype == "cd" then
-			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl')
+			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
 		else
-			return export.stem_and_type("?", sg, sgtype, isfem, 'pl')
+			return export.stem_and_type("?", sg, sgtype, isfem, 'pl', pos)
 		end
 	end
 
@@ -1551,7 +1581,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num)
 	--if rfind(word, "^[a-z]") then --special nouns like imru, imraa
 	--	return "", word
 	--end
-	return artr, export.detect_type(ar, isfem, num)
+	return artr, export.detect_type(ar, isfem, num, pos)
 end
 
 -- local outersep = " <small style=\"color: #888\">or</small> "
