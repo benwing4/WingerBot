@@ -8,7 +8,52 @@ local u = mw.ustring.char
 local U  = u(0x064F) -- ḍamma
 local UN = u(0x064C) -- ḍammatān (ḍamma tanwīn)
 
-local track = require("Module:debug").track
+-----------------------
+-- Utility functions --
+-----------------------
+
+-- If Not Empty
+local function ine(arg)
+	if arg == "" then
+		return nil
+	else
+		return arg
+	end
+end
+
+-- Tracking functions
+
+local trackfn = require("Module:debug").track
+function track(page)
+	trackfn("ar-headword/" .. page)
+	return true
+end
+
+function track_form(argname, form, translit)
+	if mw.ustring.find(form, UN .. "$") then
+		track("i3rab")
+		track("i3rab/" .. argname)
+		track("i3rab-un")
+		track("i3rab-un/" .. argname)
+	end
+	if mw.ustring.find(form, U .. "$") then
+		track("i3rab")
+		track("i3rab/" .. argname)
+		track("i3rab-u")
+		track("i3rab-u/" .. argname)
+	end
+	if not lang:transliterate(form) then
+		track("unvocalized")
+		track("unvocalized/" .. argname)
+		if translit then
+			track("unvocalized-manual-translit")
+			track("unvocalized-manual-translit/" .. argname)
+		else
+			track("unvocalized-no-translit")
+			track("unvocalized-no-translit/" .. argname)
+		end
+	end
+end
 
 -- The main entry point.
 function export.show(frame)
@@ -23,24 +68,19 @@ function export.show(frame)
 	local categories = {"Arabic " .. poscat}
 	
 	local head = args["head"] or args[1] or ""
-	local translit = args["tr"]; if translit == "" then translit = nil end
+	local translit = ine(args["tr"])
 	local i = 1
 	
 	while head do
 		if head then
 			table.insert(heads, head)
 			translits[#heads] = translit
+			track_form("head", head, translit)
 		end
 		
 		i = i + 1
-		head = args["head" .. i]; if head == "" then head = nil end
-		translit = args["tr" .. i]; if translit == "" then translit = nil end
-	end
-
-	for _, h in ipairs(heads) do
-		if mw.ustring.find(h, "[" .. UN .. U .. "]$") then
-			track("ar-head/i3rab")
-		end
+		head = ine(args["head" .. i])
+		translit = ine(args["tr" .. i])
 	end
 
 	if pos_functions[poscat] then
@@ -48,32 +88,22 @@ function export.show(frame)
 	end
 	
 	if args[3] or args[4] or args[5] or args[6] or args[7] or args[8] or args[9] then
-		track("ar-head/num")
+		track("num")
 	end
 	
 	if args["head"] then
-		track("ar-head/head")
+		track("head")
 	end
 	
 	if args["g"] then
-		track("ar-head/g")
+		track("g")
 	end
 	
 	return require("Module:headword").full_headword(lang, nil, heads, translits, genders, inflections, categories, nil)
 end
 
-
--- If Not Empty
-local function ine(arg)
-	if arg == "" then
-		return nil
-	else
-		return arg
-	end
-end
-
-
--- Get a list of inflections
+-- Get a list of inflections. See handle_infl() for meaning of ARGS, ARGPREF
+-- and DEFGENDER.
 local function params(args, argpref, defgender)
 	-- Gather parameters
 	local forms = {}
@@ -86,6 +116,7 @@ local function params(args, argpref, defgender)
 	
 	while form do
 		local genderlist = (gender or gender2) and {gender, gender2} or defgender and {defgender} or nil
+		track_form(argpref, form, translit)
 		table.insert(forms, {term = form, translit = translit, gender = genderlist})
 		
 		i = i + 1
@@ -99,18 +130,20 @@ local function params(args, argpref, defgender)
 end
 
 -- Get a list of inflections from the arguments in ARGS based on argument
--- prefix ARGPREF, label with LABEL and insert into inflections list
--- INFLECTIONS. Optional DEFGENDER is a default gender to specify; used for
+-- prefix ARGPREF (e.g. "pl" to snarf arguments called "pl", "pl2", etc.,
+-- along with "pltr", "pl2tr", etc. and optional gender(s) "plg", "plg2",
+-- "pl2g", "pl2g2", "pl3g", "pl3g2", etc.). Label with LABEL (e.g. "plural"),
+-- which will appear in the headword. Insert into inflections list
+-- INFLECTIONS. Optional DEFGENDER is default gender to insert if gender
+-- isn't given; otherwise, no gender is inserted. (This is used for
 -- singulative forms of collective nouns, and collective forms of singulative
--- nouns.
-local function get_forms(args, argpref, label, defgender)
+-- nouns, which have different gender from the base form(s).)
+local function handle_infl(args, inflections, argpref, label, defgender)
 	local infls = params(args, argpref, defgender)
 	infls.label = label
 	
 	if #infls > 0 then
-		return infls
-	else
-		return nil
+		table.insert(inflections, infls)
 	end
 end
 
@@ -120,7 +153,7 @@ local function handle_noun_plural(args, inflections, categories)
 		table.insert(inflections, {label = "usually [[Appendix:Glossary#uncountable|uncountable]]"})
 		table.insert(categories, lang:getCanonicalName() .. " uncountable nouns")
 	else
-		table.insert(inflections, get_forms(args,  "pl", "plural"))
+		handle_infl(args, inflections, "pl", "plural")
 	end
 end
 
@@ -160,34 +193,40 @@ end
 -- Part-of-speech functions
 
 pos_functions["adjectives"] = function(args, genders, inflections, categories)
-	table.insert(inflections, get_forms(args, "cons", "construct state"))
-	table.insert(inflections, get_forms(args, "obl", "oblique"))
-	table.insert(inflections, get_forms(args, "f", "feminine"))
-	table.insert(inflections, get_forms(args, "fcons", "feminine construct state"))
-	table.insert(inflections, get_forms(args, "fobl", "feminine oblique"))
-	table.insert(inflections, get_forms(args, "d", "dual"))
-	table.insert(inflections, get_forms(args, "dobl", "dual oblique"))
-	table.insert(inflections, get_forms(args, "cpl", "common plural"))
-	table.insert(inflections, get_forms(args, "cplcons", "common plural construct state"))
-	table.insert(inflections, get_forms(args, "cplobl", "common plural oblique"))
-	table.insert(inflections, get_forms(args, "pl", "masculine plural"))
-	table.insert(inflections, get_forms(args, "plcons", "masculine plural construct state"))
-	table.insert(inflections, get_forms(args, "plobl", "masculine plural oblique"))
-	table.insert(inflections, get_forms(args, "fpl", "feminine plural"))
-	table.insert(inflections, get_forms(args, "fplcons", "feminine plural construct state"))
-	table.insert(inflections, get_forms(args, "fplobl", "feminine plural oblique"))
-	table.insert(inflections, get_forms(args, "el", "elative"))
+	local function infl(argpref, label)
+		handle_infl(args, inflections, argpref, label)
+	end
+	infl("cons", "construct state")
+	infl("obl", "oblique")
+	infl("f", "feminine")
+	infl("fcons", "feminine construct state")
+	infl("fobl", "feminine oblique")
+	infl("d", "dual")
+	infl("dobl", "dual oblique")
+	infl("cpl", "common plural")
+	infl("cplcons", "common plural construct state")
+	infl("cplobl", "common plural oblique")
+	infl("pl", "masculine plural")
+	infl("plcons", "masculine plural construct state")
+	infl("plobl", "masculine plural oblique")
+	infl("fpl", "feminine plural")
+	infl("fplcons", "feminine plural construct state")
+	infl("fplobl", "feminine plural oblique")
+	infl("el", "elative")
 end
 
 function handle_sing_coll_noun_inflections(args, inflections, categories)
-	table.insert(inflections, get_forms(args, "cons", "construct state"))
-	table.insert(inflections, get_forms(args, "obl", "oblique"))
-	table.insert(inflections, get_forms(args, "d", "dual"))
-	table.insert(inflections, get_forms(args, "dobl", "dual oblique"))
-	table.insert(inflections, get_forms(args, "pauc", "paucal"))
+	local function infl(argpref, label)
+		handle_infl(args, inflections, argpref, label)
+	end
+	infl("cons", "construct state")
+	infl("obl", "oblique")
+	infl("d", "dual")
+	infl("dobl", "dual oblique")
+	infl("pauc", "paucal")
 	handle_noun_plural(args, inflections, categories)
-	table.insert(inflections, get_forms(args, "plcons", "plural construct state"))
-	table.insert(inflections, get_forms(args, "plobl", "plural oblique"))
+	infl("plcons", "plural construct state")
+	infl("plobl", "plural oblique")
 end
 
 pos_functions["collective nouns"] = function(args, genders, inflections, categories)
@@ -196,21 +235,21 @@ pos_functions["collective nouns"] = function(args, genders, inflections, categor
 	
 	local g = ine(args[2]) or "m"
 	if g ~= "m" then
-		track("ar-head/coll nm")
+		track("coll nm")
 	end
 
 	handle_gender(args, genders, "m")
 
 	-- Singulative
-	table.insert(inflections, get_forms(args, "sing", "singulative", "f"))
+	handle_infl(args, inflections, "sing", "singulative", "f")
 	local singg = ine(args["singg"])
 	if singg then
-		track("ar-head/singg")
+		track("singg")
 		
 		if singg == "m" or singg == "f" then
-			track("ar-head/singg/" .. singg)
+			track("singg/" .. singg)
 		else
-			track("ar-head/singg/-")
+			track("singg/-")
 		end
 	end
 
@@ -223,21 +262,21 @@ pos_functions["singulative nouns"] = function(args, genders, inflections, catego
 
 	local g = ine(args[2]) or "f"
 	if g ~= "f" then
-		track("ar-head/sing nf")
+		track("sing nf")
 	end
 
 	handle_gender(args, genders, "f")
 
 	-- Collective
-	table.insert(inflections, get_forms(args, "coll", "collective", "m"))
+	handle_infl(args, inflections, "coll", "collective", "m")
 	local collg = ine(args["collg"])
 	if collg then
-		track("ar-head/collg")
+		track("collg")
 		
 		if collg == "m" or collg == "f" then
-			track("ar-head/collg/" .. collg)
+			track("collg/" .. collg)
 		else
-			track("ar-head/collg/-")
+			track("collg/-")
 		end
 	end
 
@@ -245,21 +284,24 @@ pos_functions["singulative nouns"] = function(args, genders, inflections, catego
 end
 
 function handle_noun_inflections(args, inflections, categories, singonly)
-	table.insert(inflections, get_forms(args, "cons", "construct state"))
-	table.insert(inflections, get_forms(args, "obl", "oblique"))
-	if not singonly then
-		table.insert(inflections, get_forms(args, "d", "dual"))
-		table.insert(inflections, get_forms(args, "dobl", "dual oblique"))
-		handle_noun_plural(args, inflections, categories)
-		table.insert(inflections, get_forms(args, "plcons", "plural construct state"))
-		table.insert(inflections, get_forms(args, "plobl", "plural oblique"))
+	local function infl(argpref, label)
+		handle_infl(args, inflections, argpref, label)
 	end
-	table.insert(inflections, get_forms(args, "f", "feminine"))
-	table.insert(inflections, get_forms(args, "fcons", "feminine construct state"))
-	table.insert(inflections, get_forms(args, "fobl", "feminine oblique"))
-	table.insert(inflections, get_forms(args, "m", "masculine"))
-	table.insert(inflections, get_forms(args, "mcons", "masculine construct state"))
-	table.insert(inflections, get_forms(args, "mobl", "masculine oblique"))
+	infl("cons", "construct state")
+	infl("obl", "oblique")
+	if not singonly then
+		infl("d", "dual")
+		infl("dobl", "dual oblique")
+		handle_noun_plural(args, inflections, categories)
+		infl("plcons", "plural construct state")
+		infl("plobl", "plural oblique")
+	end
+	infl("f", "feminine")
+	infl("fcons", "feminine construct state")
+	infl("fobl", "feminine oblique")
+	infl("m", "masculine")
+	infl("mcons", "masculine construct state")
+	infl("mobl", "masculine oblique")
 end
 
 pos_functions["nouns"] = function(args, genders, inflections, categories)
@@ -327,3 +369,6 @@ pos_functions["noun forms"] = function(args, genders, inflections, categories)
 end
 
 return export
+
+-- For Vim, so we get 4-space tabs
+-- vim: set ts=4 sw=4 noet:
