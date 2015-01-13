@@ -207,24 +207,33 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
           # avoid unnecessary saving
           parsed = blib.parse_text(reorder_shadda(subsections[j]))
 
+          def pagemsg(text):
+            msg("Page %s: %s: [[%s]]" % (pagename, text, subsections[j]))
+
           # Check for various conditions causing us to skip this entry and
           # not try to add a declension table
-          headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
-              ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
-                "ar-adj", "ar-nisba", "ar-noun-nisba"]]
 
+          # Skip declension if certain templates found in definition.
           # We don't check for {{alternative form of|...}}, because it's
           # used for e.g. different ways of spelling "camera" in Arabic,
           # some with -ā and some with -a, so we still want to create
           # declensions for those.
-          def pagemsg(text):
-            msg("Page %s: %s: [[%s]]" % (pagename, text, subsections[j]))
-
           altspelling_templates = [temp for temp in parsed.filter_templates() if temp.name in
               ["alternative spelling of"]]
           if len(altspelling_templates) > 0:
             pagemsg("Alternative spelling redirect found in text, skipping")
             continue
+          if pos == "Adjective":
+            feminine_of_templates = [temp for temp in parsed.filter_templates() if temp.name in
+                ["feminine of"]]
+            if len(feminine_of_templates) > 0:
+              pagemsg("feminine-of template found for adjective, skipping")
+              continue
+
+          # Retrieve headword_template, make sure exactly one and it is the right type
+          headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
+              ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
+                "ar-adj", "ar-nisba", "ar-noun-nisba"]]
           if len(headword_templates) == 0:
             pagemsg("Can't find headword template in text, skipping")
             continue
@@ -314,8 +323,8 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             words[1] = remove_al(words[1])
             if not word0al and word1al:
               # Found an ʾidāfa construction
-              pagemsg("Headword template head %s has space in it and found idafa" % (orighead))
-              add_note("modifier idafa construction")
+              pagemsg("Headword template head %s has space in it and found definite idafa" % (orighead))
+              add_note("modifier definite idafa construction")
               idafa = True
               putp("1", words[0])
               putp("state", "con")
@@ -339,13 +348,11 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
               pagemsg("Headword template head %s has space in it and found indefinite adjective nisba construction" % (orighead))
               add_note("modifier indefinite nisba adjective construction")
               putp("1", words[0])
-              putp("state", "ind,def")
               putp("mod", words[1])
             elif pagename in adjectival_phrases:
               pagemsg("Headword template head %s has space in it, indefinite, and manually specified to be adjectival" % (orighead))
               add_note("modifier indefinite adjective construction")
               putp("1", words[0])
-              putp("state", "ind,def")
               putp("mod", words[1])
             else:
               pagemsg("Headword template head %s has space in it, indefinite, and not specified to be adjectival, assuming idafa" % (orighead))
@@ -450,34 +457,33 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
               putp("state", "def")
               # Also remove al- from remaining head and pl params
               def check_for_al(param):
+                param = remove_links(param)
                 value = blib.getparam(headword_template, param)
                 if value:
+                  if '[' in value or ']' in value or '|' in value:
+                    pagemsg("Param %s value %s has link in it" % (param, value))
+                    add_note("removed links from %s" % param)
+                    value = remove_links(value)
                   putp(param, remove_al(value))
-              check_for_al("pl")
-              # FIXME: Is it necessary to do feminines and feminine plurals?
-              # Do we ever have adjectives with definite articles entered as
-              # lemmas?
-              check_for_al("f")
-              check_for_al("fpl")
+              params_to_check = ["pl", "sing", "coll", "pauc", "f", "fpl"]
+              for param in params_to_check:
+                check_for_al(param)
               for i in xrange(2, 10):
                 check_for_al("head%s" % i)
-                check_for_al("pl%s" % i)
-                check_for_al("f%s" % i)
-                check_for_al("fpl%s" % i)
+                for param in params_to_check:
+                  check_for_al("%s%s" % (param, i))
               # Also remove al- from transliteration
               def check_for_al_tr(param):
                 value = blib.getparam(headword_template, param)
                 if value:
                   putp(param, remove_al_tr(value))
               check_for_al("tr")
-              check_for_al("pltr")
-              check_for_al("ftr")
-              check_for_al("fpltr")
+              for param in params_to_check:
+                check_for_al("%str" % param)
               for i in xrange(2, 10):
                 check_for_al("tr%s" % i)
-                check_for_al("pl%str" % i)
-                check_for_al("f%str" % i)
-                check_for_al("fpl%str" % i)
+                for param in params_to_check:
+                  check_for_al("%s%str" % (param, i))
 
             if head.endswith(UN):
               pagemsg("Headword template head %s ends with explicit i3rab (UN)" % (head))
@@ -518,10 +524,12 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             name = unicode(param.name)
             if name == "sc" and unicode(param.value) == "Arab":
               return True
+            if name.endswith("tr"):
+              return True
             for remove in removeparams:
               if name == remove:
                 return True
-              if re.match("^[a-z]+$", remove) and re.match("^%s([0-9]+)?(tr)?$" % remove, name):
+              if re.match("^[a-z]+$", remove) and re.match("^%s([0-9]+)?$" % remove, name):
                 return True
             return False
 
@@ -605,19 +613,19 @@ startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
 create_declensions(params.save, "Noun", "ar-noun", "ar-decl-noun",
     "sg", startFrom, upTo,
-    ["2", "tr", "g2", "f", "m", "cons", "dobl", "plobl"])
+    ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
 create_declensions(params.save, "Noun", "ar-coll-noun", "ar-decl-coll-noun",
     "coll", startFrom, upTo,
-    ["2", "tr", "g2", "singg", "cons", "dobl", "paucobl", "plobl"])
+    ["2", "tr", "g2", "singg", "cons", "plcons", "dobl", "paucobl", "plobl"])
 create_declensions(params.save, "Noun", "ar-sing-noun", "ar-decl-sing-noun",
     "sing", startFrom, upTo,
-    ["2", "tr", "g2", "collg", "cons", "dobl", "paucobl", "plobl"])
+    ["2", "tr", "g2", "collg", "cons", "plcons", "dobl", "paucobl", "plobl"])
 create_declensions(params.save, "Adjective", "ar-nisba", "ar-decl-adj",
     "sg", startFrom, upTo,
-    ["2", "tr", "g2", "collg", "cons", "dobl", "paucobl", "plobl"])
+    ["2", "tr", "g2", "collg", "cons", "plcons", "dobl", "paucobl", "plobl"])
 create_declensions(params.save, "Noun", "ar-noun-nisba", "ar-decl-noun",
     "sg", startFrom, upTo,
-    ["2", "tr", "g2", "f", "m", "cons", "dobl", "plobl"])
+    ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
 create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
     "sg", startFrom, upTo,
-    ["tr", "el", "cons", "dobl", "cplobl", "plobl", "fplobl"])
+    ["tr", "el", "cons", "plcons", "dobl", "cplobl", "plobl", "fplobl"])
