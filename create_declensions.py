@@ -37,6 +37,7 @@ SK = u"\u0652" # sukūn = no vowel
 SH = u"\u0651" # šadda = gemination of consonants
 DAGGER_ALIF = u"\u0670"
 DIACRITIC_ANY_BUT_SH = "[" + A + I + U + AN + IN + UN + SK + DAGGER_ALIF + "]"
+DIACRITIC_ANY = "[" + A + I + U + AN + IN + UN + SK + SH + DAGGER_ALIF + "]"
 ALIF = u"ا"
 ALIF_WASLA = u"ٱ"
 ALIF_ANY = "[" + ALIF + ALIF_WASLA + "]"
@@ -47,7 +48,7 @@ UNU = "[" + UN + U + "]"
 UNUOPT = UNU + "?"
 
 def remove_diacritics(word):
-  return re.sub(u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652\u0670]", "", word)
+  return re.sub(DIACRITIC_ANY, "", word)
 
 def remove_links(text):
   text = re.sub(r"\[\[[^|\]]*?\|", "", text)
@@ -63,19 +64,8 @@ def reorder_shadda(text):
   return re.sub("(" + DIACRITIC_ANY_BUT_SH + ")" + SH, SH + r"\1", text)
 
 # FIXME! This needs manual fixing:
-# -- Create manual declension for ذَقْن pl. ذُقُون "chin" else it
-#    will be interpreted as strong masc pl
 # -- Cases where multiple heads and/or pl occur in phrases
 # -- Cases where phrases of three or more words occur
-# -- Error in translit for pl of عمود فقري
-# -- various FIXME's below in `adjectival_phrases`
-# -- Need to create manual declension tables for the remaining months,
-#    for various reasons:
-# -- This: ذو الحجة, دو القعدة (because of ذو)
-# -- This: ربيع الآخر, ربيع الثاني (because the indefinite of الثاني is irregular, because there is bad i3rab in the other)
-# -- This: جمادى الثاني (same as previous for الثاني, also because this is adjectival of a strange sort; also, FIXME, adjective needs to be feminine الثانية)
-# -- This: جمادى الأولى (same as second reason of previous)
-# -- This: جمادى الآخرة (same as previous)
 # -- Make modifier example for كانون الثاني or maybe better كانون الأول
 # -- Use عَمُود فَقْرِيّ as example of an adjectival modifier, plural is أَعْمِدَة فَقْرِيَّة
 
