@@ -5,8 +5,16 @@ local pos_functions = {}
 
 -- diacritics
 local u = mw.ustring.char
+local A  = u(0x064E) -- fatḥa
+local AN = u(0x064B) -- fatḥatān (fatḥa tanwīn)
 local U  = u(0x064F) -- ḍamma
 local UN = u(0x064C) -- ḍammatān (ḍamma tanwīn)
+local I  = u(0x0650) -- kasra
+local IN = u(0x064D) -- kasratān (kasra tanwīn)
+local SK = u(0x0652) -- sukūn = no vowel
+local SH = u(0x0651) -- šadda = gemination of consonants
+local DAGGER_ALIF = u(0x0670)
+local DIACRITIC_ANY_BUT_SH = "[" .. A .. I .. U .. AN .. IN .. UN .. SK .. DAGGER_ALIF .. "]"
 
 -----------------------
 -- Utility functions --
@@ -21,6 +29,30 @@ local function ine(arg)
 	end
 end
 
+-- version of mw.ustring.gsub() that discards all but the first return value
+function rsub(term, foo, bar)
+	local retval = mw.ustring.gsub(term, foo, bar)
+	return retval
+end
+
+function remove_links(text)
+	text = rsub(text, "%[%[[^|%]]*|", "")
+	text = rsub(text, "%[%[", "")
+	text = rsub(text, "%]%]", "")
+	return text
+end
+
+function reorder_shadda(text)
+	-- shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
+	-- replaced with short-vowel+shadda during NFC normalisation, which
+	-- MediaWiki does for all Unicode strings; however, it makes the
+	-- detection process inconvenient, so undo it. (For example, the tracking
+	-- code below would fail to detect the -un in سِتٌّ because the shadda
+	-- would come after the -un.)
+	text = rsub(text, "(" .. DIACRITIC_ANY_BUT_SH .. ")" .. SH, SH .. "%1")
+	return text
+end
+
 -- Tracking functions
 
 local trackfn = require("Module:debug").track
@@ -30,18 +62,19 @@ function track(page)
 end
 
 function track_form(argname, form, translit)
-	if mw.ustring.find(form, UN .. "$") then
-		track("i3rab")
-		track("i3rab/" .. argname)
-		track("i3rab-un")
-		track("i3rab-un/" .. argname)
+	form = reorder_shadda(remove_links(form))
+	function track_i3rab(arabic, tr)
+		if mw.ustring.find(form, arabic .. "$") then
+			track("i3rab")
+			track("i3rab/" .. argname)
+			track("i3rab-" .. tr)
+			track("i3rab-" .. tr .. "/" .. argname)
+		end
 	end
-	if mw.ustring.find(form, U .. "$") then
-		track("i3rab")
-		track("i3rab/" .. argname)
-		track("i3rab-u")
-		track("i3rab-u/" .. argname)
-	end
+	track_i3rab(UN, "un")
+	track_i3rab(U, "u")
+	track_i3rab(A, "a")
+	track_i3rab(I, "i")
 	if not lang:transliterate(form) then
 		track("unvocalized")
 		track("unvocalized/" .. argname)
