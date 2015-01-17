@@ -63,27 +63,32 @@ end
 
 function track_form(argname, form, translit)
 	form = reorder_shadda(remove_links(form))
+
+	function dotrack(page)
+		track(page)
+		track(page .. "/" .. argname)
+	end
 	function track_i3rab(arabic, tr)
 		if mw.ustring.find(form, arabic .. "$") then
-			track("i3rab")
-			track("i3rab/" .. argname)
-			track("i3rab-" .. tr)
-			track("i3rab-" .. tr .. "/" .. argname)
+			dotrack("i3rab")
+			dotrack("i3rab-" .. tr)
 		end
 	end
 	track_i3rab(UN, "un")
 	track_i3rab(U, "u")
 	track_i3rab(A, "a")
 	track_i3rab(I, "i")
-	if not lang:transliterate(form) then
-		track("unvocalized")
-		track("unvocalized/" .. argname)
-		if translit then
-			track("unvocalized-manual-translit")
-			track("unvocalized-manual-translit/" .. argname)
+	if form == "" or not lang:transliterate(form) then
+		dotrack("unvocalized")
+		if form == "" then
+			dotrack("unvocalized-empty-head")
 		else
-			track("unvocalized-no-translit")
-			track("unvocalized-no-translit/" .. argname)
+			dotrack("unvocalized-specified")
+		end
+		if translit then
+			dotrack("unvocalized-manual-translit")
+		else
+			dotrack("unvocalized-no-translit")
 		end
 	end
 end
@@ -180,11 +185,19 @@ local function handle_infl(args, inflections, argpref, label, defgender)
 	end
 end
 
+local function prepend_cat(categories, pos)
+	table.insert(categories, 1, lang:getCanonicalName() .. " " .. pos)
+end
+
+local function append_cat(categories, pos)
+	table.insert(categories, lang:getCanonicalName() .. " " .. pos)
+end
+
 -- Handle the case where pl=-, indicating an uncountable noun.
 local function handle_noun_plural(args, inflections, categories)
 	if args["pl"] == "-" then
 		table.insert(inflections, {label = "usually [[Appendix:Glossary#uncountable|uncountable]]"})
-		table.insert(categories, lang:getCanonicalName() .. " uncountable nouns")
+		append_cat(categories, "uncountable nouns")
 	else
 		handle_infl(args, inflections, "pl", "plural")
 	end
@@ -263,7 +276,7 @@ function handle_sing_coll_noun_inflections(args, inflections, categories)
 end
 
 pos_functions["collective nouns"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " nouns")
+	prepend_cat(categories, "nouns")
 	table.insert(inflections, {label = "collective"})
 	
 	local g = ine(args[2]) or "m"
@@ -290,7 +303,7 @@ pos_functions["collective nouns"] = function(args, genders, inflections, categor
 end
 
 pos_functions["singulative nouns"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " nouns")
+	prepend_cat(categories, "nouns")
 	table.insert(inflections, {label = "singulative"})
 
 	local g = ine(args[2]) or "f"
@@ -344,7 +357,7 @@ pos_functions["nouns"] = function(args, genders, inflections, categories)
 end
 
 pos_functions["numerals"] = function(args, genders, inflections, categories)
-	table.insert(categories, lang:getCanonicalName() .. " cardinal numbers")
+	append_cat(categories, "cardinal numbers")
 	handle_gender(args, genders)
 	
 	handle_noun_inflections(args, inflections, categories)
@@ -359,7 +372,7 @@ end
 
 
 pos_functions["verbal nouns"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " nouns")
+	prepend_cat(categories, "nouns")
 	handle_gender(args, genders)
 	
 	handle_noun_inflections(args, inflections, categories)
@@ -370,26 +383,26 @@ pos_functions["pronouns"] = function(args, genders, inflections, categories)
 end
 
 pos_functions["noun plural forms"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " plurals")
-	--table.insert(categories, 1, lang:getCanonicalName() .. " noun forms")
+	prepend_cat(categories, "plurals")
+	--prepend_cat(categories, "noun forms")
 	handle_gender(args, genders, "p")
 end
 
 pos_functions["noun dual forms"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " duals")
-	--table.insert(categories, 1, lang:getCanonicalName() .. " noun forms")
+	prepend_cat(categories, "duals")
+	--prepend_cat(categories, "noun forms")
 	handle_gender(args, genders, "m-d")
 end
 
 pos_functions["adjective plural forms"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " plurals")
-	--table.insert(categories, 1, lang:getCanonicalName() .. " adjective forms")
+	prepend_cat(categories, "plurals")
+	--prepend_cat(categories, "adjective forms")
 	handle_gender(args, genders, "m-p")
 end
 
 pos_functions["adjective dual forms"] = function(args, genders, inflections, categories)
-	table.insert(categories, 1, lang:getCanonicalName() .. " duals")
-	--table.insert(categories, 1, lang:getCanonicalName() .. " adjective forms")
+	prepend_cat(categories, "duals")
+	--prepend_cat(categories, "adjective forms")
 	handle_gender(args, genders, "m-d")
 end
 
