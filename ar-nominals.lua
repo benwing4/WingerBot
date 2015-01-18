@@ -392,13 +392,13 @@ function handle_lemma_and_overrides(data, args)
 end
 
 -- Find the stems associated with a particular gender/number combination.
--- ARGS is the set of all arguments; ARG is the name of the argument
--- (e.g. "f" for "f", "f2", ... for feminine singular); SGS is the list
--- of singular stems to base derived forms off of (masculine or feminine
--- as appropriate), an array of length-two arrays of {COMBINED_STEM, TYPE}
--- as returned by stem_and_type(); DEFAULT is the default stem to use
--- (typically either 'f', 'd' or 'p', or nil for no default); ISFEM is
--- true if this is feminine gender; NUM is 'sg', 'du' or 'pl'.
+-- ARGS is the set of all arguments. ARG is the name of the argument prefix
+-- (e.g. 'f' for the actual arguments 'f', 'f2', ..., for the feminine
+-- singular). SGS is a "stem-type list" (see do_gender_number()), and is the
+-- list of stems to base derived forms off of (masculine or feminine as
+-- appropriate), an array of length-two arrays of {COMBINED_STEM, TYPE} as
+-- returned by stem_and_type(). DEFAULT, ISFEM and NUM are as in
+-- do_gender_number().
 function do_gender_number_1(data, args, arg, sgs, default, isfem, num)
 	local results = {}
 	local function handle_stem(stem)
@@ -438,10 +438,23 @@ end
 -- either manually specified in the stem argument, e.g. 'pl=لُورْدَات/lordāt',
 -- or auto-transliterated from the Arabic, with BOGUS_CHAR substituting
 -- for the transliteration if auto-translit fails. STEM_TYPE is the
--- declension of the stem, either manually specified, e.g. 'بَبَّغَاء:di' for
+-- declension of the stem, either manually specified, e.g. 'بَبَّغَاء:di' for
 -- manually-specified diptote, or auto-detected (see stem_and_type() and
 -- detect_type()).
 -- 
+-- DATA and ARGS are as in init(). ARG is the prefix for the argument(s)
+-- specifying the stem (and optional translit and declension type). We check
+-- ARG, ARG2, ARG3, ... in turn for the base, and modARG, modARG2, modARG3, ...
+-- in turn for the modifier. SGS is a stem specification (see above), giving
+-- the stems that are used to base derived forms off of (e.g. if a stem type
+-- "smp" appears in place of a stem, the sound masculine plural of the
+-- stems in SGS will be derived). DEFAULT is a single stem (i.e. a string) that
+-- is used when no stems were explicitly given by the user (typically either
+-- 'f', 'm', 'd' or 'p'), or nil for no default. ISFEM is true if we're
+-- accumulating stems for a feminine number/gender category, and NUM is the
+-- number (expected to be 'sg', 'du' or 'pl') of the number/gender category
+-- we're accumulating stems for.
+--
 -- About bases and modifiers: Note that e.g. in the noun phrase يَوْم الاِثْنَيْن
 -- the head noun يَوْم is the base and the noun الاِثْنَيْن is the modifier.
 -- Note that modifiers come in two varieties, adjectival modifiers and
@@ -604,6 +617,38 @@ function export.show_noun(frame)
 	return make_noun_table(data)
 end
 
+function any_feminine(data, stem_spec)
+	for basemod, stemtypelist in pairs(stem_spec) do
+		-- Only check modifiers if modnumgen= not given. If not given, the
+		-- modifier needs to be declined for all numgens; else only for the
+		-- given numgen, which should be explicitly specified.
+		if not (basemod ~= "base" and data.modnumgen) then
+			for _, stemtype in ipairs(stemtypelist) do
+				if rfind(stemtype[1], TAM .. UNUOPT .. "/") then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+function all_feminine(data, stem_spec)
+	for basemod, stemtypelist in pairs(stem_spec) do
+		-- Only check modifiers if modnumgen= not given. If not given, the
+		-- modifier needs to be declined for all numgens; else only for the
+		-- given numgen, which should be explicitly specified.
+		if not (basemod ~= "base" and data.modnumgen) then
+			for _, stemtype in ipairs(stemtypelist) do
+				if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
+					return false
+				end
+			end
+		end
+	end
+	return true
+end
+
 -- The main entry point for collective noun tables.
 function export.show_coll_noun(frame)
 	local args, origargs, data = init(frame:getParent().args)
@@ -621,24 +666,13 @@ function export.show_coll_noun(frame)
 
 	-- If collective noun is already feminine in form, don't try to
 	-- form a feminine singulative
-	local already_feminine = false
-	for _, basemod in pairs(colls) do
-		-- Only check modifiers if modnumgen= not given. If not given, the
-		-- modifier needs to be declined for all numgens; else only for the
-		-- given numgen, which should be explicitly specified.
-		if not (basemod == "mod_" and data.modnumgen) then
-			for _, stemtype in ipairs(basemod) do
-				if rfind(stemtype[1], TAM .. UNUOPT .. "/") then
-					already_feminine = true
-				end
-			end
-		end
-	end
+	local collfem = any_feminine(data, colls)
 
 	local sings = do_gender_number(data, args, "sing", colls,
 		not already_feminine and "f" or nil, true, "sg")
-	local dus = do_gender_number(data, args, "d", sings, "d", true, "du")
-	local paucs = do_gender_number(data, args, "pauc", sings, "sfp", true, "pl")
+	local singfem = all_feminine(data, sings)
+	local dus = do_gender_number(data, args, "d", sings, "d", singfem, "du")
+	local paucs = do_gender_number(data, args, "pauc", sings, "paucp", singfem, "pl")
 
 	-- Can manually specify which numbers are to appear, and exactly those
 	-- numbers will appear. Otherwise, if any plurals given, plurals appear,
@@ -684,24 +718,12 @@ function export.show_sing_noun(frame)
 	local sings, is_template = get_heads(data, args, 'singulative')
 
 	-- If all singulative nouns feminine in form, form a masculine collective
-	local is_feminine = true
-	for _, basemod in pairs(sings) do
-		-- Only check modifiers if modnumgen= not given. If not given, the
-		-- modifier needs to be declined for all numgens; else only for the
-		-- given numgen, which should be explicitly specified.
-		if not (basemod == "mod_" and data.modnumgen) then
-			for _, stemtype in ipairs(basemod) do
-				if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
-					is_feminine = false
-				end
-			end
-		end
-	end
+	local singfem = all_feminine(data, sings)
 
 	local colls = do_gender_number(data, args, "coll", sings,
-		is_feminine and "m" or nil, false, "sg")
-	local dus = do_gender_number(data, args, "d", sings, "d", true, "du")
-	local paucs = do_gender_number(data, args, "pauc", sings, "sfp", true, "pl")
+		singfem and "m" or nil, false, "sg")
+	local dus = do_gender_number(data, args, "d", sings, "d", singfem, "du")
+	local paucs = do_gender_number(data, args, "pauc", sings, "paucp", singfem, "pl")
 	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(data, args, "pl", colls, nil, false, "pl")
 
@@ -737,9 +759,9 @@ end
 
 -- The implementation of the main entry point for adjective and
 -- gendered noun tables.
-function show_gendered(frame, isadj)
+function show_gendered(frame, isadj, pos)
 	local args, origargs, data = init(frame:getParent().args)
-	data.pos = isadj and "adjective" or "noun"
+	data.pos = pos
 	data.numgens = function()
 		local numgens = {}
 		for _, gender in ipairs(data.allgenders) do
@@ -764,7 +786,7 @@ function show_gendered(frame, isadj)
 	local fsgs = do_gender_number(data, args, "f", msgs, "f", true, "sg")
 	local mdus = do_gender_number(data, args, "d", msgs, "d", false, "du")
 	local fdus = do_gender_number(data, args, "fd", fsgs, "d", true, "du")
-	local mpls = do_gender_number(data, args, "pl", msgs, "p", false, "pl")
+	local mpls = do_gender_number(data, args, "pl", msgs, isadj and "p" or nil, false, "pl")
 	local fpls = do_gender_number(data, args, "fpl", fsgs, "sp", true, "pl")
 
 	if isadj then
@@ -788,12 +810,18 @@ end
 
 -- The main entry point for gendered noun tables.
 function export.show_gendered_noun(frame)
-	return show_gendered(frame, false)
+	return show_gendered(frame, false, "noun")
+end
+
+-- The main entry point for numeral tables. Same as using show_gendered_noun()
+-- with pos=numeral.
+function export.show_numeral(frame)
+	return show_gendered(frame, false, "numeral")
 end
 
 -- The main entry point for adjective tables.
 function export.show_adj(frame)
-	return show_gendered(frame, "adjective")
+	return show_gendered(frame, true, "adjective")
 end
 
 -- Inflection functions
@@ -909,23 +937,24 @@ end
 -- In these values, NOUN is replaced with either "noun" or "adjective",
 -- SINGULAR is replaced with the English equivalent of the number in NUMGEN
 -- (e.g. "singular", "dual" or "plural") while BROKSING is the same but uses
--- "broken plural" in place of "plural".
+-- "broken plural" in place of "plural" and "broken paucal" in place of
+-- "paucal".
 function insert_cat(data, mod, numgen, catvalue, engvalue)
 	local singpl = data.engnumbers[rsub(numgen, "^.*_", "")]
 	assert(singpl ~= nil)
 	local broksingpl = rsub(singpl, "plural", "broken plural")
-	local adjnoun = data.pos
+	broksingpl = rsub(broksingpl, "paucal", "broken paucal")
 	if rfind(broksingpl, "broken plural") and (rfind(catvalue, "BROKSING") or
 			rfind(engvalue, "BROKSING")) then
-		table.insert(data.categories, "Arabic " .. adjnoun .. "s with broken plural")
+		table.insert(data.categories, "Arabic " .. data.pos .. "s with broken plural")
 	end
 	if rfind(catvalue, "irregular") or rfind(engvalue, "irregular") then
-		table.insert(data.categories, "Arabic irregular " .. adjnoun .. "s")
+		table.insert(data.categories, "Arabic irregular " .. data.pos .. "s")
 	end
-	catvalue = rsub(catvalue, "NOUN", adjnoun)
+	catvalue = rsub(catvalue, "NOUN", data.pos)
 	catvalue = rsub(catvalue, "SINGULAR", singpl)
 	catvalue = rsub(catvalue, "BROKSING", broksingpl)
-	engvalue = rsub(engvalue, "NOUN", adjnoun)
+	engvalue = rsub(engvalue, "NOUN", data.pos)
 	engvalue = rsub(engvalue, "SINGULAR", singpl)
 	engvalue = rsub(engvalue, "BROKSING", broksingpl)
 	if mod == "" and catvalue ~= "" then
@@ -1595,6 +1624,16 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
 		else
 			return export.stem_and_type("?", sg, sgtype, isfem, 'pl', pos)
+		end
+	end
+
+	if word == "paucp" then
+		if rfind(sgar, TAM .. UNUOPT .. "$") then
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
+		elseif rfind(sgar, IY .. SH .. UNUOPT .. "$") then
+			return export.stem_and_type("smp", sg, sgtype, false, 'pl', pos)
+		else
+			return export.stem_and_type("p", sg, sgtype, isfem, 'pl', pos)
 		end
 	end
 
