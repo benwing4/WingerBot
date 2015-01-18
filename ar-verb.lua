@@ -10,30 +10,30 @@ Todo:
    of expected اِعْمَيَّ with doubled yā). Not in Hans Wehr.
 2. Implement irregular verbs as special cases and recognize them, e.g.
    -- laysa "to not be"; only exists in the past tense, no non-past, no
-      imperative, no participles, no passive, no verbal noun. Irregular
-      alternation las-/lays-.
+	  imperative, no participles, no passive, no verbal noun. Irregular
+	  alternation las-/lays-.
    -- istaḥā yastaḥī "be ashamed of" -- this is complex according to Hans Wehr
-      because there are two verbs, regular istaḥyā yastaḥyī "to spare
-      (someone)'s life" and irregular istaḥyā yastaḥyī "to be ashamed to face
-      (someone)", which is irregular because it has the alternate irregular
-      form istaḥā yastaḥī which only applies to this meaning. Currently we
-      follow Haywood and Nahmad in saying that both varieties can be spelled
-      istaḥyā/istaḥā/istaḥḥā, but we should instead use a variant= param
-      similar to حَيَّ to distinguish the two possibilities, and maybe not
-      include istaḥḥā.
+	  because there are two verbs, regular istaḥyā yastaḥyī "to spare
+	  (someone)'s life" and irregular istaḥyā yastaḥyī "to be ashamed to face
+	  (someone)", which is irregular because it has the alternate irregular
+	  form istaḥā yastaḥī which only applies to this meaning. Currently we
+	  follow Haywood and Nahmad in saying that both varieties can be spelled
+	  istaḥyā/istaḥā/istaḥḥā, but we should instead use a variant= param
+	  similar to حَيَّ to distinguish the two possibilities, and maybe not
+	  include istaḥḥā.
    -- ʿayya/ʿayiya yaʿayyu/yaʿyā "to not find the right way, be incapable of,
-      stammer, falter, fall ill". This appears to be a mixture of a geminate
-      and final-weak verb. Unclear what the whole paradigm looks like. Do
-      the consonant-ending parts in the past follow the final-weak paradigm?
-      Is it the same in the non-past? Or can you conjugate the non-past
-      fully as either geminate or final-weak?
+	  stammer, falter, fall ill". This appears to be a mixture of a geminate
+	  and final-weak verb. Unclear what the whole paradigm looks like. Do
+	  the consonant-ending parts in the past follow the final-weak paradigm?
+	  Is it the same in the non-past? Or can you conjugate the non-past
+	  fully as either geminate or final-weak?
    -- اِنْمَحَى inmaḥā or يمَّحَى immaḥā "to be effaced, obliterated; to disappear, vanish"
-      has irregular assimilation of inm- to imm- as an alternative. inmalasa
-      "to become smooth; to glide; to slip away; to escape" also has immalasa
-      as an alternative. The only other form VII verbs in Hans Wehr beginning
-      with -m- are inmalaḵa "to be pulled out, torn out, wrenched" and inmāʿa
-      "to be melted, to melt, to dissolve", which are not listed with imm-
-      alternatives, but might have them; if so, we should handle this generally.
+	  has irregular assimilation of inm- to imm- as an alternative. inmalasa
+	  "to become smooth; to glide; to slip away; to escape" also has immalasa
+	  as an alternative. The only other form VII verbs in Hans Wehr beginning
+	  with -m- are inmalaḵa "to be pulled out, torn out, wrenched" and inmāʿa
+	  "to be melted, to melt, to dissolve", which are not listed with imm-
+	  alternatives, but might have them; if so, we should handle this generally.
 3. Implement individual override parameters for each pardigm part. See
    Module:fro-verb for an example of how to do this generally. Note that
    {{temp|ar-conj-I}} and other of the older templates already had such
@@ -42,17 +42,17 @@ Todo:
 Irregular verbs already implemented:
 
    -- [ḥayya/ḥayiya yaḥyā "live" -- behaves like a normal final-weak verb
-      (e.g. past first singular ḥayītu) except in the past-tense parts with
-      vowel-initial endings (all the third person except for the third feminine
-      plural). The normal singular and dual endings have -yiya- in them, which
-      compresses to -yya-, with the normal endings the less preferred ones.
-      In masculine third plural, expected ḥayū is replaced by ḥayyū by
-      analogy to the -yy- parts, and the regular form is not given as an
-      alternant in John Mace. Barron's 201 verbs appears to have the regular
-      ḥayū as the part, however. Note also that final -yā appears with tall
-      alif. This appears to be a spelling convention of Arabic, also applying
-      in ḥayyā (form II, "to keep (someone) alive") and 'aḥyā (form IV,
-      "to animate, revive, give birth to, give new life to").] -- implemented
+	  (e.g. past first singular ḥayītu) except in the past-tense parts with
+	  vowel-initial endings (all the third person except for the third feminine
+	  plural). The normal singular and dual endings have -yiya- in them, which
+	  compresses to -yya-, with the normal endings the less preferred ones.
+	  In masculine third plural, expected ḥayū is replaced by ḥayyū by
+	  analogy to the -yy- parts, and the regular form is not given as an
+	  alternant in John Mace. Barron's 201 verbs appears to have the regular
+	  ḥayū as the part, however. Note also that final -yā appears with tall
+	  alif. This appears to be a spelling convention of Arabic, also applying
+	  in ḥayyā (form II, "to keep (someone) alive") and 'aḥyā (form IV,
+	  "to animate, revive, give birth to, give new life to").] -- implemented
    -- [ittaxadha yattaxidhu "take"] -- implemented
    -- [sa'ala yas'alu "ask" with alternative jussive/imperative yasal/sal] -- implemented
    -- [ra'ā yarā "see"] -- implemented
@@ -213,8 +213,8 @@ local function tag_text(text, tag, class)
 end
 
 function track(page)
-    require("Module:debug").track("ar-verb/" .. page)
-    return true
+	require("Module:debug").track("ar-verb/" .. page)
+	return true
 end
 
 function reorder_shadda(word)
@@ -3082,23 +3082,23 @@ local postprocess_subs = {
 	{U .. W .. SK, UU},
 	{U .. Y .. SK, UU},
 
-    -------------- final -yā uses tall alif not alif maqṣūra ------------------
-    {"(" .. Y ..  SH .. "?" .. A .. ")" .. AMAQ, "%1" .. ALIF},
+	-------------- final -yā uses tall alif not alif maqṣūra ------------------
+	{"(" .. Y ..  SH .. "?" .. A .. ")" .. AMAQ, "%1" .. ALIF},
 
 	-------------------------- handle initial hamza ---------------------------
 	-- initial hamza + short-vowel + hamza + sukūn -> hamza + long vowel
 	{HAMZA .. A .. HAMZA .. SK, HAMZA .. A .. ALIF},
- 	{HAMZA .. I .. HAMZA .. SK, HAMZA .. I .. Y},
- 	{HAMZA .. U .. HAMZA .. SK, HAMZA .. U .. W},
- 	
- 	-------------------------- main hamza-handling code -----------------------
- 	{HAMZA, HAMZA_PH},
- 	
+	{HAMZA .. I .. HAMZA .. SK, HAMZA .. I .. Y},
+	{HAMZA .. U .. HAMZA .. SK, HAMZA .. U .. W},
+
+	-------------------------- main hamza-handling code -----------------------
+	{HAMZA, HAMZA_PH},
+
 	--------------------------- handle initial hamza --------------------------
 	-- put initial hamza on a seat according to following vowel.
- 	{"^" .. HAMZA_PH .. A, HAMZA_ON_ALIF .. A},
- 	{"^" .. HAMZA_PH .. I, HAMZA_UNDER_ALIF .. I},
- 	{"^" .. HAMZA_PH .. U, HAMZA_ON_ALIF .. U},
+	{"^" .. HAMZA_PH .. A, HAMZA_ON_ALIF .. A},
+	{"^" .. HAMZA_PH .. I, HAMZA_UNDER_ALIF .. I},
+	{"^" .. HAMZA_PH .. U, HAMZA_ON_ALIF .. U},
 
 	----------------------------- handle final hamza --------------------------
 	-- "final" hamza may be followed by a short vowel or tanwīn sequence
@@ -3124,7 +3124,7 @@ local postprocess_subs = {
 		end
 	},
 	-- otherwise, seat of medial hamza relates to vowels on one or both sides.
- 	{"(" .. AIUSK .. ")(" .. HAMZA_PH .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
+	{"(" .. AIUSK .. ")(" .. HAMZA_PH .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
 		function(v1, ham, shad, v2)
 			ham = (v1 == I or v2 == I) and HAMZA_ON_Y or
 				(v1 == U or v2 == U) and HAMZA_ON_W or
