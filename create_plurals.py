@@ -66,7 +66,7 @@ singular_plural_counts = {}
 # check specifically for plural in some special-case code. SINGWORD is
 # e.g. "singular" or "masculine" and is used in messages. PLTEMP is the
 # headword template for the inflected-word entry (e.g. "ar-noun-pl",
-# "ar-adj-pl" or "ar-feminine"). SINGTEMP is the definitional template that
+# "ar-adj-pl" or "ar-adj-fem"). SINGTEMP is the definitional template that
 # points to the base form (e.g. "plural of", "masculine plural of" or
 # "feminine of"). Optional SINGTEMP_PARAM is a parameter or parameters to
 # add to the created SINGTEMP template, and should be either empty or of
@@ -99,7 +99,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
     if word.endswith(U):
       mymsg("Removing i3rab (U) from %s %s" % (singpl, word))
       return re.sub(U + "$", "", word)
-    if re.search(DIACRITIC_ANY_BUT_SH + "$", word):
+    if word and word[-1] in [A, I, U, AN]:
       mymsg("FIXME: Strange diacritic at end of %s %s" % (singpl, word))
     if word[0] == ALIF_WASLA:
       mymsg("Changing alif wasla to plain alif for %s %s" % (singpl, word))
@@ -122,11 +122,11 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
   sing_no_vowels = remove_diacritics(singular)
   page = pywikibot.Page(site, pagename)
 
-  # For singular قطءة and plural قطء, three different possible
+  # For singular قطعة and plural قطع, three different possible
   # sets of vocalizations. For this case, require that the
   # existing versions match exactly, rather than matching with
   # removed diacritics.
-  must_match_exactly = plword == "plural" and pl_no_vowels == u"قطء" and sing_no_vowels == u"قطءة"
+  must_match_exactly = plword == "plural" and pl_no_vowels == u"قطع" and sing_no_vowels == u"قطعة"
 
   sp_no_vowels = (sing_no_vowels, pl_no_vowels)
   singular_plural_counts[sp_no_vowels] = \
@@ -136,7 +136,6 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
       singular_plural_counts[sp_no_vowels], singword, sing_no_vowels, plword,
       pl_no_vowels))
     must_match_exactly = True
-  end
   if plword == "verbal noun":
     must_match_exactly = True
 
@@ -156,6 +155,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
 
   comment = None
   notes = []
+  existing_text = page.text
 
   if not page.exists():
     # Page doesn't exist. Create it.
@@ -234,7 +234,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
                 existing_tr = blib.getparam(template, "tr")
                 if existing_tr:
                   pagemsg("WARNING: Removed i3rab from existing %s %s and manual translit %s exists" %
-                      sgplword, existing, existing_tr)
+                      (sgplword, existing, existing_tr))
                 existing = existing_no_i3rab
               return existing
 
@@ -402,10 +402,14 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
         sections[-1] += "\n\n"
       sections += ["----\n\n", newsection]
     newtext = head + ''.join(sections) + tail
-    if verbose:
+    if page.text == newtext:
+      pagemsg("No change in text")
+    elif verbose:
       pagemsg("Replacing [[%s]] with [[%s]]" % (page.text, newtext))
+    else:
+      pagemsg("Text has changed")
     page.text = newtext
-  if comment:
+  if comment and page.text != existing_text:
     if notes:
       comment += " (%s)" % '; '.join(notes)
     pagemsg("comment = %s" % comment)
@@ -426,7 +430,7 @@ def create_noun_feminine(save, plural, pltr, singular, singtr, pos):
 
 def create_adj_feminine(save, plural, pltr, singular, singtr, pos):
   return create_inflection(save, plural, pltr, singular, singtr, pos,
-      "feminine", "masculine", "ar-feminine", "feminine of")
+      "feminine", "masculine", "ar-adj-fem", "feminine of")
 
 def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
   for cat in [u"Arabic %ss" % pos.lower()]:
@@ -448,7 +452,14 @@ def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
             pl = blib.getparam(template, param + str(i))
             pltr = blib.getparam(template, param + str(i) + "tr")
             if pl:
-              createfn(save, pl, pltr, sing, singtr, pos)
+              otherhead = blib.getparam(template, "head" + str(i))
+              otherheadtr = blib.getparam(template, "tr" + str(i))
+              if otherhead:
+                msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
+                  sing, i, otherhead, otherheadtr, pl, pltr))
+                createfn(save, pl, pltr, otherhead, otherheadtr, pos)
+              else:
+                createfn(save, pl, pltr, sing, singtr, pos)
             i += 1
 
 def create_plurals(save, pos, tempname, startFrom, upTo):
