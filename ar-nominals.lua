@@ -16,6 +16,9 @@ local rsubn = mw.ustring.gsub
 local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 
+-- This is used in place of a transliteration when no manual
+-- translit is specified and we're unable to automatically generate
+-- one (typically because some vowel diacritics are missing).
 local BOGUS_CHAR = u(0xFFFD)
 
 -- hamza variants
@@ -180,8 +183,12 @@ end
 -- Functions that do the actual inflecting by creating the forms of a basic term.
 local inflections = {}
 
+-- Create and return the 'data' structure that will hold all of the
+-- generated declensional forms, as well as other ancillary information
+-- such as the possible numbers, genders and cases the the actual numbers
+-- and states to store (in 'data.numbers' and 'data.states' respectively).
 function init_data()
-	-- forms contains a table of forms for each inflectional category,
+	-- FORMS contains a table of forms for each inflectional category,
 	-- e.g. "nom_sg_ind" for nouns or "nom_m_sg_ind" for adjectives. The value
 	-- of an entry is an array of alternatives (e.g. different plurals), where
 	-- each alternative is either a string of the form "ARABIC" or
@@ -194,6 +201,8 @@ function init_data()
 		allgenders = {"m", "f"},
 		allstates = {"ind", "def", "con"},
 		allnumbers = {"sg", "du", "pl"},
+		states = {}, -- initialized later
+		numbers = {}, -- initialized later
 		engnumbers = {sg="singular", du="dual", pl="plural",
 			coll="collective", sing="singulative", pauc="paucal"},
 		engnumberscap = {sg="Singular", du="Dual", pl="Plural",
@@ -212,6 +221,8 @@ function init_data()
 	}
 end
 
+-- Initialize and return DATA (see init_data()) and ARGS (a table of
+-- user-supplied arguments, with empty-string arguments converted to nil).
 function init(origargs)
 	local args = {}
 	-- Convert empty arguments to nil, and "" or '' arguments to empty
@@ -223,9 +234,10 @@ function init(origargs)
 	return args, origargs, data
 end
 
--- Can manually specify which states are to appear; whether to omit the
--- definite article in the definite state; and how/whether to restrict
--- modifiers to a particular state, case or number.
+-- Parse the user-specified state spec and other related arguments. The
+-- user can manually specify which states are to appear; whether to omit
+-- the definite article in the definite state; and how/whether to
+-- restrict modifiers to a particular state, case or number.
 function parse_state_etc_spec(data, args)
 	data.omitarticle = args["omitarticle"]
 
@@ -257,7 +269,8 @@ function parse_state_etc_spec(data, args)
 	end
 end
 
--- Can manually specify which numbers are to appear.
+-- Parse the user-specified number spec. The user can Can manually
+-- specify which numbers are to appear.
 function parse_number_spec(data, args)
 	if args["number"] then
 		data.numbers = rsplit(args["number"], ",")
@@ -271,6 +284,36 @@ function parse_number_spec(data, args)
 	else
 		data.numbers = data.allnumbers
 		return false
+	end
+end
+
+-- Determine which numbers will appear using the logic for nouns.
+-- See comment just below.
+function determine_noun_numbers(data, args, pls)
+	-- Can manually specify which numbers are to appear, and exactly those
+	-- numbers will appear. Otherwise, if any plurals given, duals and plurals
+	-- appear; else, only singular (on the assumption that the word is a proper
+	-- noun or abstract noun that exists only in the singular); however,
+	-- singular won't appear if "-" given for singular, and similarly for dual.
+	if not parse_number_spec(data, args) then
+		data.numbers = {}
+		local sgarg1 = args[1]
+		local duarg1 = args["d"]
+		if sgarg1 ~= "-" then
+			table.insert(data.numbers, "sg")
+		end
+		if #pls["base"] > 0 then
+			-- Dual appears if either: explicit dual stem (not -) is given, or
+			-- default dual is used and explicit singular stem (not -) is given.
+			if (duarg1 and duarg1 ~= "-") or (not duarg1 and sgarg1 ~= "-") then
+				table.insert(data.numbers, "du")
+			end
+			table.insert(data.numbers, "pl")
+		elseif duarg1 and duarg1 ~= "-" then
+			-- If explicit dual but no plural given, include it. Useful for
+			-- dual tantum words.
+			table.insert(data.numbers, "du")
+		end
 	end
 end
 
@@ -370,7 +413,7 @@ function do_gender_number_1(data, args, arg, sgs, default, isfem, num)
 		return results
 	end
 	-- For explicitly specified arguments, make sure there's at least one
-	-- base to generate off of; otherwise specifying e.g. 'sing=- pauc=فُلَان'
+	-- stem to generate off of; otherwise specifying e.g. 'sing=- pauc=فُلَان'
 	-- won't override paucal.
 	if #sgs == 0 then
 		sgs = {{"", ""}}
@@ -384,16 +427,40 @@ function do_gender_number_1(data, args, arg, sgs, default, isfem, num)
 	return results
 end
 
+-- For a given gender/number combination, parse and return the full set
+-- of stems for both base and modifier. The return value is a
+-- "stem specification", i.e. table with a 'base' key for the base and a
+-- 'mod' key for the modifier (see below), listing all stems for both the
+-- base and modifier. The value of each key is a "stem-type list", i.e.
+-- an array of stem-type pairs, where each element is a size-two array of
+-- {COMBINED_STEM, STEM_TYPE}. COMBINED_STEM is a stem with attached
+-- transliteration in the form STEM/TRANSLIT (where the transliteration is
+-- either manually specified in the stem argument, e.g. 'pl=لُورْدَات/lordāt',
+-- or auto-transliterated from the Arabic, with BOGUS_CHAR substituting
+-- for the transliteration if auto-translit fails. STEM_TYPE is the
+-- declension of the stem, either manually specified, e.g. 'بَبَّغَاء:di' for
+-- manually-specified diptote, or auto-detected (see stem_and_type() and
+-- detect_type()).
+-- 
+-- About bases and modifiers: Note that e.g. in the noun phrase يَوْم الاِثْنَيْن
+-- the head noun يَوْم is the base and the noun الاِثْنَيْن is the modifier.
+-- Note that modifiers come in two varieties, adjectival modifiers and
+-- construct modifiers. The above noun phrase is an example of a construct
+-- modifier, where the base is fixed in the construct state and the
+-- modifier is fixed in state, number and case (which is always genitive).
+-- A construct modifier is generally a noun, whereas an adjectival modifier
+-- is an adjective that agrees in state, number and case with the base
+-- noun.
 function do_gender_number(data, args, arg, sgs, default, isfem, num)
-	local results = do_gender_number_1(data, args, arg, sgs["normal"], default, isfem, num)
+	local results = do_gender_number_1(data, args, arg, sgs["base"], default, isfem, num)
 	local mod_results = do_gender_number_1(data, args, "mod" .. arg, sgs["mod"] or {}, default, isfem, num)
-	return {normal=results, mod=mod_results}
+	return {base=results, mod=mod_results}
 end
 
 -- Generate inflections for the given combined stem and type, for MOD
--- (either "" or "mod_", depending on whether we're working on the normal
--- inflection or a modifier) and NUMGEN (number or number-gender combination,
--- of the sort that forms part of keys in DATA).
+-- (either "" or "mod_", depending on whether we're working on the base or
+-- a modifier) and NUMGEN (number or number-gender combination, of the sort
+-- that forms part of the keys in DATA.FORMS).
 function call_inflection(combined_stem, ty, data, mod, numgen)
 	if ty == "-" then
 		return
@@ -407,6 +474,13 @@ function call_inflection(combined_stem, ty, data, mod, numgen)
 	inflections[ty](ar, tr, data, mod, numgen)
 end
 
+-- Generate inflections for the stems of a given number/gender combination
+-- and for either the base or the modifier. STEMTYPES is a stem-type list
+-- (see do_gender_number()), listing all the stems and corresponding
+-- declension types. MOD is either "" or "mod_", depending on whether we're
+-- working on the base or a modifier. NUMGEN is the number or number-gender
+-- combination we're working on, of the sort that forms part of the keys in
+-- DATA.FORMS, e.g. 'sg' or 'm_sg'.
 function call_inflections(stemtypes, data, mod, numgen)
 	local mod_with_modnumgen = mod ~= "" and data.modnumgen
 	-- If modnumgen= is given, do nothing if NUMGEN isn't the same
@@ -422,6 +496,15 @@ function call_inflections(stemtypes, data, mod, numgen)
 	end
 end
 
+-- Generate the entire set of inflections for a noun or adjective.
+-- Also handle any manually-specified part of speech and any manual
+-- inflection overrides. The value of INFLECTIONS is an array of stem
+-- specifications, one per number, where each element is a size-two
+-- array of a stem specification (containing the set of stems and
+-- corresponding declension types for the base and any modifiers;
+-- see do_gender_number()) and a NUMGEN string, i.e. a string identifying
+-- the number or number/gender in question (e.g. 'sg', 'du', 'pl',
+-- 'm_sg', 'f_pl', etc.).
 function do_inflections_and_overrides(data, args, inflections)
 	-- do this before generating inflections so POS change is reflected in
 	-- categories
@@ -430,13 +513,22 @@ function do_inflections_and_overrides(data, args, inflections)
 	end
 
 	for _, inflection in ipairs(inflections) do
-		call_inflections(inflection[1]["normal"] or {}, data, "", inflection[2])
+		call_inflections(inflection[1]["base"] or {}, data, "", inflection[2])
 		call_inflections(inflection[1]["mod"] or {}, data, "mod_", inflection[2])
 	end
 
 	handle_lemma_and_overrides(data, args)
 end
 
+-- Helper function for get_heads(). Parses the stems for either the
+-- base or the modifier (see do_gender_number()). ARG1 is the argument
+-- for the first stem and ARGN is the prefix of the arguments for the
+-- remaining stems. For example, for the singular base, ARG1="1" and
+-- ARGN="head"; for the singular modifier, ARG1="mod" and ARGN="mod".
+-- The arguments other than the first are numbered 2, 3, ..., which is
+-- appended to ARGN. The returned value is an array of stems, where
+-- each element is a size-two array of {COMBINED_STEM, STEM_TYPE}.
+-- See do_gender_number().
 function get_heads_1(data, args, arg1, argn)
 	if not args[arg1] then
 		return {}
@@ -458,15 +550,28 @@ function get_heads_1(data, args, arg1, argn)
 	return heads
 end
 
+-- Very similar to do_gender_number(), and returns the same type of
+-- structure, but works specifically for the stems of the head (the
+-- most basic gender/number combiation, e.g. singular for nouns,
+-- masculine singular for adjectives and gendered nouns, collective
+-- for collective nouns, etc.), including both base and modifier.
+-- See do_gender_number(). Note that the actual return value is
+-- two items, the first of which is the same type of structure
+-- returned by do_gender_number() and the second of which is a boolean
+-- indicating whether we were called from within a template documentation
+-- page (in which case no user-specified arguments exist and we
+-- substitute sample ones). The reason for this boolean is to indicate
+-- whether sample arguments need to be substituted for other numbers
+-- as well.
 function get_heads(data, args, headtype)
 	if not args[1] and mw.title.getCurrentTitle().nsText == "Template" then
-		return {normal={{"{{{1}}}", "tri"}}}, true
+		return {base={{"{{{1}}}", "tri"}}}, true
 	end
 
 	if not args[1] then error("Parameter 1 (" .. headtype .. " stem) may not be empty.") end
-	local normal = get_heads_1(data, args, 1, "head")
+	local base = get_heads_1(data, args, 1, "head")
 	local mod = get_heads_1(data, args, "mod", "mod")
-	return {normal=normal, mod=mod}, false
+	return {base=base, mod=mod}, false
 end
 
 -- The main entry point for noun tables.
@@ -477,38 +582,20 @@ function export.show_noun(frame)
 	data.allnumgens = data.allnumbers
 
 	local sgs, is_template = get_heads(data, args, 'singular')
-	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
+	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(data, args, "pl", sgs, nil, false, "pl")
-	-- always do dual so cases like يَوْم الاِثْنَيْن work
+	-- always do dual so cases like يَوْم الاِثْنَيْن work -- a singular with
+	-- a dual modifier, where data.number refers only the singular
+	-- but we need to go ahead and compute the dual so it parses the
+	-- 'modd' modifier dual argument. When the modifier dual argument
+	-- is parsed, it will store the resulting dual declension for اِثْنَيْن
+	-- in the modifier slot for all numbers, including specifically
+	-- the singular.
 	local dus =	do_gender_number(data, args, "d", sgs, "d", false, "du")
 
 	parse_state_etc_spec(data, args)
 
-	-- Can manually specify which numbers are to appear, and exactly those
-	-- numbers will appear. Otherwise, if any plurals given, duals and plurals
-	-- appear; else, only singular (on the assumption that the word is a proper
-	-- noun or abstract noun that exists only in the singular); however,
-	-- singular won't appear if "-" given for singular, and similarly for dual.
-	if not parse_number_spec(data, args) then
-		data.numbers = {}
-		local sgarg1 = args[1]
-		local duarg1 = args["d"]
-		if sgarg1 ~= "-" then
-			table.insert(data.numbers, "sg")
-		end
-		if #pls["normal"] > 0 then
-			-- Dual appears if either: explicit dual stem (not -) is given, or
-			-- default dual is used and explicit singular stem (not -) is given.
-			if (duarg1 and duarg1 ~= "-") or (not duarg1 and sgarg1 ~= "-") then
-				table.insert(data.numbers, "du")
-			end
-			table.insert(data.numbers, "pl")
-		elseif duarg1 and duarg1 ~= "-" then
-			-- If explicit dual but no plural given, include it. Useful for
-			-- dual tantum words.
-			table.insert(data.numbers, "du")
-		end
-	end
+	determine_noun_numbers(data, args, pls)
 
 	do_inflections_and_overrides(data, args,
 		{{sgs, "sg"}, {dus, "du"}, {pls, "pl"}})
@@ -527,7 +614,7 @@ function export.show_coll_noun(frame)
 	data.allnumgens = data.allnumbers
 
 	local colls, is_template = get_heads(data, args, 'collective')
-	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
+	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(data, args, "pl", colls, nil, false, "pl")
 
 	parse_state_etc_spec(data, args)
@@ -535,12 +622,12 @@ function export.show_coll_noun(frame)
 	-- If collective noun is already feminine in form, don't try to
 	-- form a feminine singulative
 	local already_feminine = false
-	for _, normalmod in pairs(colls) do
+	for _, basemod in pairs(colls) do
 		-- Only check modifiers if modnumgen= not given. If not given, the
 		-- modifier needs to be declined for all numgens; else only for the
 		-- given numgen, which should be explicitly specified.
-		if not (normalmod == "mod_" and data.modnumgen) then
-			for _, stemtype in ipairs(normalmod) do
+		if not (basemod == "mod_" and data.modnumgen) then
+			for _, stemtype in ipairs(basemod) do
 				if rfind(stemtype[1], TAM .. UNUOPT .. "/") then
 					already_feminine = true
 				end
@@ -561,16 +648,16 @@ function export.show_coll_noun(frame)
 		if args[1] ~= "-" then
 			table.insert(data.numbers, "coll")
 		end
-		if #sings["normal"] > 0 then
+		if #sings["base"] > 0 then
 			table.insert(data.numbers, "sing")
 		end
-		if #dus["normal"] > 0 then
+		if #dus["base"] > 0 then
 			table.insert(data.numbers, "du")
 		end
-		if #paucs["normal"] > 0 then
+		if #paucs["base"] > 0 then
 			table.insert(data.numbers, "pauc")
 		end
-		if #pls["normal"] > 0 then
+		if #pls["base"] > 0 then
 			table.insert(data.numbers, "pl")
 		end
 	end
@@ -598,12 +685,12 @@ function export.show_sing_noun(frame)
 
 	-- If all singulative nouns feminine in form, form a masculine collective
 	local is_feminine = true
-	for _, normalmod in pairs(sings) do
+	for _, basemod in pairs(sings) do
 		-- Only check modifiers if modnumgen= not given. If not given, the
 		-- modifier needs to be declined for all numgens; else only for the
 		-- given numgen, which should be explicitly specified.
-		if not (normalmod == "mod_" and data.modnumgen) then
-			for _, stemtype in ipairs(normalmod) do
+		if not (basemod == "mod_" and data.modnumgen) then
+			for _, stemtype in ipairs(basemod) do
 				if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
 					is_feminine = false
 				end
@@ -615,7 +702,7 @@ function export.show_sing_noun(frame)
 		is_feminine and "m" or nil, false, "sg")
 	local dus = do_gender_number(data, args, "d", sings, "d", true, "du")
 	local paucs = do_gender_number(data, args, "pauc", sings, "sfp", true, "pl")
-	local pls = is_template and {normal={{"{{{pl}}}", "tri"}}} or
+	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(data, args, "pl", colls, nil, false, "pl")
 
 	-- Can manually specify which numbers are to appear, and exactly those
@@ -626,16 +713,16 @@ function export.show_sing_noun(frame)
 		if args[1] ~= "-" then
 			table.insert(data.numbers, "sing")
 		end
-		if #colls["normal"] > 0 then
+		if #colls["base"] > 0 then
 			table.insert(data.numbers, "coll")
 		end
-		if #dus["normal"] > 0 then
+		if #dus["base"] > 0 then
 			table.insert(data.numbers, "du")
 		end
-		if #paucs["normal"] > 0 then
+		if #paucs["base"] > 0 then
 			table.insert(data.numbers, "pauc")
 		end
-		if #pls["normal"] > 0 then
+		if #pls["base"] > 0 then
 			table.insert(data.numbers, "pl")
 		end
 	end
@@ -648,10 +735,11 @@ function export.show_sing_noun(frame)
 	return make_noun_table(data)
 end
 
--- The main entry point for adjective tables.
-function export.show_adj(frame)
+-- The implementation of the main entry point for adjective and
+-- gendered noun tables.
+function show_gendered(frame, isadj)
 	local args, origargs, data = init(frame:getParent().args)
-	data.pos = "adjective"
+	data.pos = isadj and "adjective" or "noun"
 	data.numgens = function()
 		local numgens = {}
 		for _, gender in ipairs(data.allgenders) do
@@ -671,14 +759,19 @@ function export.show_adj(frame)
 	parse_state_etc_spec(data, args)
 
 	local msgs = get_heads(data, args, 'masculine singular')
-	-- always do all of these so cases like يَوْم الاِثْنَيْن work
+	-- Always do all of these so cases like يَوْم الاِثْنَيْن work.
+	-- See comment in show_noun().
 	local fsgs = do_gender_number(data, args, "f", msgs, "f", true, "sg")
 	local mdus = do_gender_number(data, args, "d", msgs, "d", false, "du")
 	local fdus = do_gender_number(data, args, "fd", fsgs, "d", true, "du")
 	local mpls = do_gender_number(data, args, "pl", msgs, "p", false, "pl")
 	local fpls = do_gender_number(data, args, "fpl", fsgs, "sp", true, "pl")
 
-	parse_number_spec(data, args)
+	if isadj then
+		parse_number_spec(data, args)
+	else
+		determine_noun_numbers(data, args, mpls)
+	end
 
 	-- Generate the singular, dual and plural forms
 	do_inflections_and_overrides(data, args,
@@ -686,7 +779,21 @@ function export.show_adj(frame)
 		 {mpls, "m_pl"}, {fpls, "f_pl"}})
 
 	-- Make the table
-	return make_adj_table(data)
+	if isadj then
+		return make_adj_table(data)
+	else
+		return make_gendered_noun_table(data)
+	end
+end
+
+-- The main entry point for gendered noun tables.
+function export.show_gendered_noun(frame)
+	return show_gendered(frame, false)
+end
+
+-- The main entry point for adjective tables.
+function export.show_adj(frame)
+	return show_gendered(frame, "adjective")
 end
 
 -- Inflection functions
@@ -1371,7 +1478,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		
 	if word == "intf" then
 		if not is_intensive_adj(sgar) then
-			error("Singular base not in CACCān form: " .. sgar)
+			error("Singular stem not in CACCān form: " .. sgar)
 		end
 		local ret = (
 			sub(AMAD .. N .. UOPT .. "$", AMAD, "nu?$", "") or -- ends in -ʾān
@@ -1394,7 +1501,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 				HAMZA_ON_ALIF .. U .. "%1" .. SK .. "%2" .. AMAQ, "ʾā(.)a(.)u?", "ʾu%1%2ā") -- ʾālam "more painful", ʾāḵar "other"
 		)
 		if not ret then
-			error("Singular base not an elative adjective: " .. sgar)
+			error("Singular stem not an elative adjective: " .. sgar)
 		end
 		return ret, "inv"
 	end
@@ -1409,14 +1516,14 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 				"%1" .. A .. "%2" .. SK .. Y .. AA .. HAMZA, "ʾa(.)(.)ā", "%1a%2yāʾ") -- ʾaʿmā
 		)
 		if not ret then
-			error("Singular base not a color/defect adjective: " .. sgar)
+			error("Singular stem not a color/defect adjective: " .. sgar)
 		end
 		return ret, "cd" -- so plural will be correct
 	end
 
 	if word == "rf" then
 		if rfind(sgar, TAM .. UNUOPT .. "$") then
-			error("Singular base is already feminine: " .. sgar)
+			error("Singular stem is already feminine: " .. sgar)
 		end
 
 		sgar = canon_hamza(sgar)
@@ -1451,7 +1558,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 
 	if word == "rm" then
 		if not rfind(sgar, TAM .. UNUOPT .. "$") then
-			error("Singular base not feminine: " .. sgar)
+			error("Singular stem not feminine: " .. sgar)
 		end
 
 		sgar = canon_hamza(sgar)
@@ -1777,6 +1884,82 @@ function make_noun_table(data)
 ! style="background: #CDCDCD;" colspan=3 | {{{]=] .. num .. [=[_type}}}
 |-
 ]=] .. generate_noun_num(num)
+		end
+	end
+	wikicode = wikicode .. [=[|}
+</div>
+</div>]=]
+
+	return make_table(data, wikicode)
+end
+
+function generate_gendered_noun_num(num)
+	return [=[|-
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+! style="background: #CDCDCD;" | Indefinite
+! style="background: #CDCDCD;" | Definite
+! style="background: #CDCDCD;" | Construct
+|-
+! style="background: #EFEFEF;" | Informal
+| {{{inf_m_]=] .. num .. [=[_ind}}}
+| {{{inf_m_]=] .. num .. [=[_def}}}
+| {{{inf_m_]=] .. num .. [=[_con}}}
+| {{{inf_f_]=] .. num .. [=[_ind}}}
+| {{{inf_f_]=] .. num .. [=[_def}}}
+| {{{inf_f_]=] .. num .. [=[_con}}}
+|-
+! style="background: #EFEFEF;" | Nominative
+| {{{nom_m_]=] .. num .. [=[_ind}}}
+| {{{nom_m_]=] .. num .. [=[_def}}}
+| {{{nom_m_]=] .. num .. [=[_con}}}
+| {{{nom_f_]=] .. num .. [=[_ind}}}
+| {{{nom_f_]=] .. num .. [=[_def}}}
+| {{{nom_f_]=] .. num .. [=[_con}}}
+|-
+! style="background: #EFEFEF;" | Accusative
+| {{{acc_m_]=] .. num .. [=[_ind}}}
+| {{{acc_m_]=] .. num .. [=[_def}}}
+| {{{acc_m_]=] .. num .. [=[_con}}}
+| {{{acc_f_]=] .. num .. [=[_ind}}}
+| {{{acc_f_]=] .. num .. [=[_def}}}
+| {{{acc_f_]=] .. num .. [=[_con}}}
+|-
+! style="background: #EFEFEF;" | Genitive
+| {{{gen_m_]=] .. num .. [=[_ind}}}
+| {{{gen_m_]=] .. num .. [=[_def}}}
+| {{{gen_m_]=] .. num .. [=[_con}}}
+| {{{gen_f_]=] .. num .. [=[_ind}}}
+| {{{gen_f_]=] .. num .. [=[_def}}}
+| {{{gen_f_]=] .. num .. [=[_con}}}
+]=]
+end
+
+-- Make the gendered noun table
+function make_gendered_noun_table(data)
+	local wikicode = [=[<div class="NavFrame">
+<div class="NavHead">Declension of {{{pos}}} {{{lemma}}}</div>
+<div class="NavContent">
+{| class="inflection-table" style="border-width: 1px; border-collapse: collapse; background:#F9F9F9; text-align:center; width:100%;"
+]=]
+
+	for _, num in ipairs(data.numbers) do
+		if num == 'du' then
+			wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" rowspan=2 | Dual
+! style="background: #CDCDCD;" colspan=3 | Masculine
+! style="background: #CDCDCD;" colspan=3 | Feminine
+]=] .. generate_gendered_noun_num('du')
+		else
+			wikicode = wikicode .. [=[|-
+! style="background: #CDCDCD;" rowspan=3 | ]=] .. data.engnumberscap[num] .. "\n" .. [=[
+! style="background: #CDCDCD;" colspan=3 | Masculine
+! style="background: #CDCDCD;" colspan=3 | Feminine
+|-
+! style="background: #CDCDCD;" colspan=3 | {{{m_]=] .. num .. [=[_type}}}
+! style="background: #CDCDCD;" colspan=3 | {{{f_]=] .. num .. [=[_type}}}
+]=] .. generate_gendered_noun_num(num)
 		end
 	end
 	wikicode = wikicode .. [=[|}
