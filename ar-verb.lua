@@ -73,7 +73,7 @@ local curtitle = mw.title.getCurrentTitle().fullText
 local yesno = require("Module:yesno")
 
 local rfind = mw.ustring.find
-local rsub = mw.ustring.gsub
+local rsubn = mw.ustring.gsub
 local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 local usub = mw.ustring.sub
@@ -194,9 +194,9 @@ local function insert_if_not(tab, item)
 	end
 end
 
--- version of rsub() that discards all but the first return value
-function rsub1(term, foo, bar)
-	local retval = rsub(term, foo, bar)
+-- version of rsubn() that discards all but the first return value
+function rsub(term, foo, bar)
+	local retval = rsubn(term, foo, bar)
 	return retval
 end
 
@@ -3163,18 +3163,18 @@ function postprocess_term(term)
 	-- and leads to two different alternatives with the original sequence not
 	-- one of them
 	if rfind(term, W .. "ؤُو") then
-		return {rsub1(term, W .. "ؤُو", W .. "ئُو"), rsub1(term, W .. "ؤُو", W .. "ءُو")}
+		return {rsub(term, W .. "ؤُو", W .. "ئُو"), rsub(term, W .. "ؤُو", W .. "ءُو")}
 	elseif rfind(term, Y .. "ؤُو") then
-		return {rsub1(term, Y .. "ؤُو", Y .. "ئُو"), term}
+		return {rsub(term, Y .. "ؤُو", Y .. "ئُو"), term}
 	elseif rfind(term, ALIF .. "ؤُو") then
 		-- Here John Mace "Arabic Verbs" is inconsistent. In past-tense parts,
 		-- the preferred alternative has hamza on the line, whereas in
 		-- non-past parts the preferred alternative has hamza-on-yāʾ even
 		-- though the sequence of vowels is identical. It's too complicated to
 		-- propagate information about tense through to here so pick one.
-		return {rsub1(term, ALIF .. "ؤُو", ALIF .. "ئُو"), term}
+		return {rsub(term, ALIF .. "ؤُو", ALIF .. "ئُو"), term}
 	elseif rfind(term, A .. "ؤُو") then
-		return {rsub1(term, A .. "ؤُو", A .. HAMZA_ON_ALIF .. U .. W), term}
+		return {rsub(term, A .. "ؤُو", A .. HAMZA_ON_ALIF .. U .. W), term}
 	-- no alternative spelling in sequence of U + hamza-on-wāw + U + wāw;
 	-- sequence of I + hamza-on-wāw + U + wāw does not occur (has
 	-- hamza-on-yāʾ instead)
@@ -3282,548 +3282,345 @@ function make_table(data, title, form, intrans)
 |-
 ! colspan="6" style="background:#dedede" | verbal noun]=] .. (num_vns > 1 and "s" or "") .. "<br />" .. tag_text(num_vns > 1 and "المَصَادِر" or "المَصْدَر") .. [=[
 
-| colspan="7" | ]=] .. forms["vn"]
+| colspan="7" | {{{vn}}}
+]=]
 
 	if data.passive ~= "only" and data.passive ~= "only-impers" then
 		text = text .. [=[
-
 |-
-! colspan="6" style="background:#dedede" | active participle<br />]=] .. tag_text("اِسْم الفَاعِل") .. [=[
-
-| colspan="7" | ]=] .. forms["ap"]
+! colspan="6" style="background:#dedede" | active participle<br />{{{اِسْم الفَاعِل}}}
+| colspan="7" | {{{ap}}}
+]=]
 	end
 
 	if data.passive then
 		text = text .. [=[
-
 |-
-! colspan="6" style="background:#dedede" | passive participle<br />]=] .. tag_text("اِسْم المَفْعُول") .. [=[
-
-| colspan="7" | ]=] .. forms["pp"]
+! colspan="6" style="background:#dedede" | passive participle<br />{{{اِسْم المَفْعُول}}}
+| colspan="7" | {{{pp}}}
+]=]
 	end
 
 	if data.passive ~= "only" and data.passive ~= "only-impers" then
 		text = text .. [=[
-
 |-
-! colspan="12" style="background:#bcbcbc" | active voice<br />]=] .. tag_text("الفِعْل المَعْلُوم") .. [=[
-
+! colspan="12" style="background:#bcbcbc" | active voice<br />{{{الفِعْل المَعْلُوم}}}
 |-
 ! colspan="2" style="background:#cdcdcd" | 
-! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المُفْرَد") .. [=[
-
+! colspan="3" style="background:#cdcdcd" | singular<br />{{{المُفْرَد}}}
 ! rowspan="12" style="background:#cdcdcd;width:.5em" | 
-! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المُثَنَّى") .. [=[
-
+! colspan="2" style="background:#cdcdcd" | dual<br />{{{المُثَنَّى}}}
 ! rowspan="12" style="background:#cdcdcd;width:.5em" | 
-! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجَمْع") .. [=[
-
+! colspan="3" style="background:#cdcdcd" | plural<br />{{{الجَمْع}}}
 |-
 ! colspan="2" style="background:#cdcdcd" | 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />{{{المُتَكَلِّم}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />{{{المُتَكَلِّم}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />]=] .. tag_text("المَاضِي") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />{{{المَاضِي}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-perf"] .. [=[
-
-| ]=] .. forms["2sm-perf"] .. [=[
-
-| ]=] .. forms["3sm-perf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-perf"] .. [=[
-
-| ]=] .. forms["3dm-perf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-perf"] .. [=[
-
-| ]=] .. forms["2pm-perf"] .. [=[
-
-| ]=] .. forms["3pm-perf"] .. [=[
-
+| rowspan="2" | {{{1s-perf}}}
+| {{{2sm-perf}}}
+| {{{3sm-perf}}}
+| rowspan="2" | {{{2d-perf}}}
+| {{{3dm-perf}}}
+| rowspan="2" | {{{1p-perf}}}
+| {{{2pm-perf}}}
+| {{{3pm-perf}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-perf"] .. [=[
-
-| ]=] .. forms["3sf-perf"] .. [=[
-
-| ]=] .. forms["3df-perf"] .. [=[
-
-| ]=] .. forms["2pf-perf"] .. [=[
-
-| ]=] .. forms["3pf-perf"] .. [=[
-
+| {{{2sf-perf}}}
+| {{{3sf-perf}}}
+| {{{3df-perf}}}
+| {{{2pf-perf}}}
+| {{{3pf-perf}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />]=] .. tag_text("المُضَارِع") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />{{{المُضَارِع}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-impf"] .. [=[
-
-| ]=] .. forms["2sm-impf"] .. [=[
-
-| ]=] .. forms["3sm-impf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-impf"] .. [=[
-
-| ]=] .. forms["3dm-impf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-impf"] .. [=[
-
-| ]=] .. forms["2pm-impf"] .. [=[
-
-| ]=] .. forms["3pm-impf"] .. [=[
-
+| rowspan="2" | {{{1s-impf}}}
+| {{{2sm-impf}}}
+| {{{3sm-impf}}}
+| rowspan="2" | {{{2d-impf}}}
+| {{{3dm-impf}}}
+| rowspan="2" | {{{1p-impf}}}
+| {{{2pm-impf}}}
+| {{{3pm-impf}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-impf"] .. [=[
-
-| ]=] .. forms["3sf-impf"] .. [=[
-
-| ]=] .. forms["3df-impf"] .. [=[
-
-| ]=] .. forms["2pf-impf"] .. [=[
-
-| ]=] .. forms["3pf-impf"] .. [=[
-
+| {{{2sf-impf}}}
+| {{{3sf-impf}}}
+| {{{3df-impf}}}
+| {{{2pf-impf}}}
+| {{{3pf-impf}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المُضَارِع المَنْصُوب") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | subjunctive<br />{{{المُضَارِع المَنْصُوب}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-subj"] .. [=[
-
-| ]=] .. forms["2sm-subj"] .. [=[
-
-| ]=] .. forms["3sm-subj"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-subj"] .. [=[
-
-| ]=] .. forms["3dm-subj"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-subj"] .. [=[
-
-| ]=] .. forms["2pm-subj"] .. [=[
-
-| ]=] .. forms["3pm-subj"] .. [=[
-
+| rowspan="2" | {{{1s-subj}}}
+| {{{2sm-subj}}}
+| {{{3sm-subj}}}
+| rowspan="2" | {{{2d-subj}}}
+| {{{3dm-subj}}}
+| rowspan="2" | {{{1p-subj}}}
+| {{{2pm-subj}}}
+| {{{3pm-subj}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-subj"] .. [=[
-
-| ]=] .. forms["3sf-subj"] .. [=[
-
-| ]=] .. forms["3df-subj"] .. [=[
-
-| ]=] .. forms["2pf-subj"] .. [=[
-
-| ]=] .. forms["3pf-subj"] .. [=[
-
+| {{{2sf-subj}}}
+| {{{3sf-subj}}}
+| {{{3df-subj}}}
+| {{{2pf-subj}}}
+| {{{3pf-subj}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المُضَارِع المَجْزُوم") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | jussive<br />{{{المُضَارِع المَجْزُوم}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-juss"] .. [=[
-
-| ]=] .. forms["2sm-juss"] .. [=[
-
-| ]=] .. forms["3sm-juss"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-juss"] .. [=[
-
-| ]=] .. forms["3dm-juss"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-juss"] .. [=[
-
-| ]=] .. forms["2pm-juss"] .. [=[
-
-| ]=] .. forms["3pm-juss"] .. [=[
-
+| rowspan="2" | {{{1s-juss}}}
+| {{{2sm-juss}}}
+| {{{3sm-juss}}}
+| rowspan="2" | {{{2d-juss}}}
+| {{{3dm-juss}}}
+| rowspan="2" | {{{1p-juss}}}
+| {{{2pm-juss}}}
+| {{{3pm-juss}}}
 |-
 ! style="background:#dedede" | ''f''
-
-| ]=] .. forms["2sf-juss"] .. [=[
-
-| ]=] .. forms["3sf-juss"] .. [=[
-
-| ]=] .. forms["3df-juss"] .. [=[
-
-| ]=] .. forms["2pf-juss"] .. [=[
-
-| ]=] .. forms["3pf-juss"] .. [=[
-
+| {{{2sf-juss}}}
+| {{{3sf-juss}}}
+| {{{3df-juss}}}
+| {{{2pf-juss}}}
+| {{{3pf-juss}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | imperative<br />]=] .. tag_text("الأَمْر") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | imperative<br />{{{الأَمْر}}}
 ! style="background:#dedede" | ''m''
 | rowspan="2" | 
-| ]=] .. forms["2sm-impr"] .. [=[
-
+| {{{2sm-impr}}}
 | rowspan="2" | 
-
-| rowspan="2" | ]=] .. forms["2d-impr"] .. [=[
-
+| rowspan="2" | {{{2d-impr}}}
 | rowspan="2" | 
-
 | rowspan="2" | 
-| ]=] .. forms["2pm-impr"] .. [=[
-
+| {{{2pm-impr}}}
 | rowspan="2" | 
-
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-impr"] .. [=[
-
-| ]=] .. forms["2pf-impr"]
+| {{{2sf-impr}}}
+| {{{2pf-impr}}}
+]=]
 	end
 
 	if data.passive == "impers" or data.passive == "only-impers" then
 		text = text .. [=[
-
 |-
-! colspan="12" style="background:#bcbcbc" | passive voice<br />]=] .. tag_text("الفِعْل المَجْهُول") .. [=[
-
+! colspan="12" style="background:#bcbcbc" | passive voice<br />{{{الفِعْل المَجْهُول}}}
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المُفْرَد") .. [=[
-
+! colspan="3" style="background:#cdcdcd" | singular<br />{{{المُفْرَد}}}
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المُثَنَّى") .. [=[
-
+! colspan="2" style="background:#cdcdcd" | dual<br />{{{المُثَنَّى}}}
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجَمْع") .. [=[
-
+! colspan="3" style="background:#cdcdcd" | plural<br />{{{الجَمْع}}}
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />{{{المُتَكَلِّم}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />{{{المُتَكَلِّم}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />]=] .. tag_text("المَاضِي") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />{{{المَاضِي}}}
 ! style="background:#dedede" | ''m''
 | rowspan="2" | &mdash;
-
 | &mdash;
-
-| ]=] .. forms["3sm-ps-perf"] .. [=[
-
+| {{{3sm-ps-perf}}}
 | rowspan="2" | &mdash;
-
 | &mdash;
-
 | rowspan="2" | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 |-
 ! style="background:#dedede" | ''f''
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 |-
-! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />]=] .. tag_text("المُضَارِع") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />{{{المُضَارِع}}}
 ! style="background:#dedede" | ''m''
 | rowspan="2" | &mdash;
-
 | &mdash;
-
-| ]=] .. forms["3sm-ps-impf"] .. [=[
-
+| {{{3sm-ps-impf}}}
 | rowspan="2" | &mdash;
-
 | &mdash;
-
 | rowspan="2" | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 |-
 ! style="background:#dedede" | ''f''
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 |-
-! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المُضَارِع المَنْصُوب") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | subjunctive<br />{{{المُضَارِع المَنْصُوب}}}
 ! style="background:#dedede" | ''m''
 | rowspan="2" | &mdash;
-
 | &mdash;
-
-| ]=] .. forms["3sm-ps-subj"] .. [=[
-
+| {{{3sm-ps-subj}}}
 | rowspan="2" | &mdash;
-
 | &mdash;
-
 | rowspan="2" | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 |-
 ! style="background:#dedede" | ''f''
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 |-
-! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المُضَارِع المَجْزُوم") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | jussive<br />{{{المُضَارِع المَجْزُوم}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=]
-	text = text .. [=[&mdash;
-
-| &mdash;
-
-| ]=] .. forms["3sm-ps-juss"] .. [=[
-
 | rowspan="2" | &mdash;
-
 | &mdash;
-
+| {{{3sm-ps-juss}}}
 | rowspan="2" | &mdash;
-
 | &mdash;
-
+| rowspan="2" | &mdash;
 | &mdash;
-
+| &mdash;
 |-
 ! style="background:#dedede" | ''f''
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
 | &mdash;
-
-| &mdash;]=]
+| &mdash;
+]=]
 
 	elseif data.passive then
 		text = text .. [=[
-
 |-
-! colspan="12" style="background:#bcbcbc" | passive voice<br />]=] .. tag_text("الفِعْل المَجْهُول") .. [=[
-
+! colspan="12" style="background:#bcbcbc" | passive voice<br />{{{الفِعْل المَجْهُول}}}
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! colspan="3" style="background:#cdcdcd" | singular<br />]=] .. tag_text("المُفْرَد") .. [=[
-
+! colspan="3" style="background:#cdcdcd" | singular<br />{{{المُفْرَد}}}
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="2" style="background:#cdcdcd" | dual<br />]=] .. tag_text("المُثَنَّى") .. [=[
-
+! colspan="2" style="background:#cdcdcd" | dual<br />{{{المُثَنَّى}}}
 | rowspan="10" style="background:#cdcdcd;width:.5em" | 
-! colspan="3" style="background:#cdcdcd" | plural<br />]=] .. tag_text("الجَمْع") .. [=[
-
+! colspan="3" style="background:#cdcdcd" | plural<br />{{{الجَمْع}}}
 |-
 | colspan="2" style="background:#cdcdcd" | 
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
-! style="background:#cdcdcd" | 1<sup>st</sup> person<br />]=] .. tag_text("المُتَكَلِّم") .. [=[
-
-! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />]=] .. tag_text("المُخَاطَب") .. [=[
-
-! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />]=] .. tag_text("الغَائِب") .. [=[
-
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />{{{المُتَكَلِّم}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
+! style="background:#cdcdcd" | 1<sup>st</sup> person<br />{{{المُتَكَلِّم}}}
+! style="background:#cdcdcd" | 2<sup>nd</sup> person<br />{{{المُخَاطَب}}}
+! style="background:#cdcdcd" | 3<sup>rd</sup> person<br />{{{الغَائِب}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />]=] .. tag_text("المَاضِي") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | past (perfect) indicative<br />{{{المَاضِي}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-ps-perf"] .. [=[
-
-| ]=] .. forms["2sm-ps-perf"] .. [=[
-
-| ]=] .. forms["3sm-ps-perf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-ps-perf"] .. [=[
-
-| ]=] .. forms["3dm-ps-perf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-ps-perf"] .. [=[
-
-| ]=] .. forms["2pm-ps-perf"] .. [=[
-
-| ]=] .. forms["3pm-ps-perf"] .. [=[
-
+| rowspan="2" | {{{1s-ps-perf}}}
+| {{{2sm-ps-perf}}}
+| {{{3sm-ps-perf}}}
+| rowspan="2" | {{{2d-ps-perf}}}
+| {{{3dm-ps-perf}}}
+| rowspan="2" | {{{1p-ps-perf}}}
+| {{{2pm-ps-perf}}}
+| {{{3pm-ps-perf}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-ps-perf"] .. [=[
-
-| ]=] .. forms["3sf-ps-perf"] .. [=[
-
-| ]=] .. forms["3df-ps-perf"] .. [=[
-
-| ]=] .. forms["2pf-ps-perf"] .. [=[
-
-| ]=] .. forms["3pf-ps-perf"] .. [=[
-
+| {{{2sf-ps-perf}}}
+| {{{3sf-ps-perf}}}
+| {{{3df-ps-perf}}}
+| {{{2pf-ps-perf}}}
+| {{{3pf-ps-perf}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />]=] .. tag_text("المُضَارِع") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | non-past (imperfect) indicative<br />{{{المُضَارِع}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-ps-impf"] .. [=[
-
-| ]=] .. forms["2sm-ps-impf"] .. [=[
-
-| ]=] .. forms["3sm-ps-impf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-ps-impf"] .. [=[
-
-| ]=] .. forms["3dm-ps-impf"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-ps-impf"] .. [=[
-
-| ]=] .. forms["2pm-ps-impf"] .. [=[
-
-| ]=] .. forms["3pm-ps-impf"] .. [=[
-
+| rowspan="2" | {{{1s-ps-impf}}}
+| {{{2sm-ps-impf}}}
+| {{{3sm-ps-impf}}}
+| rowspan="2" | {{{2d-ps-impf}}}
+| {{{3dm-ps-impf}}}
+| rowspan="2" | {{{1p-ps-impf}}}
+| {{{2pm-ps-impf}}}
+| {{{3pm-ps-impf}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-ps-impf"] .. [=[
-
-| ]=] .. forms["3sf-ps-impf"] .. [=[
-
-| ]=] .. forms["3df-ps-impf"] .. [=[
-
-| ]=] .. forms["2pf-ps-impf"] .. [=[
-
-| ]=] .. forms["3pf-ps-impf"] .. [=[
-
+| {{{2sf-ps-impf}}}
+| {{{3sf-ps-impf}}}
+| {{{3df-ps-impf}}}
+| {{{2pf-ps-impf}}}
+| {{{3pf-ps-impf}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | subjunctive<br />]=] .. tag_text("المُضَارِع المَنْصُوب") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | subjunctive<br />{{{المُضَارِع المَنْصُوب}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=] .. forms["1s-ps-subj"] .. [=[
-
-| ]=] .. forms["2sm-ps-subj"] .. [=[
-
-| ]=] .. forms["3sm-ps-subj"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-ps-subj"] .. [=[
-
-| ]=] .. forms["3dm-ps-subj"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-ps-subj"] .. [=[
-
-| ]=] .. forms["2pm-ps-subj"] .. [=[
-
-| ]=] .. forms["3pm-ps-subj"] .. [=[
-
+| rowspan="2" | {{{1s-ps-subj}}}
+| {{{2sm-ps-subj}}}
+| {{{3sm-ps-subj}}}
+| rowspan="2" | {{{2d-ps-subj}}}
+| {{{3dm-ps-subj}}}
+| rowspan="2" | {{{1p-ps-subj}}}
+| {{{2pm-ps-subj}}}
+| {{{3pm-ps-subj}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-ps-subj"] .. [=[
-
-| ]=] .. forms["3sf-ps-subj"] .. [=[
-
-| ]=] .. forms["3df-ps-subj"] .. [=[
-
-| ]=] .. forms["2pf-ps-subj"] .. [=[
-
-| ]=] .. forms["3pf-ps-subj"] .. [=[
-
+| {{{2sf-ps-subj}}}
+| {{{3sf-ps-subj}}}
+| {{{3df-ps-subj}}}
+| {{{2pf-ps-subj}}}
+| {{{3pf-ps-subj}}}
 |-
-! rowspan="2" style="background:#cdcdcd" | jussive<br />]=] .. tag_text("المُضَارِع المَجْزُوم") .. [=[
-
+! rowspan="2" style="background:#cdcdcd" | jussive<br />{{{المُضَارِع المَجْزُوم}}}
 ! style="background:#dedede" | ''m''
-| rowspan="2" | ]=]
-	text = text .. forms["1s-ps-juss"] .. [=[
-
-| ]=] .. forms["2sm-ps-juss"] .. [=[
-
-| ]=] .. forms["3sm-ps-juss"] .. [=[
-
-| rowspan="2" | ]=] .. forms["2d-ps-juss"] .. [=[
-
-| ]=] .. forms["3dm-ps-juss"] .. [=[
-
-| rowspan="2" | ]=] .. forms["1p-ps-juss"] .. [=[
-
-| ]=] .. forms["2pm-ps-juss"] .. [=[
-
-| ]=] .. forms["3pm-ps-juss"] .. [=[
-
+| rowspan="2" | {{{1s-ps-juss}}}
+| {{{2sm-ps-juss}}}
+| {{{3sm-ps-juss}}}
+| rowspan="2" | {{{2d-ps-juss}}}
+| {{{3dm-ps-juss}}}
+| rowspan="2" | {{{1p-ps-juss}}}
+| {{{2pm-ps-juss}}}
+| {{{3pm-ps-juss}}}
 |-
 ! style="background:#dedede" | ''f''
-| ]=] .. forms["2sf-ps-juss"] .. [=[
-
-| ]=] .. forms["3sf-ps-juss"] .. [=[
-
-| ]=] .. forms["3df-ps-juss"] .. [=[
-
-| ]=] .. forms["2pf-ps-juss"] .. [=[
-
-| ]=] .. forms["3pf-ps-juss"]
+| {{{2sf-ps-juss}}}
+| {{{3sf-ps-juss}}}
+| {{{3df-ps-juss}}}
+| {{{2pf-ps-juss}}}
+| {{{3pf-ps-juss}}}
+]=]
 	end
 
 	text = text .. [=[
-
 |}
 </div>
 </div>]=]
 
-   return text
+	-- Function used as replace arg of call to rsub(). Replace the
+	-- specified param with its (HTML) value. The param references appear
+	-- as {{{PARAM}}} in the wikicode. Also call tag_text on Arabic text
+	-- appearing as {{{ARABIC-TEXT}}}.
+	local function repl(param)
+		if rfind(param, "^[A-Za-z0-9_-]+$") then
+			return data.forms[param]
+		else
+			return tag_text(param)
+		end
+	end
+
+	return rsub(text, "{{{([^{}]+)}}}", repl)
 end
  
 return export
