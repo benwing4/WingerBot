@@ -212,6 +212,20 @@ local function tag_text(text, tag, class)
 	return m_links.full_link(nil, text, lang, nil, nil, nil, {tr = "-"}, false)
 end
 
+function track(page)
+    require("Module:debug").track("ar-verb/" .. page)
+    return true
+end
+
+function reorder_shadda(word)
+	-- shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
+	-- replaced with short-vowel+shadda during NFC normalisation, which
+	-- MediaWiki does for all Unicode strings; however, it makes various
+	-- processes inconvenient, so undo it.
+	word = rsub(word, "(" .. DIACRITIC_ANY_BUT_SH .. ")" .. SH, SH .. "%1")
+	return word
+end
+
 ---------------------------------------
 -- Properties of different verbal forms
 ---------------------------------------
@@ -2633,7 +2647,38 @@ end
 -- Insert verbal noun VN into DATA.forms["vn"], but allow it to be overridden by
 -- ARGS["vn"].
 function insert_verbal_noun(data, args, vn)
-	insert_part(data, "vn", args["vn"] and rsplit(args["vn"], "[,،]") or vn)
+	local vns = args["vn"] and rsplit(args["vn"], "[,،]") or vn
+	if type(vns) ~= "table" then
+		vns = {vns}
+	end
+
+	function track_i3rab(entry, arabic, tr)
+		if rfind(entry, arabic .. "$") then
+			track("vn/i3rab")
+			track("vn/i3rab/" .. tr)
+			if args["vn"] then
+				track("explicit-vn/i3rab")
+				track("explicit-vn/i3rab/" .. tr)
+			else
+				track("auto-vn/i3rab")
+				track("auto-vn/i3rab/" .. tr)
+			end
+		end
+	end
+
+	for _, entry in ipairs(vns) do
+		-- Need to do this else we will have problems with VN's whose stem ends
+		-- in shadda.
+		entry = reorder_shadda(entry)
+		track_i3rab(entry, UN, "un")
+		track_i3rab(entry, U, "u")
+		track_i3rab(entry, IN, "in")
+		track_i3rab(entry, I, "i")
+		track_i3rab(entry, AN .. "[" .. ALIF .. AMAQ .. "]", "an")
+		track_i3rab(entry, AN .. ALIF, "an-tall")
+		track_i3rab(entry, A, "a")
+	end
+	insert_part(data, "vn", vns)
 end
 
 --------------------------------------
