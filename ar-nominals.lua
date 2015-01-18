@@ -23,11 +23,11 @@ local BOGUS_CHAR = u(0xFFFD)
 
 -- hamza variants
 local HAMZA            = u(0x0621) -- hamza on the line (stand-alone hamza) = ء
-local HAMZA_ON_ALIF  = u(0x0623)
-local HAMZA_ON_WAW   = u(0x0624)
+local HAMZA_ON_ALIF    = u(0x0623)
+local HAMZA_ON_W       = u(0x0624)
 local HAMZA_UNDER_ALIF = u(0x0625)
-local HAMZA_ON_YA    = u(0x0626)
-local HAMZA_ANY = "[" .. HAMZA .. HAMZA_ON_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_ON_WAW .. HAMZA_ON_YA .. "]"
+local HAMZA_ON_Y       = u(0x0626)
+local HAMZA_ANY = "[" .. HAMZA .. HAMZA_ON_ALIF .. HAMZA_UNDER_ALIF .. HAMZA_ON_W .. HAMZA_ON_Y .. "]"
 local HAMZA_PH = u(0xFFF0) -- hamza placeholder
 
 -- various letters
