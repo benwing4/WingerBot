@@ -223,7 +223,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
           # Retrieve headword_template, make sure exactly one and it is the right type
           headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
               ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
-                "ar-adj", "ar-nisba", "ar-noun-nisba"]]
+                "ar-verbal noun", "ar-adj", "ar-nisba", "ar-noun-nisba"]]
           if len(headword_templates) == 0:
             pagemsg("Can't find headword template in text, skipping")
             continue
@@ -604,6 +604,9 @@ startFrom, upTo = blib.parse_start_end(params.start, params.end)
 create_declensions(params.save, "Noun", "ar-noun", "ar-decl-noun",
     "sg", startFrom, upTo,
     ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
+create_declensions(params.save, "Verbal noun", "ar-verbal noun", "ar-decl-noun",
+    "sg", startFrom, upTo,
+    ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
 create_declensions(params.save, "Noun", "ar-coll-noun", "ar-decl-coll-noun",
     "coll", startFrom, upTo,
     ["2", "tr", "g2", "singg", "cons", "plcons", "dobl", "paucobl", "plobl"])
@@ -613,7 +616,7 @@ create_declensions(params.save, "Noun", "ar-sing-noun", "ar-decl-sing-noun",
 create_declensions(params.save, "Adjective", "ar-nisba", "ar-decl-adj",
     "sg", startFrom, upTo,
     ["2", "tr", "g2", "collg", "cons", "plcons", "dobl", "paucobl", "plobl"])
-create_declensions(params.save, "Noun", "ar-noun-nisba", "ar-decl-noun",
+create_declensions(params.save, "Noun", "ar-noun-nisba", "ar-decl-gendered-noun",
     "sg", startFrom, upTo,
     ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
 create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
