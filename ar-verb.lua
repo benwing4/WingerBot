@@ -68,6 +68,7 @@ local m_utilities = require("Module:utilities")
 local m_links = require("Module:links")
 local ar_translit = require("Module:ar-translit")
 local ar_utilities = require("Module:ar-utilities")
+local ar_nominals = require("Module:ar-nominals")
 
 local lang = require("Module:languages").getByCode("ar")
 local curtitle = mw.title.getCurrentTitle().fullText
@@ -80,6 +81,8 @@ local rsplit = mw.text.split
 local usub = mw.ustring.sub
 local ulen = mw.ustring.len
 local u = mw.ustring.char
+
+local no_nominal_i3rab = true
 
 local export = {}
 
@@ -113,6 +116,8 @@ local AIU = "[" .. A .. I .. U .. "]"
 local AIUSK = "[" .. A .. I .. U .. SK .. "]"
 -- Pattern matching any diacritics that may be on a consonant
 local DIACRITIC = SH .. "?" .. DIACRITIC_ANY_BUT_SH
+-- Suppressed UN; we don't show -un i3rab any more, but this can be changed to show it
+local UNS = no_nominal_i3rab and "" or UN
 
 local dia = {a = A, i = I, u = U}
 
@@ -1707,9 +1712,9 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	end
 
 	-- active participle
-	insert_part(data, "ap", rad1 .. AA .. rad2 .. I .. rad3 .. UN)
+	insert_part(data, "ap", rad1 .. AA .. rad2 .. I .. rad3 .. UNS)
 	-- passive participle
-	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad3 .. UN)
+	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad3 .. UNS)
 end
 	
 conjugations["I-sound"] = function(data, args, rad1, rad2, rad3,
@@ -1855,7 +1860,7 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 	insert_part(data, "ap", rad1 .. AA .. rad2 .. IN)
 	-- passive participle
 	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 ..
-		(rad3 == Y and II or UU) .. SH .. UN)
+		(rad3 == Y and II or UU) .. SH .. UNS)
 end
 	
 conjugations["I-final-weak"] = function(data, args, rad1, rad2, rad3,
@@ -1926,9 +1931,9 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 	
 	-- active participle
 	insert_part(data, "ap", rad3 == HAMZA and rad1 .. AA .. HAMZA .. IN or
-		rad1 .. AA .. HAMZA .. I .. rad3 .. UN)
+		rad1 .. AA .. HAMZA .. I .. rad3 .. UNS)
 	-- passive participle
-	insert_part(data, "pp", MA .. rad1 .. (rad2 == Y and II or UU) .. rad3 .. UN)
+	insert_part(data, "pp", MA .. rad1 .. (rad2 == Y and II or UU) .. rad3 .. UNS)
 end
 
 conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
@@ -1974,9 +1979,9 @@ conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", "geminate")
 	
 	-- active participle
-	insert_part(data, "ap", rad1 .. AA .. rad2 .. SH .. UN)
+	insert_part(data, "ap", rad1 .. AA .. rad2 .. SH .. UNS)
 	-- passive participle
-	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad2 .. UN)
+	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad2 .. UNS)
 end
 
 -- Make form II or V sound or final-weak verb. Final-weak verbs are identified
@@ -1985,9 +1990,9 @@ function make_form_ii_v_sound_final_weak_verb(data, args, rad1, rad2, rad3, form
 	local final_weak = rad3 == nil
 	local vn = form == "V" and
 		"تَ" .. rad1 .. A .. rad2 .. SH ..
-			(final_weak and IN or U .. rad3 .. UN) or
+			(final_weak and IN or U .. rad3 .. UNS) or
 		"تَ" .. rad1 .. SK .. rad2 .. I .. "ي" ..
-			(final_weak and AH or rad3) .. UN
+			(final_weak and AH or rad3) .. UNS
 	local ta_pref = form == "V" and "تَ" or ""
 	local tu_pref = form == "V" and "تُ" or ""
 
@@ -2015,9 +2020,9 @@ function make_form_iii_vi_sound_final_weak_verb(data, args, rad1, rad2, rad3, fo
 	local final_weak = rad3 == nil
 	local vn = form == "VI" and
 		"تَ" .. rad1 .. AA .. rad2 ..
-			(final_weak and IN or U .. rad3 .. UN) or
-		{MU .. rad1 .. AA .. rad2 .. (final_weak and AAH or A .. rad3 .. AH) .. UN,
-			rad1 .. I .. rad2 .. AA .. (final_weak and HAMZA or rad3) .. UN}
+			(final_weak and IN or U .. rad3 .. UNS) or
+		{MU .. rad1 .. AA .. rad2 .. (final_weak and AAH or A .. rad3 .. AH) .. UNS,
+			rad1 .. I .. rad2 .. AA .. (final_weak and HAMZA or rad3) .. UNS}
 	local ta_pref = form == "VI" and "تَ" or ""
 	local tu_pref = form == "VI" and "تُ" or ""
 
@@ -2043,8 +2048,8 @@ end
 function make_form_iii_vi_geminate_verb(data, args, rad1, rad2, form)
 	-- alternative verbal noun فِعَالٌ will be inserted when we add sound parts below
 	local vn = form == "VI" and
-		{"تَ" .. rad1 .. AA .. rad2 .. SH .. UN} or
-		{MU .. rad1 .. AA .. rad2 .. SH .. AH .. UN}
+		{"تَ" .. rad1 .. AA .. rad2 .. SH .. UNS} or
+		{MU .. rad1 .. AA .. rad2 .. SH .. AH .. UNS}
 	local ta_pref = form == "VI" and "تَ" or ""
 	local tu_pref = form == "VI" and "تُ" or ""
 
@@ -2084,7 +2089,7 @@ function make_form_iv_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 
 	-- verbal noun
 	local vn = HAMZA .. I .. stem_core .. AA ..
-		(final_weak and HAMZA or rad3) .. UN
+		(final_weak and HAMZA or rad3) .. UNS
 
 	-- various stem bases
 	local past_stem_base = HAMZA .. A .. stem_core
@@ -2106,7 +2111,7 @@ end
 
 conjugations["IV-hollow"] = function(data, args, rad1, rad2, rad3)
 	-- verbal noun
-	local vn = HAMZA .. I .. rad1 .. AA .. rad3 .. AH .. UN
+	local vn = HAMZA .. I .. rad1 .. AA .. rad3 .. AH .. UNS
 
 	-- various stem bases
 	local past_stem_base = HAMZA .. A .. rad1
@@ -2119,7 +2124,7 @@ conjugations["IV-hollow"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["IV-geminate"] = function(data, args, rad1, rad2, rad3)
-	local vn = HAMZA .. I .. rad1 .. SK .. rad2 .. AA .. rad2 .. UN
+	local vn = HAMZA .. I .. rad1 .. SK .. rad2 .. AA .. rad2 .. UNS
 
 	-- various stem bases
 	local past_stem_base = HAMZA .. A .. rad1
@@ -2157,7 +2162,7 @@ end
 -- verbs.
 function high_form_verbal_noun(rad12, rad34, rad5)
 	return "اِ" .. rad12 .. I .. rad34 .. AA ..
-		(rad5 == nil and HAMZA or rad5) .. UN
+		(rad5 == nil and HAMZA or rad5) .. UNS
 end
 
 -- Populate a sound or final-weak verb for any of the various high-numbered
@@ -2334,7 +2339,7 @@ end
 
 conjugations["IX-sound"] = function(data, args, rad1, rad2, rad3)
 	local ipref = "اِ"
-	local vn = ipref .. rad1 .. SK .. rad2 .. I .. rad3 .. AA .. rad3 .. UN
+	local vn = ipref .. rad1 .. SK .. rad2 .. I .. rad3 .. AA .. rad3 .. UNS
 
 	-- various stem bases
 	local nonpast_stem_base = rad1 .. SK .. rad2 .. A
@@ -2384,7 +2389,7 @@ conjugations["X-final-weak"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["X-hollow"] = function(data, args, rad1, rad2, rad3)
-	local vn = "اِسْتِ" .. rad1 .. AA .. rad3 .. AH .. UN
+	local vn = "اِسْتِ" .. rad1 .. AA .. rad3 .. AH .. UNS
 
 	-- various stem bases
 	local past_stem_base = "اِسْتَ" .. rad1
@@ -2397,7 +2402,7 @@ conjugations["X-hollow"] = function(data, args, rad1, rad2, rad3)
 end
 
 conjugations["X-geminate"] = function(data, args, rad1, rad2, rad3)
-	local vn = "اِسْتِ" .. rad1 .. SK .. rad2 .. AA .. rad2 .. UN
+	local vn = "اِسْتِ" .. rad1 .. SK .. rad2 .. AA .. rad2 .. UNS
 
 	-- various stem bases
 	local past_stem_base = "اِسْتَ" .. rad1
@@ -2411,7 +2416,7 @@ end
 
 conjugations["XI-sound"] = function(data, args, rad1, rad2, rad3)
 	local ipref = "اِ"
-	local vn = ipref .. rad1 .. SK .. rad2 .. II .. rad3 .. AA .. rad3 .. UN
+	local vn = ipref .. rad1 .. SK .. rad2 .. II .. rad3 .. AA .. rad3 .. UNS
 
 	-- various stem bases
 	local nonpast_stem_base = rad1 .. SK .. rad2 .. AA
@@ -2485,9 +2490,9 @@ function make_form_iq_iiq_sound_final_weak_verb(data, args, rad1, rad2, rad3, ra
 	local final_weak = rad4 == nil
 	local vn = form == "IIq" and
 		"تَ" .. rad1 .. A .. rad2 .. SK .. rad3 ..
-			(final_weak and IN or U .. rad4 .. UN) or
+			(final_weak and IN or U .. rad4 .. UNS) or
 		rad1 .. A .. rad2 .. SK .. rad3 ..
-			(final_weak and AAH or A .. rad4 .. AH) .. UN
+			(final_weak and AAH or A .. rad4 .. AH) .. UNS
 	local ta_pref = form == "IIq" and "تَ" or ""
 	local tu_pref = form == "IIq" and "تُ" or ""
 
@@ -2533,7 +2538,7 @@ end
 
 conjugations["IVq-sound"] = function(data, args, rad1, rad2, rad3, rad4)
 	local ipref = "اِ"
-	local vn = ipref .. rad1 .. SK .. rad2 .. I .. rad3 .. SK .. rad4 .. AA .. rad4 .. UN
+	local vn = ipref .. rad1 .. SK .. rad2 .. I .. rad3 .. SK .. rad4 .. AA .. rad4 .. UNS
 
 	-- various stem bases
 	local past_stem_base = ipref .. rad1 .. SK .. rad2 .. A .. rad3
@@ -2653,17 +2658,35 @@ function insert_verbal_noun(data, args, vn)
 		vns = {vns}
 	end
 
+	-------------------- Begin verbal-noun i3rab tracking code ---------------
+	-- Examples of what you can find by looking at what links to the given
+	-- pages:
+	--
+	-- Template:tracking/vn/i3rab/un (pages with verbal nouns with -un i3rab,
+	--   whether explicitly specified, i.e. using vn=, or auto-generated, as
+	--   is normal for augmented forms)
+	-- Template:tracking/explicit-vn/i3rab/u (pages with explicitly specified
+	--   verbal nouns with -u i3rab)
+	-- Template:tracking/explicit-vn/i3rab/an-tall (pages with explicitly
+	--   specified verbal nouns with tall-alif -an i3rab)
+	-- Template:tracking/auto-vn/i3rab (pages with auto-generated verbal nouns
+	--   with any sort of i3rab)
+	-- Template:tracking/vn/no-i3rab (pages with verbal nouns without i3rab)
+	-- Template:tracking/vn/would-be-decl/di (pages with verbal nouns that
+	--   would be detected as diptote without explicit i3rab)
+	function vntrack(pagesuff)
+		track("vn/" .. pagesuff)
+		if args["vn"] then
+			track("explicit-vn/" .. pagesuff)
+		else
+			track("auto-vn/" .. pagesuff)
+		end
+	end
+
 	function track_i3rab(entry, arabic, tr)
 		if rfind(entry, arabic .. "$") then
-			track("vn/i3rab")
-			track("vn/i3rab/" .. tr)
-			if args["vn"] then
-				track("explicit-vn/i3rab")
-				track("explicit-vn/i3rab/" .. tr)
-			else
-				track("auto-vn/i3rab")
-				track("auto-vn/i3rab/" .. tr)
-			end
+			vntrack("i3rab")
+			vntrack("i3rab/" .. tr)
 		end
 	end
 
@@ -2678,8 +2701,31 @@ function insert_verbal_noun(data, args, vn)
 		track_i3rab(entry, AN .. "[" .. ALIF .. AMAQ .. "]", "an")
 		track_i3rab(entry, AN .. ALIF, "an-tall")
 		track_i3rab(entry, A, "a")
+		track_i3rab(entry, SK, "sk")
+		if not rfind(entry, "[" .. A .. I .. U .. AN .. IN .. UN .. DAGGER_ALIF .. "]$") and
+				not rfind(entry, AN .. "[" .. ALIF .. AMAQ .. "]") then
+			vntrack("no-i3rab")
+		end
+		entry = rsub(entry, UNU .. "?$", "")
+		-- Figure out what the decltype would be without any explicit -un
+		-- or -u added, to see whether there are any nouns that would be
+		-- detected as diptotes, e.g. of the فَعْلَان pattern.
+		local decltype = ar_nominals.detect_type(entry, false, "sg", "noun")
+		vntrack("would-be-decl/" .. decltype)
 	end
-	insert_part(data, "vn", vns)
+	-------------------- End verbal-noun i3rab tracking code ---------------
+
+	if no_nominal_i3rab then
+		vns_no_i3rab = {}
+		for _, entry in ipairs(vns) do
+			entry = reorder_shadda(entry)
+			entry = rsub(entry, UNU .. "?$", "")
+			table.insert(vns_no_i3rab, entry)
+		end
+		insert_part(data, "vn", no_nominal_i3rab)
+	else
+		insert_part(data, "vn", vns)
+	end
 end
 
 --------------------------------------
@@ -2909,8 +2955,8 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 		insert_part(data, "ap", MU .. nonpast_stem .. IN)
 		insert_part(data, "pp", MU .. ps_nonpast_stem .. AN .. AMAQ)
 	else
-		insert_part(data, "ap", MU .. nonpast_stem .. UN)
-		insert_part(data, "pp", MU .. ps_nonpast_stem .. UN)
+		insert_part(data, "ap", MU .. nonpast_stem .. UNS)
+		insert_part(data, "pp", MU .. ps_nonpast_stem .. UNS)
 	end
 end
 
@@ -2989,9 +3035,9 @@ function make_augmented_hollow_verb(data, args, rad3,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, prefix_vowel, false)
 
 	-- active participle
-	insert_part(data, "ap", MU .. nonpast_v_stem .. UN)
+	insert_part(data, "ap", MU .. nonpast_v_stem .. UNS)
 	-- passive participle
-	insert_part(data, "pp", MU .. ps_nonpast_v_stem .. UN)
+	insert_part(data, "pp", MU .. ps_nonpast_v_stem .. UNS)
 end
 
 -- generate finite parts of an augmented (form II+) geminate verb,
@@ -3056,9 +3102,9 @@ function make_augmented_geminate_verb(data, args, rad3,
 		"geminate")
 
 	-- active participle
-	insert_part(data, "ap", MU .. nonpast_v_stem .. UN)
+	insert_part(data, "ap", MU .. nonpast_v_stem .. UNS)
 	-- passive participle
-	insert_part(data, "pp", MU .. ps_nonpast_v_stem .. UN)
+	insert_part(data, "pp", MU .. ps_nonpast_v_stem .. UNS)
 end
 
 ----------------------------------------
