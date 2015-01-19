@@ -322,7 +322,8 @@ end
 -- list of singular items to base derived forms off of (masculine or feminine
 -- as appropriate), an array of length-two arrays of {COMBINED_STEM, TYPE} as
 -- returned by stem_and_type(); ISFEM is true if this is feminine gender;
--- NUM is 'sg', 'du' or 'pl'.
+-- NUM is 'sg', 'du' or 'pl'. POS is the part of speech, generally 'noun' or
+-- 'adjective'.
 function insert_stems(stem, results, sgs, isfem, num, pos)
 	if stem == "-" then
 		return
@@ -1319,8 +1320,21 @@ end
 -- Detect declension of noun or adjective stem or lemma. We allow triptotes,
 -- diptotes and sound plurals to either come with ʾiʿrāb or not. We detect
 -- some cases where vowels are missing, when it seems fairly unambiguous to
--- do so. ISFEM is true if we are dealing with a feminine stem. NUM is
--- 'sg', 'du', or 'pl', depending on the number of the stem.
+-- do so. ISFEM is true if we are dealing with a feminine stem (not
+-- currently used and needs to be rethought). NUM is 'sg', 'du', or 'pl',
+-- depending on the number of the stem.
+--
+-- POS is the part of speech, generally 'noun' or 'adjective'. Not currently
+-- used but may conceivably be used to distinguish nouns and adjectives
+-- of the فَعْلَان type; but if we do so, we need to rethink the POS parameter.
+-- The idea is that adjectives of the above type are generally diptotes but
+-- it's unclear about nouns of this type; there are triptote nouns of this
+-- type like قَطْرَان "tar" and if this is representative then we should maybe
+-- make a POS distinction when detecting; but this will cause problems with
+-- nouns modified by adjectives, where we don't currently distinguish the POS
+-- of the base noun from the POS of the modifying adjective. An additional
+-- complication is that the user can set the POS to something else, like
+-- "numeral".
 function export.detect_type(stem, isfem, num, pos)
 	-- Not strictly necessary because the caller (stem_and_type) already
 	-- reorders, but won't hurt, and may be necessary if this function is
@@ -1435,6 +1449,18 @@ end
 -- regular rules. SG may be of the form ARABIC/TR or ARABIC. ISFEM is true
 -- if WORD is a feminine stem. NUM is either 'sg', 'du' or 'pl' according to
 -- the number of the stem. The return value will be in the ARABIC/TR format.
+--
+-- POS is the part of speech, generally 'noun' or 'adjective'. Not currently
+-- used but may conceivably be used to distinguish nouns and adjectives
+-- of the فَعْلَان type; but if we do so, we need to rethink the POS parameter.
+-- The idea is that adjectives of the above type are generally diptotes but
+-- it's unclear about nouns of this type; there are triptote nouns of this
+-- type like قَطْرَان "tar" and if this is representative then we should maybe
+-- make a POS distinction when detecting; but this will cause problems with
+-- nouns modified by adjectives, where we don't currently distinguish the POS
+-- of the base noun from the POS of the modifying adjective. An additional
+-- complication is that the user can set the POS to something else, like
+-- "numeral".
 function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	local rettype = nil
 	if rfind(word, ":") then
