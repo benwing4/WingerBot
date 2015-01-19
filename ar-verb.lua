@@ -67,6 +67,7 @@ local m_headword = require("Module:headword")
 local m_utilities = require("Module:utilities")
 local m_links = require("Module:links")
 local ar_translit = require("Module:ar-translit")
+local ar_utilities = require("Module:ar-utilities")
 
 local lang = require("Module:languages").getByCode("ar")
 local curtitle = mw.title.getCurrentTitle().fullText
@@ -3082,62 +3083,14 @@ local postprocess_subs = {
 	{U .. W .. SK, UU},
 	{U .. Y .. SK, UU},
 
-	-------------- final -yā uses tall alif not alif maqṣūra ------------------
+    -------------- final -yā uses tall alif not alif maqṣūra ------------------
 	{"(" .. Y ..  SH .. "?" .. A .. ")" .. AMAQ, "%1" .. ALIF},
 
-	-------------------------- handle initial hamza ---------------------------
+	----------------------- handle hamza assimilation -------------------------
 	-- initial hamza + short-vowel + hamza + sukūn -> hamza + long vowel
 	{HAMZA .. A .. HAMZA .. SK, HAMZA .. A .. ALIF},
 	{HAMZA .. I .. HAMZA .. SK, HAMZA .. I .. Y},
-	{HAMZA .. U .. HAMZA .. SK, HAMZA .. U .. W},
-
-	-------------------------- main hamza-handling code -----------------------
-	{HAMZA, HAMZA_PH},
-
-	--------------------------- handle initial hamza --------------------------
-	-- put initial hamza on a seat according to following vowel.
-	{"^" .. HAMZA_PH .. A, HAMZA_ON_ALIF .. A},
-	{"^" .. HAMZA_PH .. I, HAMZA_UNDER_ALIF .. I},
-	{"^" .. HAMZA_PH .. U, HAMZA_ON_ALIF .. U},
-
-	----------------------------- handle final hamza --------------------------
-	-- "final" hamza may be followed by a short vowel or tanwīn sequence
-	-- use a previous short vowel to get the seat
-	{"(" .. AIU .. ")(" .. HAMZA_PH .. ")(" .. DIACRITIC .. "?)$",
-		function(v, ham, diacrit)
-			ham = v == I and HAMZA_ON_Y or v == U and HAMZA_ON_W or HAMZA_ON_ALIF
-			return v .. ham .. diacrit
-		end
-	},
-	-- else hamza is on the line
-	{HAMZA_PH .. "(" .. DIACRITIC .. "?)$", HAMZA .. "%1"},
-
-	---------------------------- handle medial hamza --------------------------
-	-- if long vowel or diphthong precedes, we need to ignore it.
-	{"([" .. ALIF .. W .. Y .. "]" .. SK .. "?)(" .. HAMZA_PH .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
-		function(prec, ham, shad, v2)
-			ham = v2 == I and HAMZA_ON_Y or
-				v2 == U and HAMZA_ON_W or
-				rfind(prec, Y) and HAMZA_ON_Y or
-				HAMZA
-			return prec .. ham ..shad .. v2
-		end
-	},
-	-- otherwise, seat of medial hamza relates to vowels on one or both sides.
-	{"(" .. AIUSK .. ")(" .. HAMZA_PH .. ")(" .. SH .. "?)(" .. AIUSK .. ")",
-		function(v1, ham, shad, v2)
-			ham = (v1 == I or v2 == I) and HAMZA_ON_Y or
-				(v1 == U or v2 == U) and HAMZA_ON_W or
-				HAMZA_ON_ALIF
-			return v1 .. ham .. shad .. v2
-		end
-	},
-	
-	--------------------------- handle alif madda -----------------------------
-	{HAMZA_ON_ALIF .. A .. ALIF, AMAD},
-
-	----------------------- catch any remaining hamzas ------------------------
-	{HAMZA_PH, HAMZA}
+	{HAMZA .. U .. HAMZA .. SK, HAMZA .. U .. W}
 }
 
 -- Post-process verb parts to eliminate phonological anomalies. Many of the changes,
@@ -3157,30 +3110,12 @@ function postprocess_term(term)
 	for _, sub in ipairs(postprocess_subs) do
 		term = rsub(term, sub[1], sub[2])
 	end
-	-- sequence of hamza-on-wāw + wāw is problematic and leads to a preferred
-	-- alternative with some other type of hamza, as well as the original
-	-- sequence; sequence of wāw + hamza-on-wāw + wāw is especially problematic
-	-- and leads to two different alternatives with the original sequence not
-	-- one of them
-	if rfind(term, W .. "ؤُو") then
-		return {rsub(term, W .. "ؤُو", W .. "ئُو"), rsub(term, W .. "ؤُو", W .. "ءُو")}
-	elseif rfind(term, Y .. "ؤُو") then
-		return {rsub(term, Y .. "ؤُو", Y .. "ئُو"), term}
-	elseif rfind(term, ALIF .. "ؤُو") then
-		-- Here John Mace "Arabic Verbs" is inconsistent. In past-tense parts,
-		-- the preferred alternative has hamza on the line, whereas in
-		-- non-past parts the preferred alternative has hamza-on-yāʾ even
-		-- though the sequence of vowels is identical. It's too complicated to
-		-- propagate information about tense through to here so pick one.
-		return {rsub(term, ALIF .. "ؤُو", ALIF .. "ئُو"), term}
-	elseif rfind(term, A .. "ؤُو") then
-		return {rsub(term, A .. "ؤُو", A .. HAMZA_ON_ALIF .. U .. W), term}
-	-- no alternative spelling in sequence of U + hamza-on-wāw + U + wāw;
-	-- sequence of I + hamza-on-wāw + U + wāw does not occur (has
-	-- hamza-on-yāʾ instead)
-	else
+
+	if not rfind(term, HAMZA) then
 		return {term}
 	end
+	term = rsub(term, HAMZA, HAMZA_PH)
+	return ar_utilities.process_hamza(term)
 end
 
 -- For each paradigm part, postprocess the entries, remove duplicates and
