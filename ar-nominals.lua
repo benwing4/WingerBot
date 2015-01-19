@@ -1551,12 +1551,15 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	end
 
 	if word == "rf" then
-		if rfind(sgar, TAM .. UNUOPT .. "$") then
-			error("Singular stem is already feminine: " .. sgar)
-		end
-
 		sgar = canon_hamza(sgar)
 	
+		if rfind(sgar, TAM .. UNUOPT .. "$") then
+			--Don't do this or we have problems when forming singulative from
+			--collective with a construct modifier that's feminine
+			--error("Singular stem is already feminine: " .. sgar)
+			return sgar .. "/" .. sgtr, "tri"
+		end
+
 		local ret = (
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AAH, "an$", "āh") or -- ends in -an
 			sub(IN .. "$", IY .. AH, "in$", "iya") or -- ends in -in
@@ -1586,16 +1589,20 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	end
 
 	if word == "rm" then
-		if not rfind(sgar, TAM .. UNUOPT .. "$") then
-			error("Singular stem not feminine: " .. sgar)
-		end
-
 		sgar = canon_hamza(sgar)
 	
+		--Don't do this or we have problems when forming collective from
+		--singulative with a construct modifier that's not feminine,
+		--e.g. شَجَرَة التُفَّاح
+		--if not rfind(sgar, TAM .. UNUOPT .. "$") then
+		--	error("Singular stem is not feminine: " .. sgar)
+		--end
+
 		local ret = (
 			sub(AAH .. UNUOPT .. "$", AN .. AMAQ, "ātun?$", "an", "ā[ht]$", "an") or -- in -āh
 			sub(IY .. AH .. UNUOPT .. "$", IN, "iyatun?$", "in", "iya$", "in") or -- ends in -iya
-			sub(AOPT .. TAM .. UNUOPT .. "$", "", "atun?$", "", "a$", "") --ends in -a
+			sub(AOPT .. TAM .. UNUOPT .. "$", "", "atun?$", "", "a$", "") or --ends in -a
+			sub("$", "", "$", "") -- do nothing
 		)
 		return ret, "tri"
 	end
@@ -1642,7 +1649,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		local ret = (
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AY .. AAN, "an$", "ayān") or -- ends in -an
 			sub(IN .. "$", IY .. AAN, "in$", "iyān") or -- ends in -in
-		    sgtype == "lwinv" and sub(AOPTA .. "$", AT .. AAN, "ā$", "atān") or -- lwinv, ends in alif
+		    sgtype == "lwinv" and sub(AOPTA .. "$", AT .. AAN, "[āa]$", "atān") or -- lwinv, ends in alif; allow translit with short -a
 			sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AY .. AAN, "ā$", "ayān") or -- ends in alif or alif maqṣūra
 			-- We separate the ʾiʿrāb and no-ʾiʿrāb cases even though we can
 			-- do a single Arabic regexp to cover both because we want to
@@ -1676,7 +1683,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 				sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "ā$", "ayāt") -- ends in alif or alif maqṣūra
 	        ) or
 			sgtype == "lwinv" and (
-				sub(AOPTA .. "$", AAT, "ā$", "āt") -- loanword ending in tall alif
+				sub(AOPTA .. "$", AAT, "[āa]$", "āt") -- loanword ending in tall alif; allow translit with short -a
 			) or
 			-- We separate the ʾiʿrāb and no-ʾiʿrāb cases even though we can
 			-- do a single Arabic regexp to cover both because we want to
