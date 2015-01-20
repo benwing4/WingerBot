@@ -82,7 +82,7 @@ local usub = mw.ustring.sub
 local ulen = mw.ustring.len
 local u = mw.ustring.char
 
-local no_nominal_i3rab = true
+local no_nominal_i3rab = false
 
 local export = {}
 
@@ -2662,18 +2662,19 @@ function insert_verbal_noun(data, args, vn)
 	-- Examples of what you can find by looking at what links to the given
 	-- pages:
 	--
-	-- Template:tracking/vn/i3rab/un (pages with verbal nouns with -un i3rab,
-	--   whether explicitly specified, i.e. using vn=, or auto-generated, as
-	--   is normal for augmented forms)
-	-- Template:tracking/explicit-vn/i3rab/u (pages with explicitly specified
-	--   verbal nouns with -u i3rab)
-	-- Template:tracking/explicit-vn/i3rab/an-tall (pages with explicitly
-	--   specified verbal nouns with tall-alif -an i3rab)
-	-- Template:tracking/auto-vn/i3rab (pages with auto-generated verbal nouns
-	--   with any sort of i3rab)
-	-- Template:tracking/vn/no-i3rab (pages with verbal nouns without i3rab)
-	-- Template:tracking/vn/would-be-decl/di (pages with verbal nouns that
-	--   would be detected as diptote without explicit i3rab)
+	-- Template:tracking/ar-verb/vn/i3rab/un (pages with verbal nouns with -un
+	--   i3rab, whether explicitly specified, i.e. using vn=, or auto-generated,
+	--   as is normal for augmented forms)
+	-- Template:tracking/ar-verb/explicit-vn/i3rab/u (pages with explicitly
+	--   specified verbal nouns with -u i3rab)
+	-- Template:tracking/ar-verb/explicit-vn/i3rab/an-tall (pages with
+	--   explicitly specified verbal nouns with tall-alif -an i3rab)
+	-- Template:tracking/ar-verb/auto-vn/i3rab (pages with auto-generated verbal
+	--   nouns with any sort of i3rab)
+	-- Template:tracking/ar-verb/vn/no-i3rab (pages with verbal nouns without
+	--   i3rab)
+	-- Template:tracking/ar-verb/vn/would-be-decl/di (pages with verbal nouns
+	--   that would be detected as diptote without explicit i3rab)
 	function vntrack(pagesuff)
 		track("vn/" .. pagesuff)
 		if args["vn"] then
@@ -2722,7 +2723,7 @@ function insert_verbal_noun(data, args, vn)
 			entry = rsub(entry, UNU .. "?$", "")
 			table.insert(vns_no_i3rab, entry)
 		end
-		insert_part(data, "vn", no_nominal_i3rab)
+		insert_part(data, "vn", vns_no_i3rab)
 	else
 		insert_part(data, "vn", vns)
 	end
