@@ -240,7 +240,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
               paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
                   noremove=is_verb_form)
               if must_match_exactly:
-                return paramval == value
+                return reorder_shadda(paramval) == reorder_shadda(value)
               else:
                 return remove_diacritics(paramval) == remove_diacritics(value)
 
@@ -249,7 +249,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
               existing = blib.getparam(template, "1")
               existing_no_i3rab = maybe_remove_i3rab(sgplword, existing,
                   noremove=is_verb_form)
-              if existing != existing_no_i3rab:
+              if reorder_shadda(existing) != reorder_shadda(existing_no_i3rab):
                 notes.append("removed %s i3rab" % sgplword)
                 template.add("1", existing_no_i3rab)
                 existing_tr = blib.getparam(template, "tr")
