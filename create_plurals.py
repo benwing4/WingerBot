@@ -113,12 +113,12 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
 
   is_participle = plword.endswith("participle")
   is_vn = plword == "verbal noun"
-  is_verb_form = pos == "Verb"
+  is_verb_part = pos == "Verb"
   is_plural_noun = plword == "plural" and pos == "Noun"
   vn_or_participle = is_vn or is_participle
 
-  singular = maybe_remove_i3rab(singword, singular, noremove=is_verb_form)
-  plural = maybe_remove_i3rab(plword, plural, noremove=is_verb_form)
+  singular = maybe_remove_i3rab(singword, singular, noremove=is_verb_part)
+  plural = maybe_remove_i3rab(plword, plural, noremove=is_verb_part)
 
   if plural == "-":
     pagemsg("Not creating %s entry - for %s %s%s" % (
@@ -150,7 +150,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       singular_plural_counts[sp_no_vowels], singword, sing_no_vowels, plword,
       pl_no_vowels))
     must_match_exactly = True
-  if vn_or_participle or is_verb_form:
+  if vn_or_participle or is_verb_part:
     must_match_exactly = True
 
   # Prepare parts of new entry to insert
@@ -238,7 +238,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
               # doesn't matter because of nowarn.
               paramval = blib.getparam(template, param)
               paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
-                  noremove=is_verb_form)
+                  noremove=is_verb_part)
               if must_match_exactly:
                 return reorder_shadda(paramval) == reorder_shadda(value)
               else:
@@ -248,7 +248,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
               # Check for i3rab in existing sg or pl and remove it if so
               existing = blib.getparam(template, "1")
               existing_no_i3rab = maybe_remove_i3rab(sgplword, existing,
-                  noremove=is_verb_form)
+                  noremove=is_verb_part)
               if reorder_shadda(existing) != reorder_shadda(existing_no_i3rab):
                 notes.append("removed %s i3rab" % sgplword)
                 template.add("1", existing_no_i3rab)
@@ -308,7 +308,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
 
               # For verb forms check for an exactly matching inflection-of
               # template; if not, insert one at end of definition.
-              if is_verb_form:
+              if is_verb_part:
                 for i_of_t in infl_of_templates:
                   if (reorder_shadda(unicode(i_of_t)) ==
                       reorder_shadda(new_infl_of_template)):
@@ -490,19 +490,19 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       page.save(comment = comment)
 
 def create_noun_plural(save, plural, pltr, singular, singtr, pos):
-  return create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       "plural", "singular", "ar-noun-pl", "plural of")
 
 def create_adj_plural(save, plural, pltr, singular, singtr, pos):
-  return create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       "plural", "singular", "ar-adj-pl", "masculine plural of")
 
 def create_noun_feminine_entry(save, plural, pltr, singular, singtr, pos):
-  return create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       "feminine", "masculine", None, "feminine of")
 
 def create_adj_feminine_entry(save, plural, pltr, singular, singtr, pos):
-  return create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       "feminine", "masculine", "ar-adj-fem", "feminine of")
 
 def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
@@ -564,19 +564,17 @@ def get_dicform(page, template):
 def get_passive(page, template):
   return get_part_prop(page, template, "ar-verb-prop|passive")
 
+# For a given value of passive= (yes, impers, no, only, only-impers), does
+# the verb have an active form?
 def has_active_form(passive):
+  assert(passive in ["yes", "impers", "no", "only", "only-impers"])
   return passive in ["yes", "impers", "no"]
 
+# For a given value of passive= (yes, impers, no, only, only-impers), does
+# the verb have a passive form?
 def has_passive_form(passive):
+  assert(passive in ["yes", "impers", "no", "only", "only-impers"])
   return passive != "no"
-
-#def get_impf_dicform_all(page, template):
-#  passive = get_passive(page, template)
-#  if has_active_form(passive):
-#    impf_dicform = get_part_prop("ar-verb-part-all|3sm-impf")
-#  else:
-#    impf_dicform = get_part_prop("ar-verb-part-all|3sm-ps-impf")
-#  return re.split(",", impf_dicform)
 
 # Create a verbal noun entry, either creating a new page or adding to an
 # existing page. Do nothing if entry is already present. Only save changes
@@ -588,7 +586,7 @@ def has_passive_form(passive):
 def create_verbal_noun(save, vn, page, template, uncertain):
   dicform = get_dicform(page, template)
 
-  return create_inflection_entry(save, vn, None, dicform, None, "Verbal noun",
+  create_inflection_entry(save, vn, None, dicform, None, "Verbal noun",
     "verbal noun", "dictionary form", "ar-verbal noun", "ar-verbal noun of",
     uncertain and "|uncertain=yes" or "")
 
@@ -614,7 +612,7 @@ def create_verbal_nouns(save, startFrom, upTo):
 def create_participle(save, part, page, template, actpass):
   dicform = get_dicform(page, template)
 
-  return create_inflection_entry(save, part, None, dicform, None, "Participle",
+  create_inflection_entry(save, part, None, dicform, None, "Participle",
     "%s participle" % actpass, "dictionary form", "ar-%s participle" % actpass,
     "ar-%s participle of", "")
 
@@ -636,30 +634,81 @@ def create_participles(save, startFrom, upTo):
             for pp in pps:
               create_participle(save, pp, page, template, "passive")
 
-def create_non_past(save, part, page, template, actpass):
-  dicform = get_dicform(page, template)
+# List of all person/number/gender combinations, using the ID's in
+# {{ar-verb-part-all|...}}
+persons = [
+    "1s", "2sm", "2sf", "3sm", "3sf",
+    "2d", "3dm", "3df",
+    "1p", "2pm", "2pf", "3pm", "3pf"
+    ]
+# Corresponding part of {{inflection of|...}} template, e.g. 3|s|m for 3sm
+persons_infl_entry = dict([x, re.sub("([sdpmf])", r"|\1", x)] for x in persons)
+# List of all tense/mood combinations, using the ID's in
+# {{ar-verb-part-all|...}}
+tenses = ["perf", "impf", "subj", "juss"]
+# Corresponding part of {{inflection of|...}} template, with %s where
+# "active" or "passive" goes
+tenses_infl_entry = {
+    "perf":"past|%s",
+    "impf":"non-past|%s|ind",
+    "subj":"non-past|%s|sub",
+    "juss":"non-past|%s|juss"
+    }
 
-  return create_inflection_entry(save, part, None, dicform, None, "Verb",
-    "%s non-past" % actpass, "dictionary form", "ar-verb form",
-    "inflection of", "||lang=ar|3|s|m|non-past|%s|indicative" % actpass)
+# Create a single verb part. SAVE is true if we should save the pages.
+# PAGE is the page of the lemma, and TEMPLATE is the {{ar-conj|...}}
+# template indicating the lemma's conjugation. DICFORM is the vocalized form
+# of the lemma, ACTPASS is either "active" or "passive", and PERSON and TENSE
+# indicate the particular person/number/gender/tense/mood combination, using
+# the codes passed to {{ar-verb-part-all|...}}.
+def create_one_verb_part(save, page, template, dicform, actpass, person, tense):
+  infl_person = persons_infl_entry[person]
+  infl_tense = tenses_infl_entry[tense] % actpass
+  partid = actpass == ("active" and "%s-%s" % (person, tense) or
+      "%s-ps-%s" % (person, tense))
+  value = get_part_prop(page, template, "ar-verb-part-all|%s" % partid)
+  if value:
+    parts = re.split(",", value)
+    for part in parts:
+      create_inflection_entry(save, part, None, dicform, None, "Verb",
+        partid, "dictionary form", "ar-verb form",
+        "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
-def create_non_pasts(save, startFrom, upTo):
+# Create the active and passive versions (as appropriate) of a single verb
+# part. SAVE is true if we should save the pages. PAGE is the page of the
+# lemma, and TEMPLATE is the {{ar-conj|...}} template indicating the lemma's
+# conjugation. DICFORM is the vocalized form of the lemma. PASSIVE is the
+# value of the 'passive' property as returned by {{ar-verb-prop|passive|...}}.
+# PERSON and TENSE indicate the particular person/number/gender/tense/mood
+# combination, using the codes passed to {{ar-verb-part-all|...}}.
+def create_verb_part(save, page, template, dicform, passive, person, tense):
+  if has_active_form(passive):
+    create_one_verb_part(save, page, template, dicform, "active", person,
+        tense)
+  if has_passive_form(passive):
+    create_one_verb_part(save, page, template, dicform, "passive", person,
+        tense)
+
+# Create all required verb parts for all verbs. If ALLFORMS is true, do *all*
+# verb parts (other than 3sm-perf, the dictionary form); otherwise, only do
+# only 3sm-impf, the corresponding non-past dictionary form. SAVE is true if
+# we should save the pages. STARTFROM and UPTO, if not None, delimit the
+# range of pages to process.
+def create_verb_parts(save, startFrom, upTo, allforms=False):
   for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
+        dicform = get_dicform(page, template)
         passive = get_passive(page, template)
-        if has_active_form(passive):
-          value = get_part_prop(page, template, "ar-verb-part-all|3sm-impf")
-          if value:
-            parts = re.split(",", value)
-            for part in parts:
-              create_non_past(save, part, page, template, "active")
-        if has_passive_form(passive):
-          value = get_part_prop(page, template, "ar-verb-part-all|3sm-ps-impf")
-          if value:
-            parts = re.split(",", value)
-            for part in parts:
-              create_non_past(save, part, page, template, "passive")
+        if allforms:
+          for person in persons:
+            for tense in tenses:
+              if not (person == "3sm" and tense == "perf"):
+                create_verb_part(save, page, template, dicform, passive,
+                    person, tense)
+        else:
+          create_verb_part(save, page, template, dicform, passive,
+            "3sm", "impf")
 
 pa = blib.init_argparser("Create Arabic inflections")
 pa.add_argument("-p", "--plural", action='store_true',
@@ -671,7 +720,9 @@ pa.add_argument("--verbal-noun", action='store_true',
 pa.add_argument("--participle", action='store_true',
     help="Do participle inflections")
 pa.add_argument("--non-past", action='store_true',
-    help="Do non-past inflections")
+    help="Do non-past dictionary-form inflections")
+pa.add_argument("--all-verb-part", action='store_true',
+    help="Do all verb part inflections")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -687,4 +738,6 @@ if params.verbal_noun:
 if params.participle:
   create_participles(params.save, startFrom, upTo)
 if params.non_past:
-  create_non_pasts(params.save, startFrom, upTo)
+  create_verb_parts(params.save, startFrom, upTo, allforms=False)
+if params.all_verb_part:
+  create_verb_parts(params.save, startFrom, upTo, allforms=True)
