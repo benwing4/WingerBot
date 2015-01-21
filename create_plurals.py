@@ -121,6 +121,9 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
   pl_no_vowels = pagename
   sing_no_vowels = remove_diacritics(singular)
   page = pywikibot.Page(site, pagename)
+  is_participle = plword.endswith("participle")
+  is_vn = plword == "verbal noun"
+  vn_or_participle = is_vn or is_participle
 
   # For singular قطعة and plural قطع, three different possible
   # sets of vocalizations. For this case, require that the
@@ -136,7 +139,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
       singular_plural_counts[sp_no_vowels], singword, sing_no_vowels, plword,
       pl_no_vowels))
     must_match_exactly = True
-  if plword == "verbal noun":
+  if vn_or_participle:
     must_match_exactly = True
 
   # Prepare parts of new entry to insert
@@ -202,16 +205,21 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
         subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
         for j in xrange(len(subsections)):
           match_pos = False
-          vn_match_noun = False
+          vn_pos_mismatch = False
           if j > 0 and (j % 2) == 0:
             if re.match("^===+%s===+\n" % pos, subsections[j - 1]):
               match_pos = True
-            if plword == "verbal noun" and re.match("^===+Noun===+\n" % pos,
+            if vn_or_participle and re.match("^===+Noun===+\n" % pos,
                 subsections[j - 1]):
-              vn_match_noun = True
+              vn_pos_mismatch = True
+              vn_mismatch_pos = "Noun"
+            if vn_or_participle and re.match("^===+Adjective===+\n" % pos,
+                subsections[j - 1]):
+              vn_pos_mismatch = True
+              vn_mismatch_pos = "Adjective"
 
           # Found a POS match
-          if match_pos or vn_match_noun:
+          if match_pos or vn_pos_mismatch:
             parsed = blib.parse_text(subsections[j])
 
             def compare_param(template, param, value):
@@ -260,9 +268,9 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
                 break
 
             def vn_noun_check():
-              if vn_match_noun:
-                pagemsg("WARNING: Found match for %s %s but in ===Noun=== section rather than ===Verbal noun==="
-                    % (plword, plural))
+              if vn_pos_mismatch:
+                pagemsg("WARNING: Found match for %s %s but in ===%s=== section rather than ===%s==="
+                    % (plword, plural, vn_mismatch_pos, pos))
 
             # We found both templates and their heads matched; inflection
             # entry is already present.
@@ -314,9 +322,10 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
                   plword, plural, singword, singular, pos)
               break
 
-            elif plword == "verbal noun":
+            elif vn_or_participle:
               # Found inflection headword template. Wrap definition with
-              # a {{ar-verbal noun of}} declaration.
+              # a {{ar-verbal noun of}} declaration (or equivalent for
+              # participles).
               if infl_headword_templates:
                 if len(infl_headword_templates) > 1:
                   pagemsg("found multiple inflection headword templates for %s %s; taking no action"
@@ -327,24 +336,27 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
                 # Check for i3rab in existing pl and remove it if so
                 check_remove_i3rab(infl_headword_template, plword)
 
-                # Now actually wrap with {{ar-verbal noun of}}.
+                # Now actually wrap with {{ar-verbal noun of}} (or equivalent
+                # for participles).
                 subsections[j] = unicode(parsed)
                 subsections[j] = re.sub("^#", r"##", subsections[j], 0, re.M)
                 subsections[j] = re.sub("^##",
-                    "# {{ar-verbal noun of|%s}}:\n##" % singword,
+                    "# {{%s|%s}}:\n##" % (singtemp, singword),
                     subsections[j], 1, re.M)
                 sections[i] = ''.join(subsections)
-                comment = "Wrap existing defn with {{ar-verbal noun of}}: %s %s, %s %s" % (
-                    plword, plural, singword, singular)
+                comment = "Wrap existing defn with {{%s}}: %s %s, %s %s" % (
+                    singtemp, plword, plural, singword, singular)
                 break
 
               else:
-                noun_headword_templates = [t for t in parsed.filter_templates()
-                    if t.name == "ar-noun" and compare_param(t, "1", plural)]
-                if noun_headword_templates:
-                  pagemsg("WARNING: found ar-noun matching %s %s" %
-                      (plword, plural))
-                  # FIXME: Should we break here?
+                for other_template in ["ar-noun", "ar-adj", "ar-part"]:
+                  other_headword_templates = [
+                      t for t in parsed.filter_templates()
+                      if t.name == other_template and compare_param(t, "1", plural)]
+                  if other_headword_templates:
+                    pagemsg("WARNING: found %s matching %s %s" %
+                        (other_template, plword, plural))
+                    # FIXME: Should we break here?
 
         else: # else of for loop, i.e. no break out of loop
           pagemsg("exists and has Arabic section, appending to end of section")
@@ -470,6 +482,15 @@ def create_feminines(save, pos, tempname, startFrom, upTo):
   return create_inflections(save, pos, tempname, startFrom, upTo,
       create_noun_feminine if pos == "Noun" else create_adj_feminine, "f")
 
+def expand_template(page, text):
+  # Make an expand-template call to expand the template text.
+  # The code here is based on the expand_text() function of the Page object.
+  req = pywikibot.data.api.Request(action="expandtemplates",
+      text = text,
+      title = page.title(withSection=False),
+      site = page.site)
+  return req.submit()["expandtemplates"]["*"]
+
 # Create a verbal noun entry, either creating a new page or adding to an
 # existing page. Do nothing if entry is already present. Only save changes
 # if SAVE is true. VN is the vocalized verbal noun; VERBPAGE is the Page
@@ -479,13 +500,9 @@ def create_feminines(save, pos, tempname, startFrom, upTo):
 # the end of the vn=... parameter in the conjugation template).
 def create_verbal_noun(save, vn, page, template, uncertain):
   # Make an expand-template call to convert the conjugation template to
-  # the dictionary form. The code here is based on the expand_text()
-  # function of the Page object.
-  req = pywikibot.data.api.Request(action="expandtemplates",
-      text = unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"),
-      title = page.title(withSection=False),
-      site = page.site)
-  dicform = req.submit()["expandtemplates"]["*"]
+  # the dictionary form.
+  dicform = expand_template(page,
+      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
 
   return create_inflection(save, vn, None, dicform, None, "Verbal noun",
     "verbal noun", "dictionary form", "ar-verbal noun", "ar-verbal noun of",
@@ -501,10 +518,46 @@ def create_verbal_nouns(save, startFrom, upTo):
           vnvalue = vnvalue[:-1]
           uncertain = True
         if not vnvalue:
-          continue
+          if not re.match("^[1I](-|$)", blib.getparam(template, "1")):
+            # Augmented verb. Fetch auto-generated verbal noun(s).
+            vnvalue = expand_template(page,
+                unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|vn|"))
+          else:
+            continue
         vns = re.split(u"[,،]", vnvalue)
         for vn in vns:
           create_verbal_noun(save, vn, page, template, uncertain)
+
+def create_participle(save, part, page, template, actpass):
+  # Make an expand-template call to convert the conjugation template to
+  # the dictionary form.
+  dicform = expand_template(page,
+      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+
+  return create_inflection(save, part, None, dicform, None, "Participle",
+    "%s participle" % actpass, "dictionary form", "ar-%s participle" % actpass,
+    "ar-%s participle of", "")
+
+def create_participles(save, startFrom, upTo):
+  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+    for template in blib.parse(page).filter_templates():
+      if template.name == "ar-conj":
+        passive = expand_template(page,
+          unicode(template).replace("{{ar-conj|", "{{ar-verb-prop|passive|"))
+        if passive in ["yes", "impers", "no"]:
+          apvalue = expand_template(page,
+            unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|ap|"))
+          if apvalue:
+            aps = re.split(",", apvalue)
+            for ap in aps:
+              create_participle(save, ap, page, template, "active")
+        if passive != "no":
+          ppvalue = expand_template(page,
+            unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|pp|"))
+          if ppvalue:
+            pps = re.split(",", ppvalue)
+            for pp in pps:
+              create_participle(save, pp, page, template, "passive")
 
 pa = blib.init_argparser("Create Arabic inflections")
 pa.add_argument("-p", "--plural", action='store_true',
@@ -513,6 +566,8 @@ pa.add_argument("-f", "--feminine", action='store_true',
     help="Do feminine inflections")
 pa.add_argument("--verbal-noun", action='store_true',
     help="Do verbal noun inflections")
+pa.add_argument("--participle", action='store_true',
+    help="Do participle inflections")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -525,3 +580,5 @@ if params.feminine:
   create_feminines(params.save, "Adjective", "ar-adj", startFrom, upTo)
 if params.verbal_noun:
   create_verbal_nouns(params.save, startFrom, upTo)
+if params.participle:
+  create_participles(params.save, startFrom, upTo)
