@@ -88,7 +88,9 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
 
   # Remove trailing -un/-u i3rab from inflected and base form
 
-  def remove_i3rab(singpl, word, nowarn=False):
+  def maybe_remove_i3rab(singpl, word, nowarn=False, noremove=False):
+    if noremove:
+      return word
     def mymsg(text):
       if not nowarn:
         pagemsg(text)
@@ -106,8 +108,13 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
       word = ALIF + word[1:]
     return word
 
-  singular = remove_i3rab(singword, singular)
-  plural = remove_i3rab(plword, plural)
+  is_participle = plword.endswith("participle")
+  is_vn = plword == "verbal noun"
+  is_verb_form = pos == "Verb"
+  vn_or_participle = is_vn or is_participle
+
+  singular = maybe_remove_i3rab(singword, singular, noremove=is_verb_form)
+  plural = maybe_remove_i3rab(plword, plural, noremove=is_verb_form)
 
   if plural == "-":
     pagemsg("Not creating %s entry - for %s %s%s" % (
@@ -121,15 +128,17 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
   pl_no_vowels = pagename
   sing_no_vowels = remove_diacritics(singular)
   page = pywikibot.Page(site, pagename)
-  is_participle = plword.endswith("participle")
-  is_vn = plword == "verbal noun"
-  vn_or_participle = is_vn or is_participle
 
   # For singular قطعة and plural قطع, three different possible
   # sets of vocalizations. For this case, require that the
   # existing versions match exactly, rather than matching with
   # removed diacritics.
-  must_match_exactly = plword == "plural" and pl_no_vowels == u"قطع" and sing_no_vowels == u"قطعة"
+  #
+  # This should now be handled by the general code to detect cases
+  # where multiple lemmas that are the same when unvocalized have
+  # plurals that are the same when unvocalized.
+  # must_match_exactly = plword == "plural" and pl_no_vowels == u"قطع" and sing_no_vowels == u"قطعة"
+  must_match_exactly = False
 
   sp_no_vowels = (sing_no_vowels, pl_no_vowels)
   singular_plural_counts[sp_no_vowels] = \
@@ -139,7 +148,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
       singular_plural_counts[sp_no_vowels], singword, sing_no_vowels, plword,
       pl_no_vowels))
     must_match_exactly = True
-  if vn_or_participle:
+  if vn_or_participle or is_verb_form:
     must_match_exactly = True
 
   # Prepare parts of new entry to insert
@@ -225,17 +234,19 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
             def compare_param(template, param, value):
               # In place of unknown we should put plword or singword but it
               # doesn't matter because of nowarn.
-              paramval = remove_i3rab("unknown",
-                  blib.getparam(template, param), nowarn=True)
+              paramval = blib.getparam(template, param)
+              paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
+                  noremove=is_verb_form)
               if must_match_exactly:
                 return paramval == value
               else:
                 return remove_diacritics(paramval) == remove_diacritics(value)
 
-            def check_remove_i3rab(template, sgplword):
+            def check_maybe_remove_i3rab(template, sgplword):
               # Check for i3rab in existing sg or pl and remove it if so
               existing = blib.getparam(template, "1")
-              existing_no_i3rab = remove_i3rab(sgplword, existing)
+              existing_no_i3rab = maybe_remove_i3rab(sgplword, existing,
+                  noremove=is_verb_form)
               if existing != existing_no_i3rab:
                 notes.append("removed %s i3rab" % sgplword)
                 template.add("1", existing_no_i3rab)
@@ -293,10 +304,12 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
               infl_headword_template = infl_headword_templates[0]
 
               # Check for i3rab in existing pl and remove it if so
-              existing_pl = check_remove_i3rab(infl_headword_template, plword)
+              existing_pl = \
+                  check_maybe_remove_i3rab(infl_headword_template, plword)
 
               # Check for i3rab in existing sing and remove it if so
-              existing_sing = check_remove_i3rab(infl_of_template, singword)
+              existing_sing = \
+                  check_maybe_remove_i3rab(infl_of_template, singword)
 
               # Replace existing pl with new one
               if len(plural) > len(existing_pl):
@@ -334,7 +347,7 @@ def create_inflection(save, plural, pltr, singular, singtr, pos,
                 infl_headword_template = infl_headword_templates[0]
 
                 # Check for i3rab in existing pl and remove it if so
-                check_remove_i3rab(infl_headword_template, plword)
+                check_maybe_remove_i3rab(infl_headword_template, plword)
 
                 # Now actually wrap with {{ar-verbal noun of}} (or equivalent
                 # for participles).
@@ -491,11 +504,17 @@ def expand_template(page, text):
       site = page.site)
   return req.submit()["expandtemplates"]["*"]
 
-def get_dicform(page, template):
+def get_part_prop(page, template, prefix):
   # Make an expand-template call to convert the conjugation template to
-  # the dictionary form.
+  # the desired form or property.
   return expand_template(page,
-      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+      unicode(template).replace("{{ar-conj|", "{{%s|" % prefix))
+
+def get_dicform(page, template):
+  return get_part_prop(page, template, "ar-past3sm")
+
+def get_passive(page, template):
+  return get_part_prop(page, template, "ar-verb-prop|passive")
 
 def has_active_form(passive):
   return passive in ["yes", "impers", "no"]
@@ -503,15 +522,13 @@ def has_active_form(passive):
 def has_passive_form(passive):
   return passive != "no"
 
-#{{inflection of|FOO||lang=ar|3rd|sing|masc|non-past|active|indicative}}
 #def get_impf_dicform_all(page, template):
-#  passive = expand_template(page,
-#      unicode(template).replace("{{ar-conj|", "{{ar-verb-prop|passive|"))
+#  passive = get_passive(page, template)
 #  if has_active_form(passive):
-#    impf_dicform = expand_template(page,
-#      unicode(template).replace("{{ar-conj|", "{{ar-verb-part|3sm-impf|"))
-#  return expand_template(page,
-#      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+#    impf_dicform = get_part_prop("ar-verb-part-all|3sm-impf")
+#  else:
+#    impf_dicform = get_part_prop("ar-verb-part-all|3sm-ps-impf")
+#  return re.split(",", impf_dicform)
 
 # Create a verbal noun entry, either creating a new page or adding to an
 # existing page. Do nothing if entry is already present. Only save changes
@@ -539,8 +556,7 @@ def create_verbal_nouns(save, startFrom, upTo):
         if not vnvalue:
           if not re.match("^[1I](-|$)", blib.getparam(template, "1")):
             # Augmented verb. Fetch auto-generated verbal noun(s).
-            vnvalue = expand_template(page,
-                unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|vn|"))
+            vnvalue = get_part_prop(page, template, "ar-verb-part-all|vn")
           else:
             continue
         vns = re.split(u"[,،]", vnvalue)
@@ -558,22 +574,44 @@ def create_participles(save, startFrom, upTo):
   for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
-        passive = expand_template(page,
-          unicode(template).replace("{{ar-conj|", "{{ar-verb-prop|passive|"))
+        passive = get_passive(page, template)
         if has_active_form(passive):
-          apvalue = expand_template(page,
-            unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|ap|"))
+          apvalue = get_part_prop(page, template, "ar-verb-part-all|ap")
           if apvalue:
             aps = re.split(",", apvalue)
             for ap in aps:
               create_participle(save, ap, page, template, "active")
         if has_passive_form(passive):
-          ppvalue = expand_template(page,
-            unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|pp|"))
+          ppvalue = get_part_prop(page, template, "ar-verb-part-all|pp")
           if ppvalue:
             pps = re.split(",", ppvalue)
             for pp in pps:
               create_participle(save, pp, page, template, "passive")
+
+def create_non_past(save, part, page, template, actpass):
+  dicform = get_dicform(page, template)
+
+  return create_inflection(save, part, None, dicform, None, "Verb",
+    "%s non-past" % actpass, "dictionary form", "ar-verb form",
+    "inflection of", "||lang=ar|3|s|m|non-past|%s|indicative" % actpass)
+
+def create_non_pasts(save, startFrom, upTo):
+  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+    for template in blib.parse(page).filter_templates():
+      if template.name == "ar-conj":
+        passive = get_passive(page, template)
+        if has_active_form(passive):
+          value = get_part_prop(page, template, "ar-verb-part-all|3sm-impf")
+          if value:
+            parts = re.split(",", value)
+            for part in parts:
+              create_non_past(save, part, page, template, "active")
+        if has_passive_form(passive):
+          value = get_part_prop(page, template, "ar-verb-part-all|3sm-ps-impf")
+          if value:
+            parts = re.split(",", value)
+            for part in parts:
+              create_non_past(save, part, page, template, "passive")
 
 pa = blib.init_argparser("Create Arabic inflections")
 pa.add_argument("-p", "--plural", action='store_true',
@@ -584,6 +622,8 @@ pa.add_argument("--verbal-noun", action='store_true',
     help="Do verbal noun inflections")
 pa.add_argument("--participle", action='store_true',
     help="Do participle inflections")
+pa.add_argument("--non-past", action='store_true',
+    help="Do non-past inflections")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -598,3 +638,5 @@ if params.verbal_noun:
   create_verbal_nouns(params.save, startFrom, upTo)
 if params.participle:
   create_participles(params.save, startFrom, upTo)
+if params.non_past:
+  create_non_pasts(params.save, startFrom, upTo)
