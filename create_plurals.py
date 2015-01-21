@@ -38,6 +38,9 @@ ALIF = u"ا"
 ALIF_WASLA = u"ٱ"
 ALIF_ANY = "[" + ALIF + ALIF_WASLA + "]"
 
+UUN = U + u"ون"
+UUNA = UUN + A
+
 def remove_diacritics(word):
   return re.sub(DIACRITIC_ANY, "", word)
 
@@ -104,6 +107,9 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
     if word.endswith(U):
       mymsg("Removing i3rab (U) from %s" % singpl)
       return re.sub(U + "$", "", word)
+    if word.endswith(UUNA):
+      mymsg("Removing i3rab (UUNA -> UUN) from %s" % singpl)
+      return re.sub(UUNA + "$", UUN, word)
     if word and word[-1] in [A, I, U, AN]:
       mymsg("FIXME: Strange diacritic at end of %s %s" % (singpl, word))
     if word[0] == ALIF_WASLA:
