@@ -1,9 +1,9 @@
 --[[
 
 Author: User:Benwing, from early version by User:Atitarev, User:ZxxZxxZ
- 
+
 Todo:
- 
+
 1. Finish unimplemented conjugation types. Only IX-final-weak left (extremely
    rare, possibly only one verb اِعْمَايَ (according to Haywood and Nahmad p. 244,
    who are very specific about the irregular occurrence of alif + yā instead
@@ -232,6 +232,12 @@ function reorder_shadda(word)
 	return word
 end
 
+-- synthesize a frame so that exported functions meant to be called from
+-- templates can be called from the debug console.
+function debug_frame(parargs, args)
+	return {args = args, getParent = function() return {args = parargs} end}
+end
+
 ---------------------------------------
 -- Properties of different verbal forms
 ---------------------------------------
@@ -340,7 +346,7 @@ local past_endings = {
 	SK .. "تُن" .. SH .. A, UU .. ALIF, SK .. "نَ"
 }
 
--- make endings for final-weak past in -aytu or -awtu. AYAW is AY or AW 
+-- make endings for final-weak past in -aytu or -awtu. AYAW is AY or AW
 -- as appropriate. Note that AA and AW are global variables.
 local function make_past_endings_ay_aw(ayaw, third_sg_masc)
 	return {
@@ -431,7 +437,7 @@ local indic_endings = make_nonpast_endings(
 
 -- make the endings for non-past subjunctive/jussive, given the vowel diacritic
 -- used in "null" endings (1s/2sm/3sm/3sf/1p)
-local function make_subj_juss_endings(dia_null) 
+local function make_subj_juss_endings(dia_null)
 	return make_nonpast_endings(
 	dia_null,
 	I .. "ي",
@@ -564,22 +570,23 @@ local impr_endings_uu = imperative_endings_from_jussive(juss_endings_uu)
 -- Main conjugation functions
 -----------------------------
 
--- Implement {{ar-conj}}.
-function export.show(frame)
+function get_args(frame)
 	local origargs = frame:getParent().args
 	local args = {}
 	-- Convert empty arguments to nil, and "" or '' arguments to empty
 	for k, v in pairs(origargs) do
 		args[k] = ine(v)
 	end
-	
-	local conj_type = args[1] or
-		error("Form (conjugation type) has not been specified. " ..
-			"Please pass parameter 1 to the template invocation.")
+	return origargs, args
+end
+
+-- Implement {{ar-conj}}.
+function export.show(frame)
+	local origargs, args = get_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 2, conj_type)
-	
+		conjugate(args, "1", 2)
+
 	-- if the value is "yes" or variants, the verb is intransitive;
 	-- if the value is "no" or variants, the verb is transitive.
 	-- If not specified, default is intransitive if passive == false or
@@ -607,7 +614,7 @@ function export.show(frame)
 	if data.passive == "only" or data.passive == "only-impers" then
 		title = title .. " passive"
 	end
-	
+
 	if data.irregular then
 		table.insert(data.categories, "Arabic irregular verbs")
 		title = title .. " irregular"
@@ -618,26 +625,16 @@ function export.show(frame)
 end
 
 -- Version of main entry point meant for calling from the debug console.
-function export.show2(args, parargs)
-	local frame = {args = args, getParent = function() return {args = parargs} end}
-	return export.show(frame)
+function export.show2(parargs, args)
+	return export.show(debug_frame(parargs, args))
 end
 
 -- TODO: Move this into [[Module:ar-headword]]
 function export.headword(frame)
-	local origargs = frame:getParent().args
-	local args = {}
-	-- Convert empty arguments to nil, and "" or '' arguments to empty
-	for k, v in pairs(origargs) do
-		args[k] = ine(v)
-	end
-	
-	local conj_type = args['form'] or
-		error("Form (conjugation type) has not been specified. " ..
-			"Please pass a value to parameter form= in the template invocation.")
+	local origargs, args = get_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 1, conj_type)
+		conjugate(args, "form", 1)
 	local use_params = form == "I" or args["useparam"]
 
 	local arabic_3sm_perf, latin_3sm_perf
@@ -721,34 +718,19 @@ function export.headword(frame)
 		m_headword.full_headword(lang, nil, head, tr, nil, nil, {"Arabic verbs"}, args["sort"]) ..
 		form_text .. impf_text ..
 		m_utilities.format_categories(data.headword_categories, lang)
-end	
-
--- Version of headword entry point meant for calling from the debug console.
-function export.headword2(args, parargs)
-	local frame = {args = args, getParent = function() return {args = parargs} end}
-	return export.headword(frame)
 end
 
--- Generate the 3rd singular masculine past tense (the dictionary form), given
--- the form, radicals and (for form I) past/non-past vowels (the non-past
--- vowel is ignored, but specified for compatibility with export.headword()
--- and export.show()). Form, radicals, past/non-past vowel arguments are the
--- same as for export.show(). If there are multiple alternatives,
--- return only the first one.
-function export.past3sm(frame)
-	local origargs = frame:getParent().args
-	local args = {}
-	-- Convert empty arguments to nil, and "" or '' arguments to empty
-	for k, v in pairs(origargs) do
-		args[k] = ine(v)
-	end
-	
-	local conj_type = args[1] or
-		error("Form (conjugation type) has not been specified. " ..
-			"Please pass a value to parameter 1 in the template invocation.")
+-- Version of headword entry point meant for calling from the debug console.
+function export.headword2(parargs, args)
+	return export.headword(debug_frame(parargs, args))
+end
+
+-- Implementation of export.past3sm() and export.past3sm_all().
+function past3sm(frame, doall)
+	local origargs, args = get_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 2, conj_type)
+		conjugate(args, "1", 2)
 
 	local arabic_3sm_perf, latin_3sm_perf
 	if data.passive == "only" or data.passive == "only-impers" then
@@ -757,54 +739,161 @@ function export.past3sm(frame)
 		arabic_3sm_perf, latin_3sm_perf = get_spans(data.forms["3sm-perf"])
 	end
 
-	return arabic_3sm_perf[1]
+	if doall then
+		return table.concat(arabic_3sm_perf, ",")
+	else
+		return arabic_3sm_perf[1]
+	end
+end
+
+-- Generate the 3rd singular masculine past tense (the dictionary form), given
+-- the form, radicals and (for form I) past/non-past vowels (the non-past
+-- vowel is ignored, but specified for compatibility with export.headword()
+-- and export.show()). Form, radicals, past/non-past vowel arguments are the
+-- same as for export.show(). Note that the form returned may be active or
+-- passive depending on the passive= param (some values specify that the
+-- verb is a passive-only verb). If there are multiple alternatives,
+-- return only the first one.
+function export.past3sm(frame)
+	return past3sm(frame, false)
 end
 
 -- Version of past3sm entry point meant for calling from the debug console.
-function export.past3sm2(args, parargs)
-	local frame = {args = args, getParent = function() return {args = parargs} end}
-	return export.past3sm(frame)
+function export.past3sm2(parargs, args)
+	return export.past3sm(debug_frame(parargs, args))
+end
+
+-- Same as export.past3sm() but return all possible values, separated by
+-- a comma. Multiple values largely come from alternative hamza seats.
+function export.past3sm_all(frame)
+	return past3sm(frame, true)
+end
+
+-- Version of past3sm_all entry point meant for calling from the debug console.
+function export.past3sm_all2(parargs, args)
+	return export.past3sm_all(debug_frame(parargs, args))
+end
+
+-- Implementation of export.verb_part() and export.verb_part_all().
+function verb_part(frame, doall)
+	local origargs, args = get_args(frame)
+
+	local part = args[1]
+	local data, form, weakness, past_vowel, nonpast_vowel =
+		conjugate(args, "2", 3)
+	local arabic, latin = get_spans(data.forms[part])
+
+	if doall then
+		return table.concat(arabic, ",")
+	else
+		return arabic[1]
+	end
 end
 
 -- TODO: Move this into [[Module:ar-headword]]
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return only the first one.
 function export.verb_part(frame)
-	local origargs = frame:getParent().args
-	local args = {}
-	-- Convert empty arguments to nil, and "" or '' arguments to empty
-	for k, v in pairs(origargs) do
-		args[k] = ine(v)
-	end
-	
-	local part = args[1]
-	local conj_type = args[2] or
-		error("Form (conjugation type) has not been specified. " ..
-			"Please pass a value to parameter 2 in the template invocation.")
-
-	local data, form, weakness, past_vowel, nonpast_vowel = 
-		conjugate(args, 3, conj_type)
-
-	local arabic, latin = get_spans(data.forms[part])
-
-	return arabic[1]
+	return verbpart(frame, false)
 end
 
 -- Version of verb_part entry point meant for calling from the debug console.
-function export.verb_part2(args, parargs)
-	local frame = {args = args, getParent = function() return {args = parargs} end}
-	return export.verb_part(frame)
+function export.verb_part2(parargs, args)
+	return export.verb_part(debug_frame(parargs, args))
+end
+
+-- TODO: Move this into [[Module:ar-headword]]
+-- Generate an arbitrary part of the verbal paradigm. If there are multiple
+-- possible alternatives, return all, separated by commas.
+function export.verb_part_all(frame)
+	return verbpart(frame, true)
+end
+
+-- Version of verb_part_all entry point meant for calling from the debug
+-- console.
+function export.verb_part_all2(parargs, args)
+	return export.verb_part_all(debug_frame(parargs, args))
+end
+
+-- Return a property of the conjugation other than a verb part.
+function export.verb_prop(frame)
+	local origargs, args = get_args(frame)
+
+	local prop = args[1]
+	local data, form, weakness, past_vowel, nonpast_vowel =
+		conjugate(args, "2", 3)
+	if prop == "form" then
+		return form
+	elseif prop == "weakness" then
+		return weakness
+	elseif prop == "form-weakness" then
+		return form .. "-" .. weakness
+	elseif prop == "past-vowel" then
+		return table.concat(past_vowel, ",")
+	elseif prop == "nonpast-vowel" then
+		return table.concat(nonpast_vowel, ",")
+	elseif prop == "rad1" then
+		return data.rad1 or ""
+	elseif prop == "rad2" then
+		return data.rad2 or ""
+	elseif prop == "rad3" then
+		return data.rad3 or ""
+	elseif prop == "rad4" then
+		return data.rad4 or ""
+	elseif prop == "unreg-rad1" then
+		return data.unreg_rad1 or ""
+	elseif prop == "unreg-rad2" then
+		return data.unreg_rad2 or ""
+	elseif prop == "unreg-rad3" then
+		return data.unreg_rad3 or ""
+	elseif prop == "unreg-rad4" then
+		return data.unreg_rad4 or ""
+	elseif prop == "radicals" then
+		return table.concat({data.rad1, data.rad2, data.rad3, data.rad4}, ",")
+	elseif prop == "unreg-radicals" then
+		return table.concat({data.unreg_rad1, data.unreg_rad2,
+		data.unreg_rad3, data.unreg_rad4}, ",")
+	elseif prop == "passive" then
+		return data.passive == true and "yes" or not data.passive and "no"
+			or data.passive
+	elseif prop == "passive-uncertain" then
+		return data.passive_uncertain and "yes" or "no"
+	elseif prop == "vn-uncertain" then
+		return data.vn_uncertain and "yes" or "no"
+	elseif prop == "irregular" then
+		return data.irregular and "yes" or "no"
+	--elseif prop == "intrans" then
+	--	return data.intrans
+	else
+		error("Unrecognized property '" .. prop .. "'")
+	end
+end
+
+-- Version of verb_prop entry point meant for calling from the debug console.
+function export.verb_prop2(parargs, args)
+	return export.verb_prop(debug_frame(parargs, args))
 end
 
 -- Guts of conjugation functions. Shared between {{temp|ar-conj}} and
--- {{temp|ar-verb}}. ARGS is the frame parent arguments, ARGIND is the index
--- of the first numbered argument after any verb-form argument, and
--- CONJ_TYPE is the value of the verb-form argument.
-function conjugate(args, argind, conj_type)
+-- {{temp|ar-verb}}, among others. ARGS is the frame parent arguments,
+-- FORMARG is the name of the argument holding the verb form, and
+-- ARGIND is the index of the first numbered argument after any verb-form
+-- argument. (The first such argument holds the past vowel if the form is
+-- I, and else the first radical.) Return five values:
+-- DATA, FORM, WEAKNESS, PAST_VOWEL, NONPAST_VOWEL. The last two are
+-- arrays of vowels (each one 'a', 'i' or 'u'), since there may be more
+-- than one, or none in the case of non-form-I verbs.
+function conjugate(args, formarg, argind)
 	local data = {forms = {}, categories = {}, headword_categories = {}}
 
 	PAGENAME = mw.title.getCurrentTitle().text
 	NAMESPACE = mw.title.getCurrentTitle().nsText
+
+	local conj_type = args[formarg] or
+		error("Form (conjugation type) has not been specified. " ..
+			"Please pass a value to parameter " .. (
+			rfind(formarg, "^[0-9]") and formarg or (formarg .. "=")) ..
+			" in the template invocation.")
 
 	-- derive form and weakness from conj type
 	local form, weakness
@@ -817,13 +906,13 @@ function conjugate(args, argind, conj_type)
 		form = conj_type
 		weakness = nil
 	end
-	
+
 	-- convert numeric forms to Roman numerals
 	form = canonicalize_form(form)
-	
+
 	-- check for quadriliteral form (Iq, IIq, IIIq, IVq)
 	local quadlit = rmatch(form, "q$")
-	
+
 	-- get radicals and past/non-past vowel
 	local rad1, rad2, rad3, rad4, past_vowel, nonpast_vowel
 	if form == "I" then
@@ -927,7 +1016,7 @@ function conjugate(args, argind, conj_type)
 	data.unreg_rad2 = rad2
 	data.unreg_rad3 = rad3
 	data.unreg_rad4 = rad4
-	
+
 	-- Convert the Latin radicals indicating ambiguity into the corresponding
 	-- Arabic radicals.
 	local function regularize_inferred_radical(rad)
@@ -946,9 +1035,14 @@ function conjugate(args, argind, conj_type)
 	rad2 = regularize_inferred_radical(rad2)
 	rad3 = regularize_inferred_radical(rad3)
 	rad4 = regularize_inferred_radical(rad4)
-	
+
+	data.rad1 = rad1
+	data.rad2 = rad2
+	data.rad3 = rad3
+	data.rad4 = rad4
+
 	-- Old code, default radicals to ف-ع-ل or variants.
-	
+
 	--if not quadlit then
 	--	-- default radicals to ف-ع-ل (or ف-ل-ل for geminate, or with the
 	--	-- appropriate radical replaced by wāw for assimilated/hollow/final-weak)
@@ -1019,9 +1113,11 @@ function conjugate(args, argind, conj_type)
 	-- and form is I.
 	if check_for_uncertainty("vn") or form == "I" and not args["vn"] then
 		table.insert(data.categories, "Arabic verbs needing verbal noun checked")
+		data.vn_uncertain = true
 	end
 	if check_for_uncertainty("passive") then
 		table.insert(data.categories, "Arabic verbs needing passive checked")
+		data.passive_uncertain = true
 	end
 
 	-- parse value of passive.
@@ -1129,7 +1225,7 @@ function export.infer_radicals(headword, form)
 	for i = 1, len do
 		table.insert(letters, usub(headword, i, i))
 	end
-	
+
 	-- check that the letter at the given index is the given string, or
 	-- is one of the members of the given array
 	local function check(index, must)
@@ -1160,7 +1256,7 @@ function export.infer_radicals(headword, form)
 	end
 
 	local quadlit = rmatch(form, "q$")
-	
+
 	-- find first radical, start of second/third radicals, check for
 	-- required letters
 	local radstart, rad1, rad2, rad3, rad4
@@ -1423,7 +1519,7 @@ function export.infer_radicals(headword, form)
 	rad2 = convert(rad2, 2)
 	rad3 = convert(rad3, 3)
 	rad4 = convert(rad4, 4)
-	
+
 	return weakness, rad1, rad2, rad3, rad4
 end
 
@@ -1553,7 +1649,7 @@ function initialize_categories(data, form, weakness, rad1, rad2, rad3, rad4)
 		table.insert(data.headword_categories, "Arabic " .. fw .. " form-" .. form .. " verbs")
 		table.insert(data.headword_categories, "Arabic " .. fw .. " verbs")
 	end
-	
+
 
 	local function radical_is_ambiguous(rad)
 		return rad == "t" or rad == "w" or rad == "y"
@@ -1588,7 +1684,7 @@ function initialize_categories(data, form, weakness, rad1, rad2, rad3, rad4)
 		table.insert(data.headword_categories, "Arabic form-" .. form ..
 			" verbs with " .. ur4 .. " as fourth radical")
 	end
-	
+
 	if data.passive == "only" then
 		table.insert(data.categories, "Arabic passive-only verbs")
 		table.insert(data.categories, "Arabic verbs with full passive")
@@ -1675,7 +1771,7 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	-- Verbal nouns (maṣādir) for form I are unpredictable and have to be supplied
 	insert_verbal_noun(data, args, {})
 
-	-- past and non-past stems, active and passive 
+	-- past and non-past stems, active and passive
 	local past_stem = rad1 .. A .. rad2 .. dia[past_vowel] .. rad3
 	local nonpast_stem = assimilated and rad2 .. dia[nonpast_vowel] .. rad3 or
 		rad1 .. SK .. rad2 .. dia[nonpast_vowel] .. rad3
@@ -1684,7 +1780,7 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 
 	-- determine the imperative vowel based on non-past vowel
 	local imper_vowel = imper_vowel_from_nonpast(nonpast_vowel)
-	
+
 	-- imperative stem
 	-- check for irregular verb with reduced imperative (أَخَذَ or أَكَلَ or أَمَرَ)
 	local reducedimp = reduced_imperative_verb(rad1, rad2, rad3)
@@ -1716,7 +1812,7 @@ local function make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
 	-- passive participle
 	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 .. U .. "و" .. rad3 .. UNS)
 end
-	
+
 conjugations["I-sound"] = function(data, args, rad1, rad2, rad3,
 		past_vowel, nonpast_vowel)
 	make_form_i_sound_assimilated_verb(data, args, rad1, rad2, rad3,
@@ -1792,7 +1888,7 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 		make_form_i_hayy_verb(data, args)
 		return
 	end
-	
+
 	-- need to provide two vowels - past and non-past
 	local past_vowel = past_vowel or "a"
 	local nonpast_vowel = nonpast_vowel or past_vowel == "i" and "a" or
@@ -1862,7 +1958,7 @@ local function make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
 	insert_part(data, "pp", MA .. rad1 .. SK .. rad2 ..
 		(rad3 == Y and II or UU) .. SH .. UNS)
 end
-	
+
 conjugations["I-final-weak"] = function(data, args, rad1, rad2, rad3,
 		past_vowel, nonpast_vowel)
 	make_form_i_final_weak_verb(data, args, rad1, rad2, rad3,
@@ -1928,7 +2024,7 @@ conjugations["I-hollow"] = function(data, args, rad1, rad2, rad3,
 	make_hollow_geminate_verb(data, past_v_stem, past_c_stem, ps_past_v_stem,
 		ps_past_c_stem, nonpast_v_stem, nonpast_c_stem, ps_nonpast_v_stem,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", false)
-	
+
 	-- active participle
 	insert_part(data, "ap", rad3 == HAMZA and rad1 .. AA .. HAMZA .. IN or
 		rad1 .. AA .. HAMZA .. I .. rad3 .. UNS)
@@ -1977,7 +2073,7 @@ conjugations["I-geminate"] = function(data, args, rad1, rad2, rad3,
 	make_hollow_geminate_verb(data, past_v_stem, past_c_stem, ps_past_v_stem,
 		ps_past_c_stem, nonpast_v_stem, nonpast_c_stem, ps_nonpast_v_stem,
 		ps_nonpast_c_stem, imper_v_stem, imper_c_stem, "a", "geminate")
-	
+
 	-- active participle
 	insert_part(data, "ap", rad1 .. AA .. rad2 .. SH .. UNS)
 	-- passive participle
@@ -2061,7 +2157,7 @@ function make_form_iii_vi_geminate_verb(data, args, rad1, rad2, form)
 	-- make parts
 	make_augmented_geminate_verb(data, args, rad2,
 		past_stem_base, nonpast_stem_base, ps_past_stem_base, vn, form)
-	
+
 	-- Also add alternative sound (non-compressed) parts. This will lead to
 	-- some duplicate entries, but they are removed in get_spans().
 	make_form_iii_vi_sound_final_weak_verb(data, args, rad1, rad2, rad2, form)
@@ -2078,7 +2174,7 @@ function make_form_iv_sound_final_weak_verb(data, args, rad1, rad2, rad3)
 
 	-- core of stem base, minus stem prefixes
 	local stem_core
-	
+
 	-- check for irregular verb أَرَى
 	if raa_radicals(rad1, rad2, final_weak and Y or rad3) then
 		data.irregular = true
@@ -2171,7 +2267,7 @@ end
 -- Some of these consonants in certain verb parts are w's, which leads to apparent
 -- anomalies in certain stems of these parts, but these anomalies are handled
 -- automatically in postprocessing, where we resolve sequences of iwC -> īC,
--- uwC -> ūC, w + sukūn + w -> w + shadda. 
+-- uwC -> ūC, w + sukūn + w -> w + shadda.
 --
 -- RAD12 is the first consonant cluster (after initial اِ) and RAD34 is the
 -- second consonant cluster. RAD5 is the final consonant, or nil for final-weak
@@ -2360,7 +2456,7 @@ end
 -- vowels. Some of these consonants in certain verb parts are w's, which leads to
 -- apparent anomalies in certain stems of these parts, but these anomalies
 -- are handled automatically in postprocessing, where we resolve sequences of
--- iwC -> īC, uwC -> ūC, w + sukūn + w -> w + shadda. 
+-- iwC -> īC, uwC -> ūC, w + sukūn + w -> w + shadda.
 function make_high5_form_sound_final_weak_verb(data, args, rad1, rad2, rad3, rad4, rad5, form)
 	make_high_form_sound_final_weak_verb(data, args, rad1 .. SK .. rad2,
 		rad3 .. SK .. rad4, rad5, form)
@@ -2931,8 +3027,8 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 	local form56 = form_nonpast_a_vowel(form)
 	local a_base_suffix = final_weak and "" or A .. rad3
 	local i_base_suffix = final_weak and "" or I .. rad3
-	
-	-- past and non-past stems, active and passive 
+
+	-- past and non-past stems, active and passive
 	local past_stem = past_stem_base .. a_base_suffix
 	local nonpast_stem = nonpast_stem_base ..
 		(form56 and a_base_suffix or i_base_suffix)
@@ -2946,7 +3042,7 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 	if final_weak then
 		make_augmented_final_weak_verb(data, past_stem, ps_past_stem, nonpast_stem,
 			ps_nonpast_stem, imper_stem, prefix_vowel, form56)
-	else	
+	else
 		make_sound_verb(data, past_stem, ps_past_stem, nonpast_stem,
 			ps_nonpast_stem, imper_stem, prefix_vowel)
 	end
@@ -3004,12 +3100,12 @@ function make_augmented_hollow_verb(data, args, rad3,
 
 	local a_base_suffix_v, a_base_suffix_c
 	local i_base_suffix_v, i_base_suffix_c
-	
+
 	a_base_suffix_v = AA .. rad3         -- 'af-āl-a, inf-āl-a
 	a_base_suffix_c = A .. rad3      -- 'af-al-tu, inf-al-tu
 	i_base_suffix_v = II .. rad3         -- 'uf-īl-a, unf-īl-a
 	i_base_suffix_c = I .. rad3      -- 'uf-il-tu, unf-il-tu
-	
+
 	-- past and non-past stems, active and passive, for vowel-initial and
 	-- consonant-initial endings
 	local past_v_stem = past_stem_base .. a_base_suffix_v
@@ -3061,7 +3157,7 @@ function make_augmented_geminate_verb(data, args, rad3,
 
 	local a_base_suffix_v, a_base_suffix_c
 	local i_base_suffix_v, i_base_suffix_c
-	
+
 	if form == "IV" or form == "X" or form == "IVq" then
 		a_base_suffix_v = A .. rad3 .. SH         -- 'af-all
 		a_base_suffix_c = SK .. rad3 .. A .. rad3  -- 'af-lal
@@ -3073,7 +3169,7 @@ function make_augmented_geminate_verb(data, args, rad3,
 		i_base_suffix_v = rad3 .. SH         -- yufā-ll, yanfa-ll
 		i_base_suffix_c = rad3 .. I .. rad3  -- yufā-lil, yanfa-lil
 	end
-	
+
 	-- past and non-past stems, active and passive, for vowel-initial and
 	-- consonant-initial endings
 	local past_v_stem = past_stem_base .. a_base_suffix_v
@@ -3604,7 +3700,7 @@ function make_table(data, title, form, intrans)
 
 	return rsub(text, "{{{([^{}]+)}}}", repl)
 end
- 
+
 return export
 
 -- For Vim, so we get 4-space tabs
