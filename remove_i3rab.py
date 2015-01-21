@@ -112,7 +112,7 @@ def do_verbs(save, startFrom, upTo):
         vns = re.split(u"[,،]", vnvalue)
         form = blib.getparam(template, "1")
         verbid = "#%s form %s" % (verbcount, form)
-        if form == "I" or form == "1":
+        if re.match("^[1I](-|$)", form):
           verbid += " (%s,%s)" % (blib.getparam(template, "2"), blib.getparam(template, "3"))
         no_i3rab_vns = []
         for vn in vns:
