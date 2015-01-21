@@ -19,27 +19,46 @@ import re
 import blib, pywikibot
 from blib import msg
 
+numeric_to_roman_form = {
+  "1":"I", "2":"II", "3":"III", "4":"IV", "5":"V",
+  "6":"VI", "7":"VII", "8":"VIII", "9":"IX", "10":"X",
+  "11":"XI", "12":"XII", "13":"XIII", "14":"XIV", "15":"XV",
+  "1q":"Iq", "2q":"IIq", "3q":"IIIq", "4q":"IVq"
+}
+
+# convert numeric form to roman-numeral form
+def canonicalize_form(form):
+  return numeric_to_roman_form.get(form, form)
+
 # Clean the verb headword templates on a given page with the given text.
 # Returns the changed text along with a changelog message.
 def rewrite_one_page_verb_headword(page, text):
   pagetitle = page.title()
   msg("Processing page %s" % pagetitle)
   actions_taken = []
+
   for template in text.filter_templates():
     if template.name in ["ar-verb"]:
       origtemp = unicode(template)
+      # In order to keep in the same order, just forcibly change the
+      # param "names" (numbers)
       for pno in xrange(10, 0, -1):
-        param = blib.getparam(template, str(pno))
-        if param:
-          template.add(str(pno + 1), param)
+        if template.has(str(pno)):
+          template.get(str(pno)).name = str(pno + 1)
       form = blib.getparam(template, "form")
-      template.add("1", form)
+      if form:
+        # Make sure form= param is first ...
+        template.remove("form")
+        template.add("form", canonicalize_form(form), before=template.params[0].name if len(template.params) > 0 else None)
+        # ... then forcibly change its name to 1=
+        template.get("form").name = "1"
+        template.get("1").showkey = False
       newtemp = unicode(template)
       if origtemp != newtemp:
         msg("Replacing %s with %s" % (origtemp, newtemp))
       if re.match("^[1I](-|$)", form):
         actions_taken.append("form=%s (%s/%s)" % (form,
-          blib.getparam(template, "2"), blib.getparam(template, "3"))
+          blib.getparam(template, "2"), blib.getparam(template, "3")))
       else:
         actions_taken.append("form=%s" % form)
   changelog = "ar-verb: form= -> 1=, move other params up: %s" % '; '.join(actions_taken)
