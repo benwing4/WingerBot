@@ -585,7 +585,7 @@ function export.show(frame)
 	local origargs, args = get_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, "1", 2)
+		conjugate(args, 1, 2)
 
 	-- if the value is "yes" or variants, the verb is intransitive;
 	-- if the value is "no" or variants, the verb is transitive.
@@ -633,8 +633,12 @@ end
 function export.headword(frame)
 	local origargs, args = get_args(frame)
 
-	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, "form", 1)
+	local data, form, weakness, past_vowel, nonpast_vowel
+	if args["form"] then
+		data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, "form", 1)
+	else
+		data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1, 2)
+	end
 	local use_params = form == "I" or args["useparam"]
 
 	local arabic_3sm_perf, latin_3sm_perf
@@ -730,7 +734,7 @@ function past3sm(frame, doall)
 	local origargs, args = get_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, "1", 2)
+		conjugate(args, 1, 2)
 
 	local arabic_3sm_perf, latin_3sm_perf
 	if data.passive == "only" or data.passive == "only-impers" then
@@ -780,7 +784,7 @@ function verb_part(frame, doall)
 
 	local part = args[1]
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, "2", 3)
+		conjugate(args, 2, 3)
 	local arabic, latin = get_spans(data.forms[part])
 
 	if doall then
@@ -821,7 +825,7 @@ function export.verb_prop(frame)
 
 	local prop = args[1]
 	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, "2", 3)
+		conjugate(args, 2, 3)
 	if prop == "form" then
 		return form
 	elseif prop == "weakness" then
