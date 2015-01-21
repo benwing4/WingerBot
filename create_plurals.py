@@ -491,6 +491,28 @@ def expand_template(page, text):
       site = page.site)
   return req.submit()["expandtemplates"]["*"]
 
+def get_dicform(page, template):
+  # Make an expand-template call to convert the conjugation template to
+  # the dictionary form.
+  return expand_template(page,
+      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+
+def has_active_form(passive):
+  return passive in ["yes", "impers", "no"]
+
+def has_passive_form(passive):
+  return passive != "no"
+
+#{{inflection of|FOO||lang=ar|3rd|sing|masc|non-past|active|indicative}}
+#def get_impf_dicform_all(page, template):
+#  passive = expand_template(page,
+#      unicode(template).replace("{{ar-conj|", "{{ar-verb-prop|passive|"))
+#  if has_active_form(passive):
+#    impf_dicform = expand_template(page,
+#      unicode(template).replace("{{ar-conj|", "{{ar-verb-part|3sm-impf|"))
+#  return expand_template(page,
+#      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+
 # Create a verbal noun entry, either creating a new page or adding to an
 # existing page. Do nothing if entry is already present. Only save changes
 # if SAVE is true. VN is the vocalized verbal noun; VERBPAGE is the Page
@@ -499,10 +521,7 @@ def expand_template(page, text):
 # UNCERTAIN is true if the verbal noun is uncertain (indicated with a ? at
 # the end of the vn=... parameter in the conjugation template).
 def create_verbal_noun(save, vn, page, template, uncertain):
-  # Make an expand-template call to convert the conjugation template to
-  # the dictionary form.
-  dicform = expand_template(page,
-      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+  dicform = get_dicform(page, template)
 
   return create_inflection(save, vn, None, dicform, None, "Verbal noun",
     "verbal noun", "dictionary form", "ar-verbal noun", "ar-verbal noun of",
@@ -529,10 +548,7 @@ def create_verbal_nouns(save, startFrom, upTo):
           create_verbal_noun(save, vn, page, template, uncertain)
 
 def create_participle(save, part, page, template, actpass):
-  # Make an expand-template call to convert the conjugation template to
-  # the dictionary form.
-  dicform = expand_template(page,
-      unicode(template).replace("{{ar-conj|", "{{ar-past3sm|"))
+  dicform = get_dicform(page, template)
 
   return create_inflection(save, part, None, dicform, None, "Participle",
     "%s participle" % actpass, "dictionary form", "ar-%s participle" % actpass,
@@ -544,14 +560,14 @@ def create_participles(save, startFrom, upTo):
       if template.name == "ar-conj":
         passive = expand_template(page,
           unicode(template).replace("{{ar-conj|", "{{ar-verb-prop|passive|"))
-        if passive in ["yes", "impers", "no"]:
+        if has_active_form(passive):
           apvalue = expand_template(page,
             unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|ap|"))
           if apvalue:
             aps = re.split(",", apvalue)
             for ap in aps:
               create_participle(save, ap, page, template, "active")
-        if passive != "no":
+        if has_passive_form(passive):
           ppvalue = expand_template(page,
             unicode(template).replace("{{ar-conj|", "{{ar-verb-part-all|pp|"))
           if ppvalue:
