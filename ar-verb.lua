@@ -625,10 +625,25 @@ function export.show(frame)
 end
 
 -- Version of main entry point meant for calling from the debug console.
+-- An example call might be as follows:
+--
+-- =p.show2({'I', 'a', 'u', 'ك', 'ت', 'ب'})
+--
+-- This is equivalent to the following template call:
+--
+-- {{ar-conj|I|a|u|ك|ت|ب}}
+--
+-- Note that the radicals were actually typed in with ك first, followed by ت
+-- and then ب, but they appear in opposite order due to right-to-left
+-- display issues. It's necessary to specify the radicals in the call,
+-- unlike in a template call where they are inferred from the page name,
+-- because there is (currently) no way to control the page name used in
+-- the radical-inference code, where it will appear as 'Module:ar-verb'.
 function export.show2(parargs, args)
 	return export.show(debug_frame(parargs, args))
 end
 
+-- Implement {{ar-verb}}.
 -- TODO: Move this into [[Module:ar-headword]]
 function export.headword(frame)
 	local origargs, args = get_args(frame)
@@ -725,6 +740,7 @@ function export.headword(frame)
 end
 
 -- Version of headword entry point meant for calling from the debug console.
+-- See export.show2().
 function export.headword2(parargs, args)
 	return export.headword(debug_frame(parargs, args))
 end
@@ -750,6 +766,8 @@ function past3sm(frame, doall)
 	end
 end
 
+-- Implement {{ar-past3sm}}.
+--
 -- Generate the 3rd singular masculine past tense (the dictionary form), given
 -- the form, radicals and (for form I) past/non-past vowels (the non-past
 -- vowel is ignored, but specified for compatibility with export.headword()
@@ -763,10 +781,13 @@ function export.past3sm(frame)
 end
 
 -- Version of past3sm entry point meant for calling from the debug console.
+-- See export.show2().
 function export.past3sm2(parargs, args)
 	return export.past3sm(debug_frame(parargs, args))
 end
 
+-- Implement {{ar-past3sm-all}}.
+--
 -- Same as export.past3sm() but return all possible values, separated by
 -- a comma. Multiple values largely come from alternative hamza seats.
 function export.past3sm_all(frame)
@@ -774,6 +795,7 @@ function export.past3sm_all(frame)
 end
 
 -- Version of past3sm_all entry point meant for calling from the debug console.
+-- See export.show2().
 function export.past3sm_all2(parargs, args)
 	return export.past3sm_all(debug_frame(parargs, args))
 end
@@ -794,6 +816,8 @@ function verb_part(frame, doall)
 	end
 end
 
+-- Implement {{ar-verb-part}}.
+--
 -- TODO: Move this into [[Module:ar-headword]]
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return only the first one.
@@ -802,10 +826,13 @@ function export.verb_part(frame)
 end
 
 -- Version of verb_part entry point meant for calling from the debug console.
+-- See export.show2().
 function export.verb_part2(parargs, args)
 	return export.verb_part(debug_frame(parargs, args))
 end
 
+-- Implement {{ar-verb-part-all}}.
+--
 -- TODO: Move this into [[Module:ar-headword]]
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return all, separated by commas.
@@ -814,7 +841,7 @@ function export.verb_part_all(frame)
 end
 
 -- Version of verb_part_all entry point meant for calling from the debug
--- console.
+-- console. See export.show2().
 function export.verb_part_all2(parargs, args)
 	return export.verb_part_all(debug_frame(parargs, args))
 end
@@ -874,6 +901,7 @@ function export.verb_prop(frame)
 end
 
 -- Version of verb_prop entry point meant for calling from the debug console.
+-- See export.show2().
 function export.verb_prop2(parargs, args)
 	return export.verb_prop(debug_frame(parargs, args))
 end
