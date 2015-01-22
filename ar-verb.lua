@@ -251,7 +251,7 @@ local numeric_to_roman_form = {
 
 -- convert numeric form to roman-numeral form
 local function canonicalize_form(form)
-	return numeric_to_roman_form[form] or form
+	return numeric_to_roman_form[form] and track("arabic-numerals") and numeric_to_roman_form[form] or form
 end
 
 local function form_supports_final_weak(form)
@@ -650,6 +650,7 @@ function export.headword(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel
 	if args["form"] then
+		track("ar-verb-form-param")
 		data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, "form", 1)
 	else
 		data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1, 2)
@@ -822,7 +823,7 @@ end
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return only the first one.
 function export.verb_part(frame)
-	return verbpart(frame, false)
+	return verb_part(frame, false)
 end
 
 -- Version of verb_part entry point meant for calling from the debug console.
@@ -837,7 +838,7 @@ end
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return all, separated by commas.
 function export.verb_part_all(frame)
-	return verbpart(frame, true)
+	return verb_part(frame, true)
 end
 
 -- Version of verb_part_all entry point meant for calling from the debug
