@@ -276,7 +276,8 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
             # Special-case handling for actual noun plurals. We expect an
             # ar-noun but if we encounter an ar-coll-noun with the plural as
             # the (collective) head and the singular as the singulative, we
-            # output a message and skip. FIXME: Why?
+            # output a message and skip so we don't end up creating a
+            # duplicate entry.
             if is_plural_noun:
               headword_collective_templates = [t for t in parsed.filter_templates()
                   if t.name == "ar-coll-noun" and compare_param(t, "1", plural)
@@ -511,7 +512,8 @@ def create_adj_feminine_entry(save, plural, pltr, singular, singtr, pos):
   create_inflection_entry(save, plural, pltr, singular, singtr, pos,
       "feminine", "masculine", "ar-adj-fem", "feminine of")
 
-def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
+def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
+    param):
   for cat in [u"Arabic %ss" % pos.lower()]:
     for page in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
@@ -542,11 +544,11 @@ def create_inflections(save, pos, tempname, startFrom, upTo, createfn, param):
             i += 1
 
 def create_plurals(save, pos, tempname, startFrom, upTo):
-  return create_inflections(save, pos, tempname, startFrom, upTo,
+  return create_inflection_entries(save, pos, tempname, startFrom, upTo,
       create_noun_plural if pos == "Noun" else create_adj_plural, "pl")
 
 def create_feminines(save, pos, tempname, startFrom, upTo):
-  return create_inflections(save, pos, tempname, startFrom, upTo,
+  return create_inflection_entries(save, pos, tempname, startFrom, upTo,
       create_noun_feminine if pos == "Noun" else create_adj_feminine, "f")
 
 def expand_template(page, text):
@@ -716,7 +718,7 @@ def create_verb_parts(save, startFrom, upTo, allforms=False):
           create_verb_part(save, page, template, dicform, passive,
             "3sm", "impf")
 
-pa = blib.init_argparser("Create Arabic inflections")
+pa = blib.init_argparser("Create Arabic inflection entries")
 pa.add_argument("-p", "--plural", action='store_true',
     help="Do plural inflections")
 pa.add_argument("-f", "--feminine", action='store_true',
