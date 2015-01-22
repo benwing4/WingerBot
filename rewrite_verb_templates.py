@@ -61,7 +61,7 @@ def rewrite_one_page_verb_headword(page, text):
           blib.getparam(template, "2"), blib.getparam(template, "3")))
       else:
         actions_taken.append("form=%s" % form)
-  changelog = "ar-verb: form= -> 1=, move other params up: %s" % '; '.join(actions_taken)
+  changelog = "ar-verb: form= -> 1= and canonicalize to Roman numerals, move other params up: %s" % '; '.join(actions_taken)
   if len(actions_taken) > 0:
     msg("Change log = %s" % changelog)
   return text, changelog
@@ -71,8 +71,49 @@ def rewrite_verb_headword(save, startFrom, upTo):
     for page in blib.cat_articles(cat, startFrom, upTo):
       blib.do_edit(page, rewrite_one_page_verb_headword, save=save)
 
+def canonicalize_verb_form(save, startFrom, upTo, tempname, formarg):
+  # Canonicalize the form in ar-conj.
+  # Returns the changed text along with a changelog message.
+  def canonicalize_one_page_verb_form(page, text):
+    pagetitle = page.title()
+    msg("Processing page %s" % pagetitle)
+    actions_taken = []
+
+    for template in text.filter_templates():
+      if template.name == tempname:
+        origtemp = unicode(template)
+        form = blib.getparam(template, formarg)
+        if form:
+          template.add(formarg, canonicalize_form(form))
+        newtemp = unicode(template)
+        if origtemp != newtemp:
+          msg("Replacing %s with %s" % (origtemp, newtemp))
+        if re.match("^[1I](-|$)", form):
+          actions_taken.append("form=%s (%s/%s)" % (form,
+            blib.getparam(template, str(1+int(formarg))),
+            blib.getparam(template, str(2+int(formarg)))))
+        else:
+          actions_taken.append("form=%s" % form)
+    changelog = "%s: canonicalize form (%s=) to Roman numerals: %s" % (
+        tempname, formarg, '; '.join(actions_taken))
+    if len(actions_taken) > 0:
+      msg("Change log = %s" % changelog)
+    return text, changelog
+
+  for page in blib.references("Template:%s" % tempname, startFrom, upTo):
+    blib.do_edit(page, canonicalize_one_page_verb_form, save=save)
+
 pa = blib.init_argparser("Rewrite form= to 1= in verb headword templates")
+pa.add_argument("--headword", action='store_true',
+    help="Rewrite form= to 1= in ar-verb and canonicalize")
+pa.add_argument("--canonicalize", action='store_true',
+    help="Canonicalize form in Arabic verb templates other than ar-verb")
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
-rewrite_verb_headword(parms.save, startFrom, upTo)
+if parms.headword:
+  rewrite_verb_headword(parms.save, startFrom, upTo)
+if parms.canonicalize:
+  canonicalize_verb_form(parms.save, startFrom, upTo, "ar-conj", "1")
+  canonicalize_verb_form(parms.save, startFrom, upTo, "ar-past3sm", "1")
+  canonicalize_verb_form(parms.save, startFrom, upTo, "ar-verb-part", "2")
