@@ -40,13 +40,13 @@ def rewrite_one_page_verb_headword(page, text):
   for template in text.filter_templates():
     if template.name in ["ar-verb"]:
       origtemp = unicode(template)
-      # In order to keep in the same order, just forcibly change the
-      # param "names" (numbers)
-      for pno in xrange(10, 0, -1):
-        if template.has(str(pno)):
-          template.get(str(pno)).name = str(pno + 1)
       form = blib.getparam(template, "form")
       if form:
+        # In order to keep in the same order, just forcibly change the
+        # param "names" (numbers)
+        for pno in xrange(10, 0, -1):
+          if template.has(str(pno)):
+            template.get(str(pno)).name = str(pno + 1)
         # Make sure form= param is first ...
         template.remove("form")
         template.add("form", canonicalize_form(form), before=template.params[0].name if len(template.params) > 0 else None)
