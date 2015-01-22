@@ -92,13 +92,15 @@ local UNOPT = UN .. "?"
 local UNUOPT = UNU .. "?"
 local SKOPT = SK .. "?"
 
-local consonants_needing_vowels = "بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئءةﷲ"
+-- exclude tāʾ marbūṭa because we don't want it treated as a consonant
+-- in patterns like أَفْعَل
+local consonants_needing_vowels_no_tam = "بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئء"
 -- consonants on the right side; includes alif madda
-local rconsonants = consonants_needing_vowels .. "ويآ"
+local rconsonants_no_tam = consonants_needing_vowels_no_tam .. "ويآ"
 -- consonants on the left side; does not include alif madda
-local lconsonants = consonants_needing_vowels .. "وي"
-local CONS = "[" .. lconsonants .. "]"
-local CONSPAR = "([" .. lconsonants .. "])"
+local lconsonants_no_tam = consonants_needing_vowels_no_tam .. "وي"
+local CONS = "[" .. lconsonants_no_tam .. "]"
+local CONSPAR = "([" .. lconsonants_no_tam .. "])"
 
 local LRM = u(0x200E) --left-to-right mark
 
@@ -392,6 +394,20 @@ function handle_lemma_and_overrides(data, args)
 	handle_override("mod_lemma")
 end
 
+-- Return the part of speech based on the part of speech contained in
+-- data.pos and whether we're a modifier. If we're a modifier, don't use
+-- data.pos but instead choose based on whether modifier is adjectival or
+-- nominal (ʾiḍāfa).
+function get_pos(data, ismod)
+	if not ismod then
+		return data.pos
+	elseif data.modstate or data.modcase then
+		return "noun"
+	else
+		return "adjective"
+	end
+end
+
 -- Find the stems associated with a particular gender/number combination.
 -- ARGS is the set of all arguments. ARG is the name of the argument prefix
 -- (e.g. 'f' for the actual arguments 'f', 'f2', ..., for the feminine
@@ -403,7 +419,8 @@ end
 function do_gender_number_1(data, args, arg, sgs, default, isfem, num)
 	local results = {}
 	local function handle_stem(stem)
-		insert_stems(stem, results, sgs, isfem, num, data.pos)
+		insert_stems(stem, results, sgs, isfem, num,
+			get_pos(data, rfind(arg, "^mod")))
 	end
 
 	if not args[arg] then
@@ -553,12 +570,13 @@ function get_heads_1(data, args, arg1, argn)
 	else
 		heads = {}
 		insert_stems(args[arg1], heads, {{args[arg1], ""}}, false, 'sg',
-			data.pos)
+			get_pos(data, rfind(arg1, "^mod")))
 	end
 	local i = 2
 	while args[argn .. i] do
 		local arg = args[argn .. i]
-		insert_stems(arg, heads, {{arg, ""}}, false, 'sg', data.pos)
+		insert_stems(arg, heads, {{arg, ""}}, false, 'sg',
+			get_pos(data, rfind(argn, "^mod")))
 		i = i + 1
 	end
 	return heads
@@ -1324,17 +1342,13 @@ end
 -- currently used and needs to be rethought). NUM is 'sg', 'du', or 'pl',
 -- depending on the number of the stem.
 --
--- POS is the part of speech, generally 'noun' or 'adjective'. Not currently
--- used but may conceivably be used to distinguish nouns and adjectives
--- of the فَعْلَان type; but if we do so, we need to rethink the POS parameter.
--- The idea is that adjectives of the above type are generally diptotes but
--- it's unclear about nouns of this type; there are triptote nouns of this
--- type like قَطْرَان "tar" and if this is representative then we should maybe
--- make a POS distinction when detecting; but this will cause problems with
--- nouns modified by adjectives, where we don't currently distinguish the POS
--- of the base noun from the POS of the modifying adjective. An additional
--- complication is that the user can set the POS to something else, like
--- "numeral".
+-- POS is the part of speech, generally 'noun' or 'adjective'. Used to
+-- distinguish nouns and adjectives of the فَعْلَان type. There are nouns of
+-- this type and they generally are triptotes, e.g. قَطْرَان "tar"
+-- and شَيْطَان "devil". An additional complication is that the user can set
+-- the POS to something else, like "numeral". We don't use this POS for
+-- modifiers, where we determine whether they are noun-like or adjective-like
+-- according to whether modstate= or modcase= is set.
 function export.detect_type(stem, isfem, num, pos)
 	-- Not strictly necessary because the caller (stem_and_type) already
 	-- reorders, but won't hurt, and may be necessary if this function is
@@ -1378,14 +1392,17 @@ function export.detect_type(stem, isfem, num, pos)
 		rfind(stem, ELCD_START .. IOPT .. CONS .. SH .. AOPTA .. HAMZA .. "$") -- ʾaqillāʾ
 	    ) then
 		return 'di'
-	elseif num == 'sg' and ( -- diptote singular patterns (mostly adjectives)
-		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and track("kaslaan-" .. pos) or -- kaslān "lazy"
+	elseif num == 'sg' and ( -- diptote singular patterns (nouns/adjectives)
 		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. HAMZA .. "$") and track("qamraa-" .. pos) or -- qamrāʾ "moon-white, moonlight"
-		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. "[" .. N .. HAMZA .. "]$") and track("laffaa-" .. pos) or -- laffāʾ "plump (fem.)"
-		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") and track("abyad-" .. pos) or -- ʾabyad
-		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") and track("alaff-" .. pos) or -- ʾalaff
+		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") and track("abyad-" .. pos) or -- ʾabyad "white"
+		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") and track("alaff-" .. pos) or -- ʾalaff "plump"
 		-- do the following on the origstem so we can check specifically for alif madda
 		rfind(origstem, "^" .. AMAD .. CONS .. A .. CONS .. "$") and track("aalam" .. pos) -- ʾālam "more painful", ʾāḵar "other"
+		) then
+		return 'di'
+	elseif num == 'sg' and pos == 'adjective' and ( -- diptote singular patterns (adjectives)
+		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and track("kaslaan-" .. pos) or -- kaslān "lazy"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. "$") and track("laffaa-" .. pos) -- laffāʾ "plump (fem.)"
 		) then
 		return 'di'
 	elseif rfind(stem, AMAQ .. "$") then -- kaslā, ḏikrā (spelled with alif maqṣūra)
