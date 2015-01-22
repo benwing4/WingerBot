@@ -185,7 +185,7 @@ def correct_headword_formatting(save, startFrom, upTo):
   search_category_for_missing_template("adverb", "ar-adv", save, startFrom, upTo)
   search_category_for_missing_template("conjunction", "ar-con", save, startFrom, upTo)
   search_category_for_missing_template("interjection", "ar-interj", save, startFrom, upTo)
-  search_category_for_missing_template("particle", "ar-part", save, startFrom, upTo)
+  search_category_for_missing_template("particle", "ar-particle", save, startFrom, upTo)
   search_category_for_missing_template("preposition", "ar-prep", save, startFrom, upTo)
   search_category_for_missing_template("pronoun", "ar-pron", save, startFrom, upTo)
   # ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba

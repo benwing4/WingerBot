@@ -159,8 +159,8 @@ def process_one_page_headwords(page, text):
   actions = []
   for template in text.filter_templates():
     if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun",
-        "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep",
-        "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
+        "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-particle",
+        "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
         "ar-adj-pl", "ar-noun-dual", "ar-adj-dual", "ar-nisba"]: # ar-adj-color
       thisactions = []
       tr = blib.getparam(template, "tr")
