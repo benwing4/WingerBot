@@ -242,17 +242,18 @@ end
 -- Properties of different verbal forms
 ---------------------------------------
 
-local numeric_to_roman_form = {
-	["1"] = "I", ["2"] = "II", ["3"] = "III", ["4"] = "IV", ["5"] = "V",
-	["6"] = "VI", ["7"] = "VII", ["8"] = "VIII", ["9"] = "IX", ["10"] = "X",
-	["11"] = "XI", ["12"] = "XII", ["13"] = "XIII", ["14"] = "XIV", ["15"] = "XV",
-	["1q"] = "Iq", ["2q"] = "IIq", ["3q"] = "IIIq", ["4q"] = "IVq"
-}
-
--- convert numeric form to roman-numeral form
-local function canonicalize_form(form)
-	return numeric_to_roman_form[form] and track("arabic-numerals") and numeric_to_roman_form[form] or form
-end
+-- no longer supported
+--local numeric_to_roman_form = {
+--	["1"] = "I", ["2"] = "II", ["3"] = "III", ["4"] = "IV", ["5"] = "V",
+--	["6"] = "VI", ["7"] = "VII", ["8"] = "VIII", ["9"] = "IX", ["10"] = "X",
+--	["11"] = "XI", ["12"] = "XII", ["13"] = "XIII", ["14"] = "XIV", ["15"] = "XV",
+--	["1q"] = "Iq", ["2q"] = "IIq", ["3q"] = "IIIq", ["4q"] = "IVq"
+--}
+--
+---- convert numeric form to roman-numeral form
+--local function canonicalize_form(form)
+--	return numeric_to_roman_form[form] or form
+--end
 
 local function form_supports_final_weak(form)
 	return form ~= "XI" and form ~= "XV" and form ~= "IVq"
@@ -584,8 +585,7 @@ end
 function export.show(frame)
 	local origargs, args = get_args(frame)
 
-	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 1, 2)
+	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1)
 
 	-- if the value is "yes" or variants, the verb is intransitive;
 	-- if the value is "no" or variants, the verb is transitive.
@@ -648,13 +648,7 @@ end
 function export.headword(frame)
 	local origargs, args = get_args(frame)
 
-	local data, form, weakness, past_vowel, nonpast_vowel
-	if args["form"] then
-		track("ar-verb-form-param")
-		data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, "form", 1)
-	else
-		data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1, 2)
-	end
+	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1)
 	local use_params = form == "I" or args["useparam"]
 
 	local arabic_3sm_perf, latin_3sm_perf
@@ -750,8 +744,7 @@ end
 function past3sm(frame, doall)
 	local origargs, args = get_args(frame)
 
-	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 1, 2)
+	local data, form, weakness, past_vowel, nonpast_vowel =	conjugate(args, 1)
 
 	local arabic_3sm_perf, latin_3sm_perf
 	if data.passive == "only" or data.passive == "only-impers" then
@@ -806,8 +799,7 @@ function verb_part(frame, doall)
 	local origargs, args = get_args(frame)
 
 	local part = args[1]
-	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 2, 3)
+	local data, form, weakness, past_vowel, nonpast_vowel =	conjugate(args, 2)
 	local arabic, latin = get_spans(data.forms[part])
 
 	if doall then
@@ -852,8 +844,7 @@ function export.verb_prop(frame)
 	local origargs, args = get_args(frame)
 
 	local prop = args[1]
-	local data, form, weakness, past_vowel, nonpast_vowel =
-		conjugate(args, 2, 3)
+	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 2)
 	if prop == "form" then
 		return form
 	elseif prop == "weakness" then
@@ -909,23 +900,21 @@ end
 
 -- Guts of conjugation functions. Shared between {{temp|ar-conj}} and
 -- {{temp|ar-verb}}, among others. ARGS is the frame parent arguments,
--- FORMARG is the name of the argument holding the verb form, and
--- ARGIND is the index of the first numbered argument after any verb-form
--- argument. (The first such argument holds the past vowel if the form is
--- I, and else the first radical.) Return five values:
+-- as returned by get_args() (i.e. with arguments passed through ine()).
+-- ARGIND is the numbered argument holding the verb form (either 1 or 2);
+-- if form is I, the next two arguments are the past and non-past vowels;
+-- afterwards are the (optional) radicals. Return five values:
 -- DATA, FORM, WEAKNESS, PAST_VOWEL, NONPAST_VOWEL. The last two are
 -- arrays of vowels (each one 'a', 'i' or 'u'), since there may be more
 -- than one, or none in the case of non-form-I verbs.
-function conjugate(args, formarg, argind)
+function conjugate(args, argind)
 	local data = {forms = {}, categories = {}, headword_categories = {}}
 
 	PAGENAME = mw.title.getCurrentTitle().text
-	NAMESPACE = mw.title.getCurrentTitle().nsText
 
-	local conj_type = args[formarg] or
+	local conj_type = args[argind] or
 		error("Form (conjugation type) has not been specified. " ..
-			"Please pass a value to parameter " .. (
-			rfind(formarg, "^[0-9]") and formarg or (formarg .. "=")) ..
+			"Please pass a value to parameter " .. argind ..
 			" in the template invocation.")
 
 	-- derive form and weakness from conj type
@@ -941,7 +930,8 @@ function conjugate(args, formarg, argind)
 	end
 
 	-- convert numeric forms to Roman numerals
-	form = canonicalize_form(form)
+	-- no longer supported
+	-- form = canonicalize_form(form)
 
 	-- check for quadriliteral form (Iq, IIq, IIIq, IVq)
 	local quadlit = rmatch(form, "q$")
@@ -949,8 +939,8 @@ function conjugate(args, formarg, argind)
 	-- get radicals and past/non-past vowel
 	local rad1, rad2, rad3, rad4, past_vowel, nonpast_vowel
 	if form == "I" then
-		past_vowel = args[argind + 0]
-		nonpast_vowel = args[argind + 1]
+		past_vowel = args[argind + 1]
+		nonpast_vowel = args[argind + 2]
 		local function splitvowel(vowelspec)
 			if vowelspec == nil then
 				vowelspec = {}
@@ -963,15 +953,15 @@ function conjugate(args, formarg, argind)
 		-- in farada/faruda yafrudu "to be single"
 		past_vowel = splitvowel(past_vowel)
 		nonpast_vowel = splitvowel(nonpast_vowel)
-		rad1 = args[argind + 2] or args["I"]
-		rad2 = args[argind + 3] or args["II"]
-		rad3 = args[argind + 4] or args["III"]
+		rad1 = args[argind + 3] or args["I"]
+		rad2 = args[argind + 4] or args["II"]
+		rad3 = args[argind + 5] or args["III"]
 	else
-		rad1 = args[argind + 0] or args["I"]
-		rad2 = args[argind + 1] or args["II"]
-		rad3 = args[argind + 2] or args["III"]
+		rad1 = args[argind + 1] or args["I"]
+		rad2 = args[argind + 2] or args["II"]
+		rad3 = args[argind + 3] or args["III"]
 		if quadlit then
-			rad4 = args[argind + 3] or args["IV"]
+			rad4 = args[argind + 4] or args["IV"]
 		end
 	end
 
