@@ -16,13 +16,20 @@
 
 import blib
 
-def rewrite_template_names(old, new, save, verbose, startFrom, upTo):
+def rewrite_template_names(old, new, removelist, save, verbose,
+    startFrom, upTo):
   def rewrite_one_page_template_names(page, text):
+    actions = []
     for template in text.filter_templates():
       if template.name == old:
+        actions.append("rename {{temp|%s}} to {{temp|%s}}" % (old, new))
         template.name = new
+      for remove in removelist:
+        if template.has(remove):
+          template.remove(remove)
+          actions.append("remove %s=" % remove)
 
-    return text, "rename {{temp|%s}} to {{temp|%s}}" % (old, new)
+    return text, '; '.join(actions)
 
   for page in blib.references("Template:%s" % old, startFrom, upTo):
     blib.do_edit(page, rewrite_one_page_template_names, save=save,
@@ -30,9 +37,13 @@ def rewrite_template_names(old, new, save, verbose, startFrom, upTo):
 
 pa = blib.init_argparser("Rewrite old to new template names")
 pa.add_argument("-o", "--old", help="Old name of template")
-pa.add_argument("-n", "--new", help="new name of template")
+pa.add_argument("-n", "--new", help="New name of template")
+pa.add_argument("-r", "--remove", help="Comma-separated template params to remove")
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
+removelist = []
+if params.remove:
+  removelist = re.split(",", params.remove)
 
-rewrite_template_names(params.old, params.new, params.save, params.verbose,
-    startFrom, upTo)
+rewrite_template_names(params.old, params.new, removelist, params.save,
+    params.verbose, startFrom, upTo)
