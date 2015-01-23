@@ -57,49 +57,49 @@ def reorder_shadda(text):
   # detection process inconvenient, so undo it.
   return re.sub("(" + DIACRITIC_ANY_BUT_SH + ")" + SH, SH + r"\1", text)
 
-singular_plural_counts = {}
+lemma_inflection_counts = {}
 
-# Create or insert a section describing the plural or similar inflection
-# of a given word. PLURAL is the vocalized inflectional form (e.g. the
-# plural, feminine, verbal noun, participle, etc.); SINGULAR is the vocalized
-# lemma (e.g. the singular, masculine or dictionary form of a verb); PLTR
-# and SINGTR are the associated manual transliterations (if any). POS is the
+# Create or insert a section describing a given inflection of a given lemma.
+# INFLECTION is the vocalized inflectional form (e.g. the
+# plural, feminine, verbal noun, participle, etc.); LEMMA is the vocalized
+# lemma (e.g. the singular, masculine or dictionary form of a verb); INFLTR
+# and LEMMATR are the associated manual transliterations (if any). POS is the
 # part of speech of the word (capitalized, e.g. "Noun"). Only save the changed
 # page if SAVE is true. INDEX is the numeric index of the lemma page, for
-# ID purposes and to aid restarting. PLWORD is e.g. "plural", "feminine",
+# ID purposes and to aid restarting. INFLTYPE is e.g. "plural", "feminine",
 # "verbal noun", "active participle" or "passive participle", and is used in
-# messages; both POS and PLWORD are used in special-case code that is
-# appropriate to only certain inflectional types. SINGWORD is e.g.
+# messages; both POS and INFLTYPE are used in special-case code that is
+# appropriate to only certain inflectional types. LEMMATYPE is e.g.
 # "singular", "masculine" or "dictionary form" and is used in messages.
-# PLTEMP is the headword template for the inflected-word entry (e.g.
-# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). SINGTEMP is the definitional
+# INFLTEMP is the headword template for the inflected-word entry (e.g.
+# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). DEFTEMP is the definitional
 # template that points to the base form (e.g. "plural of",
-# "masculine plural of" or "feminine of"). Optional SINGTEMP_PARAM is a
-# parameter or parameters to add to the created SINGTEMP template, and
+# "masculine plural of" or "feminine of"). Optional DEFTEMP_PARAM is a
+# parameter or parameters to add to the created DEFTEMP template, and
 # should be either empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat"
 # for more than one parameter); default is "|lang=ar".
-def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
-    plword, singword, pltemp, singtemp, singtemp_param = "|lang=ar"):
+def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
+    infltype, lemmatype, infltemp, deftemp, deftemp_param = "|lang=ar"):
 
   # Remove any links that may esp. appear in the lemma, since the
   # vocalized version of the lemma as it appears in the lemma's headword
   # template often has links in it when the form is multiword.
-  singular = remove_links(singular)
-  plural = remove_links(plural)
+  lemma = remove_links(lemma)
+  inflection = remove_links(inflection)
 
   # Fetch pagename, create pagemsg() fn to output msg with page name included
-  pagename = remove_diacritics(plural)
+  pagename = remove_diacritics(inflection)
   def pagemsg(text, simple = False):
     if simple:
       msg("Page %s (%s): %s" % (pagename, index, text))
     else:
       msg("Page %s (%s): %s: %s %s%s, %s %s%s" % (pagename, index, text,
-        plword, plural, " (%s)" % pltr if pltr else "",
-        singword, singular, " (%s)" % singtr if singtr else ""))
+        infltype, inflection, " (%s)" % infltr if infltr else "",
+        lemmatype, lemma, " (%s)" % lemmatr if lemmatr else ""))
 
   # Remove trailing -un/-u i3rab from inflected form and lemma
 
-  def maybe_remove_i3rab(singpl, word, nowarn=False, noremove=False):
+  def maybe_remove_i3rab(wordtype, word, nowarn=False, noremove=False):
     if noremove:
       return word
     def mymsg(text):
@@ -107,40 +107,40 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
         pagemsg(text)
     word = reorder_shadda(word)
     if word.endswith(UN):
-      mymsg("Removing i3rab (UN) from %s" % singpl)
+      mymsg("Removing i3rab (UN) from %s" % wordtype)
       return re.sub(UN + "$", "", word)
     if word.endswith(U):
-      mymsg("Removing i3rab (U) from %s" % singpl)
+      mymsg("Removing i3rab (U) from %s" % wordtype)
       return re.sub(U + "$", "", word)
     if word.endswith(UUNA):
-      mymsg("Removing i3rab (UUNA -> UUN) from %s" % singpl)
+      mymsg("Removing i3rab (UUNA -> UUN) from %s" % wordtype)
       return re.sub(UUNA + "$", UUN, word)
     if word and word[-1] in [A, I, U, AN]:
-      mymsg("FIXME: Strange diacritic at end of %s %s" % (singpl, word))
+      mymsg("FIXME: Strange diacritic at end of %s %s" % (wordtype, word))
     if word[0] == ALIF_WASLA:
-      mymsg("Changing alif wasla to plain alif for %s %s" % (singpl, word))
+      mymsg("Changing alif wasla to plain alif for %s %s" % (wordtype, word))
       word = ALIF + word[1:]
     return word
 
-  is_participle = plword.endswith("participle")
-  is_vn = plword == "verbal noun"
+  is_participle = infltype.endswith("participle")
+  is_vn = infltype == "verbal noun"
   is_verb_part = pos == "Verb"
-  is_plural_noun = plword == "plural" and pos == "Noun"
+  is_plural_noun = infltype == "plural" and pos == "Noun"
   vn_or_participle = is_vn or is_participle
   lemma_is_verb = is_verb_part or vn_or_participle
 
-  singular = maybe_remove_i3rab(singword, singular, noremove=lemma_is_verb)
-  plural = maybe_remove_i3rab(plword, plural, noremove=is_verb_part)
+  lemma = maybe_remove_i3rab(lemmatype, lemma, noremove=lemma_is_verb)
+  inflection = maybe_remove_i3rab(infltype, inflection, noremove=is_verb_part)
 
-  if plural == "-":
+  if inflection == "-":
     pagemsg("Not creating %s entry - for %s %s%s" % (
-      plword, singword, singular, " (%s)" % singtr if singtr else ""))
+      infltype, lemmatype, lemma, " (%s)" % lemmatr if lemmatr else ""))
     return
 
   # Prepare to create page
   pagemsg("Creating entry")
-  pl_no_vowels = pagename
-  sing_no_vowels = remove_diacritics(singular)
+  infl_no_vowels = pagename
+  lemma_no_vowels = remove_diacritics(lemma)
   page = pywikibot.Page(site, pagename)
 
   # For singular قطعة and plural قطع, three different possible
@@ -150,23 +150,23 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
   #
   # This should now be handled by the general code to detect cases
   # where multiple lemmas that are the same when unvocalized have
-  # plurals that are the same when unvocalized.
-  # must_match_exactly = is_plural_noun and pl_no_vowels == u"قطع" and sing_no_vowels == u"قطعة"
+  # inflections that are the same when unvocalized.
+  # must_match_exactly = is_plural_noun and infl_no_vowels == u"قطع" and lemma_no_vowels == u"قطعة"
   must_match_exactly = False
 
-  sp_no_vowels = (sing_no_vowels, pl_no_vowels)
-  singular_plural_counts[sp_no_vowels] = (
-      singular_plural_counts.get(sp_no_vowels, 0) + 1)
-  if singular_plural_counts[sp_no_vowels] > 1:
+  li_no_vowels = (lemma_no_vowels, infl_no_vowels)
+  lemma_inflection_counts[li_no_vowels] = (
+      lemma_inflection_counts.get(li_no_vowels, 0) + 1)
+  if lemma_inflection_counts[li_no_vowels] > 1:
     pagemsg("Found multiple (%s) vocalized possibilities for %s %s, %s %s" % (
-      singular_plural_counts[sp_no_vowels], singword, sing_no_vowels, plword,
-      pl_no_vowels))
+      lemma_inflection_counts[li_no_vowels], lemmatype, lemma_no_vowels, infltype,
+      infl_no_vowels))
     must_match_exactly = True
   if vn_or_participle or is_verb_part:
     must_match_exactly = True
 
   def compare_param(template, param, value):
-    # In place of unknown we should put plword or singword but it
+    # In place of unknown we should put infltype or lemmatype but it
     # doesn't matter because of nowarn.
     paramval = blib.getparam(template, param)
     paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
@@ -177,16 +177,16 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       return remove_diacritics(paramval) == remove_diacritics(value)
 
   # Prepare parts of new entry to insert
-  new_headword_template = "{{%s|%s%s}}" % (pltemp, plural,
-    "|tr=%s" % pltr if pltr else "")
-  new_infl_of_template = "{{%s|%s%s%s}}" % (
-    singtemp, singular,
-    "|tr=%s" % singtr if singtr else "",
-    singtemp_param)
+  new_headword_template = "{{%s|%s%s}}" % (infltemp, inflection,
+    "|tr=%s" % infltr if infltr else "")
+  new_defn_template = "{{%s|%s%s%s}}" % (
+    deftemp, lemma,
+    "|tr=%s" % lemmatr if lemmatr else "",
+    deftemp_param)
   newposbody = """%s
 
 # %s
-""" % (new_headword_template, new_infl_of_template)
+""" % (new_headword_template, new_defn_template)
   newpos = "===%s===\n" % pos + newposbody
   newposl4 = "====%s====\n" % pos + newposbody
   newsection = "==Arabic==\n\n" + newpos
@@ -199,7 +199,7 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
     # Page doesn't exist. Create it.
     pagemsg("Creating page")
     comment = "Create page for Arabic %s %s of %s, pos=%s" % (
-        plword, plural, singular, pos)
+        infltype, inflection, lemma, pos)
     page.text = newsection
     if verbose:
       pagemsg("New text is [[%s]]" % page.text)
@@ -249,7 +249,7 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
                 parsed = blib.parse_text(subsections[j])
                 matching_vn_noun_templates += [
                     t for t in parsed.filter_templates()
-                    if t.name == "ar-noun" and compare_param(t, "1", plural)]
+                    if t.name == "ar-noun" and compare_param(t, "1", inflection)]
           if len(matching_vn_noun_templates) > 1:
             pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert VN defn into")
             break
@@ -294,29 +294,29 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
           if match_pos or particip_pos_mismatch:
             parsed = blib.parse_text(subsections[j])
 
-            def check_maybe_remove_i3rab(template, sgplword):
-              # Check for i3rab in existing sg or pl and remove it if so
+            def check_maybe_remove_i3rab(template, wordtype):
+              # Check for i3rab in existing lemma or infl and remove it if so
               existing = blib.getparam(template, "1")
-              existing_no_i3rab = maybe_remove_i3rab(sgplword, existing,
+              existing_no_i3rab = maybe_remove_i3rab(wordtype, existing,
                   noremove=is_verb_part)
               if reorder_shadda(existing) != reorder_shadda(existing_no_i3rab):
-                notes.append("removed %s i3rab" % sgplword)
+                notes.append("removed %s i3rab" % wordtype)
                 template.add("1", existing_no_i3rab)
                 existing_tr = blib.getparam(template, "tr")
                 if existing_tr:
                   pagemsg("WARNING: Removed i3rab from existing %s %s and manual translit %s exists" %
-                      (sgplword, existing, existing_tr))
+                      (wordtype, existing, existing_tr))
                 existing = existing_no_i3rab
               return existing
 
             # Find the inflection headword (e.g. 'ar-noun-pl') and
-            # inflection-of (e.g. 'plural of') templates. We require that
+            # definitional (e.g. 'plural of') templates. We require that
             # they match, either exactly (apart from i3rab) or only in the
             # consonants.
             infl_headword_templates = [t for t in parsed.filter_templates()
-                if t.name == pltemp and compare_param(t, "1", plural)]
-            infl_of_templates = [t for t in parsed.filter_templates()
-                if t.name == singtemp and compare_param(t, "1", singular)]
+                if t.name == infltemp and compare_param(t, "1", inflection)]
+            defn_templates = [t for t in parsed.filter_templates()
+                if t.name == deftemp and compare_param(t, "1", lemma)]
             # Special-case handling for actual noun plurals. We expect an
             # ar-noun but if we encounter an ar-coll-noun with the plural as
             # the (collective) head and the singular as the singulative, we
@@ -324,107 +324,107 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
             # duplicate entry.
             if is_plural_noun:
               headword_collective_templates = [t for t in parsed.filter_templates()
-                  if t.name == "ar-coll-noun" and compare_param(t, "1", plural)
-                  and compare_param(t, "sing", singular)]
+                  if t.name == "ar-coll-noun" and compare_param(t, "1", inflection)
+                  and compare_param(t, "sing", lemma)]
               if headword_collective_templates:
                 pagemsg("WARNING: Exists and has Arabic section and found collective noun with %s already in it; taking no action"
-                    % (plword))
+                    % (infltype))
                 break
 
             def particip_mismatch_check():
               if particip_pos_mismatch:
                 pagemsg("WARNING: Found match for %s but in ===%s=== section rather than ===%s==="
-                    % (plword, particip_mismatch_pos, pos))
+                    % (infltype, particip_mismatch_pos, pos))
 
             # We found both templates and their heads matched; inflection
             # entry is probably already present. For verb forms, however,
-            # check all the parameters of the inflection-of template,
-            # because there may be multiple inflection-of templates
+            # check all the parameters of the definitional template,
+            # because there may be multiple definitional templates
             # corresponding to different inflections that have the same form
             # for the same lemma (e.g. يَكْتُنُو yaktubū is both subjunctive and
             # jussive, and يَكْتُبْنَ yaktubna is all 3 of indicative, subjunctive
             # and jussive).
-            if infl_of_templates and infl_headword_templates:
+            if defn_templates and infl_headword_templates:
               pagemsg("Exists and has Arabic section and found %s already in it"
-                  % (plword))
+                  % (infltype))
 
               particip_mismatch_check()
 
               # Make sure there's exactly one headword template.
               if len(infl_headword_templates) > 1:
                 pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
-                    % (plword))
+                    % (infltype))
                 break
               infl_headword_template = infl_headword_templates[0]
 
-              # For verb forms check for an exactly matching inflection-of
+              # For verb forms check for an exactly matching definitional
               # template; if not, insert one at end of definition.
               if is_verb_part:
-                for i_of_t in infl_of_templates:
-                  if (reorder_shadda(unicode(i_of_t)) ==
-                      reorder_shadda(new_infl_of_template)):
-                    pagemsg("Found exact-matching inflection-of template for %s; taking no action"
-                        % (plword))
+                for d_t in defn_templates:
+                  if (reorder_shadda(unicode(d_t)) ==
+                      reorder_shadda(new_defn_template)):
+                    pagemsg("Found exact-matching definitional template for %s; taking no action"
+                        % (infltype))
                     break
                 else: # No break
                   subsections[j] = unicode(parsed)
                   subsections[j] = re.sub(r"^(.*\n#[^\n]*\n)",
-                      r"\1%s\n" % new_infl_of_template, subsections[j], 1, re.S)
+                      r"\1%s\n" % new_defn_template, subsections[j], 1, re.S)
                   sections[i] = ''.join(subsections)
-                  pagemsg("Adding new inflection-of template to existing defn for pos = %s" % (pos))
-                  comment = "Add new inflection-of template to existing defn: %s %s, %s %s, pos=%s" % (
-                      plword, plural, singword, singular, pos)
+                  pagemsg("Adding new definitional template to existing defn for pos = %s" % (pos))
+                  comment = "Add new definitional template to existing defn: %s %s, %s %s, pos=%s" % (
+                      infltype, inflection, lemmatype, lemma, pos)
                 break
 
               # Else, not verb form. Remove i3rab from existing headword and
-              # inflection-of template, and maybe update the template heads
+              # definitional template, and maybe update the template heads
               # with better-vocalized versions.
               else:
-                if len(infl_of_templates) > 1:
-                  pagemsg("WARNING: Found multiple inflection-of templates for %s; taking no action"
-                      % (plword))
+                if len(defn_templates) > 1:
+                  pagemsg("WARNING: Found multiple definitional templates for %s; taking no action"
+                      % (infltype))
                   break
-                infl_of_template = infl_of_templates[0]
+                defn_template = defn_templates[0]
 
                 #### Rest of this code primarily for plurals and feminines,
                 #### which may be partly vocalized and may have existing i3rab.
                 #### For verbal nouns and participles, we require exact match
-                #### so conditions like 'len(plural) > len(existing_pl)'
+                #### so conditions like 'len(inflection) > len(existing_infl)'
                 #### won't apply, and there generally isn't existing i3rab.
                 
-                # Check for i3rab in existing pl and remove it if so
-                existing_pl = \
-                    check_maybe_remove_i3rab(infl_headword_template, plword)
+                # Check for i3rab in existing infl and remove it if so
+                existing_infl = \
+                    check_maybe_remove_i3rab(infl_headword_template, infltype)
 
-                # Check for i3rab in existing sing and remove it if so
-                existing_sing = \
-                    check_maybe_remove_i3rab(infl_of_template, singword)
+                # Check for i3rab in existing lemma and remove it if so
+                existing_lemma = \
+                    check_maybe_remove_i3rab(defn_template, lemmatype)
 
-                # Replace existing pl with new one
-                if len(plural) > len(existing_pl):
+                # Replace existing infl with new one
+                if len(inflection) > len(existing_infl):
                   pagemsg("Updating existing %s %s with %s" %
-                      (pltemp, existing_pl, plural))
-                  infl_headword_template.add("1", plural)
-                  if pltr:
-                    infl_headword_template.add("tr", pltr)
+                      (infltemp, existing_infl, inflection))
+                  infl_headword_template.add("1", inflection)
+                  if infltr:
+                    infl_headword_template.add("tr", infltr)
 
-                # Replace existing sg with new one
-                if len(singular) > len(existing_sing):
+                # Replace existing lemma with new one
+                if len(lemma) > len(existing_lemma):
                   pagemsg("Updating existing '%s' %s with %s" %
-                      (singtemp, existing_sing, singular))
-                  infl_of_template.add("1", singular)
-                  if singtr:
-                    infl_of_template.add("tr", singtr)
+                      (deftemp, existing_lemma, lemma))
+                  defn_template.add("1", lemma)
+                  if lemmatr:
+                    defn_template.add("tr", lemmatr)
 
                 #### End of code primarily for plurals and feminines.
 
                 subsections[j] = unicode(parsed)
                 sections[i] = ''.join(subsections)
                 comment = "Update Arabic with better vocalized versions: %s %s, %s %s, pos=%s" % (
-                    plword, plural, singword, singular, pos)
+                    infltype, inflection, lemmatype, lemma, pos)
                 break
 
-            # At this point, didn't find either headword of inflection-of
+            # At this point, didn't find either headword or definitional
             # template, or both.
             elif vn_or_participle:
               # Insert {{ar-verbal noun of}} (or equivalent for participles).
@@ -432,13 +432,13 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
               def insert_vn_defn():
                 subsections[j] = unicode(parsed)
                 subsections[j] = re.sub("^#",
-                    "# {{%s|%s}}\n#" % (singtemp, singular),
+                    "# {{%s|%s}}\n#" % (deftemp, lemma),
                     subsections[j], 1, re.M)
                 sections[i] = ''.join(subsections)
                 pagemsg("Insert existing defn with {{%s}} at beginning" % (
-                    singtemp))
+                    deftemp))
                 return "Insert existing defn with {{%s}} at beginning: %s %s, %s %s" % (
-                    singtemp, plword, plural, singword, singular)
+                    deftemp, infltype, inflection, lemmatype, lemma)
 
               # If verb or participle, see if we found inflection headword
               # template at least. If so, add definition to beginning as
@@ -446,12 +446,12 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
               if infl_headword_templates:
                 if len(infl_headword_templates) > 1:
                   pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
-                      % (plword))
+                      % (infltype))
                   break
                 infl_headword_template = infl_headword_templates[0]
 
-                # Check for i3rab in existing pl and remove it if so
-                check_maybe_remove_i3rab(infl_headword_template, plword)
+                # Check for i3rab in existing infl and remove it if so
+                check_maybe_remove_i3rab(infl_headword_template, infltype)
 
                 # Now actually add {{ar-verbal noun of}} (or equivalent
                 # for participles).
@@ -465,10 +465,10 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
                 for other_template in ["ar-noun", "ar-adj"]:
                   other_headword_templates = [
                       t for t in parsed.filter_templates()
-                      if t.name == other_template and compare_param(t, "1", plural)]
+                      if t.name == other_template and compare_param(t, "1", inflection)]
                   if other_headword_templates:
                       pagemsg("WARNING: Found %s matching %s" %
-                          (other_template, plword))
+                          (other_template, infltype))
                       # FIXME: Should we break here? Should we insert
                       # a participle defn?
 
@@ -492,12 +492,12 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
               j += 1
             pagemsg("Found multiple etymologies, adding new section \"Etymology %s\"" % (j))
             comment = "Append entry (Etymology %s) for %s %s of %s, pos=%s in existing Arabic section" % (
-              j, plword, plural, singular, pos)
+              j, infltype, inflection, lemma, pos)
             sections[i] += "\n===Etymology %s===\n\n" % j + newposl4
           else:
             pagemsg("Wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"")
             comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for %s %s of %s, pos=%s" % (
-                plword, plural, singular, pos)
+                infltype, inflection, lemma, pos)
             # Wrap existing text in "Etymology 1" and increase the indent level
             # by one of all headers
             sections[i] = re.sub("^\n*==Arabic==\n+", "", sections[i])
@@ -515,14 +515,14 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       elif m.group(1) > "Arabic":
         pagemsg("Exists; inserting before %s section" % (m.group(1)))
         comment = "Create Arabic section and entry for %s %s of %s, pos=%s; insert before %s section" % (
-            plword, plural, singular, pos, m.group(1))
+            infltype, inflection, lemma, pos, m.group(1))
         sections[i:i] = [newsection, "\n----\n\n"]
         break
 
     else: # else of for loop over sections, i.e. no break out of loop
       pagemsg("Exists; adding section to end")
       comment = "Create Arabic section and entry for %s %s of %s, pos=%s; append at end" % (
-          plword, plural, singular, pos)
+          infltype, inflection, lemma, pos)
       # Make sure there are two trailing newlines
       if sections[-1].endswith("\n\n"):
         pass
@@ -557,20 +557,20 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
     if save:
       page.save(comment = comment)
 
-def create_noun_plural(save, index, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
+def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
+  create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "plural", "singular", "ar-noun-pl", "plural of")
 
-def create_adj_plural(save, index, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
+def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
+  create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "plural", "singular", "ar-adj-pl", "masculine plural of")
 
-def create_noun_feminine_entry(save, index, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
+def create_noun_feminine_entry(save, index, inflection, infltr, lemma, lemmatr, pos):
+  create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", None, "feminine of")
 
-def create_adj_feminine_entry(save, index, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
+def create_adj_feminine_entry(save, index, inflection, infltr, lemma, lemmatr, pos):
+  create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-adj-fem", "feminine of")
 
 def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
@@ -580,29 +580,29 @@ def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
         includeindex=True):
       for template in blib.parse(page).filter_templates():
         if template.name == tempname:
-          sing = blib.getparam(template, "1")
-          singtr = blib.getparam(template, "tr")
+          lemma = blib.getparam(template, "1")
+          lemmatr = blib.getparam(template, "tr")
           # Handle blank head; use page title
-          if sing == "":
-            sing = page.title()
-            msg("Page %s: blank head in template %s (tr=%s)" % (sing, tempname, singtr))
-          pl = blib.getparam(template, param)
-          pltr = blib.getparam(template, param + "tr")
-          if pl:
-            createfn(save, index, pl, pltr, sing, singtr, pos)
+          if lemma == "":
+            lemma = page.title()
+            msg("Page %s: blank head in template %s (tr=%s)" % (lemma, tempname, lemmatr))
+          infl = blib.getparam(template, param)
+          infltr = blib.getparam(template, param + "tr")
+          if infl:
+            createfn(save, index, infl, infltr, lemma, lemmatr, pos)
           i = 2
-          while pl:
-            pl = blib.getparam(template, param + str(i))
-            pltr = blib.getparam(template, param + str(i) + "tr")
-            if pl:
+          while infl:
+            infl = blib.getparam(template, param + str(i))
+            infltr = blib.getparam(template, param + str(i) + "tr")
+            if infl:
               otherhead = blib.getparam(template, "head" + str(i))
               otherheadtr = blib.getparam(template, "tr" + str(i))
               if otherhead:
                 msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
-                  sing, i, otherhead, otherheadtr, pl, pltr))
-                createfn(save, index, pl, pltr, otherhead, otherheadtr, pos)
+                  lemma, i, otherhead, otherheadtr, infl, infltr))
+                createfn(save, index, infl, infltr, otherhead, otherheadtr, pos)
               else:
-                createfn(save, index, pl, pltr, sing, singtr, pos)
+                createfn(save, index, infl, infltr, lemma, lemmatr, pos)
             i += 1
 
 def create_plurals(save, pos, tempname, startFrom, upTo):
