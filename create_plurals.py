@@ -65,18 +65,20 @@ singular_plural_counts = {}
 # lemma (e.g. the singular, masculine or dictionary form of a verb); PLTR
 # and SINGTR are the associated manual transliterations (if any). POS is the
 # part of speech of the word (capitalized, e.g. "Noun"). Only save the changed
-# page if SAVE is true. PLWORD is e.g. "plural", "feminine", "verbal noun",
-# or "active participle", and is used in messages; both POS and PLWORD are
-# used in special-case code that is appropriate to only certain inflectional
-# types. SINGWORD is e.g. "singular", "masculine" or "dictionary form" and is
-# used in messages. PLTEMP is the headword template for the inflected-word
-# entry (e.g. "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). SINGTEMP is the
-# definitional template that points to the base form (e.g. "plural of",
+# page if SAVE is true. INDEX is the numeric index of the lemma page, for
+# ID purposes and to aid restarting. PLWORD is e.g. "plural", "feminine",
+# "verbal noun", "active participle" or "passive participle", and is used in
+# messages; both POS and PLWORD are used in special-case code that is
+# appropriate to only certain inflectional types. SINGWORD is e.g.
+# "singular", "masculine" or "dictionary form" and is used in messages.
+# PLTEMP is the headword template for the inflected-word entry (e.g.
+# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). SINGTEMP is the definitional
+# template that points to the base form (e.g. "plural of",
 # "masculine plural of" or "feminine of"). Optional SINGTEMP_PARAM is a
 # parameter or parameters to add to the created SINGTEMP template, and
 # should be either empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat"
 # for more than one parameter); default is "|lang=ar".
-def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
     plword, singword, pltemp, singtemp, singtemp_param = "|lang=ar"):
 
   # Remove any links that may esp. appear in the lemma, since the
@@ -89,9 +91,9 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
   pagename = remove_diacritics(plural)
   def pagemsg(text, simple = False):
     if simple:
-      msg("Page %s: %s")
-    else
-      msg("Page %s: %s: %s %s%s, %s %s%s" % (pagename, text,
+      msg("Page %s (%s): %s" % (pagename, index, text))
+    else:
+      msg("Page %s (%s): %s: %s %s%s, %s %s%s" % (pagename, index, text,
         plword, plural, " (%s)" % pltr if pltr else "",
         singword, singular, " (%s)" % singtr if singtr else ""))
 
@@ -163,6 +165,17 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
   if vn_or_participle or is_verb_part:
     must_match_exactly = True
 
+  def compare_param(template, param, value):
+    # In place of unknown we should put plword or singword but it
+    # doesn't matter because of nowarn.
+    paramval = blib.getparam(template, param)
+    paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
+        noremove=is_verb_part)
+    if must_match_exactly:
+      return reorder_shadda(paramval) == reorder_shadda(value)
+    else:
+      return remove_diacritics(paramval) == remove_diacritics(value)
+
   # Prepare parts of new entry to insert
   new_headword_template = "{{%s|%s%s}}" % (pltemp, plural,
     "|tr=%s" % pltr if pltr else "")
@@ -222,10 +235,24 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
         if mm:
           sections[i:i+1] = [mm.group(1), mm.group(2)]
 
+        subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
+
+        matching_vn_noun_templates = []
+        # If verbal noun, count how many matching noun entries; if exactly
+        # one, we may convert it to a verbal noun entry. If more than one,
+        # we have to do something else.
+        if is_vn:
+          for j in xrange(len(subsections)):
+            if j > 0 and (j % 2) == 0:
+              if re.match("^===+Noun===+", subsections[j - 1]):
+                parsed = blib.parse_text(subsections[j])
+                matching_vn_noun_templates += [
+                    t for t in parsed.filter_templates()
+                    if t.name == "ar-noun" and compare_param(t, "1", plural)]
+
         # Go through each subsection in turn, looking for subsection
         # matching the POS with an appropriate headword template whose
         # head matches the inflected form
-        subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
         for j in xrange(len(subsections)):
           match_pos = False
           vn_pos_mismatch = False
@@ -242,17 +269,6 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
           # Found a POS match
           if match_pos or vn_pos_mismatch:
             parsed = blib.parse_text(subsections[j])
-
-            def compare_param(template, param, value):
-              # In place of unknown we should put plword or singword but it
-              # doesn't matter because of nowarn.
-              paramval = blib.getparam(template, param)
-              paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
-                  noremove=is_verb_part)
-              if must_match_exactly:
-                return reorder_shadda(paramval) == reorder_shadda(value)
-              else:
-                return remove_diacritics(paramval) == remove_diacritics(value)
 
             def check_maybe_remove_i3rab(template, sgplword):
               # Check for i3rab in existing sg or pl and remove it if so
@@ -287,7 +303,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
                   if t.name == "ar-coll-noun" and compare_param(t, "1", plural)
                   and compare_param(t, "sing", singular)]
               if headword_collective_templates:
-                pagemsg("Exists and has Arabic section and found collective noun with %s already in it; taking no action"
+                pagemsg("WARNING: Exists and has Arabic section and found collective noun with %s already in it; taking no action"
                     % (plword))
                 break
 
@@ -312,7 +328,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
 
               # Make sure there's exactly one headword template.
               if len(infl_headword_templates) > 1:
-                pagemsg("Found multiple inflection headword templates for %s; taking no action"
+                pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
                     % (plword))
                 break
               infl_headword_template = infl_headword_templates[0]
@@ -341,7 +357,7 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
               # with better-vocalized versions.
               else:
                 if len(infl_of_templates) > 1:
-                  pagemsg("Found multiple inflection-of templates for %s; taking no action"
+                  pagemsg("WARNING: Found multiple inflection-of templates for %s; taking no action"
                       % (plword))
                   break
                 infl_of_template = infl_of_templates[0]
@@ -387,6 +403,19 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
             # At this point, didn't find either headword of inflection-of
             # template, or both.
             elif vn_or_participle:
+              # Insert {{ar-verbal noun of}} (or equivalent for participles).
+              # Return comment (can't set it inside of fn).
+              def insert_vn_defn():
+                subsections[j] = unicode(parsed)
+                subsections[j] = re.sub("^#",
+                    "# {{%s|%s}}\n#" % (singtemp, singular),
+                    subsections[j], 1, re.M)
+                sections[i] = ''.join(subsections)
+                pagemsg("Insert existing defn with {{%s}} at beginning" % (
+                    singtemp))
+                return "Insert existing defn with {{%s}} at beginning: %s %s, %s %s" % (
+                    singtemp, plword, plural, singword, singular)
+
               # If verb or participle, see if we found inflection headword
               # template at least. If so, add definition to beginning as
               # {{ar-verbal noun of}} (or equivalent for participles).
@@ -402,27 +431,45 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
 
                 # Now actually add {{ar-verbal noun of}} (or equivalent
                 # for participles).
-                subsections[j] = unicode(parsed)
-                subsections[j] = re.sub("^#",
-                    "# {{%s|%s}}\n#" % (singtemp, singular),
-                    subsections[j], 1, re.M)
-                sections[i] = ''.join(subsections)
-                pagemsg("Insert existing defn with {{%s}} at beginning" % (
-                    singtemp))
-                comment = "Insert existing defn with {{%s}} at beginning: %s %s, %s %s" % (
-                    singtemp, plword, plural, singword, singular)
+                comment = insert_vn_defn()
                 break
 
               else:
                 # Couldn't find headword template; see if there's a generic
-                # noun or adjective headword template with the same head.
+                # noun headword template (or adjective, for participles)
+                # with the same head.
                 templates_to_check = (
                   is_vn and ["ar-noun"] or ["ar-noun", "ar-adj"])
+                other_headword_templates = []
                 for other_template in templates_to_check:
-                  other_headword_templates = [
+                  other_headword_templates += [
                       t for t in parsed.filter_templates()
                       if t.name == other_template and compare_param(t, "1", plural)]
-                  if other_headword_templates:
+                if other_headword_templates:
+                  if is_vn:
+                    if len(other_headword_templates) > 1:
+                      pagemsg("WARNING: Found multiple partially-matching inflection headword templates for %s; taking no action"
+                          % (plword))
+                      break
+                    assert(len(matching_vn_noun_templates) >= 1)
+                    if len(matching_vn_noun_templates) > 1:
+                      pagemsg("Found multiple matching Noun entries for %s; inserting new entry"
+                          % (plword))
+                      # Don't do anything but keep looking at subsections.
+                      # We will skip the other matching Noun subsections as
+                      # well and ultimately add a new Verbal noun entry.
+                    else:
+                      matching_template = other_headword_templates[0]
+                      assert(matching_template == matching_vn_noun_templates[0])
+                      pagemsg("Found %s matching %s, converting to %s" % (
+                        matching_template.name, plword, pltemp))
+                      subsections[j - 1] = re.sub("(===+)Noun(===+)",
+                          r"\1%s\2" % pos, subsections[j - 1])
+                      matching_template.name = pltemp
+                      # Insert {{ar-verbal noun of}} defn.
+                      comment = insert_vn_defn()
+                      break
+                  else:
                     pagemsg("WARNING: Found %s matching %s" %
                         (other_template, plword))
                     # FIXME: Should we break here?
@@ -501,26 +548,27 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
     if save:
       page.save(comment = comment)
 
-def create_noun_plural(save, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+def create_noun_plural(save, index, plural, pltr, singular, singtr, pos):
+  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       "plural", "singular", "ar-noun-pl", "plural of")
 
-def create_adj_plural(save, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+def create_adj_plural(save, index, plural, pltr, singular, singtr, pos):
+  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       "plural", "singular", "ar-adj-pl", "masculine plural of")
 
-def create_noun_feminine_entry(save, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+def create_noun_feminine_entry(save, index, plural, pltr, singular, singtr, pos):
+  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       "feminine", "masculine", None, "feminine of")
 
-def create_adj_feminine_entry(save, plural, pltr, singular, singtr, pos):
-  create_inflection_entry(save, plural, pltr, singular, singtr, pos,
+def create_adj_feminine_entry(save, index, plural, pltr, singular, singtr, pos):
+  create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       "feminine", "masculine", "ar-adj-fem", "feminine of")
 
 def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
     param):
   for cat in [u"Arabic %ss" % pos.lower()]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
+    for page, index in blib.cat_articles(cat, startFrom, upTo,
+        includeindex=True):
       for template in blib.parse(page).filter_templates():
         if template.name == tempname:
           sing = blib.getparam(template, "1")
@@ -532,7 +580,7 @@ def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
           pl = blib.getparam(template, param)
           pltr = blib.getparam(template, param + "tr")
           if pl:
-            createfn(save, pl, pltr, sing, singtr, pos)
+            createfn(save, index, pl, pltr, sing, singtr, pos)
           i = 2
           while pl:
             pl = blib.getparam(template, param + str(i))
@@ -543,9 +591,9 @@ def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
               if otherhead:
                 msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
                   sing, i, otherhead, otherheadtr, pl, pltr))
-                createfn(save, pl, pltr, otherhead, otherheadtr, pos)
+                createfn(save, index, pl, pltr, otherhead, otherheadtr, pos)
               else:
-                createfn(save, pl, pltr, sing, singtr, pos)
+                createfn(save, index, pl, pltr, sing, singtr, pos)
             i += 1
 
 def create_plurals(save, pos, tempname, startFrom, upTo):
@@ -593,21 +641,22 @@ def has_passive_form(passive):
   return passive != "no"
 
 # Create a verbal noun entry, either creating a new page or adding to an
-# existing page. Do nothing if entry is already present. Only save changes
-# if SAVE is true. VN is the vocalized verbal noun; VERBPAGE is the Page
-# object representing the dictionary-form verb of this verbal noun;
+# existing page. Do nothing if entry is already present. SAVE, INDEX are as in
+# create_inflection_entry(). VN is the vocalized verbal noun; VERBPAGE is the
+# Page object representing the dictionary-form verb of this verbal noun;
 # TEMPLATE is the conjugation template for the verb, i.e. {{ar-conj|...}};
 # UNCERTAIN is true if the verbal noun is uncertain (indicated with a ? at
 # the end of the vn=... parameter in the conjugation template).
-def create_verbal_noun(save, vn, page, template, uncertain):
+def create_verbal_noun(save, index, vn, page, template, uncertain):
   dicform = get_dicform(page, template)
 
-  create_inflection_entry(save, vn, None, dicform, None, "Verbal noun",
+  create_inflection_entry(save, index, vn, None, dicform, None, "Verbal noun",
     "verbal noun", "dictionary form", "ar-verbal noun", "ar-verbal noun of",
     uncertain and "|uncertain=yes" or "")
 
 def create_verbal_nouns(save, startFrom, upTo):
-  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+  for page, index in blib.references("Template:ar-conj", startFrom, upTo,
+      includeindex=True):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
         vnvalue = blib.getparam(template, "vn")
@@ -623,17 +672,18 @@ def create_verbal_nouns(save, startFrom, upTo):
             continue
         vns = re.split(u"[,،]", vnvalue)
         for vn in vns:
-          create_verbal_noun(save, vn, page, template, uncertain)
+          create_verbal_noun(save, index, vn, page, template, uncertain)
 
-def create_participle(save, part, page, template, actpass):
+def create_participle(save, index, part, page, template, actpass):
   dicform = get_dicform(page, template)
 
-  create_inflection_entry(save, part, None, dicform, None, "Participle",
+  create_inflection_entry(save, index, part, None, dicform, None, "Participle",
     "%s participle" % actpass, "dictionary form", "ar-%s participle" % actpass,
     "ar-%s participle of", "")
 
 def create_participles(save, startFrom, upTo):
-  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+  for page, index in blib.references("Template:ar-conj", startFrom, upTo,
+      includeindex=True):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
         passive = get_passive(page, template)
@@ -642,13 +692,13 @@ def create_participles(save, startFrom, upTo):
           if apvalue:
             aps = re.split(",", apvalue)
             for ap in aps:
-              create_participle(save, ap, page, template, "active")
+              create_participle(save, index, ap, page, template, "active")
         if has_passive_form(passive):
           ppvalue = get_part_prop(page, template, "ar-verb-part-all|pp")
           if ppvalue:
             pps = re.split(",", ppvalue)
             for pp in pps:
-              create_participle(save, pp, page, template, "passive")
+              create_participle(save, index, pp, page, template, "passive")
 
 # List of all person/number/gender combinations, using the ID's in
 # {{ar-verb-part-all|...}}
@@ -671,13 +721,14 @@ tenses_infl_entry = {
     "juss":"non-past|%s|juss"
     }
 
-# Create a single verb part. SAVE is true if we should save the pages.
+# Create a single verb part. SAVE, INDEX are as in create_inflection_entry().
 # PAGE is the page of the lemma, and TEMPLATE is the {{ar-conj|...}}
 # template indicating the lemma's conjugation. DICFORM is the vocalized form
 # of the lemma, ACTPASS is either "active" or "passive", and PERSON and TENSE
 # indicate the particular person/number/gender/tense/mood combination, using
 # the codes passed to {{ar-verb-part-all|...}}.
-def create_one_verb_part(save, page, template, dicform, actpass, person, tense):
+def create_one_verb_part(save, index, page, template, dicform, actpass, person,
+    tense):
   infl_person = persons_infl_entry[person]
   infl_tense = tenses_infl_entry[tense] % actpass
   partid = actpass == ("active" and "%s-%s" % (person, tense) or
@@ -686,32 +737,35 @@ def create_one_verb_part(save, page, template, dicform, actpass, person, tense):
   if value:
     parts = re.split(",", value)
     for part in parts:
-      create_inflection_entry(save, part, None, dicform, None, "Verb",
+      create_inflection_entry(save, index, part, None, dicform, None, "Verb",
         partid, "dictionary form", "ar-verb form",
         "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
 # Create the active and passive versions (as appropriate) of a single verb
-# part. SAVE is true if we should save the pages. PAGE is the page of the
-# lemma, and TEMPLATE is the {{ar-conj|...}} template indicating the lemma's
-# conjugation. DICFORM is the vocalized form of the lemma. PASSIVE is the
-# value of the 'passive' property as returned by {{ar-verb-prop|passive|...}}.
-# PERSON and TENSE indicate the particular person/number/gender/tense/mood
-# combination, using the codes passed to {{ar-verb-part-all|...}}.
-def create_verb_part(save, page, template, dicform, passive, person, tense):
+# part. SAVE, INDEX are as in create_inflection_entry(). PAGE is the page of
+# the lemma, and TEMPLATE is the {{ar-conj|...}} template indicating the
+# lemma's conjugation. DICFORM is the vocalized form of the lemma. PASSIVE is
+# the value of the 'passive' property as returned by
+# {{ar-verb-prop|passive|...}}. PERSON and TENSE indicate the particular
+# person/number/gender/tense/mood combination, using the codes passed to
+# {{ar-verb-part-all|...}}.
+def create_verb_part(save, index, page, template, dicform, passive, person,
+    tense):
   if has_active_form(passive):
-    create_one_verb_part(save, page, template, dicform, "active", person,
+    create_one_verb_part(save, index, page, template, dicform, "active", person,
         tense)
   if has_passive_form(passive):
-    create_one_verb_part(save, page, template, dicform, "passive", person,
+    create_one_verb_part(save, index, page, template, dicform, "passive", person,
         tense)
 
 # Create all required verb parts for all verbs. If ALLFORMS is true, do *all*
 # verb parts (other than 3sm-perf, the dictionary form); otherwise, only do
-# only 3sm-impf, the corresponding non-past dictionary form. SAVE is true if
-# we should save the pages. STARTFROM and UPTO, if not None, delimit the
+# only 3sm-impf, the corresponding non-past dictionary form. SAVE, INDEX are as
+# in create_inflection_entry(). STARTFROM and UPTO, if not None, delimit the
 # range of pages to process.
 def create_verb_parts(save, startFrom, upTo, allforms=False):
-  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+  for page, index in blib.references("Template:ar-conj", startFrom, upTo,
+      includeindex=True):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
         dicform = get_dicform(page, template)
@@ -720,10 +774,10 @@ def create_verb_parts(save, startFrom, upTo, allforms=False):
           for person in persons:
             for tense in tenses:
               if not (person == "3sm" and tense == "perf"):
-                create_verb_part(save, page, template, dicform, passive,
+                create_verb_part(save, index, page, template, dicform, passive,
                     person, tense)
         else:
-          create_verb_part(save, page, template, dicform, passive,
+          create_verb_part(save, index, page, template, dicform, passive,
             "3sm", "impf")
 
 pa = blib.init_argparser("Create Arabic inflection entries")
