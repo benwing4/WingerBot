@@ -237,11 +237,12 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
 
         subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
 
-        matching_vn_noun_templates = []
         # If verbal noun, count how many matching noun entries; if exactly
-        # one, we may convert it to a verbal noun entry. If more than one,
-        # we have to do something else.
+        # one, we will insert a verbal noun defn into it if necessary.
+        # If more than one, punt because we don't know which one, or more
+        # than one, to insert the verbal noun defn into.
         if is_vn:
+          matching_vn_noun_templates = []
           for j in xrange(len(subsections)):
             if j > 0 and (j % 2) == 0:
               if re.match("^===+Noun===+", subsections[j - 1]):
@@ -249,25 +250,48 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
                 matching_vn_noun_templates += [
                     t for t in parsed.filter_templates()
                     if t.name == "ar-noun" and compare_param(t, "1", plural)]
+          if len(matching_vn_noun_templates) > 1:
+            pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert VN defn into")
+            break
+
+        # If verbal noun, convert existing ===Verbal noun=== headers into
+        # ===Noun===, and existing {{ar-verbal noun}} templates into
+        # {{ar-noun}}
+        if is_vn:
+          for j in xrange(len(subsections)):
+            if j > 0 and (j % 2) == 0:
+              if re.match("^===+Verbal noun===+", subsections[j - 1]):
+                subsections[j - 1] = re.sub("(===+)Verbal noun(===+)",
+                    r"\1Noun\2", subsections[j - 1])
+                pagemsg("Converting 'Verbal noun' section header to 'Noun'")
+                notes.append("Converted 'Verbal noun' section header to 'Noun'")
+              parsed = blib.parse_text(subsections[j])
+              for t in parsed.filter_templates():
+                if t.name == "ar-verbal noun":
+                  t.name = "ar-noun"
+                  pagemsg("Converting 'ar-verbal noun' template into 'ar-noun'")
+                  notes.append("Converted 'ar-verbal noun' template into 'ar-noun'")
+              subsections[j] = unicode(parsed)
+              sections[i] = ''.join(subsections)
 
         # Go through each subsection in turn, looking for subsection
         # matching the POS with an appropriate headword template whose
         # head matches the inflected form
         for j in xrange(len(subsections)):
           match_pos = False
-          vn_pos_mismatch = False
+          particip_pos_mismatch = False
           if j > 0 and (j % 2) == 0:
             if re.match("^===+%s===+\n" % pos, subsections[j - 1]):
               match_pos = True
-            if vn_or_participle:
+            if is_participle:
               for mismatch_pos in ["Noun", "Adjective"]:
                 if re.match("^===+%s===+\n" % mismatch_pos, subsections[j - 1]):
-                  vn_pos_mismatch = True
-                  vn_mismatch_pos = mismatch_pos
+                  particip_pos_mismatch = True
+                  particip_mismatch_pos = mismatch_pos
                   break
 
           # Found a POS match
-          if match_pos or vn_pos_mismatch:
+          if match_pos or particip_pos_mismatch:
             parsed = blib.parse_text(subsections[j])
 
             def check_maybe_remove_i3rab(template, sgplword):
@@ -307,10 +331,10 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
                     % (plword))
                 break
 
-            def vn_noun_check():
-              if vn_pos_mismatch:
+            def particip_mismatch_check():
+              if particip_pos_mismatch:
                 pagemsg("WARNING: Found match for %s but in ===%s=== section rather than ===%s==="
-                    % (plword, vn_mismatch_pos, pos))
+                    % (plword, particip_mismatch_pos, pos))
 
             # We found both templates and their heads matched; inflection
             # entry is probably already present. For verb forms, however,
@@ -324,7 +348,7 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
               pagemsg("Exists and has Arabic section and found %s already in it"
                   % (plword))
 
-              vn_noun_check()
+              particip_mismatch_check()
 
               # Make sure there's exactly one headword template.
               if len(infl_headword_templates) > 1:
@@ -434,45 +458,19 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
                 comment = insert_vn_defn()
                 break
 
-              else:
-                # Couldn't find headword template; see if there's a generic
-                # noun headword template (or adjective, for participles)
+              elif is_participle:
+                # Couldn't find headword template; if we're a participle,
+                # see if there's a generic noun or adjective template
                 # with the same head.
-                templates_to_check = (
-                  is_vn and ["ar-noun"] or ["ar-noun", "ar-adj"])
-                other_headword_templates = []
-                for other_template in templates_to_check:
-                  other_headword_templates += [
+                for other_template in ["ar-noun", "ar-adj"]:
+                  other_headword_templates = [
                       t for t in parsed.filter_templates()
                       if t.name == other_template and compare_param(t, "1", plural)]
-                if other_headword_templates:
-                  if is_vn:
-                    if len(other_headword_templates) > 1:
-                      pagemsg("WARNING: Found multiple partially-matching inflection headword templates for %s; taking no action"
-                          % (plword))
-                      break
-                    assert(len(matching_vn_noun_templates) >= 1)
-                    if len(matching_vn_noun_templates) > 1:
-                      pagemsg("Found multiple matching Noun entries for %s; inserting new entry"
-                          % (plword))
-                      # Don't do anything but keep looking at subsections.
-                      # We will skip the other matching Noun subsections as
-                      # well and ultimately add a new Verbal noun entry.
-                    else:
-                      matching_template = other_headword_templates[0]
-                      assert(matching_template == matching_vn_noun_templates[0])
-                      pagemsg("Found %s matching %s, converting to %s" % (
-                        matching_template.name, plword, pltemp))
-                      subsections[j - 1] = re.sub("(===+)Noun(===+)",
-                          r"\1%s\2" % pos, subsections[j - 1])
-                      matching_template.name = pltemp
-                      # Insert {{ar-verbal noun of}} defn.
-                      comment = insert_vn_defn()
-                      break
-                  else:
-                    pagemsg("WARNING: Found %s matching %s" %
-                        (other_template, plword))
-                    # FIXME: Should we break here?
+                  if other_headword_templates:
+                      pagemsg("WARNING: Found %s matching %s" %
+                          (other_template, plword))
+                      # FIXME: Should we break here? Should we insert
+                      # a participle defn?
 
         else: # else of for loop over subsections, i.e. no break out of loop
           # At this point we couldn't find an existing subsection with
@@ -520,7 +518,8 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
             plword, plural, singular, pos, m.group(1))
         sections[i:i] = [newsection, "\n----\n\n"]
         break
-    else:
+
+    else: # else of for loop over sections, i.e. no break out of loop
       pagemsg("Exists; adding section to end")
       comment = "Create Arabic section and entry for %s %s of %s, pos=%s; append at end" % (
           plword, plural, singular, pos)
@@ -532,6 +531,8 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
       else:
         sections[-1] += "\n\n"
       sections += ["----\n\n", newsection]
+
+    # End of loop over sections in existing page; rejoin sections
     newtext = pagehead + ''.join(sections) + pagetail
     if page.text == newtext:
       pagemsg("No change in text")
@@ -541,9 +542,17 @@ def create_inflection_entry(save, index, plural, pltr, singular, singtr, pos,
     else:
       pagemsg("Text has changed")
     page.text = newtext
-  if comment and page.text != existing_text:
-    if notes:
-      comment += " (%s)" % '; '.join(notes)
+
+  # Executed whether creating new page or modifying existing page.
+  # Check for changed text and save if so.
+  notestext = '; '.join(notes)
+  if notestext:
+    if comment:
+      comment += " (%s)" % notestext
+    else:
+      comment = notestext
+  if page.text != existing_text:
+    assert(comment)
     pagemsg("comment = %s" % comment, simple = True)
     if save:
       page.save(comment = comment)
@@ -650,8 +659,8 @@ def has_passive_form(passive):
 def create_verbal_noun(save, index, vn, page, template, uncertain):
   dicform = get_dicform(page, template)
 
-  create_inflection_entry(save, index, vn, None, dicform, None, "Verbal noun",
-    "verbal noun", "dictionary form", "ar-verbal noun", "ar-verbal noun of",
+  create_inflection_entry(save, index, vn, None, dicform, None, "Noun",
+    "verbal noun", "dictionary form", "ar-noun", "ar-verbal noun of",
     uncertain and "|uncertain=yes" or "")
 
 def create_verbal_nouns(save, startFrom, upTo):
