@@ -87,10 +87,13 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
 
   # Fetch pagename, create pagemsg() fn to output msg with page name included
   pagename = remove_diacritics(plural)
-  def pagemsg(text):
-    msg("Page %s: %s: %s %s%s, %s %s%s" % (pagename, text,
-      plword, plural, " (%s)" % pltr if pltr else "",
-      singword, singular, " (%s)" % singtr if singtr else ""))
+  def pagemsg(text, simple = False):
+    if simple:
+      msg("Page %s: %s")
+    else
+      msg("Page %s: %s: %s %s%s, %s %s%s" % (pagename, text,
+        plword, plural, " (%s)" % pltr if pltr else "",
+        singword, singular, " (%s)" % singtr if singtr else ""))
 
   # Remove trailing -un/-u i3rab from inflected form and lemma
 
@@ -122,8 +125,9 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
   is_verb_part = pos == "Verb"
   is_plural_noun = plword == "plural" and pos == "Noun"
   vn_or_participle = is_vn or is_participle
+  lemma_is_verb = is_verb_part or vn_or_participle
 
-  singular = maybe_remove_i3rab(singword, singular, noremove=is_verb_part)
+  singular = maybe_remove_i3rab(singword, singular, noremove=lemma_is_verb)
   plural = maybe_remove_i3rab(plword, plural, noremove=is_verb_part)
 
   if plural == "-":
@@ -384,12 +388,11 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
             # template, or both.
             elif vn_or_participle:
               # If verb or participle, see if we found inflection headword
-              # template at least. If so, wrap definition with a
-              # {{ar-verbal noun of}} declaration (or equivalent for
-              # participles).
+              # template at least. If so, add definition to beginning as
+              # {{ar-verbal noun of}} (or equivalent for participles).
               if infl_headword_templates:
                 if len(infl_headword_templates) > 1:
-                  pagemsg("Found multiple inflection headword templates for %s; taking no action"
+                  pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
                       % (plword))
                   break
                 infl_headword_template = infl_headword_templates[0]
@@ -397,24 +400,25 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
                 # Check for i3rab in existing pl and remove it if so
                 check_maybe_remove_i3rab(infl_headword_template, plword)
 
-                # Now actually wrap with {{ar-verbal noun of}} (or equivalent
+                # Now actually add {{ar-verbal noun of}} (or equivalent
                 # for participles).
                 subsections[j] = unicode(parsed)
-                subsections[j] = re.sub("^#", r"##", subsections[j], 0, re.M)
-                subsections[j] = re.sub("^##",
-                    "# {{%s|%s}}:\n##" % (singtemp, singword),
+                subsections[j] = re.sub("^#",
+                    "# {{%s|%s}}\n#" % (singtemp, singular),
                     subsections[j], 1, re.M)
                 sections[i] = ''.join(subsections)
-                pagemsg("Wrapping existing defn with {{%s}}" % (
+                pagemsg("Insert existing defn with {{%s}} at beginning" % (
                     singtemp))
-                comment = "Wrap existing defn with {{%s}}: %s %s, %s %s" % (
+                comment = "Insert existing defn with {{%s}} at beginning: %s %s, %s %s" % (
                     singtemp, plword, plural, singword, singular)
                 break
 
               else:
                 # Couldn't find headword template; see if there's a generic
                 # noun or adjective headword template with the same head.
-                for other_template in ["ar-noun", "ar-adj"]:
+                templates_to_check = (
+                  is_vn and ["ar-noun"] or ["ar-noun", "ar-adj"])
+                for other_template in templates_to_check:
                   other_headword_templates = [
                       t for t in parsed.filter_templates()
                       if t.name == other_template and compare_param(t, "1", plural)]
@@ -485,14 +489,15 @@ def create_inflection_entry(save, plural, pltr, singular, singtr, pos,
     if page.text == newtext:
       pagemsg("No change in text")
     elif verbose:
-      pagemsg("Replacing [[%s]] with [[%s]]" % (page.text, newtext))
+      pagemsg("Replacing [[%s]] with [[%s]]" % (page.text, newtext),
+          simple = True)
     else:
       pagemsg("Text has changed")
     page.text = newtext
   if comment and page.text != existing_text:
     if notes:
       comment += " (%s)" % '; '.join(notes)
-    pagemsg("comment = %s" % comment)
+    pagemsg("comment = %s" % comment, simple = True)
     if save:
       page.save(comment = comment)
 
@@ -557,8 +562,11 @@ def expand_template(page, text):
   req = pywikibot.data.api.Request(action="expandtemplates",
       text = text,
       title = page.title(withSection=False),
-      site = page.site)
-  return req.submit()["expandtemplates"]["*"]
+      site = page.site,
+      prop = "wikitext" # "*"
+      )
+  #return req.submit()["expandtemplates"]["*"]
+  return req.submit()["expandtemplates"]["wikitext"]
 
 def get_part_prop(page, template, prefix):
   # Make an expand-template call to convert the conjugation template to
