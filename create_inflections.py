@@ -78,8 +78,8 @@ lemma_inflection_counts = {}
 # parameter or parameters to add to the created DEFTEMP template, and
 # should be either empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat"
 # for more than one parameter); default is "|lang=ar".
-def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-    infltype, lemmatype, infltemp, deftemp, deftemp_param = "|lang=ar"):
+def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
+    pos, infltype, lemmatype, infltemp, deftemp, deftemp_param = "|lang=ar"):
 
   # Remove any links that may esp. appear in the lemma, since the
   # vocalized version of the lemma as it appears in the lemma's headword
@@ -159,8 +159,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos
       lemma_inflection_counts.get(li_no_vowels, 0) + 1)
   if lemma_inflection_counts[li_no_vowels] > 1:
     pagemsg("Found multiple (%s) vocalized possibilities for %s %s, %s %s" % (
-      lemma_inflection_counts[li_no_vowels], lemmatype, lemma_no_vowels, infltype,
-      infl_no_vowels))
+      lemma_inflection_counts[li_no_vowels], lemmatype, lemma_no_vowels,
+      infltype, infl_no_vowels))
     must_match_exactly = True
   if vn_or_participle or is_verb_part:
     must_match_exactly = True
@@ -565,11 +565,13 @@ def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "plural", "singular", "ar-adj-pl", "masculine plural of")
 
-def create_noun_feminine_entry(save, index, inflection, infltr, lemma, lemmatr, pos):
+def create_noun_feminine_entry(save, index, inflection, infltr, lemma, lemmatr,
+    pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", None, "feminine of")
 
-def create_adj_feminine_entry(save, index, inflection, infltr, lemma, lemmatr, pos):
+def create_adj_feminine_entry(save, index, inflection, infltr, lemma, lemmatr,
+    pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-adj-fem", "feminine of")
 
@@ -585,7 +587,8 @@ def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
           # Handle blank head; use page title
           if lemma == "":
             lemma = page.title()
-            msg("Page %s: blank head in template %s (tr=%s)" % (lemma, tempname, lemmatr))
+            msg("Page %s: blank head in template %s (tr=%s)" % (
+              lemma, tempname, lemmatr))
           infl = blib.getparam(template, param)
           infltr = blib.getparam(template, param + "tr")
           if infl:
