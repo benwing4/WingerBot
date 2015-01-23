@@ -99,7 +99,7 @@ def do_edit(page, func=None, null=False, save=False, verbose=False):
 
     break
 
-def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False):
+def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False, includeindex = False):
   if isinstance(page, basestring):
     page = pywikibot.Page(site, page)
 
@@ -119,7 +119,10 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
     if endsort != None and not t:
       t = datetime.datetime.now()
 
-    yield current
+    if includeindex:
+      yield current, i
+    else:
+      yield current
 
     if i % steps == 0:
       tdisp = ""
@@ -134,7 +137,7 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
       errmsg(str(i) + "/" + str(endsort) + tdisp)
 
 
-def cat_articles(page, startsort = None, endsort = None):
+def cat_articles(page, startsort = None, endsort = None, includeindex = False):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
 
@@ -153,7 +156,10 @@ def cat_articles(page, startsort = None, endsort = None):
       elif current.title(withNamespace=False) >= endsort:
         break
 
-    yield current
+    if includeindex:
+      yield current, i
+    else:
+      yield current
 
 
 def cat_subcats(page, startsort = None, endsort = None):
