@@ -99,24 +99,29 @@ def do_edit(page, func=None, null=False, save=False, verbose=False):
 
     break
 
-def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False, includeindex = False):
-  if isinstance(page, basestring):
-    page = pywikibot.Page(site, page)
-
+def iter_pages(pageiter, startsort = None, endsort = None,
+    includeindex = False):
   i = 0
   t = None
   steps = 50
 
-  for current in page.getReferences(onlyTemplateInclusion = not includelinks, namespaces = namespaces):
+  for current in pageiter:
     i += 1
 
-    if endsort != None and i > endsort:
-      break
-
-    if startsort != None and i <= startsort:
+    if startsort != None and isinstance(startsort, int) and i <= startsort:
       continue
 
-    if endsort != None and not t:
+    if endsort != None:
+      if isinstance(endsort, int):
+        if i > endsort:
+          break
+      elif isinstance(current, basestring):
+        if current >= endsort:
+          break
+      elif current.title(withNamespace=False) >= endsort:
+        break
+
+    if not t and isinstance(endsort, int):
       t = datetime.datetime.now()
 
     if includeindex:
@@ -127,7 +132,7 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
     if i % steps == 0:
       tdisp = ""
 
-      if endsort != None:
+      if isinstance(endsort, int):
         told = t
         t = datetime.datetime.now()
         pagesleft = (endsort - i) / steps
@@ -137,66 +142,34 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
       errmsg(str(i) + "/" + str(endsort) + tdisp)
 
 
+def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False, includeindex = False):
+  if isinstance(page, basestring):
+    page = pywikibot.Page(site, page)
+  pageiter = page.getReferences(onlyTemplateInclusion = not includelinks,
+      namespaces = namespaces)
+  for page in iter_pages(pageiter, startsort, endsort, includeindex):
+    yield page
+
 def cat_articles(page, startsort = None, endsort = None, includeindex = False):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
-
-  i = 0
-
-  for current in page.articles(startsort = startsort if not isinstance(startsort, int) else None):
-    i += 1
-
-    if startsort != None and isinstance(startsort, int) and i <= startsort:
-      continue
-
-    if endsort != None:
-      if isinstance(endsort, int):
-        if i > endsort:
-          break
-      elif current.title(withNamespace=False) >= endsort:
-        break
-
-    if includeindex:
-      yield current, i
-    else:
-      yield current
+  pageiter = page.articles(startsort = startsort if not isinstance(startsort, int) else None)
+  for page in iter_pages(pageiter, startsort, endsort, includeindex):
+    yield page
 
 
-def cat_subcats(page, startsort = None, endsort = None):
+def cat_subcats(page, startsort = None, endsort = None, includeindex = False):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
+  pageiter = page.subcategories(startsort = startsort if not isinstance(startsort, int) else None)
+  for page in iter_pages(pageiter, startsort, endsort, includeindex):
+    yield page
 
-  i = 0
-
-  for current in page.subcategories(startsort = startsort if not isinstance(startsort, int) else None):
-    i += 1
-
-    if startsort != None and isinstance(startsort, int) and i <= startsort:
-      continue
-
-    if endsort != None:
-      if isinstance(endsort, int):
-        if i > endsort:
-          break
-      elif current.title() >= endsort:
-        break
-
-    yield current
-
-
-def prefix(prefix, startsort = None, endsort = None, namespace = None):
-  i = 0
-
-  for current in site.prefixindex(prefix, namespace):
-    i += 1
-
-    if startsort != None and i <= startsort:
-      continue
-
-    if endsort != None and i > endsort:
-      break
-
-    yield current
+def prefix(prefix, startsort = None, endsort = None, namespace = None,
+    includeindex = False):
+  pageiter = site.prefixindex(prefix, namespace)
+  for page in iter_pages(pageiter, startsort, endsort, includeindex):
+    yield page
 
 def stream(st, startsort = None, endsort = None):
   i = 0
