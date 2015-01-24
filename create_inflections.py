@@ -91,9 +91,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   pagename = remove_diacritics(inflection)
   def pagemsg(text, simple = False):
     if simple:
-      msg("Page %s (%s): %s" % (pagename, index, text))
+      msg("Page %s %s: %s" % (index, pagename, text))
     else:
-      msg("Page %s (%s): %s: %s %s%s, %s %s%s" % (pagename, index, text,
+      msg("Page %s %s: %s: %s %s%s, %s %s%s" % (index, pagename, text,
         infltype, inflection, " (%s)" % infltr if infltr else "",
         lemmatype, lemma, " (%s)" % lemmatr if lemmatr else ""))
 
@@ -360,12 +360,24 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               # For verb forms check for an exactly matching definitional
               # template; if not, insert one at end of definition.
               if is_verb_part:
+                def compare_verb_part_defn_templates(code1, code2):
+                  def canonicalize_defn_template(code):
+                    code = reorder_shadda(code)
+                    code = re.sub("\[\[.*?\]\]", "", code)
+                    code = re.sub("\|gloss=[^|}]*", "", code)
+                    code = re.sub("\|lang=ar", "", code)
+                    return code
+                  return (canonicalize_defn_template(code1) ==
+                      canonicalize_defn_template(code2))
                 for d_t in defn_templates:
-                  if (reorder_shadda(unicode(d_t)) ==
-                      reorder_shadda(new_defn_template)):
+                  if compare_verb_part_defn_templates(unicode(d_t),
+                      new_defn_template):
                     pagemsg("Found exact-matching definitional template for %s; taking no action"
                         % (infltype))
                     break
+                  else:
+                    pagemsg("Found non-matching definitional template for %s: %s"
+                        % (infltype, unicode(d_t)))
                 else: # No break
                   subsections[j] = unicode(parsed)
                   subsections[j] = re.sub(r"^(.*\n#[^\n]*\n)",
@@ -667,7 +679,7 @@ def create_verbal_noun(save, index, vn, page, template, uncertain):
     uncertain and "|uncertain=yes" or "")
 
 def create_verbal_nouns(save, startFrom, upTo):
-  for page, index in blib.references("Template:ar-conj", startFrom, upTo,
+  for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo,
       includeindex=True):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
@@ -694,7 +706,7 @@ def create_participle(save, index, part, page, template, actpass):
     "ar-%s participle of", "")
 
 def create_participles(save, startFrom, upTo):
-  for page, index in blib.references("Template:ar-conj", startFrom, upTo,
+  for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo,
       includeindex=True):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
@@ -728,9 +740,13 @@ tenses = ["perf", "impf", "subj", "juss"]
 # "active" or "passive" goes
 tenses_infl_entry = {
     "perf":"past|%s",
-    "impf":"non-past|%s|ind",
-    "subj":"non-past|%s|sub",
-    "juss":"non-past|%s|juss"
+    "impf":"non-past|%s|indc",
+    "subj":"non-past|%s|subj",
+    "juss":"non-past|%s|jussive"
+    }
+voices_infl_entry = {
+    "active":"actv",
+    "passive":"pass"
     }
 
 # Create a single verb part. SAVE, INDEX are as in create_inflection_entry().
@@ -742,15 +758,15 @@ tenses_infl_entry = {
 def create_one_verb_part(save, index, page, template, dicform, actpass, person,
     tense):
   infl_person = persons_infl_entry[person]
-  infl_tense = tenses_infl_entry[tense] % actpass
-  partid = actpass == ("active" and "%s-%s" % (person, tense) or
+  infl_tense = tenses_infl_entry[tense] % voices_infl_entry[actpass]
+  partid = (actpass == "active" and "%s-%s" % (person, tense) or
       "%s-ps-%s" % (person, tense))
   value = get_part_prop(page, template, "ar-verb-part-all|%s" % partid)
   if value:
     parts = re.split(",", value)
     for part in parts:
       create_inflection_entry(save, index, part, None, dicform, None, "Verb",
-        partid, "dictionary form", "ar-verb form",
+        "verb part %s" % partid, "dictionary form", "ar-verb form",
         "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
 # Create the active and passive versions (as appropriate) of a single verb
@@ -776,7 +792,7 @@ def create_verb_part(save, index, page, template, dicform, passive, person,
 # in create_inflection_entry(). STARTFROM and UPTO, if not None, delimit the
 # range of pages to process.
 def create_verb_parts(save, startFrom, upTo, allforms=False):
-  for page, index in blib.references("Template:ar-conj", startFrom, upTo,
+  for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo,
       includeindex=True):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
