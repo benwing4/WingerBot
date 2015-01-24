@@ -61,12 +61,76 @@ function track(page)
 	return true
 end
 
-function track_form(argname, form, translit)
+function track_form(argname, form, translit, pos)
 	form = reorder_shadda(remove_links(form))
 
+	-- Examples of what you can find by looking at what links to the given
+	-- pages:
+	--
+	-- Template:tracking/ar-headword/unvocalized (all unvocalized pages)
+	-- Template:tracking/ar-headword/unvocalized/pl (all unvocalized pages
+	--   where the plural is unvocalized, whether specified using pl=,
+	--   pl2=, etc.)
+	-- Template:tracking/ar-headword/unvocalized/head (all unvocalized pages
+	--   where the head is unvocalized)
+	-- Template:tracking/ar-headword/unvocalized/head/nouns (all nouns --
+	--   excluding proper nouns, collective nouns, singulative nouns --
+	--   where the head is unvocalized)
+	-- Template:tracking/ar-headword/unvocalized/head/proper nouns (all
+	--   proper nouns where the head is unvocalized)
+	-- Template:tracking/ar-headword/unvocalized/head/not proper nouns (all
+	--   words that are not proper nouns where the head is unvocalized)
+	-- Template:tracking/ar-headword/unvocalized/adjectives (all
+	--   adjectives where any parameter is unvocalized; currently only works
+	--   for heads, so equivalent to .../unvocalized/head/adjectives)
+	-- Template:tracking/ar-headword/unvocalized-empty-head (all pages
+	--   with an empty head)
+	-- Template:tracking/ar-headword/unvocalized-manual-translit (all
+	--   unvocalized pages with manual translit)
+	-- Template:tracking/ar-headword/unvocalized-manual-translit/head/nouns
+	--   (all nouns where the head is unvocalized but has manual translit)
+	-- Template:tracking/ar-headword/unvocalized-no-translit (all unvocalized
+	--   pages without manual translit)
+	-- Template:tracking/ar-headword/i3rab (all pages with any parameter
+	--   containing i3rab of either -un, -u, -a or -i)
+	-- Template:tracking/ar-headword/i3rab-un (all pages with any parameter
+	--   containing an -un i3rab ending)
+	-- Template:tracking/ar-headword/i3rab-un/pl (all pages where a form
+	--   specified using pl=, pl2=, etc. contains an -un i3rab ending)
+	-- Template:tracking/ar-headword/i3rab-u/head (all pages with a head
+	--   containing an -u i3rab ending)
+	-- Template:tracking/ar-headword/i3rab/head/proper nouns (all proper nouns
+	--   with a head containing i3rab of either -un, -u, -a or -i)
+	--
+	-- In general, the format is one of the following:
+	--
+	-- Template:tracking/ar-headword/FIRSTLEVEL
+	-- Template:tracking/ar-headword/FIRSTLEVEL/ARGNAME
+	-- Template:tracking/ar-headword/FIRSTLEVEL/POS
+	-- Template:tracking/ar-headword/FIRSTLEVEL/ARGNAME/POS
+	--
+	-- FIRSTLEVEL can be one of "unvocalized", "unvocalized-empty-head" or its
+	-- opposite "unvocalized-specified", "unvocalized-manual-translit" or its
+	-- opposite "unvocalized-no-translit", "i3rab", "i3rab-un", "i3rab-u",
+	-- "i3rab-a", or "i3rab-i".
+	--
+	-- ARGNAME is either "head" or an argument such as "pl", "f", "cons", etc.
+	-- This automatically includes arguments specified as head2=, pl3=, etc.
+	--
+	-- POS is a part of speech, lowercase and pluralized, e.g. "nouns",
+	-- "adjectives", "proper nouns", "collective nouns", etc. or
+	-- "not proper nouns", which includes all parts of speech but proper nouns.
 	function dotrack(page)
 		track(page)
 		track(page .. "/" .. argname)
+		if pos then
+			track(page .. "/" .. pos)
+			track(page .. "/" .. argname .. "/" .. pos)
+			if pos ~= "proper nouns" then
+				track(page .. "/not proper nouns")
+				track(page .. "/" .. argname .. "/not proper nouns")
+			end
+		end
 	end
 	function track_i3rab(arabic, tr)
 		if mw.ustring.find(form, arabic .. "$") then
@@ -113,7 +177,7 @@ function export.show(frame)
 		if head then
 			table.insert(heads, head)
 			translits[#heads] = translit
-			track_form("head", head, translit)
+			track_form("head", head, translit, poscat)
 		end
 		
 		i = i + 1
