@@ -488,6 +488,44 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           # At this point we couldn't find an existing subsection with
           # matching POS and appropriate headword template whose head matches
           # the the inflected form.
+
+          # If verb part, try to find an existing verb section corresponding
+          # to the same verb (either the lemma of the verb or another
+          # non-lemma form of the same verb).
+          if is_verb_part:
+            insert_at = None
+            for j in xrange(len(subsections)):
+              if j > 0 and (j % 2) == 0:
+                if re.match("^===+Verb===+", subsections[j - 1]):
+                  parsed = blib.parse_text(subsections[j])
+                  for t in parsed.filter_templates():
+                    if (t.name == deftemp and compare_param(t, "1", lemma) or
+                        t.name == "ar-verb" and get_dicform(page, t) == lemma):
+                      insert_at = j + 1
+            if insert_at:
+              pagemsg("Found section to insert verb part after: [[%s]]" %
+                  subsections[insert_at - 1])
+
+              # Determine indent level and skip past sections at higher indent
+              m = re.match("^(==+)", subsections[insert_at - 2])
+              indentlevel = len(m.group(1))
+              while insert_at < len(subsections):
+                if (insert_at % 2) == 0:
+                  continue
+                m = re.match("^(==+)", subsections[insert_at])
+                newindent = len(m.group(1))
+                if newindent <= indentlevel:
+                  break
+                pagemsg("Skipped past higher-indented subsection: [[%s]]" %
+                    subsections[insert_at])
+
+              pagemsg("Inserting after verb section for same lemma")
+              comment = "Insert entry for %s %s of %s after verb section for same lemma" % (
+              infltype, inflection, lemma)
+              subsections[insert_at:insert_at] = [newpos]
+              sections[i] = ''.join(subsections)
+              break
+
           pagemsg("Exists and has Arabic section, appending to end of section")
           # FIXME! Conceivably instead of inserting at end we should insert
           # next to any existing ===Noun=== (or corresponding POS, whatever
@@ -644,7 +682,7 @@ def get_part_prop(page, template, prefix):
   # Make an expand-template call to convert the conjugation template to
   # the desired form or property.
   return expand_template(page,
-      unicode(template).replace("{{ar-conj|", "{{%s|" % prefix))
+      re.sub("\{\{ar-(conj|verb)\|", "{{%s|" % prefix, unicode(template)))
 
 def get_dicform(page, template):
   return get_part_prop(page, template, "ar-past3sm")
