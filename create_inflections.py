@@ -23,6 +23,10 @@ site = pywikibot.Site()
 
 verbose = True
 
+# hamza
+HAMZA = u"ء"
+
+# diacritics
 A  = u"\u064E" # fatḥa
 AN = u"\u064B" # fatḥatān (fatḥa tanwīn)
 U  = u"\u064F" # ḍamma
@@ -34,12 +38,28 @@ SH = u"\u0651" # šadda = gemination of consonants
 DAGGER_ALIF = u"\u0670"
 DIACRITIC_ANY_BUT_SH = "[" + A + I + U + AN + IN + UN + SK + DAGGER_ALIF + "]"
 DIACRITIC_ANY = "[" + A + I + U + AN + IN + UN + SK + SH + DAGGER_ALIF + "]"
+
+# various letters
 ALIF = u"ا"
 ALIF_WASLA = u"ٱ"
 ALIF_ANY = "[" + ALIF + ALIF_WASLA + "]"
+AMAQ = u"ى"
+AMAD = u"آ"
+TAM = u"ة"
+Y = u"ي"
 
+# combinations
 UUN = U + u"ون"
 UUNA = UUN + A
+
+def get_gender(word):
+  if word.endswith(TAM):
+    return "f"
+  elif (word.endswith(AMAQ) or word.endswith(AMAD) or
+      word.endswith(ALIF + HAMZA) or word.endswith(Y + ALIF)):
+    return "?"
+  else:
+    return "m"
 
 def remove_diacritics(word):
   return re.sub(DIACRITIC_ANY, "", word)
@@ -56,6 +76,15 @@ def reorder_shadda(text):
   # MediaWiki does for all Unicode strings; however, it makes the
   # detection process inconvenient, so undo it.
   return re.sub("(" + DIACRITIC_ANY_BUT_SH + ")" + SH, SH + r"\1", text)
+
+# Make sure there are two trailing newlines
+def ensure_two_trailing_nl(text):
+  if text.endswith("\n\n"):
+    return text
+  elif text.endswith("\n"):
+    return text + "\n"
+  else:
+    return text + "\n\n"
 
 lemma_inflection_counts = {}
 
@@ -177,7 +206,20 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       return remove_diacritics(paramval) == remove_diacritics(value)
 
   # Prepare parts of new entry to insert
-  new_headword_template = "{{%s|%s%s}}" % (infltemp, inflection,
+  if is_verb_part:
+    new_headword_template_prefix = "head|ar|verb form|head=%s" % inflection
+  elif is_vn:
+    gender = get_gender(inflection)
+    if gender == "?":
+      pagemsg("WARNING: Unable to determine gender")
+      genderparam = ""
+    else:
+      genderparam = "|g=%s" % gender
+    new_headword_template_prefix = "%s|%s%s" % (
+        infltemp, inflection, genderparam)
+  else:
+    new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
+  new_headword_template = "{{%s%s}}" % (new_headword_template_prefix,
     "|tr=%s" % infltr if infltr else "")
   new_defn_template = "{{%s|%s%s%s}}" % (
     deftemp, lemma,
@@ -313,8 +355,13 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # definitional (e.g. 'plural of') templates. We require that
             # they match, either exactly (apart from i3rab) or only in the
             # consonants.
-            infl_headword_templates = [t for t in parsed.filter_templates()
-                if t.name == infltemp and compare_param(t, "1", inflection)]
+            if is_verb_part:
+              infl_headword_templates = [t for t in parsed.filter_templates()
+                  if unicode(t).startswith("{{head|ar|verb form") and
+                  compare_param(t, "head", inflection)]
+            else:
+              infl_headword_templates = [t for t in parsed.filter_templates()
+                  if t.name == infltemp and compare_param(t, "1", inflection)]
             defn_templates = [t for t in parsed.filter_templates()
                 if t.name == deftemp and compare_param(t, "1", lemma)]
             # Special-case handling for actual noun plurals. We expect an
@@ -361,11 +408,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               # template; if not, insert one at end of definition.
               if is_verb_part:
                 def compare_verb_part_defn_templates(code1, code2):
+                  pagemsg("Comparing %s with %s" % (code1, code2))
                   def canonicalize_defn_template(code):
                     code = reorder_shadda(code)
-                    code = re.sub("\[\[.*?\]\]", "", code)
-                    code = re.sub("\|gloss=[^|}]*", "", code)
-                    code = re.sub("\|lang=ar", "", code)
+                    code = re.sub(r"\[\[.*?\]\]", "", code)
+                    code = re.sub(r"\|gloss=[^|}]*", "", code)
+                    code = re.sub(r"\|lang=ar", "", code)
                     return code
                   return (canonicalize_defn_template(code1) ==
                       canonicalize_defn_template(code2))
@@ -522,7 +570,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               pagemsg("Inserting after verb section for same lemma")
               comment = "Insert entry for %s %s of %s after verb section for same lemma" % (
               infltype, inflection, lemma)
-              subsections[insert_at:insert_at] = [newpos]
+              subsections[insert_at - 1] = ensure_two_trailing_nl(
+                  subsections[insert_at - 1])
+              subsections[insert_at:insert_at] = [newpos + "\n"]
               sections[i] = ''.join(subsections)
               break
 
@@ -573,13 +623,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       pagemsg("Exists; adding section to end")
       comment = "Create Arabic section and entry for %s %s of %s, pos=%s; append at end" % (
           infltype, inflection, lemma, pos)
-      # Make sure there are two trailing newlines
-      if sections[-1].endswith("\n\n"):
-        pass
-      elif sections[-1].endswith("\n"):
-        sections[-1] += "\n"
-      else:
-        sections[-1] += "\n\n"
+
+      sections[-1] = ensure_two_trailing_nl(sections[-1])
       sections += ["----\n\n", newsection]
 
     # End of loop over sections in existing page; rejoin sections
@@ -741,7 +786,7 @@ def create_participle(save, index, part, page, template, actpass):
 
   create_inflection_entry(save, index, part, None, dicform, None, "Participle",
     "%s participle" % actpass, "dictionary form", "ar-%s participle" % actpass,
-    "ar-%s participle of", "")
+    "ar-%s participle of" % actpass, "")
 
 def create_participles(save, startFrom, upTo):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo,
@@ -769,8 +814,10 @@ persons = [
     "2d", "3dm", "3df",
     "1p", "2pm", "2pf", "3pm", "3pf"
     ]
-# Corresponding part of {{inflection of|...}} template, e.g. 3|s|m for 3sm
-persons_infl_entry = dict([x, re.sub("([sdpmf])", r"|\1", x)] for x in persons)
+# Corresponding part of {{inflection of|...}} template, e.g. 3|m|s for 3sm
+persons_infl_entry = dict([x,
+  re.sub("([sdpmf])", r"|\1", re.sub("([sdp])([mf])", r"\2\1", x))]
+  for x in persons)
 # List of all tense/mood combinations, using the ID's in
 # {{ar-verb-part-all|...}}
 tenses = ["perf", "impf", "subj", "juss"]
@@ -784,7 +831,7 @@ tenses_infl_entry = {
     }
 voices_infl_entry = {
     "active":"actv",
-    "passive":"pass"
+    "passive":"pasv"
     }
 
 # Create a single verb part. SAVE, INDEX are as in create_inflection_entry().
@@ -804,7 +851,8 @@ def create_one_verb_part(save, index, page, template, dicform, actpass, person,
     parts = re.split(",", value)
     for part in parts:
       create_inflection_entry(save, index, part, None, dicform, None, "Verb",
-        "verb part %s" % partid, "dictionary form", "ar-verb form",
+        "verb part %s" % partid, "dictionary form",
+        None, # we special-case this so it appears as {{head|ar|verb form}}
         "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
 # Create the active and passive versions (as appropriate) of a single verb
