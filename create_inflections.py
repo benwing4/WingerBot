@@ -55,6 +55,8 @@ UUNA = UUN + A
 def get_gender(word):
   if word.endswith(TAM):
     return "f"
+  elif word.endswith(AN + AMAQ):
+    return "m"
   elif (word.endswith(AMAQ) or word.endswith(AMAD) or
       word.endswith(ALIF + HAMZA) or word.endswith(Y + ALIF)):
     return "?"
