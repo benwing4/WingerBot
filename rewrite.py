@@ -18,7 +18,7 @@ import blib
 
 def rewrite_pages(refrom, reto, refs, cat, save, verbose, startFrom, upTo):
   def rewrite_one_page(page, text):
-    text = re.sub(refrom, reto, text)
+    text = re.sub(refrom, reto, unicode(text))
     return text, "replace %s -> %s" % (refrom, reto)
 
   if refs:
