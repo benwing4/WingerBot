@@ -16,6 +16,12 @@ local SH = u(0x0651) -- šadda = gemination of consonants
 local DAGGER_ALIF = u(0x0670)
 local DIACRITIC_ANY_BUT_SH = "[" .. A .. I .. U .. AN .. IN .. UN .. SK .. DAGGER_ALIF .. "]"
 
+-- various letters and signs
+local TAM    = u(0x0629) -- tāʾ marbūṭa = ة
+
+-- common combinations
+local UNU   = "[" .. UN .. U .. "]"
+
 -----------------------
 -- Utility functions --
 -----------------------
@@ -29,11 +35,21 @@ local function ine(arg)
 	end
 end
 
+local function list_to_set(list)
+	local set = {}
+	for _, item in ipairs(list) do
+		set[item] = true
+	end
+	return set
+end
+
 -- version of mw.ustring.gsub() that discards all but the first return value
 function rsub(term, foo, bar)
 	local retval = mw.ustring.gsub(term, foo, bar)
 	return retval
 end
+
+local rfind = mw.ustring.find
 
 function remove_links(text)
 	text = rsub(text, "%[%[[^|%]]*|", "")
@@ -133,7 +149,7 @@ function track_form(argname, form, translit, pos)
 		end
 	end
 	function track_i3rab(arabic, tr)
-		if mw.ustring.find(form, arabic .. "$") then
+		if rfind(form, arabic .. "$") then
 			dotrack("i3rab")
 			dotrack("i3rab-" .. tr)
 		end
@@ -161,47 +177,47 @@ end
 function export.show(frame)
 	local args = frame:getParent().args
 	local poscat = frame.args[1] or error("Part of speech has not been specified. Please pass parameter 1 to the module invocation.")
-	
+
 	-- Gather parameters
 	local heads = {}
 	local translits = {}
 	local genders = {}
-	local inflections = {}
-	local categories = {"Arabic " .. poscat}
-	
+	local infls = {}
+	local cats = {"Arabic " .. poscat}
+
 	local head = args["head"] or args[1] or ""
 	local translit = ine(args["tr"])
 	local i = 1
-	
+
 	while head do
 		if head then
 			table.insert(heads, head)
 			translits[#heads] = translit
 			track_form("head", head, translit, poscat)
 		end
-		
+
 		i = i + 1
 		head = ine(args["head" .. i])
 		translit = ine(args["tr" .. i])
 	end
 
 	if pos_functions[poscat] then
-		pos_functions[poscat](args, genders, inflections, categories)
+		pos_functions[poscat](args, genders, infls, cats)
 	end
-	
+
 	if args[3] or args[4] or args[5] or args[6] or args[7] or args[8] or args[9] then
 		track("num")
 	end
-	
+
 	if args["head"] then
 		track("head")
 	end
-	
+
 	if args["g"] then
 		track("g")
 	end
-	
-	return require("Module:headword").full_headword(lang, nil, heads, translits, genders, inflections, categories, nil)
+
+	return require("Module:headword").full_headword(lang, nil, heads, translits, genders, infls, cats, nil)
 end
 
 -- Get a list of inflections. See handle_infl() for meaning of ARGS, ARGPREF
@@ -209,25 +225,25 @@ end
 local function params(args, argpref, defgender)
 	-- Gather parameters
 	local forms = {}
-	
+
 	local form = ine(args[argpref])
 	local translit = ine(args[argpref .. "tr"])
 	local gender = ine(args[argpref .. "g"])
 	local gender2 = ine(args[argpref .. "g2"])
 	local i = 1
-	
+
 	while form do
 		local genderlist = (gender or gender2) and {gender, gender2} or defgender and {defgender} or nil
 		track_form(argpref, form, translit)
 		table.insert(forms, {term = form, translit = translit, gender = genderlist})
-		
+
 		i = i + 1
 		form = ine(args[argpref .. i])
 		translit = ine(args[argpref .. i .. "tr"])
 		gender = ine(args[argpref .. i .. "g"])
 		gender2 = ine(args[argpref .. i .. "g2"])
 	end
-	
+
 	return forms
 end
 
@@ -236,246 +252,264 @@ end
 -- along with "pltr", "pl2tr", etc. and optional gender(s) "plg", "plg2",
 -- "pl2g", "pl2g2", "pl3g", "pl3g2", etc.). Label with LABEL (e.g. "plural"),
 -- which will appear in the headword. Insert into inflections list
--- INFLECTIONS. Optional DEFGENDER is default gender to insert if gender
+-- INFLS. Optional DEFGENDER is default gender to insert if gender
 -- isn't given; otherwise, no gender is inserted. (This is used for
 -- singulative forms of collective nouns, and collective forms of singulative
 -- nouns, which have different gender from the base form(s).)
-local function handle_infl(args, inflections, argpref, label, defgender)
-	local infls = params(args, argpref, defgender)
-	infls.label = label
-	
-	if #infls > 0 then
-		table.insert(inflections, infls)
+local function handle_infl(args, infls, argpref, label, defgender)
+	local newinfls = params(args, argpref, defgender)
+	newinfls.label = label
+
+	if #newinfls > 0 then
+		table.insert(infls, newinfls)
 	end
 end
 
-local function prepend_cat(categories, pos)
-	table.insert(categories, 1, lang:getCanonicalName() .. " " .. pos)
+-- Handle a basic inflection (e.g. plural, feminine) along with the construct
+-- and oblique variants of this inflection. If NOBASE, skip the base inflection.
+local function handle_all_infl(args, infls, argpref, label, nobase)
+	if not nobase then
+		handle_infl(args, infls, argpref, label)
+	end
+	handle_infl(args, infls, argpref .. "cons", label .. " construct state")
+	handle_infl(args, infls, argpref .. "obl", label .. " oblique")
 end
 
-local function append_cat(categories, pos)
-	table.insert(categories, lang:getCanonicalName() .. " " .. pos)
+local function prepend_cat(cats, pos)
+	table.insert(cats, 1, lang:getCanonicalName() .. " " .. pos)
+end
+
+local function append_cat(cats, pos)
+	table.insert(cats, lang:getCanonicalName() .. " " .. pos)
 end
 
 -- Handle the case where pl=-, indicating an uncountable noun.
-local function handle_noun_plural(args, inflections, categories)
+local function handle_noun_plural(args, infls, cats)
 	if args["pl"] == "-" then
-		table.insert(inflections, {label = "usually [[Appendix:Glossary#uncountable|uncountable]]"})
-		append_cat(categories, "uncountable nouns")
+		table.insert(infls, {label = "usually [[Appendix:Glossary#uncountable|uncountable]]"})
+		append_cat(cats, "uncountable nouns")
 	else
-		handle_infl(args, inflections, "pl", "plural")
+		handle_infl(args, infls, "pl", "plural")
 	end
 end
 
-local valid_genders = {
-	["m"] = true,
-	["f"] = true,
-	["m-s"] = true,
-	["f-s"] = true,
-	["m-d"] = true,
-	["f-d"] = true,
-	["p"] = true,
-	["m-p"] = true,
-	["f-p"] = true,
-}
+local valid_genders = list_to_set(
+	{"m", "f", "m-s", "f-s", "m-d", "f-d", "p", "m-p", "f-p"})
 
 -- Handle gender in unnamed param 2 and a second gender in param g2,
--- inserting into the list of genders in GENDER. If gender unspecified,
--- default to DEFAULT.
-local function handle_gender(args, genders, default)
-	local g = ine(args[2])
+-- inserting into the list of genders in GENDER. Also insert categories
+-- into CATS if the gender is unexpected for the form of the noun
+-- or if multiple genders occur. If gender unspecified, default to
+-- DEFAULT, which may be omitted.
+local function handle_gender(args, genders, cats, default)
+	local g = ine(args[2]) or default
 	local g2 = ine(args["g2"])
-	g = g or default
 
-	if valid_genders[g] then
-		table.insert(genders, g)
-	else
-		table.insert(genders, "?")
+	local function process_gender(g)
+		if not g then
+			table.insert(genders, "?")
+		elseif valid_genders[g] then
+			table.insert(genders, g)
+		else
+			error("Unrecognized gender: " .. g)
+		end
 	end
-	
-	if valid_genders[g2] then
-		table.insert(genders, g2)
-	elseif g2 then
-		table.insert(genders, "?")
+
+	process_gender(g)
+	if g2 then
+		process_gender(g2)
 	end
-end	
+
+	if g and g2 then
+		append_cat(cats, "terms with multiple genders")
+	elseif g == "m" or g == "f" then
+		local head = ine(args["head"]) or ine(args[1])
+		if head then
+			head = rsub(reorder_shadda(head), UNU .. "?$", "")
+			local ends_with_tam = rfind(head, TAM .. "$")
+			if g == "m" and ends_with_tam then
+				append_cat(cats, "masculine terms with feminine ending")
+			elseif g == "f" and not ends_with_tam then
+				append_cat(cats, "feminine terms lacking feminine ending")
+			end
+		end
+	end
+end
 
 -- Part-of-speech functions
 
-pos_functions["adjectives"] = function(args, genders, inflections, categories)
+pos_functions["adjectives"] = function(args, genders, infls, cats)
 	local function infl(argpref, label)
-		handle_infl(args, inflections, argpref, label)
+		handle_infl(args, infls, argpref, label)
+	end
+	local function allinfl(argpref, label)
+		handle_all_infl(args, infls, argpref, label)
 	end
 	infl("cons", "construct state")
 	infl("obl", "oblique")
-	infl("f", "feminine")
-	infl("fcons", "feminine construct state")
-	infl("fobl", "feminine oblique")
-	infl("d", "dual")
-	infl("dobl", "dual oblique")
-	infl("cpl", "common plural")
-	infl("cplcons", "common plural construct state")
-	infl("cplobl", "common plural oblique")
-	infl("pl", "masculine plural")
-	infl("plcons", "masculine plural construct state")
-	infl("plobl", "masculine plural oblique")
-	infl("fpl", "feminine plural")
-	infl("fplcons", "feminine plural construct state")
-	infl("fplobl", "feminine plural oblique")
+	allinfl("f", "feminine")
+	allinfl("d", "dual")
+	allinfl("cpl", "common plural")
+	allinfl("pl", "masculine plural")
+	allinfl("fpl", "feminine plural")
 	infl("el", "elative")
 end
 
-function handle_sing_coll_noun_inflections(args, inflections, categories)
+function handle_sing_coll_noun_infls(args, infls, cats)
 	local function infl(argpref, label)
-		handle_infl(args, inflections, argpref, label)
+		handle_infl(args, infls, argpref, label)
+	end
+	local function allinfl(argpref, label, nobase)
+		handle_all_infl(args, infls, argpref, label, nobase)
 	end
 	infl("cons", "construct state")
 	infl("obl", "oblique")
-	infl("d", "dual")
-	infl("dobl", "dual oblique")
-	infl("pauc", "paucal")
-	handle_noun_plural(args, inflections, categories)
-	infl("plcons", "plural construct state")
-	infl("plobl", "plural oblique")
+	allinfl("d", "dual")
+	allinfl("pauc", "paucal")
+	handle_noun_plural(args, infls, cats)
+	allinfl("pl", "plural", "nobase")
 end
 
-pos_functions["collective nouns"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "nouns")
-	table.insert(inflections, {label = "collective"})
-	
-	local g = ine(args[2]) or "m"
-	if g ~= "m" then
-		track("coll nm")
+-- Collective and singulative tracking code. FIXME: This is old and may not
+-- be needed anymore. ARGS are the template arguments. COLLSING is either
+-- "coll" or "sing" according to whether we're dealing with collective or
+-- singulative nouns. OTHER is the other of the two possible values of
+-- COLLSING. DEFGENDER is the default gender for nouns of this type --
+-- "m" for collectives, "f" for singulatives.
+function track_coll_sing(args, collsing, other, defgender)
+	local g = ine(args[2]) or defgender
+	if g ~= defgender then
+		track(collsing .. " n" .. defgender)
 	end
 
-	handle_gender(args, genders, "m")
+	local otherg = ine(args[other .. "g"])
+	if otherg then
+		track(other .. "g")
 
-	-- Singulative
-	handle_infl(args, inflections, "sing", "singulative", "f")
-	local singg = ine(args["singg"])
-	if singg then
-		track("singg")
-		
-		if singg == "m" or singg == "f" then
-			track("singg/" .. singg)
+		if otherg == "m" or otherg == "f" then
+			track(other .. "g/" .. otherg)
 		else
-			track("singg/-")
+			track(other .. "g/-")
 		end
 	end
-
-	handle_sing_coll_noun_inflections(args, inflections, categories)
 end
 
-pos_functions["singulative nouns"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "nouns")
-	table.insert(inflections, {label = "singulative"})
+pos_functions["collective nouns"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "nouns")
+	table.insert(infls, {label = "collective"})
 
-	local g = ine(args[2]) or "f"
-	if g ~= "f" then
-		track("sing nf")
-	end
-
-	handle_gender(args, genders, "f")
-
-	-- Collective
-	handle_infl(args, inflections, "coll", "collective", "m")
-	local collg = ine(args["collg"])
-	if collg then
-		track("collg")
-		
-		if collg == "m" or collg == "f" then
-			track("collg/" .. collg)
-		else
-			track("collg/-")
-		end
-	end
-
-	handle_sing_coll_noun_inflections(args, inflections, categories)
+	track_coll_sing(args, "coll", "sing", "m")
+	handle_gender(args, genders, cats, "m")
+	-- Handle sing= (the corresponding singulative noun) and singg= (its gender)
+	handle_infl(args, infls, "sing", "singulative", "f")
+	handle_sing_coll_noun_infls(args, infls, cats)
 end
 
-function handle_noun_inflections(args, inflections, categories, singonly)
+pos_functions["singulative nouns"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "nouns")
+	table.insert(infls, {label = "singulative"})
+
+	track_coll_sing(args, "sing", "coll", "f")
+	handle_gender(args, genders, cats, "f")
+	-- Handle coll= (the corresponding collective noun) and collg= (its gender)
+	handle_infl(args, infls, "coll", "collective", "m")
+	handle_sing_coll_noun_infls(args, infls, cats)
+end
+
+function handle_noun_infls(args, infls, cats, singonly)
 	local function infl(argpref, label)
-		handle_infl(args, inflections, argpref, label)
+		handle_infl(args, infls, argpref, label)
+	end
+	local function allinfl(argpref, label, nobase)
+		handle_all_infl(args, infls, argpref, label, nobase)
 	end
 	infl("cons", "construct state")
 	infl("obl", "oblique")
 	if not singonly then
-		infl("d", "dual")
-		infl("dobl", "dual oblique")
-		handle_noun_plural(args, inflections, categories)
-		infl("plcons", "plural construct state")
-		infl("plobl", "plural oblique")
+		allinfl("d", "dual")
+		handle_noun_plural(args, infls, cats)
+		allinfl("pl", "plural", "nobase")
 	end
-	infl("f", "feminine")
-	infl("fcons", "feminine construct state")
-	infl("fobl", "feminine oblique")
-	infl("m", "masculine")
-	infl("mcons", "masculine construct state")
-	infl("mobl", "masculine oblique")
+	allinfl("f", "feminine")
+	allinfl("m", "masculine")
 end
 
-pos_functions["nouns"] = function(args, genders, inflections, categories)
-	handle_gender(args, genders)
+pos_functions["nouns"] = function(args, genders, infls, cats)
+	handle_gender(args, genders, cats)
 
-	handle_noun_inflections(args, inflections, categories)
+	handle_noun_infls(args, infls, cats)
 end
 
-pos_functions["numerals"] = function(args, genders, inflections, categories)
-	append_cat(categories, "cardinal numbers")
-	handle_gender(args, genders)
-	
-	handle_noun_inflections(args, inflections, categories)
+pos_functions["numerals"] = function(args, genders, infls, cats)
+	append_cat(cats, "cardinal numbers")
+	handle_gender(args, genders, cats)
+
+	handle_noun_infls(args, infls, cats)
 end
 
 
-pos_functions["proper nouns"] = function(args, genders, inflections, categories)
-	handle_gender(args, genders)
+pos_functions["proper nouns"] = function(args, genders, infls, cats)
+	handle_gender(args, genders, cats)
 
-	handle_noun_inflections(args, inflections, categories, "singular only")
+	handle_noun_infls(args, infls, cats, "singular only")
 end
 
 
-pos_functions["verbal nouns"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "nouns")
-	handle_gender(args, genders)
-	
-	handle_noun_inflections(args, inflections, categories)
+pos_functions["verbal nouns"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "nouns")
+	handle_gender(args, genders, cats)
+
+	handle_noun_infls(args, infls, cats)
 end
 
-pos_functions["pronouns"] = function(args, genders, inflections, categories)
-	handle_gender(args, genders)
+pos_functions["pronouns"] = function(args, genders, infls, cats)
+	handle_gender(args, genders, cats)
 end
 
-pos_functions["noun plural forms"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "plurals")
-	--prepend_cat(categories, "noun forms")
-	handle_gender(args, genders, "p")
+pos_functions["noun plural forms"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "plurals")
+	--prepend_cat(cats, "noun forms")
+	handle_gender(args, genders, cats, "p")
 end
 
-pos_functions["noun dual forms"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "duals")
-	--prepend_cat(categories, "noun forms")
-	handle_gender(args, genders, "m-d")
+pos_functions["noun dual forms"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "duals")
+	--prepend_cat(cats, "noun forms")
+	handle_gender(args, genders, cats, "m-d")
 end
 
-pos_functions["adjective plural forms"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "plurals")
-	--prepend_cat(categories, "adjective forms")
-	handle_gender(args, genders, "m-p")
+pos_functions["adjective plural forms"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "plurals")
+	--prepend_cat(cats, "adjective forms")
+	handle_gender(args, genders, cats, "m-p")
 end
 
-pos_functions["adjective dual forms"] = function(args, genders, inflections, categories)
-	prepend_cat(categories, "duals")
-	--prepend_cat(categories, "adjective forms")
-	handle_gender(args, genders, "m-d")
+pos_functions["adjective dual forms"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "duals")
+	--prepend_cat(cats, "adjective forms")
+	handle_gender(args, genders, cats, "m-d")
 end
 
-pos_functions["plurals"] = function(args, genders, inflections, categories)
-	handle_gender(args, genders, "p")
+pos_functions["plurals"] = function(args, genders, infls, cats)
+	handle_gender(args, genders, cats, "p")
 end
 
-pos_functions["noun forms"] = function(args, genders, inflections, categories)
-	handle_gender(args, genders)
+pos_functions["noun forms"] = function(args, genders, infls, cats)
+	handle_gender(args, genders, cats)
+end
+
+local valid_forms = list_to_set(
+	{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
+	 "XIII", "XIV", "XV", "Iq", "IIq", "IIIq", "IVq"})
+
+pos_functions["verb forms"] = function(args, genders, infls, cats)
+	local form = ine(args[2])
+	if not valid_forms[form] then
+		error("Invalid verb conjugation form " .. form)
+	end
+	if form then
+		table.insert(infls, {label = '[[Appendix:Arabic verbs#Form ' .. form .. '|form ' .. form .. ']]'})
+	end
 end
 
 return export
