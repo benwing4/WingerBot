@@ -51,17 +51,7 @@ Y = u"ي"
 # combinations
 UUN = U + u"ون"
 UUNA = UUN + A
-
-def get_gender(word):
-  if word.endswith(TAM):
-    return "f"
-  elif word.endswith(AN + AMAQ):
-    return "m"
-  elif (word.endswith(AMAQ) or word.endswith(AMAD) or
-      word.endswith(ALIF + HAMZA) or word.endswith(Y + ALIF)):
-    return "?"
-  else:
-    return "m"
+UNU = "[" + UN + U + "]"
 
 def remove_diacritics(word):
   return re.sub(DIACRITIC_ANY, "", word)
@@ -78,6 +68,19 @@ def reorder_shadda(text):
   # MediaWiki does for all Unicode strings; however, it makes the
   # detection process inconvenient, so undo it.
   return re.sub("(" + DIACRITIC_ANY_BUT_SH + ")" + SH, SH + r"\1", text)
+
+def get_gender(word):
+  # Remove -un or -u i3rab
+  word = re.sub(UNU + "$", "", reorder_shadda(word))
+  if word.endswith(TAM):
+    return "f"
+  elif word.endswith(AN + AMAQ):
+    return "m"
+  elif (word.endswith(AMAQ) or word.endswith(AMAD) or
+      word.endswith(ALIF + HAMZA) or word.endswith(Y + ALIF)):
+    return "?"
+  else:
+    return "m"
 
 # Make sure there are two trailing newlines
 def ensure_two_trailing_nl(text):
@@ -110,7 +113,8 @@ lemma_inflection_counts = {}
 # should be either empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat"
 # for more than one parameter); default is "|lang=ar".
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
-    pos, infltype, lemmatype, infltemp, deftemp, deftemp_param = "|lang=ar"):
+    pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
+    deftemp_param = "|lang=ar"):
 
   # Remove any links that may esp. appear in the lemma, since the
   # vocalized version of the lemma as it appears in the lemma's headword
@@ -208,21 +212,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       return remove_diacritics(paramval) == remove_diacritics(value)
 
   # Prepare parts of new entry to insert
-  if is_verb_part:
-    new_headword_template_prefix = "head|ar|verb form|head=%s" % inflection
-  elif is_vn:
-    gender = get_gender(inflection)
-    if gender == "?":
-      pagemsg("WARNING: Unable to determine gender")
-      genderparam = ""
-    else:
-      genderparam = "|g=%s" % gender
-    new_headword_template_prefix = "%s|%s%s" % (
-        infltemp, inflection, genderparam)
-  else:
-    new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
-  new_headword_template = "{{%s%s}}" % (new_headword_template_prefix,
-    "|tr=%s" % infltr if infltr else "")
+  new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
+  new_headword_template = "{{%s%s%s}}" % (new_headword_template_prefix,
+      infltemp_param, "|tr=%s" % infltr if infltr else "")
   new_defn_template = "{{%s|%s%s%s}}" % (
     deftemp, lemma,
     "|tr=%s" % lemmatr if lemmatr else "",
@@ -357,13 +349,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # definitional (e.g. 'plural of') templates. We require that
             # they match, either exactly (apart from i3rab) or only in the
             # consonants.
-            if is_verb_part:
-              infl_headword_templates = [t for t in parsed.filter_templates()
-                  if unicode(t).startswith("{{head|ar|verb form") and
-                  compare_param(t, "head", inflection)]
-            else:
-              infl_headword_templates = [t for t in parsed.filter_templates()
-                  if t.name == infltemp and compare_param(t, "1", inflection)]
+            infl_headword_templates = [t for t in parsed.filter_templates()
+                if t.name == infltemp and compare_param(t, "1", inflection)]
             defn_templates = [t for t in parsed.filter_templates()
                 if t.name == deftemp and compare_param(t, "1", lemma)]
             # Special-case handling for actual noun plurals. We expect an
@@ -656,21 +643,22 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
 def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "plural", "singular", "ar-noun-pl", "plural of")
+      "plural", "singular", "ar-noun-pl", "", "plural of")
 
 def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "plural", "singular", "ar-adj-pl", "masculine plural of")
+      "plural", "singular", "ar-adj-pl", "", "masculine plural of")
 
 def create_noun_feminine_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "feminine", "masculine", None, "feminine of")
+      "feminine", "masculine", None, # FIXME
+      "", "feminine of")
 
 def create_adj_feminine_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "feminine", "masculine", "ar-adj-fem", "feminine of")
+      "feminine", "masculine", "ar-adj-fem", "", "feminine of")
 
 def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
     param):
@@ -716,6 +704,7 @@ def create_feminines(save, pos, tempname, startFrom, upTo):
 def expand_template(page, text):
   # Make an expand-template call to expand the template text.
   # The code here is based on the expand_text() function of the Page object.
+  # FIXME: Use site.expand_text(text, title=page.title(withSection=False))
   req = pywikibot.data.api.Request(action="expandtemplates",
       text = text,
       title = page.title(withSection=False),
@@ -759,8 +748,17 @@ def has_passive_form(passive):
 def create_verbal_noun(save, index, vn, page, template, uncertain):
   dicform = get_dicform(page, template)
 
+  gender = get_gender(vn)
+  if gender == "?":
+    msg("Page %s %s: WARNING: Unable to determine gender: verbal noun %s, dictionary form %s"
+        % (index, remove_diacritics(vn), vn, dicform))
+    genderparam = ""
+  else:
+    genderparam = "|%s" % gender
+
   create_inflection_entry(save, index, vn, None, dicform, None, "Noun",
-    "verbal noun", "dictionary form", "ar-noun", "ar-verbal noun of",
+    "verbal noun", "dictionary form", "ar-noun", genderparam,
+    "ar-verbal noun of",
     uncertain and "|uncertain=yes" or "")
 
 def create_verbal_nouns(save, startFrom, upTo):
@@ -787,7 +785,8 @@ def create_participle(save, index, part, page, template, actpass):
   dicform = get_dicform(page, template)
 
   create_inflection_entry(save, index, part, None, dicform, None, "Participle",
-    "%s participle" % actpass, "dictionary form", "ar-%s participle" % actpass,
+    "%s participle" % actpass, "dictionary form",
+    "ar-%s participle" % actpass, "",
     "ar-%s participle of" % actpass, "")
 
 def create_participles(save, startFrom, upTo):
@@ -848,13 +847,15 @@ def create_one_verb_part(save, index, page, template, dicform, actpass, person,
   infl_tense = tenses_infl_entry[tense] % voices_infl_entry[actpass]
   partid = (actpass == "active" and "%s-%s" % (person, tense) or
       "%s-ps-%s" % (person, tense))
+  # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
+  form = re.sub("-.*$", "", blib.getparam(template, "1"))
   value = get_part_prop(page, template, "ar-verb-part-all|%s" % partid)
   if value:
     parts = re.split(",", value)
     for part in parts:
       create_inflection_entry(save, index, part, None, dicform, None, "Verb",
         "verb part %s" % partid, "dictionary form",
-        None, # we special-case this so it appears as {{head|ar|verb form}}
+        "ar-verb form", "|" + form,
         "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
 # Create the active and passive versions (as appropriate) of a single verb
