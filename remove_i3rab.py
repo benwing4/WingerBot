@@ -64,42 +64,41 @@ def remove_i3rab(page, entry, word, nowarn=False):
   return word
 
 def do_nouns(poses, headtempls, save, startFrom, upTo):
+  def do_one_page_noun(page, text):
+    pagename = page.title()
+    msg("Page %s: Begin processing" % pagename)
+    nouncount = 0
+    nounids = []
+    for template in text.filter_templates():
+      if template.name in headtempls:
+        nouncount += 1
+        params_done = []
+        entry = blib.getparam(template, "1")
+        for param in template.params:
+          value = blib.getparam(template, param)
+          if not value:
+            continue
+          newvalue = remove_i3rab(pagename, entry, value)
+          if newvalue != value:
+            template.add(param, newvalue)
+            params_done.append(param)
+        if params_done:
+          nounids.append("#%s %s %s (%s)" %
+              (nouncount, template.name, entry, ", ".join(params_done)))
+    return text, "Remove i3rab from params in %s" % (
+          '; '.join(nounids))
+
   for pos in poses:
     for page in blib.cat_articles("Arabic %ss" % pos.lower(), startFrom, upTo):
-      pagename = page.title()
-      msg("Page %s: Begin processing" % pagename)
-      nouncount = 0
-      nounids = []
-      for template in blib.parse(page).filter_templates():
-        if template.name in headtempls:
-          nouncount += 1
-          params_done = []
-          entry = blib.getparam(template, "1")
-          for param in template.params:
-            value = blib.getparam(template, param)
-            if not value:
-              continue
-            newvalue = remove_i3rab(pagename, entry, value)
-            if newvalue != value:
-              template.add(param, newvalue)
-              params_done.append(param)
-          if params_done:
-            nounids.append("#%s %s %s (%s)" %
-                (nouncount, template.name, entry, ", ".join(params_done)))
-      if nounids:
-        comment = "Remove i3rab from params in %s" % (
-            '; '.join(nounids))
-        msg("Page %s: comment = %s" % (pagename, comment)
-        if save:
-          page.save(comment = comment)
+      blib.do_edit(page, do_one_page_noun, save=save, verbose=verbose)
 
 def do_verbs(save, startFrom, upTo):
-  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+  def do_one_page_verb(page, text):
     pagename = page.title()
     msg("Page %s: Begin processing" % pagename)
     verbcount = 0
     verbids = []
-    for template in blib.parse(page).filter_templates():
+    for template in text.filter_templates():
       if template.name == "ar-conj":
         verbcount += 1
         vnvalue = blib.getparam(template, "vn")
@@ -125,12 +124,10 @@ def do_verbs(save, startFrom, upTo):
             pagename, verbid, vnvalue, newvn))
           template.add("vn", newvn)
           verbids.append(verbid)
-    if verbids:
-      comment = "Remove i3rab from verbal nouns for verb(s) %s" % (
+    return text, "Remove i3rab from verbal nouns for verb(s) %s" % (
           ', '.join(verbids))
-      msg("Page %s: comment = %s" % (pagename, comment)
-      if save:
-        page.save(comment = comment)
+  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
+    blib.do_edit(page, do_one_page_verb, save=save, verbose=verbose)
           
 pa = blib.init_argparser("Remove i3rab")
 pa.add_argument("--verb", action='store_true',
