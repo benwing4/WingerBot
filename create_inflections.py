@@ -527,17 +527,21 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           # the the inflected form.
 
           # If verb part, try to find an existing verb section corresponding
-          # to the same verb (either the lemma of the verb or another
-          # non-lemma form of the same verb).
+          # to the same verb or another verb of the same conjugation form
+          # (either the lemma of the verb or another non-lemma form).
           if is_verb_part:
             insert_at = None
             for j in xrange(len(subsections)):
               if j > 0 and (j % 2) == 0:
                 if re.match("^===+Verb===+", subsections[j - 1]):
                   parsed = blib.parse_text(subsections[j])
+                  # Make sure infltemp_param is '|' + FORM, as we expect
+                  assert(len(infltemp_param) >= 2 and infltemp_param[0] == '|'
+                      and infltemp_param[1] in ["I", "V", "X"])
                   for t in parsed.filter_templates():
                     if (t.name == deftemp and compare_param(t, "1", lemma) or
-                        t.name == "ar-verb" and get_dicform(page, t) == lemma):
+                        t.name == infltemp and (not t.has("2") or compare_param(t, "2", infltemp_param[1:])) or
+                        t.name == "ar-verb" and (get_dicform(page, t) == lemma or re.sub("-.*$", "", blib.getparam(t, "1")) == infltemp_param[1:]):
                       insert_at = j + 1
             if insert_at:
               pagemsg("Found section to insert verb part after: [[%s]]" %
