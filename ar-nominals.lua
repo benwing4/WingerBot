@@ -1349,6 +1349,19 @@ end
 -- the POS to something else, like "numeral". We don't use this POS for
 -- modifiers, where we determine whether they are noun-like or adjective-like
 -- according to whether modstate= or modcase= is set.
+-- 
+-- Some unexpectedly diptote nouns/adjectives:
+--
+-- jiʿrān in ʾabū jiʿrān "dung beetle"
+-- distributive numbers: ṯunāʾ "two at a time", ṯulāṯ/maṯlaṯ "three at a time",
+--   rubāʿ "four at a time" (not a regular diptote pattern, cf. triptote
+--   junāḥ "misdemeanor, sin", nujār "origin, root", nuḥām "flamingo")
+-- jahannam (f.) "hell"
+-- many names: jilliq/jillaq "Damascus", judda/jidda "Jedda", jibrīl (and
+--   variants) "Gabriel", makka "Mecca", etc.
+-- jibriyāʾ "pride"
+--
+-- Note also: ʾajhar "day-blind" (color-defect) and ʾajhar "louder" (elative)
 function export.detect_type(stem, isfem, num, pos)
 	local function dotrack(word)
 		track(word)
@@ -1379,36 +1392,42 @@ function export.detect_type(stem, isfem, num, pos)
 	elseif num == 'pl' and rfind(stem, AW .. SKOPT .. N .. AOPT .. "$") then
 		return 'awnp'
 	elseif num == 'pl' and rfind(stem, ALIF .. T .. UNOPT .. "$") then
+		-- WARNING: We will get tripped up by plurals like ʾawqāt "times",
+		-- ʾamwāt "dead (pl.)" (although not singulars like mawāt "wasteland")
 		return 'sfp'
 	elseif num == 'pl' and rfind(stem, W .. N .. AOPT .. "$") then
+		-- WARNING: We will get tripped up by plurals like ʿuyūn "eyes",
+		-- qurūn "horns" (although not by singulars like manūn "fate",
+		-- mamnūn "indebted", manṣūn "monsoon")
 		return 'smp'
 	elseif rfind(stem, UN .. "$") then -- explicitly specified triptotes (we catch sound feminine plurals above)
 		return 'tri'
 	elseif rfind(stem, U .. "$") then -- explicitly specified diptotes
 		return 'di'
 	elseif -- num == 'pl' and
-		( -- various diptote plural patterns; these are diptote even in the singular (e.g. yanāyir "January", falāfil "falafel")
+		( -- various diptote plural patterns; these are diptote even in the singular (e.g. yanāyir "January", falāfil "falafel", tuʾabāʾ "yawn, fatigue"
 		  -- currently we sometimes end up with such plural patterns in the "singular" in a singular
 		  -- ʾidāfa construction with plural modifier. (FIXME: These should be fixed to the correct number.)
 		rfind(stem, "^" .. CONS .. AOPT .. CONS .. AOPTA .. CONS .. IOPT .. Y .. "?" .. CONS .. "$") and dotrack("fawaakih") or -- fawākih, daqāʾiq, makātib, mafātīḥ
 		rfind(stem, "^" .. CONS .. AOPT .. CONS .. AOPTA .. CONS .. SH .. "$")
-			and not rfind(stem, "^" .. T) and dotrack("mawaadd") or -- mawādd, maqāmm, ḍawāll; exclude t- so we don't catch form-VI verbal nouns like tajārr (HACK!!!)
-		rfind(stem, "^" .. CONS .. U .. CONS .. AOPT .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("wuzaraa") or -- wuzarāʾ
+			and not rfind(stem, "^" .. T) and dotrack("mawaadd") or -- mawādd, maqāmm, ḍawāll; exclude t- so we don't catch form-VI verbal nouns like taḍādd (HACK!!!)
+		rfind(stem, "^" .. CONS .. U .. CONS .. AOPT .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("wuzaraa") or -- wuzarāʾ "ministers", juhalāʾ "ignorant (pl.)"
 		rfind(stem, ELCD_START .. SKOPT .. CONS .. IOPT .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("asdiqaa") or -- ʾaṣdiqāʾ
-		rfind(stem, ELCD_START .. IOPT .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("aqillaa") -- ʾaqillāʾ
+		rfind(stem, ELCD_START .. IOPT .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("aqillaa") -- ʾaqillāʾ, ʾajillāʾ "important (pl.)", ʾaḥibbāʾ "lovers"
 	    ) then
 		return 'di'
 	elseif num == 'sg' and ( -- diptote singular patterns (nouns/adjectives)
-		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("qamraa") or -- qamrāʾ "moon-white, moonlight"; baydāʾ "desert"; ṣaḥrāʾ "desert-like, desert"; not pl. to avoid catching e.g. ʾabnāʾ "sons", ʾaḥmāʾ "fathers-in-law"
-		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") and dotrack("abyad") or -- ʾabyaḍ "white"; FIXME nouns like ʾaʿzab "bachelor", ʾaḥmad "Ahmed" but not ʾarnab "rabbit", ʾanjar "anchor", ʾabjad "abjad"
-		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") and dotrack("alaff") or -- ʾalaff "plump"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("qamraa") or -- qamrāʾ "moon-white, moonlight"; baydāʾ "desert"; ṣaḥrāʾ "desert-like, desert"; tayhāʾ "trackless, desolate region"; not pl. to avoid catching e.g. ʾabnāʾ "sons", ʾaḥmāʾ "fathers-in-law", ʾamlāʾ "steppes, deserts" (pl. of malan), ʾanbāʾ "reports" (pl. of nabaʾ)
+		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") and dotrack("abyad") or -- ʾabyaḍ "white", ʾakbar "greater"; FIXME nouns like ʾaʿzab "bachelor", ʾaḥmad "Ahmed" but not ʾarnab "rabbit", ʾanjar "anchor", ʾabjad "abjad", ʾarbaʿ "four", ʾandar "threshing floor" (cf. diptote ʾandar "rarer")
+		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") and dotrack("alaff") or -- ʾalaff "plump", ʾaḥabb "more desirable"
 		-- do the following on the origstem so we can check specifically for alif madda
 		rfind(origstem, "^" .. AMAD .. CONS .. A .. CONS .. "$") and dotrack("aalam") -- ʾālam "more painful", ʾāḵar "other"
 		) then
 		return 'di'
 	elseif num == 'sg' and pos == 'adjective' and ( -- diptote singular patterns (adjectives)
-		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and dotrack("kaslaan") or -- kaslān "lazy"; but not nouns like qaṭrān "tar", šayṭān "devil"
-		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("laffaa") -- laffāʾ "plump (fem.)"; but not nounds like lawwāʾ "wryneck"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and dotrack("kaslaan") or -- kaslān "lazy", ʿaṭšān "thirsty", jawʿān "hungry", tayhān "wandering, perplexed"; but not nouns like qaṭrān "tar", šayṭān "devil", mawtān "plague", maydān "square"
+		-- rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. N .. "$") and dotrack("laffaa") -- excluded because of too many false positives e.g. ḥawwān, not to mention nouns like jannān "gardener"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("laffaa") -- laffāʾ "plump (fem.)"; but not nouns like jarrāʾ "runner", lawwāʾ "wryneck"
 		) then
 		return 'di'
 	elseif rfind(stem, AMAQ .. "$") then -- kaslā, ḏikrā (spelled with alif maqṣūra)
@@ -1473,17 +1492,13 @@ end
 -- if WORD is a feminine stem. NUM is either 'sg', 'du' or 'pl' according to
 -- the number of the stem. The return value will be in the ARABIC/TR format.
 --
--- POS is the part of speech, generally 'noun' or 'adjective'. Not currently
--- used but may conceivably be used to distinguish nouns and adjectives
--- of the فَعْلَان type; but if we do so, we need to rethink the POS parameter.
--- The idea is that adjectives of the above type are generally diptotes but
--- it's unclear about nouns of this type; there are triptote nouns of this
--- type like قَطْرَان "tar" and if this is representative then we should maybe
--- make a POS distinction when detecting; but this will cause problems with
--- nouns modified by adjectives, where we don't currently distinguish the POS
--- of the base noun from the POS of the modifying adjective. An additional
--- complication is that the user can set the POS to something else, like
--- "numeral".
+-- POS is the part of speech, generally 'noun' or 'adjective'. Used to
+-- distinguish nouns and adjectives of the فَعْلَان type. There are nouns of
+-- this type and they generally are triptotes, e.g. قَطْرَان "tar"
+-- and شَيْطَان "devil". An additional complication is that the user can set
+-- the POS to something else, like "numeral". We don't use this POS for
+-- modifiers, where we determine whether they are noun-like or adjective-like
+-- according to whether modstate= or modcase= is set.
 function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	local rettype = nil
 	if rfind(word, ":") then
