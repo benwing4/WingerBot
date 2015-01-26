@@ -529,6 +529,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           # If verb part, try to find an existing verb section corresponding
           # to the same verb or another verb of the same conjugation form
           # (either the lemma of the verb or another non-lemma form).
+          # Insert after the last such one.
           if is_verb_part:
             insert_at = None
             for j in xrange(len(subsections)):
@@ -541,7 +542,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   for t in parsed.filter_templates():
                     if (t.name == deftemp and compare_param(t, "1", lemma) or
                         t.name == infltemp and (not t.has("2") or compare_param(t, "2", infltemp_param[1:])) or
-                        t.name == "ar-verb" and (get_dicform(page, t) == lemma or re.sub("-.*$", "", blib.getparam(t, "1")) == infltemp_param[1:]):
+                        t.name == "ar-verb" and (get_dicform(page, t) == lemma or re.sub("-.*$", "", blib.getparam(t, "1")) == infltemp_param[1:])):
                       insert_at = j + 1
             if insert_at:
               pagemsg("Found section to insert verb part after: [[%s]]" %
@@ -562,9 +563,35 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
               pagemsg("Inserting after verb section for same lemma")
               comment = "Insert entry for %s %s of %s after verb section for same lemma" % (
-              infltype, inflection, lemma)
+                infltype, inflection, lemma)
               subsections[insert_at - 1] = ensure_two_trailing_nl(
                   subsections[insert_at - 1])
+              subsections[insert_at:insert_at] = [newpos + "\n"]
+              sections[i] = ''.join(subsections)
+              break
+
+          # If participle, try to find an existing noun or adjective with the
+          # same lemma to insert before. Insert before the first such one.
+          if is_participle:
+            insert_at = None
+            for j in xrange(len(subsections)):
+              if j > 0 and (j % 2) == 0:
+                if re.match("^===+(Noun|Adjective)===+", subsections[j - 1]):
+                  parsed = blib.parse_text(subsections[j])
+                  for t in parsed.filter_templates():
+                    if (t.name in ["ar-noun", "ar-adj"] and
+                        compare_param(t, "1", inflection) and insert_at is None):
+                      insert_at = j - 1
+
+            if insert_at is not None:
+              pagemsg("Found section to insert participle before: [[%s]]" %
+                  subsections[insert_at + 1])
+
+              comment = "Insert entry for %s %s of %s before section for same lemma" % (
+                infltype, inflection, lemma)
+              if insert_at > 0:
+                subsections[insert_at - 1] = ensure_two_trailing_nl(
+                    subsections[insert_at - 1])
               subsections[insert_at:insert_at] = [newpos + "\n"]
               sections[i] = ''.join(subsections)
               break
