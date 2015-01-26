@@ -1360,7 +1360,9 @@ end
 -- many names: jilliq/jillaq "Damascus", judda/jidda "Jedda", jibrīl (and
 --   variants) "Gabriel", makka "Mecca", etc.
 -- jibriyāʾ "pride"
---
+-- kibriyāʾ "glory, pride"
+-- babbaḡāʾ "parrot"
+-- ʿayāyāʾ "incapable, tired"
 -- Note also: ʾajhar "day-blind" (color-defect) and ʾajhar "louder" (elative)
 function export.detect_type(stem, isfem, num, pos)
 	local function dotrack(word)
@@ -1425,9 +1427,9 @@ function export.detect_type(stem, isfem, num, pos)
 		) then
 		return 'di'
 	elseif num == 'sg' and pos == 'adjective' and ( -- diptote singular patterns (adjectives)
-		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and dotrack("kaslaan") or -- kaslān "lazy", ʿaṭšān "thirsty", jawʿān "hungry", tayhān "wandering, perplexed"; but not nouns like qaṭrān "tar", šayṭān "devil", mawtān "plague", maydān "square"
-		-- rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. N .. "$") and dotrack("laffaa") -- excluded because of too many false positives e.g. ḥawwān, not to mention nouns like jannān "gardener"
-		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("laffaa") -- laffāʾ "plump (fem.)"; but not nouns like jarrāʾ "runner", lawwāʾ "wryneck"
+		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and dotrack("kaslaan") or -- kaslān "lazy", ʿaṭšān "thirsty", jawʿān "hungry", ḡaḍbān "angry", tayhān "wandering, perplexed"; but not nouns like qaṭrān "tar", šayṭān "devil", mawtān "plague", maydān "square"
+		-- rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. N .. "$") and dotrack("laffaa") -- excluded because of too many false positives e.g. ḵawwān "disloyal", not to mention nouns like jannān "gardener"; only diptote example I can find is ʿayyān "incapable, weary" (diptote per Lane but not Wehr)
+		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("laffaa") -- laffāʾ "plump (fem.)"; but not nouns like jarrāʾ "runner", ḥaddāʾ "camel driver", lawwāʾ "wryneck"
 		) then
 		return 'di'
 	elseif rfind(stem, AMAQ .. "$") then -- kaslā, ḏikrā (spelled with alif maqṣūra)
