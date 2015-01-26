@@ -1363,6 +1363,7 @@ end
 -- kibriyāʾ "glory, pride"
 -- babbaḡāʾ "parrot"
 -- ʿayāyāʾ "incapable, tired"
+-- suwaidāʾ "black bile, melancholy"
 -- Note also: ʾajhar "day-blind" (color-defect) and ʾajhar "louder" (elative)
 function export.detect_type(stem, isfem, num, pos)
 	local function dotrack(word)
