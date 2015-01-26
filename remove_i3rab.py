@@ -23,6 +23,7 @@ site = pywikibot.Site()
 
 verbose = True
 
+# diacritics
 A  = u"\u064E" # fatḥa
 AN = u"\u064B" # fatḥatān (fatḥa tanwīn)
 U  = u"\u064F" # ḍamma
@@ -34,9 +35,15 @@ SH = u"\u0651" # šadda = gemination of consonants
 DAGGER_ALIF = u"\u0670"
 DIACRITIC_ANY_BUT_SH = "[" + A + I + U + AN + IN + UN + SK + DAGGER_ALIF + "]"
 DIACRITIC_ANY = "[" + A + I + U + AN + IN + UN + SK + SH + DAGGER_ALIF + "]"
+
+# various letters
 ALIF = u"ا"
 ALIF_WASLA = u"ٱ"
 ALIF_ANY = "[" + ALIF + ALIF_WASLA + "]"
+
+# combinations
+UUN = U + u"ون"
+UUNA = UUN + A
 
 def reorder_shadda(text):
   # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
@@ -45,10 +52,10 @@ def reorder_shadda(text):
   # detection process inconvenient, so undo it.
   return re.sub("(" + DIACRITIC_ANY_BUT_SH + ")" + SH, SH + r"\1", text)
 
-def remove_i3rab(page, entry, word, nowarn=False):
+def remove_i3rab(page, index, entry, word, nowarn=False):
   def mymsg(text):
     if not nowarn:
-      msg("Page %s: Entry %s: %s" % (page, entry, text))
+      msg("Page %s %s: Entry %s: %s" % (index, page, entry, text))
   word = reorder_shadda(word)
   if word.endswith(UN):
     mymsg("Removing i3rab (UN) from %s" % word)
@@ -56,9 +63,12 @@ def remove_i3rab(page, entry, word, nowarn=False):
   if word.endswith(U):
     mymsg("Removing i3rab (U) from %s" % word)
     return re.sub(U + "$", "", word)
+  if word.endswith(UUNA):
+    mymsg("Removing i3rab (UUNA -> UUN) from %s" % word)
+    return re.sub(UUNA + "$", UUN, word)
   if word and word[-1] in [A, I, U, AN]:
     mymsg("FIXME: Strange diacritic at end of %s" % word)
-  if word[0] == ALIF_WASLA:
+  if word and word[0] == ALIF_WASLA:
     mymsg("Changing alif wasla to plain alif for %s" % word)
     word = ALIF + word[1:]
   return word
@@ -74,13 +84,11 @@ def do_nouns(poses, headtempls, save, startFrom, upTo):
         params_done = []
         entry = blib.getparam(template, "1")
         for param in template.params:
-          value = blib.getparam(template, param)
-          if not value:
-            continue
-          newvalue = remove_i3rab(pagename, entry, value)
+          value = param.value
+          newvalue = remove_i3rab(pagename, index, entry, unicode(value))
           if newvalue != value:
-            template.add(param, newvalue)
-            params_done.append(param)
+            param.value = newvalue
+            params_done.append(unicode(param.name))
         if params_done:
           nounids.append("#%s %s %s (%s)" %
               (nouncount, template.name, entry, ", ".join(params_done)))
@@ -88,7 +96,7 @@ def do_nouns(poses, headtempls, save, startFrom, upTo):
           '; '.join(nounids))
 
   for pos in poses:
-    for page, index in blib.cat_articles("Arabic %ss" % pos.lower(), startFrom, upTo, includeindex = True):
+    for page, index in blib.cat_articles("Arabic %ss" % pos.lower(), startFrom, upTo):
       blib.do_edit(page, index, do_one_page_noun, save=save, verbose=verbose)
 
 def do_verbs(save, startFrom, upTo):
@@ -103,6 +111,8 @@ def do_verbs(save, startFrom, upTo):
         uncertain = False
         if vnvalue.endswith("?"):
           vnvalue = vnvalue[:-1]
+          msg("Page %s %s: Verbal noun(s) identified as uncertain" % (
+            index, pagename))
           uncertain = True
         if not vnvalue:
           continue
@@ -113,19 +123,19 @@ def do_verbs(save, startFrom, upTo):
           verbid += " (%s,%s)" % (blib.getparam(template, "2"), blib.getparam(template, "3"))
         no_i3rab_vns = []
         for vn in vns:
-          no_i3rab_vns.append(remove_i3rab(pagename, verbid, vn))
+          no_i3rab_vns.append(remove_i3rab(pagename, index, verbid, vn))
         newvn = ",".join(no_i3rab_vns)
         if uncertain:
           newvn += "?"
         if newvn != vnvalue:
-          msg("Page %s: Verb %s, replacing %s with %s" % (
-            pagename, verbid, vnvalue, newvn))
+          msg("Page %s %s: Verb %s, replacing %s with %s" % (
+            index, pagename, verbid, vnvalue, newvn))
           template.add("vn", newvn)
           verbids.append(verbid)
     return text, "Remove i3rab from verbal nouns for verb(s) %s" % (
           ', '.join(verbids))
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
-    blib.do_edit(page, index, do_one_page_verb, save=save, verbose=verbose, includeindex = True)
+    blib.do_edit(page, index, do_one_page_verb, save=save, verbose=verbose)
           
 pa = blib.init_argparser("Remove i3rab")
 pa.add_argument("--verb", action='store_true',
