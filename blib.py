@@ -111,7 +111,7 @@ def iter_pages(pageiter, startsort = None, endsort = None):
   for current in pageiter:
     i += 1
 
-    if startsort != None and isinstance(startsort, int) and i <= startsort:
+    if startsort != None and isinstance(startsort, int) and i < startsort:
       continue
 
     if endsort != None:
