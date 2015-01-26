@@ -14,10 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import blib
+import blib, re
 
 def rewrite_pages(refrom, reto, refs, cat, save, verbose, startFrom, upTo):
   def rewrite_one_page(page, index, text):
+    #blib.msg("From: [[%s]], To: [[%s]]" % (refrom, reto))
     text = re.sub(refrom, reto, unicode(text))
     return text, "replace %s -> %s" % (refrom, reto)
 
