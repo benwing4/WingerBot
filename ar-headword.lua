@@ -63,7 +63,7 @@ function reorder_shadda(text)
 	-- replaced with short-vowel+shadda during NFC normalisation, which
 	-- MediaWiki does for all Unicode strings; however, it makes the
 	-- detection process inconvenient, so undo it. (For example, the tracking
-	-- code below would fail to detect the -un in سِتٌّ because the shadda
+	-- code below would fail to detect the -un in سِتٌّ because the shadda
 	-- would come after the -un.)
 	text = rsub(text, "(" .. DIACRITIC_ANY_BUT_SH .. ")" .. SH, SH .. "%1")
 	return text
@@ -502,14 +502,28 @@ local valid_forms = list_to_set(
 	{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
 	 "XIII", "XIV", "XV", "Iq", "IIq", "IIIq", "IVq"})
 
-pos_functions["verb forms"] = function(args, genders, infls, cats)
+local function handle_conj_form(args, infls)
 	local form = ine(args[2])
-	if not valid_forms[form] then
-		error("Invalid verb conjugation form " .. form)
-	end
 	if form then
+		if not valid_forms[form] then
+			error("Invalid verb conjugation form " .. form)
+		end
 		table.insert(infls, {label = '[[Appendix:Arabic verbs#Form ' .. form .. '|form ' .. form .. ']]'})
 	end
+end
+
+pos_functions["verb forms"] = function(args, genders, infls, cats)
+	handle_conj_form(args, infls)
+end
+
+pos_functions["active participles"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "participles")
+	handle_conj_form(args, infls)
+end
+
+pos_functions["passive participles"] = function(args, genders, infls, cats)
+	prepend_cat(cats, "participles")
+	handle_conj_form(args, infls)
 end
 
 return export
