@@ -16,7 +16,7 @@
 
 import blib
 
-def rewrite_one_page_ar_nisba(page, text):
+def rewrite_one_page_ar_nisba(page, index, text):
   for template in text.filter_templates():
     if template.name == "ar-nisba":
       if template.has("head") and not template.has(1):
@@ -28,8 +28,8 @@ def rewrite_one_page_ar_nisba(page, text):
   return text, "ar-nisba: head= -> 1="
 
 def rewrite_ar_nisba(save, verbose, startFrom, upTo):
-  for page in blib.references("Template:ar-nisba", startFrom, upTo):
-    blib.do_edit(page, rewrite_one_page_ar_nisba, save=save, verbose=verbose)
+  for page, index in blib.references("Template:ar-nisba", startFrom, upTo):
+    blib.do_edit(page, index, rewrite_one_page_ar_nisba, save=save, verbose=verbose)
 
 pa = blib.init_argparser("Rewrite ar-nisba, changing head= to 1=")
 params = pa.parse_args()

@@ -16,7 +16,7 @@
 
 import blib
 
-def rewrite_one_page_ar_plural(page, text):
+def rewrite_one_page_ar_plural(page, index, text):
   for template in text.filter_templates():
     if template.name == "ar-plural":
       template.name = "ar-noun-pl"
@@ -25,8 +25,8 @@ def rewrite_one_page_ar_plural(page, text):
 
 def rewrite_ar_plural(save, verbose, startFrom, upTo):
   for cat in [u"Arabic plurals"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, rewrite_one_page_ar_plural, save=save, verbose=verbose)
+    for page, index in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, index, rewrite_one_page_ar_plural, save=save, verbose=verbose)
 
 pa = blib.init_argparser("Rewrite ar-plural to ar-noun-pl templates")
 params = pa.parse_args()

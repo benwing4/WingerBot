@@ -64,9 +64,8 @@ def remove_i3rab(page, entry, word, nowarn=False):
   return word
 
 def do_nouns(poses, headtempls, save, startFrom, upTo):
-  def do_one_page_noun(page, text):
+  def do_one_page_noun(page, index, text):
     pagename = page.title()
-    msg("Page %s: Begin processing" % pagename)
     nouncount = 0
     nounids = []
     for template in text.filter_templates():
@@ -89,13 +88,12 @@ def do_nouns(poses, headtempls, save, startFrom, upTo):
           '; '.join(nounids))
 
   for pos in poses:
-    for page in blib.cat_articles("Arabic %ss" % pos.lower(), startFrom, upTo):
-      blib.do_edit(page, do_one_page_noun, save=save, verbose=verbose)
+    for page, index in blib.cat_articles("Arabic %ss" % pos.lower(), startFrom, upTo, includeindex = True):
+      blib.do_edit(page, index, do_one_page_noun, save=save, verbose=verbose)
 
 def do_verbs(save, startFrom, upTo):
-  def do_one_page_verb(page, text):
+  def do_one_page_verb(page, index, text):
     pagename = page.title()
-    msg("Page %s: Begin processing" % pagename)
     verbcount = 0
     verbids = []
     for template in text.filter_templates():
@@ -126,8 +124,8 @@ def do_verbs(save, startFrom, upTo):
           verbids.append(verbid)
     return text, "Remove i3rab from verbal nouns for verb(s) %s" % (
           ', '.join(verbids))
-  for page in blib.cat_articles("Arabic verbs", startFrom, upTo):
-    blib.do_edit(page, do_one_page_verb, save=save, verbose=verbose)
+  for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
+    blib.do_edit(page, index, do_one_page_verb, save=save, verbose=verbose, includeindex = True)
           
 pa = blib.init_argparser("Remove i3rab")
 pa.add_argument("--verb", action='store_true',

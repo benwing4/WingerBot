@@ -32,7 +32,7 @@ def canonicalize_form(form):
 
 # Clean the verb headword templates on a given page with the given text.
 # Returns the changed text along with a changelog message.
-def rewrite_one_page_verb_headword(page, text):
+def rewrite_one_page_verb_headword(page, index, text):
   pagetitle = page.title()
   msg("Processing page %s" % pagetitle)
   actions_taken = []
@@ -68,13 +68,13 @@ def rewrite_one_page_verb_headword(page, text):
 
 def rewrite_verb_headword(save, startFrom, upTo):
   for cat in [u"Arabic verbs"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, rewrite_one_page_verb_headword, save=save)
+    for page, index in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, index, rewrite_one_page_verb_headword, save=save)
 
 def canonicalize_verb_form(save, startFrom, upTo, tempname, formarg):
   # Canonicalize the form in ar-conj.
   # Returns the changed text along with a changelog message.
-  def canonicalize_one_page_verb_form(page, text):
+  def canonicalize_one_page_verb_form(page, index, text):
     pagetitle = page.title()
     msg("Processing page %s" % pagetitle)
     actions_taken = []
@@ -100,8 +100,8 @@ def canonicalize_verb_form(save, startFrom, upTo, tempname, formarg):
       msg("Change log = %s" % changelog)
     return text, changelog
 
-  for page in blib.references("Template:%s" % tempname, startFrom, upTo):
-    blib.do_edit(page, canonicalize_one_page_verb_form, save=save)
+  for page, index in blib.references("Template:%s" % tempname, startFrom, upTo):
+    blib.do_edit(page, index, canonicalize_one_page_verb_form, save=save)
 
 pa = blib.init_argparser("Rewrite form= to 1= in verb headword templates")
 pa.add_argument("--headword", action='store_true',

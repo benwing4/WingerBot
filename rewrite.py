@@ -17,7 +17,7 @@
 import blib
 
 def rewrite_pages(refrom, reto, refs, cat, save, verbose, startFrom, upTo):
-  def rewrite_one_page(page, text):
+  def rewrite_one_page(page, index, text):
     text = re.sub(refrom, reto, unicode(text))
     return text, "replace %s -> %s" % (refrom, reto)
 
@@ -25,8 +25,8 @@ def rewrite_pages(refrom, reto, refs, cat, save, verbose, startFrom, upTo):
     pages = blib.references(refs, startFrom, upTo)
   else:
     pages = blib.cat_articles(cat, startFrom, upTo)
-  for page in pages:
-    blib.do_edit(page, rewrite_one_page, save=save, verbose=verbose)
+  for page, index in pages:
+    blib.do_edit(page, index, rewrite_one_page, save=save, verbose=verbose)
 
 pa = blib.init_argparser("Search and replace on pages")
 pa.add_argument("-f", "--from", help="From regex", metavar="FROM",

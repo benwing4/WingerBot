@@ -155,7 +155,7 @@ def process_head(page, template):
 # Process the headword templates on the given page with the given text,
 # removing translit params when the auto-translit returns the same thing, or
 # canonicalizing. Returns the changed text along with a changelog message.
-def process_one_page_headwords(page, text):
+def process_one_page_headwords(page, index, text):
   actions = []
   for template in text.filter_templates():
     if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun",
@@ -184,8 +184,8 @@ def process_headwords(save, startFrom, upTo):
   #for page in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
   #for page in blib.references("Template:ar-nisba", startFrom, upTo):
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, process_one_page_headwords, save=save)
+    for page, index in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, index, process_one_page_headwords, save=save)
 
 # Remove translit params from link-like templates when the auto-translit
 # returns the same thing, or canonicalizing, on pages from STARTFROM to

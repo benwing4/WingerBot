@@ -18,7 +18,7 @@ import blib
 
 def rewrite_template_names(old, new, removelist, save, verbose,
     startFrom, upTo):
-  def rewrite_one_page_template_names(page, text):
+  def rewrite_one_page_template_names(page, index, text):
     actions = []
     for template in text.filter_templates():
       if template.name == old:
@@ -31,8 +31,8 @@ def rewrite_template_names(old, new, removelist, save, verbose,
 
     return text, '; '.join(actions)
 
-  for page in blib.references("Template:%s" % old, startFrom, upTo):
-    blib.do_edit(page, rewrite_one_page_template_names, save=save,
+  for page, index in blib.references("Template:%s" % old, startFrom, upTo):
+    blib.do_edit(page, index, rewrite_one_page_template_names, save=save,
         verbose=verbose)
 
 pa = blib.init_argparser("Rewrite old to new template names")

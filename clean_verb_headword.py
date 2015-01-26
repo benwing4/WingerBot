@@ -21,7 +21,7 @@ from blib import msg
 
 # Clean the verb headword templates on a given page with the given text.
 # Returns the changed text along with a changelog message.
-def clean_one_page_verb_headword(page, text):
+def clean_one_page_verb_headword(page, index, text):
   pagetitle = page.title()
   actions_taken = []
   for template in text.filter_templates():
@@ -29,10 +29,10 @@ def clean_one_page_verb_headword(page, text):
     if template.name in ["ar-verb"]:
       form = blib.getparam(template, "form")
       if form == "1" or form == "I":
-        msg("On page %s, skipped ar-verb because form I" % pagetitle)
+        msg("Page %s %s: skipped ar-verb because form I" % (index, pagetitle))
         continue
       elif blib.getparam(template, "useparam"):
-        msg("On page %s, skipped ar-verb because useparam" % pagetitle)
+        msg("Page %s %s: skipped ar-verb because useparam" % (index, pagetitle))
         continue
       origtemp = unicode(template)
       def remove_param(param):
@@ -50,16 +50,16 @@ def clean_one_page_verb_headword(page, text):
         remove_param("sc")
       I = blib.getparam(template, "I")
       if I in [u"ء", u"و", u"ي"] and form not in ["8", "VIII"]:
-        msg("On page %s, form=%s, removing I=%s" % (pagetitle, form, I))
+        msg("Page %s %s: form=%s, removing I=%s" % (index, pagetitle, form, I))
         remove_param("I")
       II = blib.getparam(template, "II")
       if (II == u"ء" or II in [u"و", u"ي"] and
           form in ["2", "II", "3", "III", "5", "V", "6", "VI"]):
-        msg("On page %s, form=%s, removing II=%s" % (pagetitle, form, II))
+        msg("Page %s %s: form=%s, removing II=%s" % (index, pagetitle, form, II))
         remove_param("II")
       III = blib.getparam(template, "III")
       if III == u"ء":
-        msg("On page %s, form=%s, removing III=%s" % (pagetitle, form, III))
+        msg("Page %s %s: form=%s, removing III=%s" % (index, pagetitle, form, III))
         remove_param("III")
       newtemp = unicode(template)
       if origtemp != newtemp:
@@ -73,8 +73,8 @@ def clean_one_page_verb_headword(page, text):
 
 def clean_verb_headword(save, startFrom, upTo):
   for cat in [u"Arabic verbs"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, clean_one_page_verb_headword, save=save)
+    for page, index in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, index, clean_one_page_verb_headword, save=save)
 
 pa = blib.init_argparser("Clean up verb headword templates")
 parms = pa.parse_args()

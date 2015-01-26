@@ -93,7 +93,7 @@ def search_category_for_missing_form(form, pos, templates, save, startFrom,
     templ = re.sub(r"\|\|+([A-Za-z0-9_]+=)", r"|\1", templ)
     return templ
 
-  def correct_one_page_headword_formatting(page, text):
+  def correct_one_page_headword_formatting(page, index, text):
     text = unicode(text)
     pagetitle = page.title()
     sawtemp = False
@@ -171,8 +171,8 @@ def search_category_for_missing_form(form, pos, templates, save, startFrom,
       msg("WARNING: No replacements found for {{l|ar|%s}}" % pagetitle)
     return text, "Correct headword formatting for [[:Category:%s]]" % cat
 
-  for page in blib.cat_articles(cat, startFrom, upTo):
-    blib.do_edit(page, correct_one_page_headword_formatting, save=save)
+  for page, index in blib.cat_articles(cat, startFrom, upTo):
+    blib.do_edit(page, index, correct_one_page_headword_formatting, save=save)
 
 def correct_headword_formatting(save, startFrom, upTo):
   search_category_for_missing_form("plural", "noun", "ar-plural", save, startFrom, upTo)
@@ -190,7 +190,7 @@ def correct_headword_formatting(save, startFrom, upTo):
   search_category_for_missing_template("pronoun", "ar-pron", save, startFrom, upTo)
   # ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
 
-def correct_one_page_link_formatting(page, text):
+def correct_one_page_link_formatting(page, index, text):
   text = unicode(text)
   pagetitle = page.title()
   linkschanged = []
@@ -224,8 +224,8 @@ def correct_one_page_link_formatting(page, text):
 
 def correct_link_formatting(save, startFrom, upTo):
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
-    for page in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, correct_one_page_link_formatting, save=save)
+    for page, index in blib.cat_articles(cat, startFrom, upTo):
+      blib.do_edit(page, index, correct_one_page_link_formatting, save=save)
 
 pa = blib.init_argparser("Correct formatting of headword templates")
 pa.add_argument("-l", "--links", action='store_true',

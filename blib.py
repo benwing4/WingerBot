@@ -56,51 +56,54 @@ def getparam(template, param):
   else:
     return ""
 
-def do_edit(page, func=None, null=False, save=False, verbose=False):
+def do_edit(page, index, func=None, null=False, save=False, verbose=False):
   title = page.title()
+  def pagemsg(text):
+    msg("Page %s %s: %s" % (index, title, text))
   while True:
     try:
       if func:
-        new, comment = func(page, parse(page))
+        if verbose:
+          pagemsg("Begin processing")
+        new, comment = func(page, index, parse(page))
 
         if new:
           new = unicode(new)
 
           if page.text != new:
             if verbose:
-              msg('Replacing [[%s]] with [[%s]]' % (page.text, new))
+              pagemsg('Replacing [[%s]] with [[%s]]' % (page.text, new))
             page.text = new
             if save:
-              msg(u'Page %s: Saving with comment = %s' % (title, comment))
+              pagemsg("Saving with comment = %s" % comment)
               page.save(comment = comment)
             else:
-              msg(u'Page %s: Would save with comment = %s' % (title, comment))
+              pagemsg("Would save with comment = %s" % comment)
           elif null:
-            msg(u'Page %s: Purged page cache' % title)
+            pagemsg('Purged page cache')
             page.purge(forcelinkupdate = True)
           else:
-            msg(u'Page %s: Skipped, no changes' % title)
+            pagemsg('Skipped, no changes')
         elif null:
-          msg(u'Page %s: Purged page cache' % title)
+          pagemsg('Purged page cache')
           page.purge(forcelinkupdate = True)
         else:
-          msg(u'Page %s: Skipped: %s' % (title, comment))
+          pagemsg('Skipped: %s' % comment)
       else:
-        msg(u'Page %s: Purged page cache' % title)
+        pagemsg('Purged page cache')
         page.purge(forcelinkupdate = True)
     except (pywikibot.LockedPage, pywikibot.NoUsername):
-      errmsg(u'Page %s: Skipped, page is protected' % title)
+      errmsg(u'Page %s %s: Skipped, page is protected' % (index, title))
     except urllib2.HTTPError as e:
       if e.code != 503:
         raise
     except:
-      errmsg(u'Page %s: Error' % title)
+      errmsg(u'Page %s %s: Error' % (index, title))
       raise
 
     break
 
-def iter_pages(pageiter, startsort = None, endsort = None,
-    includeindex = False):
+def iter_pages(pageiter, startsort = None, endsort = None):
   i = 0
   t = None
   steps = 50
@@ -124,10 +127,7 @@ def iter_pages(pageiter, startsort = None, endsort = None,
     if not t and isinstance(endsort, int):
       t = datetime.datetime.now()
 
-    if includeindex:
-      yield current, i
-    else:
-      yield current
+    yield current, i
 
     if i % steps == 0:
       tdisp = ""
@@ -142,34 +142,33 @@ def iter_pages(pageiter, startsort = None, endsort = None,
       errmsg(str(i) + "/" + str(endsort) + tdisp)
 
 
-def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False, includeindex = False):
+def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False):
   if isinstance(page, basestring):
     page = pywikibot.Page(site, page)
   pageiter = page.getReferences(onlyTemplateInclusion = not includelinks,
       namespaces = namespaces)
-  for page in iter_pages(pageiter, startsort, endsort, includeindex):
-    yield page
+  for pageind in iter_pages(pageiter, startsort, endsort):
+    yield pageind
 
-def cat_articles(page, startsort = None, endsort = None, includeindex = False):
+def cat_articles(page, startsort = None, endsort = None):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
   pageiter = page.articles(startsort = startsort if not isinstance(startsort, int) else None)
-  for page in iter_pages(pageiter, startsort, endsort, includeindex):
-    yield page
+  for pageind in iter_pages(pageiter, startsort, endsort):
+    yield pageind
 
 
-def cat_subcats(page, startsort = None, endsort = None, includeindex = False):
+def cat_subcats(page, startsort = None, endsort = None):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
   pageiter = page.subcategories(startsort = startsort if not isinstance(startsort, int) else None)
-  for page in iter_pages(pageiter, startsort, endsort, includeindex):
-    yield page
+  for pageind in iter_pages(pageiter, startsort, endsort):
+    yield pageind
 
-def prefix(prefix, startsort = None, endsort = None, namespace = None,
-    includeindex = False):
+def prefix(prefix, startsort = None, endsort = None, namespace = None):
   pageiter = site.prefixindex(prefix, namespace)
-  for page in iter_pages(pageiter, startsort, endsort, includeindex):
-    yield page
+  for pageind in iter_pages(pageiter, startsort, endsort):
+    yield pageind
 
 def stream(st, startsort = None, endsort = None):
   i = 0
@@ -311,7 +310,7 @@ def process_links(save, startFrom, upTo, process_param, join_actions=None):
 
   # Process the link-like templates on the given page with the given text.
   # Returns the changed text along with a changelog message.
-  def process_one_page_links(page, text):
+  def process_one_page_links(page, index, text):
     actions = []
     for template in text.filter_templates():
       result = None
@@ -341,12 +340,12 @@ def process_links(save, startFrom, upTo, process_param, join_actions=None):
     else:
       changelog = join_actions(actions)
     #if len(terms_processed) > 0:
-    msg("Change log for page %s = %s" % (page.title(), changelog))
+    msg("Change log for page %s %s = %s" % (index, page.title(), changelog))
     return text, changelog
 
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
-    for page in cat_articles(cat, startFrom, upTo):
-      do_edit(page, process_one_page_links, save=save)
+    for page, index in cat_articles(cat, startFrom, upTo):
+      do_edit(page, index, process_one_page_links, save=save)
   msg("Templates processed:")
   for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
     msg("  %s = %s" % (template, count))
