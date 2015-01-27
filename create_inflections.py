@@ -918,7 +918,7 @@ def create_participles(save, startFrom, upTo):
 
 # List of all person/number/gender combinations, using the ID's in
 # {{ar-verb-part-all|...}}
-persons = [
+all_persons = [
     "1s", "2sm", "2sf", "3sm", "3sf",
     "2d", "3dm", "3df",
     "1p", "2pm", "2pf", "3pm", "3pf"
@@ -926,18 +926,20 @@ persons = [
 # Corresponding part of {{inflection of|...}} template, e.g. 3|m|s for 3sm
 persons_infl_entry = dict([x,
   re.sub("([sdpmf])", r"|\1", re.sub("([sdp])([mf])", r"\2\1", x))]
-  for x in persons)
+  for x in all_persons)
 # List of all tense/mood combinations, using the ID's in
 # {{ar-verb-part-all|...}}
-tenses = ["perf", "impf", "subj", "juss"]
+all_tenses = ["perf", "impf", "subj", "juss", "impr"]
 # Corresponding part of {{inflection of|...}} template, with %s where
 # "active" or "passive" goes
 tenses_infl_entry = {
     "perf":"past|%s",
     "impf":"non-past|%s|indc",
     "subj":"non-past|%s|subj",
-    "juss":"non-past|%s|jussive"
+    "juss":"non-past|%s|jussive",
+    "impr":"%s|impr" # FIXME, figure out what this really is
     }
+all_voices = ["active", "passive"]
 voices_infl_entry = {
     "active":"actv",
     "passive":"pasv"
@@ -946,14 +948,21 @@ voices_infl_entry = {
 # Create a single verb part. SAVE, INDEX are as in create_inflection_entry().
 # PAGE is the page of the lemma, and TEMPLATE is the {{ar-conj|...}}
 # template indicating the lemma's conjugation. DICFORM is the vocalized form
-# of the lemma, ACTPASS is either "active" or "passive", and PERSON and TENSE
+# of the lemma, PASSIVE is the value of the 'passive' property of the lemma.
+# VOICE is either "active" or "passive", and PERSON and TENSE
 # indicate the particular person/number/gender/tense/mood combination, using
-# the codes passed to {{ar-verb-part-all|...}}.
-def create_one_verb_part(save, index, page, template, dicform, actpass, person,
-    tense):
+# the codes passed to {{ar-verb-part-all|...}}. We refuse to do combinations
+# not compatible with the value of PASSIVE. We assume that other unwanted
+# combinations (3sm-perf, 3sm-impr, 2sm-ps-impr, etc.) are already filtered.
+def create_one_verb_part(save, index, page, template, dicform, passive,
+    voice, person, tense):
+  if voice == "active" and not has_active_form(passive):
+    return
+  if voice == "passive" and not has_passive_form(passive):
+    return
   infl_person = persons_infl_entry[person]
-  infl_tense = tenses_infl_entry[tense] % voices_infl_entry[actpass]
-  partid = (actpass == "active" and "%s-%s" % (person, tense) or
+  infl_tense = tenses_infl_entry[tense] % voices_infl_entry[voice]
+  partid = (voice == "active" and "%s-%s" % (person, tense) or
       "%s-ps-%s" % (person, tense))
   # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
   form = re.sub("-.*$", "", blib.getparam(template, "1"))
@@ -966,43 +975,89 @@ def create_one_verb_part(save, index, page, template, dicform, actpass, person,
         "ar-verb-form", "|" + form,
         "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
-# Create the active and passive versions (as appropriate) of a single verb
-# part. SAVE, INDEX are as in create_inflection_entry(). PAGE is the page of
-# the lemma, and TEMPLATE is the {{ar-conj|...}} template indicating the
-# lemma's conjugation. DICFORM is the vocalized form of the lemma. PASSIVE is
-# the value of the 'passive' property as returned by
-# {{ar-verb-prop|passive|...}}. PERSON and TENSE indicate the particular
-# person/number/gender/tense/mood combination, using the codes passed to
-# {{ar-verb-part-all|...}}.
-def create_verb_part(save, index, page, template, dicform, passive, person,
-    tense):
-  if has_active_form(passive):
-    create_one_verb_part(save, index, page, template, dicform, "active", person,
-        tense)
-  if has_passive_form(passive):
-    create_one_verb_part(save, index, page, template, dicform, "passive", person,
-        tense)
+# Parse a part spec, one or more parts separated by commas. Each part spec
+# is either PERSON-TENSE (active), PERSON-ps-TENSE (passive) or
+# PERSON-all-TENSE (both), where PERSON is either 'all' or one of the values
+# of all_persons (actually specifies person, number and gender), and TENSE is
+# either 'all', 'nonpast' (= 'impf', 'subj', 'juss') or one of the values of
+# all_tenses. Return a list of all the actual parts required, where each list
+# element is a list [VOICE, PERSON, TENSE] where VOICE is either "active" or
+# "passive" and PERSON and TENSE are the same as above. Skip the dictionary
+# form (active 3sm-perf) as well as passive and non-2nd-person imperatives,
+# even if explicitly specified.
+def parse_part_spec(partspec):
+  def check(variable, value, possible):
+    if not value in possible:
+      raise ValueError("Invalid value '%s' for %s, expected one of %s" % (
+        value, variable, '/'.join(possible)))
 
-# Create all required verb parts for all verbs. If ALLFORMS is true, do *all*
-# verb parts (other than 3sm-perf, the dictionary form); otherwise, only do
+  parts = []
+  for part in re.split(",", partspec):
+    if part == "all":
+      part = "all-all-all"
+    partparts = re.split("-", part)
+    if len(partparts) == 2:
+      person = partparts[0]
+      tense = partparts[1]
+      voice = "active"
+    elif len(partparts) == 3:
+      person = partparts[0]
+      tense = partparts[2]
+      if partparts[1] == "ps":
+        voice = "passive"
+      elif partparts[1] == "all":
+        voice = "all"
+      else:
+        raise ValueError("Expected PERSON-TENSE or PERSON-VOICE-TENSE where VOICE is 'ps' or 'all', but found '%s'"
+            % partparts[1])
+    if person == "all":
+      persons = all_persons
+    else:
+      check("person-number-gender", person, all_persons)
+      persons = [person]
+    if tense == "all":
+      tenses = all_tenses
+    elif tense == "nonpast":
+      tenses = ["impf", "subj", "juss"]
+    else:
+      check("tense/mood", tense, all_tenses)
+      tenses = [tense]
+    if voice == "all":
+      voices = all_voices
+    else:
+      assert(voice in all_voices)
+      voices = [voice]
+
+  msg("Doing the following verb parts:")
+  for person in persons:
+    for tense in tenses:
+      for voice in voices:
+        # Refuse to do the dictionary form.
+        if person == "3sm" and tense == "perf" and voice == "active":
+          continue
+        # Refuse to do passive and non-2nd-person imperatives.
+        if tense == "impr" and (voice == "passive" or person[0] != "2"):
+          continue
+        msg("  %s %s %s" % (person, tense, voice))
+        parts.append([voice, person, tense])
+  return parts
+
+# Create required verb parts for all verbs. PART specifies the part(s) to do.
+# If "all", do all parts (other than 3sm-perf, the dictionary form);
+# otherwise, only do the specified part(s).
 # only 3sm-impf, the corresponding non-past dictionary form. SAVE, INDEX are as
 # in create_inflection_entry(). STARTFROM and UPTO, if not None, delimit the
 # range of pages to process.
-def create_verb_parts(save, startFrom, upTo, allforms=False):
+def create_verb_parts(save, startFrom, upTo, partspec):
+  parts_desired = parse_part_spec(partspec)
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
         dicform = get_dicform(page, template)
         passive = get_passive(page, template)
-        if allforms:
-          for person in persons:
-            for tense in tenses:
-              if not (person == "3sm" and tense == "perf"):
-                create_verb_part(save, index, page, template, dicform, passive,
-                    person, tense)
-        else:
+        for voice, person, tense in parts_desired:
           create_verb_part(save, index, page, template, dicform, passive,
-            "3sm", "impf")
+              voice, person, tense)
 
 pa = blib.init_argparser("Create Arabic inflection entries")
 pa.add_argument("-p", "--plural", action='store_true',
@@ -1014,9 +1069,23 @@ pa.add_argument("--verbal-noun", action='store_true',
 pa.add_argument("--participle", action='store_true',
     help="Do participle inflections")
 pa.add_argument("--non-past", action='store_true',
-    help="Do non-past dictionary-form inflections")
-pa.add_argument("--all-verb-part", action='store_true',
-    help="Do all verb part inflections")
+    help="""Do non-past dictionary-form inflections; equivalent to
+'--verb-part 3sm-all-impf'.""")
+pa.add_argument("--verb-part",
+    help="""Do specified verb-part inflections, a comma-separated list.
+Each element is compatible with the specifications used in {{ar-verb-part}}
+with the addition of 'all' specs, i.e. either 'all' or PERSON-TENSE (active
+voice), PERSON-ps-TENSE (passive voice) or PERSON-all-TENSE (both), where
+PERSON (which actually specifies person, number and gender) is either 'all' or
+one of the values '1s/2sm/2sf/3sm/3sf/2d/3dm/3df/1p/2pm/2pf/3pm/3pf' and TENSE
+(which actually specifies tense and mood) is either 'all' or 'nonpast' or
+one of the values 'perf/impf/subj/juss/impr' where perf = past, impf = non-past
+indicative, impr = imperative, 'nonpast' = 'impf' and 'subj' and 'juss'.
+The special case part spec 'all' is equivalent to 'all-all-all'. Silently
+ignored are the following: the dictionary form (active 3sm-perf);
+non-second-person or passive imperatives; active and/or passive inflections
+if in disagreement with the 'passive' property of the lemma (i.e. passive=no
+means no passive, passive=only or passive=only-impers means no active).""")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -1031,7 +1100,7 @@ if params.verbal_noun:
   create_verbal_nouns(params.save, startFrom, upTo)
 if params.participle:
   create_participles(params.save, startFrom, upTo)
+if params.verb_part:
+  create_verb_parts(params.save, startFrom, upTo, params.verb_part)
 if params.non_past:
-  create_verb_parts(params.save, startFrom, upTo, allforms=False)
-if params.all_verb_part:
-  create_verb_parts(params.save, startFrom, upTo, allforms=True)
+  create_verb_parts(params.save, startFrom, upTo, '3sm-all-impf')
