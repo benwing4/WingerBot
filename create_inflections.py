@@ -839,11 +839,15 @@ def has_active_form(passive):
   assert(passive in ["yes", "impers", "no", "only", "only-impers"])
   return passive in ["yes", "impers", "no"]
 
-# For a given value of passive= (yes, impers, no, only, only-impers), does
-# the verb have a passive form?
-def has_passive_form(passive):
+# For a given value of passive= (yes, impers, no, only, only-impers) and a
+# given person/number/gender combination, does the verb have a passive form?
+# Supply None for PERS for non-finite verb parts (participles).
+def has_passive_form(passive, pers):
   assert(passive in ["yes", "impers", "no", "only", "only-impers"])
-  return passive != "no"
+  # If no person or it's 3sm, then impersonal passives have it. Otherwise no.
+  if not pers or pers == "3sm":
+    return passive != "no"
+  return passive == "yes" or passive =="only"
 
 # Create a verbal noun entry, either creating a new page or adding to an
 # existing page. Do nothing if entry is already present. SAVE, INDEX are as in
@@ -909,7 +913,7 @@ def create_participles(save, startFrom, upTo):
             aps = re.split(",", apvalue)
             for ap in aps:
               create_participle(save, index, ap, page, template, "active")
-        if has_passive_form(passive):
+        if has_passive_form(passive, None):
           ppvalue = get_part_prop(page, template, "ar-verb-part-all|pp")
           if ppvalue:
             pps = re.split(",", ppvalue)
@@ -954,11 +958,11 @@ voices_infl_entry = {
 # the codes passed to {{ar-verb-part-all|...}}. We refuse to do combinations
 # not compatible with the value of PASSIVE. We assume that other unwanted
 # combinations (3sm-perf, 3sm-impr, 2sm-ps-impr, etc.) are already filtered.
-def create_one_verb_part(save, index, page, template, dicform, passive,
+def create_verb_part(save, index, page, template, dicform, passive,
     voice, person, tense):
   if voice == "active" and not has_active_form(passive):
     return
-  if voice == "passive" and not has_passive_form(passive):
+  if voice == "passive" and not has_passive_form(passive, person):
     return
   infl_person = persons_infl_entry[person]
   infl_tense = tenses_infl_entry[tense] % voices_infl_entry[voice]
@@ -1045,9 +1049,8 @@ def parse_part_spec(partspec):
 # Create required verb parts for all verbs. PART specifies the part(s) to do.
 # If "all", do all parts (other than 3sm-perf, the dictionary form);
 # otherwise, only do the specified part(s).
-# only 3sm-impf, the corresponding non-past dictionary form. SAVE, INDEX are as
-# in create_inflection_entry(). STARTFROM and UPTO, if not None, delimit the
-# range of pages to process.
+# SAVE is as in create_inflection_entry(). STARTFROM and UPTO, if not None,
+# delimit the range of pages to process (inclusive on both ends).
 def create_verb_parts(save, startFrom, upTo, partspec):
   parts_desired = parse_part_spec(partspec)
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
@@ -1085,7 +1088,9 @@ The special case part spec 'all' is equivalent to 'all-all-all'. Silently
 ignored are the following: the dictionary form (active 3sm-perf);
 non-second-person or passive imperatives; active and/or passive inflections
 if in disagreement with the 'passive' property of the lemma (i.e. passive=no
-means no passive, passive=only or passive=only-impers means no active).""")
+means no passive, passive=impers or passive=only-impers means passive only
+in participles and the third singular masculine, and passive=only or
+passive=only-impers means no active).""")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
