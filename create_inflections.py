@@ -114,15 +114,23 @@ lemma_inflection_counts = {}
 # appropriate to only certain inflectional types. LEMMATYPE is e.g.
 # "singular", "masculine" or "dictionary form" and is used in messages.
 # INFLTEMP is the headword template for the inflected-word entry (e.g.
-# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). DEFTEMP is the definitional
-# template that points to the base form (e.g. "plural of",
-# "masculine plural of" or "feminine of"). Optional DEFTEMP_PARAM is a
-# parameter or parameters to add to the created DEFTEMP template, and
-# should be either empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat"
-# for more than one parameter); default is "|lang=ar".
+# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). INFLTEMP_PARAM is a parameter
+# or parameters to add to the created INFLTEMP template, and should be either
+# empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat" for more than
+# one parameter). DEFTEMP is the definitional template that points to the
+# base form (e.g. "plural of", "masculine plural of" or "feminine of").
+# DEFTEMP_PARAM is a parameter or parameters to add to the created DEFTEMP
+# template, similar to INFLTEMP_PARAM.
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
-    deftemp_param = "|lang=ar"):
+    deftemp_param):
+
+  # Did we insert an entry or find an existing one? If not, we need to
+  # add a new one. If we break out of the loop through subsections of the
+  # Arabic section, we also don't need an entry; but we have this flag
+  # because in some cases we need to continue checking subsections after
+  # we've inserted an entry, to delete duplicate ones.
+  need_new_entry = True
 
   # Remove any links that may esp. appear in the lemma, since the
   # vocalized version of the lemma as it appears in the lemma's headword
@@ -168,6 +176,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   is_participle = infltype.endswith("participle")
   is_vn = infltype == "verbal noun"
   is_verb_part = pos == "Verb"
+  if is_verb_part:
+    # Make sure infltemp_param is '|' + FORM, as we expect
+    assert(len(infltemp_param) >= 2 and infltemp_param[0] == '|'
+        and infltemp_param[1] in ["I", "V", "X"])
+    verb_part_form = infltemp_param[1:]
+    verb_part_inserted_defn = False
   is_plural_noun = infltype == "plural" and pos == "Noun"
   vn_or_participle = is_vn or is_participle
   lemma_is_verb = is_verb_part or vn_or_participle
@@ -308,13 +322,13 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 subsections[j - 1] = re.sub("(===+)Verbal noun(===+)",
                     r"\1Noun\2", subsections[j - 1])
                 pagemsg("Converting 'Verbal noun' section header to 'Noun'")
-                notes.append("Converted 'Verbal noun' section header to 'Noun'")
+                notes.append("converted 'Verbal noun' section header to 'Noun'")
               parsed = blib.parse_text(subsections[j])
               for t in parsed.filter_templates():
                 if t.name == "ar-verbal noun":
                   t.name = "ar-noun"
                   pagemsg("Converting 'ar-verbal noun' template into 'ar-noun'")
-                  notes.append("Converted 'ar-verbal noun' template into 'ar-noun'")
+                  notes.append("converted 'ar-verbal noun' template into 'ar-noun'")
               subsections[j] = unicode(parsed)
               sections[i] = ''.join(subsections)
 
@@ -356,11 +370,15 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # Find the inflection headword (e.g. 'ar-noun-pl') and
             # definitional (e.g. 'plural of') templates. We require that
             # they match, either exactly (apart from i3rab) or only in the
-            # consonants.
+            # consonants. If verb part, also require that the conj form match
+            # in the inflection headword template, but don't require that
+            # the lemma match in the definitional template.
             infl_headword_templates = [t for t in parsed.filter_templates()
-                if t.name == infltemp and compare_param(t, "1", inflection)]
+                if t.name == infltemp and compare_param(t, "1", inflection)
+                and (not is_verb_part or compare_param(t, "2", verb_part_form))]
             defn_templates = [t for t in parsed.filter_templates()
-                if t.name == deftemp and compare_param(t, "1", lemma)]
+                if t.name == deftemp and (is_verb_part or
+                compare_param(t, "1", lemma))]
             # Special-case handling for actual noun plurals. We expect an
             # ar-noun but if we encounter an ar-coll-noun with the plural as
             # the (collective) head and the singular as the singulative, we
@@ -380,6 +398,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 pagemsg("WARNING: Found match for %s but in ===%s=== section rather than ===%s==="
                     % (infltype, particip_mismatch_pos, pos))
 
+            # Make sure there's exactly one headword template.
+            if len(infl_headword_templates) > 1:
+              pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
+                  % (infltype))
+              break
+
             # We found both templates and their heads matched; inflection
             # entry is probably already present. For verb forms, however,
             # check all the parameters of the definitional template,
@@ -394,11 +418,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
               particip_mismatch_check()
 
-              # Make sure there's exactly one headword template.
-              if len(infl_headword_templates) > 1:
-                pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
-                    % (infltype))
-                break
               infl_headword_template = infl_headword_templates[0]
 
               # For verb forms check for an exactly matching definitional
@@ -414,24 +433,48 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     return code
                   return (canonicalize_defn_template(code1) ==
                       canonicalize_defn_template(code2))
+                found_exact_matching = False
                 for d_t in defn_templates:
                   if compare_verb_part_defn_templates(unicode(d_t),
                       new_defn_template):
                     pagemsg("Found exact-matching definitional template for %s; taking no action"
                         % (infltype))
-                    break
+                    found_exact_matching = True
                   else:
                     pagemsg("Found non-matching definitional template for %s: %s"
                         % (infltype, unicode(d_t)))
-                else: # No break
+
+                if verb_part_inserted_defn:
+                  # If we already inserted an entry or found an exact-matching
+                  # entry, check for duplicate entries. Currently we combine
+                  # entries with the same inflection and conjugational form
+                  # and separate lemmas, but previously created separate
+                  # entries. We will add the new definition to the existing
+                  # section but need to check for the previously added separate
+                  # sections.
+                  if found_exact_matching and len(defn_templates) == 1:
+                    pagemsg("Found duplicate definition, deleting")
+                    subsections[j - 1] = ""
+                    subsections[j] = ""
+                    sections[i] = ''.join(subsections)
+                    notes.append("delete duplicate definition for %s %s, form %s"
+                        % (infltype, inflection, verb_part_form))
+                elif not found_exact_matching:
                   subsections[j] = unicode(parsed)
+                  if subsections[j][-1] != '\n':
+                    subsections[j] += '\n'
                   subsections[j] = re.sub(r"^(.*\n#[^\n]*\n)",
-                      r"\1%s\n" % new_defn_template, subsections[j], 1, re.S)
+                      r"\1# %s\n" % new_defn_template, subsections[j], 1, re.S)
                   sections[i] = ''.join(subsections)
                   pagemsg("Adding new definitional template to existing defn for pos = %s" % (pos))
                   comment = "Add new definitional template to existing defn: %s %s, %s %s, pos=%s" % (
                       infltype, inflection, lemmatype, lemma, pos)
-                break
+
+                # Don't break, so we can check for duplicate entries.
+                # We set need_new_entry to false so we won't insert a new
+                # one down below.
+                verb_part_inserted_defn = True
+                need_new_entry = False
 
               # Else, not verb form. Remove i3rab from existing headword and
               # definitional template, and maybe update the template heads
@@ -501,10 +544,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               # template at least. If so, add definition to beginning as
               # {{ar-verbal noun of}} (or equivalent for participles).
               if infl_headword_templates:
-                if len(infl_headword_templates) > 1:
-                  pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
-                      % (infltype))
-                  break
                 infl_headword_template = infl_headword_templates[0]
 
                 # Check for i3rab in existing infl and remove it if so
@@ -529,7 +568,10 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                       # FIXME: Should we break here? Should we insert
                       # a participle defn?
 
-        else: # else of for loop over subsections, i.e. no break out of loop
+        # else of for loop over subsections, i.e. no break out of loop
+        else:
+          if not need_new_entry:
+            break
           # At this point we couldn't find an existing subsection with
           # matching POS and appropriate headword template whose head matches
           # the the inflected form.
@@ -548,13 +590,10 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               if j > 0 and (j % 2) == 0:
                 if re.match("^===+Verb===+", subsections[j - 1]):
                   parsed = blib.parse_text(subsections[j])
-                  # Make sure infltemp_param is '|' + FORM, as we expect
-                  assert(len(infltemp_param) >= 2 and infltemp_param[0] == '|'
-                      and infltemp_param[1] in ["I", "V", "X"])
                   for t in parsed.filter_templates():
                     if (t.name == deftemp and compare_param(t, "1", lemma) or
-                        t.name == infltemp and (not t.has("2") or compare_param(t, "2", infltemp_param[1:])) or
-                        t.name == "ar-verb" and re.sub("-.*$", "", blib.getparam(t, "1")) == infltemp_param[1:] and remove_diacritics(get_dicform(page, t)) == remove_diacritics(lemma)):
+                        t.name == infltemp and (not t.has("2") or compare_param(t, "2", verb_part_form)) or
+                        t.name == "ar-verb" and re.sub("-.*$", "", blib.getparam(t, "1")) == verb_part_form and remove_diacritics(get_dicform(page, t)) == remove_diacritics(lemma)):
                       insert_at = j + 1
             if insert_at:
               pagemsg("Found section to insert verb part after: [[%s]]" %
@@ -627,7 +666,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             pagemsg("Found multiple etymologies, adding new section \"Etymology %s\"" % (j))
             comment = "Append entry (Etymology %s) for %s %s of %s, pos=%s in existing Arabic section" % (
               j, infltype, inflection, lemma, pos)
-            sections[i] += "\n===Etymology %s===\n\n" % j + newposl4
+            sections[i] = ensure_two_trailing_nl(sections[i])
+            sections[i] += "===Etymology %s===\n\n" % j + newposl4
           else:
             pagemsg("Wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"")
             comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for %s %s of %s, pos=%s" % (
@@ -663,6 +703,15 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
     # End of loop over sections in existing page; rejoin sections
     newtext = pagehead + ''.join(sections) + pagetail
+
+    # If participle, remove [[Category:Arabic participles]]
+    if is_participle:
+      oldnewtext = newtext
+      newtext = re.sub(r"\n+\[\[Category:Arabic participles]]\n+", r"\n\n",
+          newtext)
+      if newtext != oldnewtext:
+        pagemsg("Removed [[Category:Arabic participles]]")
+
     if page.text == newtext:
       pagemsg("No change in text")
     elif verbose:
@@ -688,22 +737,22 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
 def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "plural", "singular", "ar-noun-pl", "", "plural of")
+      "plural", "singular", "ar-noun-pl", "", "plural of", "|lang=ar")
 
 def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "plural", "singular", "ar-adj-pl", "", "masculine plural of")
+      "plural", "singular", "ar-adj-pl", "", "masculine plural of", "|lang=ar")
 
 def create_noun_feminine_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", None, # FIXME
-      "", "feminine of")
+      "", "feminine of", "|lang=ar")
 
 def create_adj_feminine_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "feminine", "masculine", "ar-adj-fem", "", "feminine of")
+      "feminine", "masculine", "ar-adj-fem", "", "feminine of", "|lang=ar")
 
 def create_inflection_entries(save, pos, tempname, startFrom, upTo, createfn,
     param):
@@ -833,7 +882,7 @@ def create_participle(save, index, part, page, template, actpass):
   create_inflection_entry(save, index, part, None, dicform, None, "Participle",
     "%s participle" % actpass, "dictionary form",
     "ar-%s participle" % actpass, "|" + form,
-    "ar-%s participle of" % actpass, "")
+    "%s participle of" % actpass, "|lang=ar")
 
 def create_participles(save, startFrom, upTo):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
