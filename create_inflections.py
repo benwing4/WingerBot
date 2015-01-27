@@ -293,6 +293,15 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         if mm:
           sections[i:i+1] = [mm.group(1), mm.group(2)]
 
+        # If verb part, correct mistaken indent from a previous run,
+        # where level-3 entries were inserted instead of level 4.
+        if is_verb_part and "\n===Etymology 1===\n" in sections[i]:
+          oldsectionsi = sections[i]
+          sections[i] = re.sub("\n===Verb===\n", "\n====Verb====\n",
+              sections[i])
+          if oldsectionsi != sections[i]:
+            notes.append("corrected verb-part indent level")
+
         subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
 
         # If verbal noun, count how many matching noun entries; if exactly
@@ -619,7 +628,11 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 infltype, inflection, lemma)
               subsections[insert_at - 1] = ensure_two_trailing_nl(
                   subsections[insert_at - 1])
-              subsections[insert_at:insert_at] = [newpos + "\n"]
+              if indentlevel == 3:
+                subsections[insert_at:insert_at] = [newpos + "\n"]
+              else:
+                assert(indentlevel == 4)
+                subsections[insert_at:insert_at] = [newposl4 + "\n"]
               sections[i] = ''.join(subsections)
               break
 
@@ -683,8 +696,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             sections[i] = re.sub("^===Etymology===\n", "", sections[i])
             sections[i] = ("==Arabic==\n" + wikilink + "\n===Etymology 1===\n" +
                 ("\n" if sections[i].startswith("==") else "") +
-                re.sub("^==(.*?)==$", r"===\1===", sections[i], 0, re.M) +
-                "\n===Etymology 2===\n\n" + newposl4)
+                ensure_two_trailing_nl(re.sub("^==(.*?)==$", r"===\1===",
+                  sections[i], 0, re.M)) +
+                "===Etymology 2===\n\n" + newposl4)
         break
       elif m.group(1) > "Arabic":
         pagemsg("Exists; inserting before %s section" % (m.group(1)))
