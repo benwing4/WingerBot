@@ -1,0 +1,23 @@
+TODO:
+
+0. Test create_plural.py on feminines with saving; hasn't yet been tested.
+1. Create ar-adj-pl, ar-noun-pl, ar-adj-dual to use entries in
+   Module:ar-headword.
+2. See whether Template:head recognizes 'noun plural form' and such;
+   if so, modify appropriate entries in Module:ar-headword (e.g. for
+   'noun plural forms').
+3. Add new entries in Module:ar-headword for 'adjective feminine forms' and
+   'noun feminine forms' (check that posboiler categories exist for these;
+   if not create; to figure out where to modify, look at recent changes for
+   User:benwing).
+4. Create ar-noun-fem, ar-adj-fem to use new entries in Module:ar-headword.
+5. Modify the following to use ar-adj-pl instead of ar-plural.
+زب
+حرم
+خوان
+أغبياء
+غير
+6. Create a bot to modify remaining uses of ar-plural to ar-noun-pl.
+7. Modify create_plurals.py to use new adj/noun-split template names.
+8. Test create_plurals.py on plurals and feminines, check that results are
+   correct.

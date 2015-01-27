@@ -1,0 +1,426 @@
+yanāyir (diptote) يناير, also yanāʾir (diptote)
+fabrāyir فبراير
+mars مارس
+ʾabrīl أبريل
+māyū مايو (note also māyō "tights", also māyōh مايوه)
+yūniyō يونيو also yūniya يونية
+yūliyō يوليو also yūliya يولية
+ʾaḡustus أغستس
+sibtambir سبتمبر
+ʾoktōbir أكتوبر
+nūfimbir, novembir نوفمبر
+disembir, disambir دسمبر
+
+DONE {{ar-noun|مَزَاج|m|pl=أَمْزِجَة}}
+DONE {{ar-noun|[[لُغَة]] [[إنجليزي|إِنْجِلِيزِيَّة]]|tr=luḡat ʾingilīziyya|f}}
+DONE {{ar-decl-noun|رَبِيع|state=con|mod=آخِر|modcase=gen|modstate=def|modnumber=sg}}
+DONE {{ar-decl-noun|رَبِيع|state=con|mod=أَوَّل|modcase=gen|modstate=def|modnumber=sg}}
+DONE {{ar-decl-noun|رَبِيع|state=con|mod=ثَانٍ|modcase=gen|modstate=def|modnumber=sg}}
+DONE {{ar-decl-noun|جُمَادَى|state=ind|mod=أُولَى|modstate=def}}
+DONE {{ar-decl-noun|جُمَادَى|state=ind|mod=آخِرَة|modstate=def}}
+DONE {{ar-decl-noun|جُمَادَى|state=ind|mod=ثَانِيَة|modstate=def}}
+
+DONE {{ar-decl-noun|نُقْطَة|pl=نُقَط|pl2=نِقَاط|state=ind,def|mod=مُزْدَوِجَة|modpl=مُزْدَوِجَة}}
+
+DONE {{ar-decl-noun|شَبَح|head2=شَبْح|state=con|mod=ظِلّ|modcase=gen|modstate=ind|modnumber=sg}}
+
+DONE Lemma: عمود فقري {{ar-noun|[[عَمُود]] [[فَقْرِيّ]]|m|pl=أَعْمِدَة فَقْرِيَّة|pltr=ʾaʿmida faqriyya}}
+DONE ====Declension====
+DONE {{ar-decl-noun|عَمُود|pl=أَعْمِدَة|state=ind,def|mod=فَقْرِيّ|modpl=فَقْرِيَّة}}
+
+DONE Lemma: سنبل هندي {{ar-noun|[[سُنْبُل]] [[هِنْدِيّ]]|m}} # then delete from adjectival list
+
+DONE Lemma: وصفة طبية {{ar-noun|[[وَصْفَة]] [[طِبِّيَّة]]|f|tr=waṣfa ṭibbiyya}}
+    
+DONE Lemma: أرقام هندية {{ar-noun|[[أَرْقَام]] [[هِنْدِيَّة]]|p}}
+
+DONE Lemma: نعناع فلفلي {{ar-noun|[[نَعْنَاع]] [[فلفل|فِلْفِلِيّ]]|m}} # then delete from adjectival list
+
+DONE Lemma: تين شوكي {{ar-coll-noun|[[تِين]] [[شَوْكِيّ]]|sing=تِينَة شَوْكِيَّة}} # then delete from adjectival
+
+DONE Lemma: فيل {{ar-noun|فِيل|m|pl=فِيَلَة|pl2=فُيُول|pl3=أَفْيَال}}
+DONE Lemma: هلال {{ar-noun|هِلَال|m|pl=أَهِلَّة}}
+DONE Lemma: جمرك {{ar-noun|جُمْرُك|m|pl=جَمَارِك}}
+DONE Lemma: مبنى {{ar-noun|مَبْنَى|m|pl=مَبَانٍ|plcons=مَبَانِي}} # Add plcons to ar-headword, along with 
+
+DONE Lemma: ذقن {{ar-noun|ذَقْن|f|pl=ذُقُون}}
+DONE {{ar-decl-noun|ذَقْن|pl=ذُقُونٌ}}
+
+DONE Lemma: ثوم {{ar-coll-noun|ثُوم|sing=ثُومَة}}
+DONE Lemma: جفن {{ar-noun|جَفْن|m|pl=جُفُون|pl2=أَجْفَان}}
+DONE Lemma: جزيء {{ar-noun|جُزَيْء|m|pl=جُزَيْئَات}}
+DONE Lemma: فأس {{ar-noun|فَأْس|m|pl=فُؤُوس|pl2=أَفْؤُس}}
+DONE Lemma: برغوث {{ar-noun|بُرْغُوث|m|pl=بَرَاغِيث}}
+
+DONE Lemma: لولب {{ar-noun|لَوْلَب|m|pl=لَوَالِب}}
+
+# [[screw]]
+# [[spiral]]
+# [[spiral]] [[spring]]
+# [[spring]]
+# [[axle]]
+# [[spiral staircase]]
+# (fig.) [[pivot]] [[point]]
+# [[tube]], [[canal]]
+# [[tube]] of an [[alembic]]
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr}}
+DONE Lemma: بلح {{ar-coll-noun|بَلَح|sing=بَلَحَة}} # [[dates]], not [[date]]
+DONE Lemma: مازج {{ar-noun|مَازِج|m}}
+DONE Lemma: مرو {{ar-coll-noun|مَرْو|sing=مَرْوَة}} # not [[quartz]] but [[pebble]]; [[flint]]
+DONE Lemma: تناضح {{ar-noun|تَنَاضُح|m}}
+DONE Lemma: سهم {{ar-noun|سَهْم|m|pl=سِهَام|pl2=أَسْهُم|pl3=سُهُوم}}
+
+# [[arrow]], [[dart]]
+# [[cosine]]
+# [[principal]] [[beam]] of [[support]] in [[house]] or [[tent]]
+# [[mast]]
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr}}
+DONE Lemma: سهم {{ar-noun|سَهْم|m|pl=أَسْهُم|pl2=سُهْمَان|pl3=سُهْمَة}}
+
+# [[lot]], [[share]], [[portion]]
+# [[lottery ticket]]
+# [[share]] (of [[stock]])
+# (Eg.) [[sahme]] (7.923 [[square meters]])
+
+DONE Lemma: نزاع {{ar-noun|نِزَاع|m}}
+
+# [[quarrel]], [[dispute]], [[lawsuit]], [[agony]]
+
+====References====
+* {{R:ar:Steingass}}
+
+DONE Lemma: مرجان {{ar-coll-noun|مَرْجَان|head2=مُرْجَان|sing=مَرْجَانَة|sing2=مُرْجَانَة}}
+
+# [[small]] [[pearls]], [[corals]]
+
+DONE Lemma: عبرية {{ar-noun|عِبْرِيَّة|f}}
+DONE Lemma: نيشان {{ar-noun|نِيشَان|m|pl=نَيَاشِين}}
+
+# [[sign]]
+# [[mark]]
+# [[aim]], [[goal]]
+# [[target]]
+# [[decoration]]
+# [[medal]], [[order]]
+# (Eg.) [[bridal]] [[attire]]
+
+DONE Lemma: هودج {{ar-noun|هَوْدَج|m|pl=هَوَادِج}}
+
+# [[camel]] [[litter]], [[howdah]]
+# [[sedan chair]], [[litter]]
+
+DONE Lemma: سداة {{ar-noun|سَدَاة|f}}
+
+# [[warp]] (of a [[fabric]])
+# [[continuous]], [[prevailing]] [[characteristic]] or [[trait]], [[thread]] (of a [[story]], [[argument]], etc.)
+# [[bounty]], [[present]]
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr}}
+DONE Lemma: معلومات {{ar-noun|مَعْلُومَات|p}}
+DONE Lemma: دربوكة {{ar-noun|دَرْبُوكَة|f|pl=دَرْبُوكَات}}
+# note: Given as دَرَبُكَّة (Eg.) /دِرْبَكَّة (Syr.) in Wehr; دَرْبُوكَة is a guess
+DONE Lemma: جوخ {{ar-noun|جُوخ|m|pl=أَجْوَاخ}}
+
+# [[broadcloth]]
+DONE Lemma: بصل {{ar-coll-noun|بَصَل|sing=بَصَلَة}}
+
+# [[onion]](s)
+# [[bulb]](s)
+
+====References====
+* {{R:ar:Steingass}}
+DONE Lemma: غراب {{ar-noun|غُرَاب|m|pl=غِربَان|pl2=أَغْرُب|pl3=أَغْرِبَة|pl4=غُرْب|pl5=غَرَابِين}}
+
+# [[raven]], [[crow]]
+# a [[ship]], [[corvet]], [[sloop]]
+
+====References====
+* {{R:ar:Steingass}}
+DONE Lemma: غراب {{ar-noun|غُرَاب|m|pl=أَغْرِبَة}}
+
+# [[bend]] of the [[scabbard]]
+# [[edge]], [[point]]
+
+====References====
+* {{R:ar:Steingass}}
+DONE Lemma: ألم {{ar-noun|أَلَم|m|pl=آلَام}}
+
+# [[pain]], [[grief]]
+# [[irritation]]
+# [[passion]]
+
+====References====
+* {{R:ar:Steingass}}
+DONE Lemma: جليد {{ar-noun|جَلِيد|m}}
+DONE Lemma: قصر {{ar-noun|قَصْر|m|pl=قُصُور}}
+
+# [[large]] [[stone]] [[building]], [[castle]], [[palace]], [[fortress]]
+
+====References====
+* {{R:ar:Steingass}}
+DONE Lemma: وسط {{ar-noun|وَسَط|m|head2=وَسْط|pl=أَوْسَاط}}
+
+# [[middle]], [[center]]
+# [[waist]]
+# the [[golden mean]]
+# [[milieu]], [[environment]], [[surroundings]], [[sphere]]
+# [[means]], [[instrument]], [[agent]], [[medium]]
+# [[mediocrity]], [[medium]] [[quality]], [[average]]
+# pl. [[circles]], [[quarters]], [[classes]], [[strata]] (of [[population]])
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr}}
+
+DONE Lemma: خوخ {{ar-coll-noun|خَوْخ}} [[peach]] (Eg.); [[plum]] (Syr.)
+DONE Lemma: سكين {{ar-noun|سِكِّين|m|g2=f|pl=سَكَاكِين}}
+DONE Lemma: ملح {{ar-noun|مِلْح|m|g2=f|pl=أَمْلَاح|pl2=مِلَاح|pl3=مِلَح|pl4=مِلْحَة}}
+
+# salt
+# [[salt water]]
+# [[wit]], [[intellect]]
+# [[knowledge]]
+# [[scholar]]
+# [[beauty]], [[loveliness]], [[grace]]
+# [[oath]]
+
+====References====
+* {{R:ar:Steingass}}
+DONE Lemma: نجم {{ar-noun|نَجْم|m|pl=نُجُون|pl2=أَنْجُم|pl3=نُجُم|pl4=أَنْجَام}}
+
+# [[heavenly body]], [[luminary]], [[star]], [[constellation]]
+# [[star]] of [[nativity]], [[nativity]], [[horoscope]], [[prediction]]
+# [[appointed]] [[time]], [[term]]
+# [[pay]], [[wages]]
+# [[certain]] [[origin]]
+
+====References====
+* {{R:ar:Steingass}}
+
+DONE Lemma: نجم
+{{ar-noun|نَجْم|m|pl=نُجُون}} # [[installment]], [[partial]] [[payment]]
+
+====References====
+* {{R:ar:Wehr}}
+
+DONE Lemma: نجم
+{{ar-coll-noun|نَجْم|sing=نَحْمَة|pl=نُجُون|pl2=أَنْجُم|pl3=نُجُم|pl4=أَنْجَام}}
+
+# [[stalkless]] [[plant]], [[herb]], [[grass]]
+
+====References====
+* {{R:ar:Steingass}}
+
+---------------------------------------------------------------
+Documentation:
+
+Add doc of تِشْرِينُ الأَوَّلُ example of diptote indef proper noun modified by def adjective
+Add doc of عَمُود فَقْرِيّ better example of adjectival phrase (pl. أَعْمِدَة فَقْرِيَّة)
+
+Adjectives:
+
+DONE Lemma صري صري delete, unattested
+DONE Lemma اَغْلَف اغلف move to begin with hamzated alif, add declension as color/defect
+DONE Lemma غَيْر طَبِيعِيّ غير طبيعي add manual decl as idafa
+DONE Lemma أَعْزَب أعزب add declension as color/defect
+DONE Lemma اَعْظَم اعظم move to begin with hamzated alif, add declension as color/defect
+DONE Lemma مُحَافِظ محافظ feminine is unvocalized
+DONE Lemma أَعْمَى أعمى add declension as color/defect
+DONE Lemma غَرِيب غريب feminine is unvocalized
+DONE Lemma إِبْلِيسِيّ إبليسِي should be nisba
+DONE Lemma أَجْرَب أجرب feminine is partly unvocalized
+DONE Lemma سُرْيَانِيَّة سريانية is feminine but not marked as {{feminine of}}
+DONE Lemma هِنْدِي هندي misvocalized nisba, should be marked as nisba, and bad manual tr
+DONE Lemma عَالِي عَالِي is construct state, needs to be moved to عال
+DONE Lemma سَرِيع سَرِيع plural is partly unvocalized
+DONE Lemma كثير كثير plural is partly unvocalized and has second plural كِثَار
+DONE Lemma هَيُولِي هَيُولِي misvocalized nisba, should be marked as nisba
+DONE Lemma اَلْأَرْفَ اَلْأَرْفَ should be deleted, moved to indefinite form
+DONE Lemma لَعَاب لَعَاب misvocalized (should be لَعَّاب), unvocalized misformed feminine (should be regular), check if a "feminine of" exists
+DONE Lemma لعبة لعبة the adjective لُعَبَة is not a feminine exactly but an intensive feminine that can apparently be applied to both masculine and feminine nouns
+DONE Lemma لَبَن لَبَن is noun, not adjective; delete adjective
+DONE Lemma جَانٍ جَانٍ plural is unvocalized
+DONE Lemma مَفْتُوحْ مَفْتُوحْ has stray sukuun at end
+DONE Lemma تَشْرِيعِيّ تَشْرِيعِيّ delete g=m
+DONE Lemma شعبية شعبية feminine of: Needs vowels, translit is chat-style
+
+Nouns:
+
+DONE Check existing places that have state=ind,def and remove
+DONE Lemma كوكا كولا كوكا كولا add manual decl without modifier
+DONE Lemma كذا وكذا كذا وكذا add manual decl without modifier
+DONE Lemma مِنِي جُوب مني جوب add manual decl without modifier 
+DONE Lemma قوس قزح add manual decl (diptote modifier in idafa)
+DONE Lemma نُقْطَتان نقطتان partly unvocalized; add manual decl as dual tantum
+DONE Lemma يوم الاثنين modifier is dual; add manual decl
+DONE Lemma بعد delete -u from plural
+DONE Lemma غبراء should be moved to page beginning with def art and remove -u
+DONE Lemma جمع delete -u
+DONE Lemma ثُعْبَان ثعبان delete -u from plural
+DONE Lemma قَطْرَان قطران should be triptote; also has head2 قِطةرَان and head3 قَطِرَان
+DONE Lemma أبزن not a diptote
+DONE Lemma أرنب not a diptote
+DONE Lemma أَنْجَر أنجر probably not a diptote
+Lemma الإثنين should be الاثنان in the nominative and without hamzated alif; delete الإثنين, make الاثنين with non-hamzated alif identity as oblique of الاثنان; check words for Sunday and Tuesday to see what their next/previous links are
+DONE Lemma بَبَّغَاء ببغاء head1 is بَبْغَاء head2 is بَبَّغَاء  both are diptotes; pls match and end in -wāt
+DONE Lemma أَمْسُ أمس irregular: nom. amsu, acc. amsan, gen. amsi, in def or construct always amsi: pl. آمُس, آمَاس, أُمُوس (read pls from right to left)
+{{ar-decl-noun|أَمْس|nom_sg_ind=أَمْسُ|acc_sg_ind=أَمْسًا|gen_sg_ind=أَمْسِ|nom_sg_def=الأَمْسِ|acc_sg_def=الأَمْسِ|gen_sg_def=الأَمْسِ|nom_sg_con=أَمْسِ|acc_sg_con=أَمْسِ|gen_sg_con=أَمْسِ|pl=آمُس|pl2=آمَاس|pl3=أُمُوس}}
+DONE Lemma جَار جار has i3rab and pl has incorrect i3rab
+DONE Lemma بْن بن needs vocalization; translit ibn seems wrong, should be bn or bin
+DONE Lemma أَنْوَر أنور means brighter, more shining, more luminous (Steingass) not a noun
+Lemma تِشْرِيّ تشري and other Hebrew months -- should they be marked as indefinite only?
+DONE Lemma لَانِهَايَة لانهاية pl is mistakenly marked as feminine in headword
+DONE Lemma حَيَاة حياة dual ends in -wān, needs to be marked explicitly
+DONE Lemma أَدَاة أداة dual ends in -wān, needs to be marked explicitly
+DONE Lemma خَارَصِين خارصين has non-English defn
+DONE Lemma مَطْعَم مطعم remove dual from headword
+DONE Lemma دُخَان دخان add head2=دُخَّان
+DONE Lemma بِذْرَة بذرة should actually be ar-sing-noun, pl is either بُدُور or بِدَار
+DONE Lemma أيك should actually be ar-coll-noun; defn in Wehr is "thicket, jungle"
+DONE Lemma نُصّ نص is Egyptian and Levantine, not standard; should be given under those languages
+DONE Lemma طَوْع طوع has R2L or L2R mark at beginning
+DONE Lemma أَهْل أهل plural should end in -in
+DONE Lemma أفعى plural should end in -in
+DONE Lemma أَبَاجُور أباجور declension already present but in wrong place
+
+DONE Lemma غَرِيب غريب plural is unvocalized
+DONE Lemma لُورْد لورد partly unvocalized
+DONE Lemma قَامُوس قاموس plural unvocalized
+DONE Lemma بُوتَاسِيُوم بوتاسيوم unvocalized
+DONE Lemma إِكْسِينُون إكسينون unvocalized
+DONE Lemma أفريقانية أفريقانية unvocalized
+DONE Lemma كُوبْرِي كوبري should have tr=kubrī|pl=كَبَارِي
+DONE Lemma جَهَاز جهاز fix link involving اداة (and should have hamzated alif)
+DONE Lemma ديسمبر 
+
+{{ar-noun|دِيسِمْبِر|tr=disembir|head2=دِيسَمْبِر|tr2=disambir}}
+
+# {{alternative form of|lang=ar|دِسِمْبِر|tr=disembir|head2=دِسَمْبِر}}
+
+{{ar-noun|دِسِمْبِر|tr=disembir|head2=دِسَمْبِر}}
+
+# [[December]]
+
+DONE Lemma جَعْبَة جعبة plural is unvocalized, should be جِعَان, should have head2 جُعْبَة
+DONE Lemma كُرْسِيّ كرسي plural should have -iyy ending; pl2 كَرَاسٍ
+DONE Lemma مَنْزِل منزل plural is unvocalized
+DONE Lemma مَجَلَّة مجلة plural is unvocalized
+DONE Lemma قَائِد قائد plural is unvocalized
+DONE Lemma وَجْه وجه plural partly unvocalized
+DONE Lemma ضِدّ ضد plural is unvocalized
+DONE Lemma قُولُون قولون unvocalized
+DONE Lemma مَهْبِل مهبل plural is unvocalized
+DONE Lemma جَانٍ جان plural is unvocalized
+DONE Lemma حِجَاب حجاب pl2 needs hamzated alif
+DONE Lemma حَسَنَة حسنة pl is unvocalized
+DONE Lemma فِنْجَان فنجان pl needs vocalization
+DONE Lemma زَايْلُفُون زايلفون needs vocalization
+DONE Lemma بلاديو needs vocalization
+DONE Lemma زَهْرَة زهرة add vowels to ar-singulative of
+DONE Lemma مَارِهْوَانَا مارهوانا is unvocalized
+DONE Lemma لَبُؤَة لبؤة pl is unvocalized
+DONE Lemma صُودَا صودا unvocalized and tr should end in -ā
+DONE Lemma صَكّ صك pl is unvocalized
+DONE Lemma سَرَافِيم سرافيم is unvocalized and translit should probably have maybe (?) have long -ā in middle; although Wehr has sīrafīm
+DONE Lemma أُوَار أوار plural is unvocalized, أُور acc. to Steingass
+DONE Lemma قَرَار قرار pl is unvocalized
+DONE Lemma عِمْلَاق عملاق pl is unvocalized (fix headword also)
+DONE Lemma دَرَكِيّ دركي should have -iyy ending
+DONE Lemma حِكَايَة حكاية pl is partly unvocalized
+DONE Lemma فَرَس فرس pl needs hamzated alif
+DONE Lemma هِيلِيُوم هيليوم is unvocalized
+DONE Lemma لِيثِيُوم ليثيوم is unvocalized
+DONE Lemma نيتروجين نيتروجين is unvocalized
+DONE Lemma صوديوم صوديوم is unvocalized
+DONE Lemma شمبانزي شمبانزي is unvocalized
+DONE Lemma نيكل نيكل is unvocalized
+DONE Lemma كالسيوم كالسيوم is unvocalized
+DONE Lemma سيليكون سيليكون is unvocalized
+DONE Lemma جُنْدِيّ جندي needs -iyy
+DONE Lemma عَسْكَرِيّ عسكري needs -iyy
+DONE Lemma جُمْهُورِيَّة جمهورية derived terms link has R2L or L2R embedded in it
+DONE Lemma بَظْر بظر pl is unvocalized
+DONE Lemma مَحَلَّة محلة pl is unvocalized
+DONE Lemma رُومَاجُي روماجي is unvocalized
+DONE Lemma سَاكْسُفُون ساكسفون is unvocalized
+DONE Lemma فِرْمِيُون فرميون is unvocalized
+DONE Lemma كوارك سفلي كوارك سفلي is partly unvocalized
+DONE Lemma عَوْرَة عورة pl is unvocalized
+DONE Lemma صَدِيق صديق pl is partly unvocalized
+DONE Lemma قِنَاع قناع is partly unvocalized; pl is partly unvocalized
+DONE Lemma مَحَطَّة محطة pl is unvocalized
+DONE Lemma مَاتْرْيُوشْكَا ماتريوشكا is unvocalized
+DONE Lemma مَاكْيَاج ماكياج is unvocalized
+DONE Lemma غَرِيب غريب pl is unvocalized
+DONE Lemma بَلْطَجِيّ بلطجي needs -iyy
+DONE Lemma شَعْبِيَّة شعبية pl is unvocalized
+DONE Lemma أُوْقِيَّة أوقية partly unvocalized, pl is unvocalized
+DONE Lemma بْروسْتَات بروستات head2=بَروسْتَات head3=بْروسْتَات is unvocalized
+DONE Lemma مَيْكْرُووَيْف ميكروويف is unvocalized
+DONE Lemma كَارَاتِيه كاراتيه is unvocalized
+DONE Lemma كُوب كوب pl is unvocalized
+DONE Lemma حَلْقَة حلقة pl is unvocalized
+DONE Lemma قَلْعَة قلعة pl is unvocalized; pl قِلَاع also قُلُوع
+DONE Lemma صَلِيب صليب pls are unvocalized: صُلْبَان, صُلُب
+DONE Lemma نَكْبَة نكبة pl is unvocalized
+DONE Lemma أُورْدُو أوردو is unvocalized
+
+
+Lemmas no translit:
+
+DONE Lemma يُود يود yōd
+DONE Lemma بَارِيُوم باريوم bāriyum
+SKIP Lemma أَرْمِينِيَّة أرمينية presumably armēniyya although armaniyy in Wehr
+DONE Lemma أُسَامَة أسامة ʾusāma; acc. to Lane is definite and declined as such even without article, also الأُسَامَة with article
+DONE Lemma مَيْس ميس mays (from Lane) a tree of great size; when young, white within, when old, black like ebony
+DONE Lemma كَتَم كتم katam (from Steingass), an herb for dying the hair
+DONE Lemma مَازِج مازج māzij, surely
+DONE Lemma فِلُور فلور filūr (Wehr)
+SKIP Lemma مَغْنِسِيُوم مغنسيوم guess maḡnisiyum, guess based on Wehr maḡnīsiyā "magnesia"; should it be spelled مغنيسيوم
+DONE Lemma أَلُومِنْيُوم ألومنيوم alūminyom (Wehr)
+DONE Lemma فُسْفُور فسفور fusfūr (Wehr)
+DONE Lemma كِبْرِيت كبريت kibrīt
+SKIP Lemma كْلُور كلور guess klōr based on Wehr klōrofōrm
+SKIP Lemma سْكَانْدِيُوم سكانديوم guess skandiyum or sikandiyum
+SKIP Lemma تِيتَانِيُوم تيتانيوم guess tītāniyum
+DONE Lemma كْرُوم كروم krōm
+DONE Lemma مَنْغَنِيز منغنيز manḡanīs; should it be spelled مَنْغَنِيس منغنيس
+SKIP Lemma جَرْمَانِيُوم جرمانيوم guess jarmāniyum based on Wehr's jarmān "Germans"
+DONE Lemma سِيلِينِيُوم سيلينيوم Wehr has سِلِينِيُوم سلينيوم silīniyūm
+DONE Lemma صُوف صوف pl. أَصْوَاف "wool"
+
+Collective nouns:
+
+DONE Lemma شعر: Has two heads, needs two sings
+DONE Lemma شمع: Has two heads, needs two sings
+DONE Lemma رُطْب: Should be رُطَب, add sing, pl. أَرْطَاب and رِطَاب
+DONE Lemma دُرّ در: Mismarked as colloquial (actually collective), needs singulative, alt. paucal pl دُرَر
+DONE Lemma نَوَر نور: Singulative نَوَرِيّ, singg masculine
+DONE Lemma جن: Singulative جِنِّيّ, singg masculine
+DONE Lemma ذرة: Functions as both collective and singulative noun
+DONE Lemma مَبَادِئ مبادئ: Not a collective noun but a plural
+DONE Lemma ورق: Declension has "Noun" as section heading
+DONE Lemma شبث: Not a collective noun
+DONE Lemma ترياق: Not a collective noun; pl. تَرَايِيق
+DONE Lemma بيض: Declension has "Noun" as section heading
+
+Singulative nouns:
+
+DONE Lemma ذرة: Pl is actually paucal
+DONE Lemma زهرة: Pl is actually paucal
+DONE Lemma دجاجة: Pl is actually paucal
+DONE Lemma لحمة: Pl is actually paucal
+
+TODO still:
+
+Lemma أجمع I had جُمَعُ as cpl when it really is only feminine plural
+Lemma ديموقراطي In الجمهورية الديموقراطية الالمانية (GDR), Wehr gives it as dīmūqrātīya instead of expected dimuqrātīya
+
