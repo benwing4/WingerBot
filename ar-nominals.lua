@@ -806,7 +806,7 @@ function show_gendered(frame, isadj, pos)
 	local mdus = do_gender_number(data, args, "d", msgs, "d", false, "du")
 	local fdus = do_gender_number(data, args, "fd", fsgs, "d", true, "du")
 	local mpls = do_gender_number(data, args, "pl", msgs, isadj and "p" or nil, false, "pl")
-	local fpls = do_gender_number(data, args, "fpl", fsgs, "sp", true, "pl")
+	local fpls = do_gender_number(data, args, "fpl", fsgs, "fp", true, "pl")
 
 	if isadj then
 		parse_number_spec(data, args)
@@ -1562,7 +1562,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		error("Inference of form for inflection type '" .. word .. "' only allowed in dual")
 	end
 	
-	if num ~= 'pl' and (word == "sfp" or word == "smp" or word == "awnp" or word == "cdp" or word == "sp" or word == "p") then
+	if num ~= 'pl' and (word == "sfp" or word == "smp" or word == "awnp" or word == "cdp" or word == "sp" or word == "fp" or word == "p") then
 		error("Inference of form for inflection type '" .. word .. "' only allowed in plural")
 	end
 
@@ -1572,6 +1572,26 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 			rfind(ar, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. N .. UOPT .. "$")
 	end
 		
+	local function is_feminine_cd_adj(ar)
+		return pos == "adjective" and
+			(rfind(ar, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. HAMZA .. UOPT .. "$") or -- ʾḥamrāʾ/ʿamyāʾ/bayḍāʾ
+			rfind(ar, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. UOPT .. "$") -- laffāʾ
+			)
+	end
+
+	local function is_elcd_adj(ar)
+		return rfind(ar, ELCD_START .. SK .. CONS .. A .. CONS .. UOPT .. "$") or -- ʾabyaḍ "white", ʾakbar "greater"
+			rfind(ar, ELCD_START .. A .. CONS .. SH .. UOPT .. "$") or -- ʾalaff "plump", ʾaqall "fewer"
+			rfind(ar, ELCD_START .. SK .. CONS .. AAMAQ .. "$" or -- ʾaʿmā "blind", ʾadnā "lower"
+			rfind(ar, "^" .. AMAD .. CONS .. A .. CONS .. UOPT .. "$") -- ʾālam "more painful", ʾāḵar "other"
+
+	if word == "?" or
+			(rfind(word, "^[a-z][a-z]*$") and sgtype == "?") then
+		--if 'word' is a type, actual value inferred from sg; if sgtype is ?,
+		--propagate it to all derived types
+		return "", "?"
+	end
+
 	if word == "intf" then
 		if not is_intensive_adj(sgar) then
 			error("Singular stem not in CACCān form: " .. sgar)
@@ -1591,7 +1611,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 				"%1" .. U .. "%2" .. SK .. "%3" .. AMAQ, "ʾa(.)(.)a(.)u?", "%1u%2%3ā") or -- ʾakbar
 			sub(ELCD_START .. A .. CONSPAR .. SH .. UOPT .. "$",
 				"%1" .. U .. "%2" .. SH .. AMAQ, "ʾa(.)a(.)%2u?", "%1u%2%2ā") or -- ʾaqall
-			sub(ELCD_START .. SK .. CONSPAR .. AMAQ .. "$",
+			sub(ELCD_START .. SK .. CONSPAR .. AAMAQ .. "$",
 				"%1" .. U .. "%2" .. SK .. Y .. ALIF, "ʾa(.)(.)ā", "%1u%2yā") or -- ʾadnā
 			sub("^" .. AMAD .. CONSPAR .. A .. CONSPAR .. UOPT .. "$",
 				HAMZA_ON_ALIF .. U .. "%1" .. SK .. "%2" .. AMAQ, "ʾā(.)a(.)u?", "ʾu%1%2ā") -- ʾālam "more painful", ʾāḵar "other"
@@ -1605,11 +1625,11 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	if word == "cdf" then
 		local ret = (
 			sub(ELCD_START .. SK .. CONSPAR .. A .. CONSPAR .. UOPT .. "$",
-				"%1" .. A .. "%2" .. SK .. "%3" .. AA .. HAMZA, "ʾa(.)(.)a(.)u?", "%1a%2%3āʾ") or -- ʾaḥmar
+				"%1" .. A .. "%2" .. SK .. "%3" .. AOPTA .. HAMZA, "ʾa(.)(.)a(.)u?", "%1a%2%3āʾ") or -- ʾaḥmar
 			sub(ELCD_START .. A .. CONSPAR .. SH .. UOPT .. "$",
-				"%1" .. A .. "%2" .. SH .. AA .. HAMZA, "ʾa(.)a(.)%2u?", "%1a%2%2āʾ") or -- ʾalaff
+				"%1" .. A .. "%2" .. SH .. AOPTA .. HAMZA, "ʾa(.)a(.)%2u?", "%1a%2%2āʾ") or -- ʾalaff
 			sub(ELCD_START .. SK .. CONSPAR .. AAMAQ .. "$",
-				"%1" .. A .. "%2" .. SK .. Y .. AA .. HAMZA, "ʾa(.)(.)ā", "%1a%2yāʾ") -- ʾaʿmā
+				"%1" .. A .. "%2" .. SK .. Y .. AOPTA .. HAMZA, "ʾa(.)(.)ā", "%1a%2yāʾ") -- ʾaʿmā
 		)
 		if not ret then
 			error("Singular stem not a color/defect adjective: " .. sgar)
@@ -1617,6 +1637,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		return ret, "cd" -- so plural will be correct
 	end
 
+	-- Regular feminine -- add ة, possibly with stem modifications
 	if word == "rf" then
 		sgar = canon_hamza(sgar)
 	
@@ -1648,8 +1669,15 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 			return export.stem_and_type("cdf", sg, sgtype, true, 'sg', pos)
 		elseif sgtype == "el" then
 			return export.stem_and_type("elf", sg, sgtype, true, 'sg', pos)
-		elseif is_intensive_adj(sgar) then
+		elseif sgtype =="di" and is_intensive_adj(sgar) then
 			return export.stem_and_type("intf", sg, sgtype, true, 'sg', pos)
+		elseif sgtype == "di" and is_elcd_adj(sgar) then
+			-- If form is elative or color-defect, we don't know which of
+			-- the two it is, and each has a special feminine which isn't
+			-- the regular "just add ة", so shunt to unknown. This will
+			-- ensure that ?'s appear in place of the inflection -- also
+			-- for dual and plural.
+			return export.stem_and_type("?", sg, sgtype, true, 'sg', pos)
 		else
 			return export.stem_and_type("rf", sg, sgtype, true, 'sg', pos)
 		end
@@ -1681,6 +1709,17 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		return export.stem_and_type("rm", sg, sgtype, false, 'sg', pos)
 	end
 
+	-- The plural used for feminine adjectives. If the singular type is
+	-- color/defect or it looks like a feminine color/defect adjective,
+	-- use color/defect plural. Otherwise shunt to sound feminine plural.
+	if word == "fp" then
+		if sgtype == "cd" or is_feminine_cd_adj(sgar) then
+			return export.stem_and_type("cdp", sg, sgtype, true, 'pl', pos)
+		else
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
+		end
+	end
+
 	if word == "sp" then
 		if sgtype == "cd" then
 			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
@@ -1693,6 +1732,9 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		end
 	end
 
+	-- Conservative plural, as used for masculine plural adjectives.
+	-- If singular type is color-defect, shunt to color-defect plural; else
+	-- shunt to unknown, so ? appears in place of the inflections.
 	if word == "p" then
 		if sgtype == "cd" then
 			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
@@ -1701,6 +1743,10 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		end
 	end
 
+	-- Special plural used for paucal plurals of singulatives. If ends in -ة
+	-- (most common), use strong feminine plural; if ends with -iyy (next
+	-- most common), use strong masculine plural; ends default to "p"
+	-- (conservative plural).
 	if word == "paucp" then
 		if rfind(sgar, TAM .. UNUOPT .. "$") then
 			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
@@ -1737,6 +1783,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		return ret, "d"
 	end
 
+	-- Strong feminine plural in -āt, possibly with stem modifications
 	if word == "sfp" then
 		sgar = canon_hamza(sgar)
 		sgar = rsub(sgar, AMAD .. "(" .. TAM .. UNUOPT .. ")$", HAMZA_PH .. AA .. "%1")
@@ -1776,6 +1823,8 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		return ret, "smp"
 	end
 
+	-- Color/defect plural; singular must be masculine or feminine
+	-- color/defect adjective
 	if word == "cdp" then
 		local ret = (
 			sub(ELCD_START .. SK .. W .. A .. CONSPAR .. UOPT .. "$",
@@ -1809,14 +1858,6 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		return ret, "awnp"
 	end
 
-	if word == "?" then
-		return "", word
-	end
-	
-	--FIXME: Special nouns don't exist any more, delete this
-	--if rfind(word, "^[a-z]") then --special nouns like imru, imraa
-	--	return "", word
-	--end
 	return artr, export.detect_type(ar, isfem, num, pos)
 end
 
