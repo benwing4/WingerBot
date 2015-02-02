@@ -92,12 +92,7 @@ def get_vn_gender(word, form):
 
 # Make sure there are two trailing newlines
 def ensure_two_trailing_nl(text):
-  if text.endswith("\n\n"):
-    return text
-  elif text.endswith("\n"):
-    return text + "\n"
-  else:
-    return text + "\n\n"
+  return re.sub(r"\n*$", r"\n\n", text)
 
 lemma_inflection_counts = {}
 
@@ -340,6 +335,80 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   notes.append("converted 'ar-verbal noun' template into 'ar-noun'")
               subsections[j] = unicode(parsed)
               sections[i] = ''.join(subsections)
+
+        def sort_verb_part_sections():
+          def sort_one_section(start, end):
+            #msg("sort_one_section called with [%s,%s]" % (start, end))
+            if end == start:
+              return
+            assert(start > 0 and (start % 2) == 0)
+            assert((end % 2) == 0 and end > start)
+            assert(end < len(subsections))
+            header1 = subsections[start - 1]
+            for j in xrange(start + 1, end + 1, 2):
+              if subsections[j] != header1:
+                pagemsg("Header [[%s]] doesn't match prior header [[%s]], not sorting"
+                    % (subsections[j], header1))
+                return
+            subsecs = []
+            for j in xrange(start, end + 2, 2):
+              subsecs.append(subsections[j])
+            def keyfunc(subsec):
+              parsed = blib.parse_text(subsec)
+              vf_person = 13
+              vf_last_vowel = "u"
+              vf_voice = "pasv"
+              vf_mood = "c"
+
+              for t in parsed.filter_templates():
+                if t.name == "ar-verb-form":
+                  vf_vowels = re.sub("[^" + A + I + U + "]", "",
+                      blib.getparam(t, "1")[0:-1])
+                  if len(vf_vowels) > 0:
+                    if vf_vowels[-1] == A:
+                      vf_last_vowel = "a"
+                    elif vf_vowels[-1] == I:
+                      vf_last_vowel = "i"
+                    else:
+                      vf_last_vowel = "u"
+                if t.name == "inflection of":
+                  tstr = unicode(t)
+                  if "|actv" in tstr:
+                    vf_voice = "actv"
+                  if "|indc" in tstr:
+                    vf_mood = "a"
+                  if "|subj" in tstr:
+                    vf_mood = "b"
+                  persons = persons_infl_entry.values()
+                  for k in xrange(len(persons)):
+                    if "|" + persons[k] in tstr:
+                      vf_person = k
+              #msg("Sort key: %s" % ((vf_person, vf_voice, vf_last_vowel, vf_mood),))
+              return (vf_person, vf_voice, vf_last_vowel, vf_mood)
+            newsubsecs = sorted(subsecs, key=keyfunc)
+            if newsubsecs != subsecs:
+              for k, j in zip(xrange(len(subsecs)), xrange(start, end + 2, 2)):
+                subsections[j] = ensure_two_trailing_nl(newsubsecs[k])
+          subsections_sentinel = subsections + ["", ""]
+          start = None
+          for j in xrange(len(subsections_sentinel)):
+            if j > 0 and (j % 2) == 0:
+              is_verb_form = "{{ar-verb-form|" in subsections_sentinel[j]
+              if start == None and is_verb_form:
+                start = j
+              if start != None and not is_verb_form:
+                end = j - 2
+                sort_one_section(start, end)
+                start = None
+          newtext = ''.join(subsections)
+          if newtext != sections[i]:
+            sections[i] = newtext
+            pagemsg("Sorted verb part sections")
+            notes.append("sorted verb part sections")
+
+        # If verb part, go through and sort adjoining verb form sections
+        if is_verb_part:
+          sort_verb_part_sections()
 
         # Go through each subsection in turn, looking for subsection
         # matching the POS with an appropriate headword template whose
@@ -634,6 +703,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 assert(indentlevel == 4)
                 subsections[insert_at:insert_at] = [newposl4 + "\n"]
               sections[i] = ''.join(subsections)
+              sort_verb_part_sections()
               break
 
           # If participle, try to find an existing noun or adjective with the
@@ -956,13 +1026,19 @@ voices_infl_entry = {
 # VOICE is either "active" or "passive", and PERSON and TENSE
 # indicate the particular person/number/gender/tense/mood combination, using
 # the codes passed to {{ar-verb-part-all|...}}. We refuse to do combinations
-# not compatible with the value of PASSIVE. We assume that other unwanted
-# combinations (3sm-perf, 3sm-impr, 2sm-ps-impr, etc.) are already filtered.
+# not compatible with the value of PASSIVE, and we refuse to do the
+# dictionary form (3sm-perf, or 3sm-ps-perf for passive-only verbs).
+# We assume that impossible parts (passive and non-2nd-person imperatives)
+# have already been filtered.
 def create_verb_part(save, index, page, template, dicform, passive,
     voice, person, tense):
   if voice == "active" and not has_active_form(passive):
     return
   if voice == "passive" and not has_passive_form(passive, person):
+    return
+  # Refuse to do the dictionary form.
+  if person == "3sm" and tense == "perf" and (voice == "active" or
+      voice == "passive" and not has_active_form(passive)):
     return
   infl_person = persons_infl_entry[person]
   infl_tense = tenses_infl_entry[tense] % voices_infl_entry[voice]
@@ -986,9 +1062,8 @@ def create_verb_part(save, index, page, template, dicform, passive,
 # either 'all', 'nonpast' (= 'impf', 'subj', 'juss') or one of the values of
 # all_tenses. Return a list of all the actual parts required, where each list
 # element is a list [VOICE, PERSON, TENSE] where VOICE is either "active" or
-# "passive" and PERSON and TENSE are the same as above. Skip the dictionary
-# form (active 3sm-perf) as well as passive and non-2nd-person imperatives,
-# even if explicitly specified.
+# "passive" and PERSON and TENSE are the same as above. Skip passive and
+# non-2nd-person imperatives, even if explicitly specified.
 def parse_part_spec(partspec):
   def check(variable, value, possible):
     if not value in possible:
@@ -1033,12 +1108,9 @@ def parse_part_spec(partspec):
       voices = [voice]
 
   msg("Doing the following verb parts:")
-  for person in persons:
-    for tense in tenses:
-      for voice in voices:
-        # Refuse to do the dictionary form.
-        if person == "3sm" and tense == "perf" and voice == "active":
-          continue
+  for voice in voices:
+    for person in persons:
+      for tense in tenses:
         # Refuse to do passive and non-2nd-person imperatives.
         if tense == "impr" and (voice == "passive" or person[0] != "2"):
           continue
