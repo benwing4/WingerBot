@@ -82,7 +82,8 @@ local usub = mw.ustring.sub
 local ulen = mw.ustring.len
 local u = mw.ustring.char
 
-local no_nominal_i3rab = false
+-- don't display i3rab in nominal forms (verbal nouns, participles)
+local no_nominal_i3rab = true
 
 local export = {}
 
@@ -921,9 +922,9 @@ function conjugate(args, argind)
 	local form, weakness
 	if rfind(conj_type, "%-") then
 		local form_weakness = rsplit(conj_type, "%-")
-		assert(#form_weakness == 2)
 		form = form_weakness[1]
-		weakness = form_weakness[2]
+		table.remove(form_weakness, 1)
+		weakness = table.concat(form_weakness, "-")
 	else
 		form = conj_type
 		weakness = nil
@@ -1289,7 +1290,7 @@ function export.infer_radicals(headword, form)
 		radstart = 2
 	elseif form == "III" then
 		rad1 = letters[1]
-		check(2, ALIF)
+		check(2, {ALIF, WAW}) -- WAW occurs in passive-only verbs
 		radstart = 3
 	elseif form == "IV" then
 		-- this would be alif-madda but we replaced it with hamza-alif above.
@@ -1311,7 +1312,7 @@ function export.infer_radicals(headword, form)
 			radstart = 3
 		else
 			rad1 = letters[2]
-			check(3, ALIF)
+			check(3, {ALIF, WAW}) -- WAW occurs in passive-only verbs
 			radstart = 4
 		end
 	elseif form == "VII" then
@@ -1453,7 +1454,8 @@ function export.infer_radicals(headword, form)
 			-- process last two radicals of a quadriliteral form
 			rad3 = letters[radstart]
 			rad4 = letters[radstart + 1]
-			if rad4 == AMAQ or rad4 == ALIF and rad3 == Y then
+			if rad4 == AMAQ or rad4 == ALIF and rad3 == Y or rad4 == Y then
+				-- rad4 can be Y in passive-only verbs
 				if form_supports_final_weak(form) then
 					weakness = "final-weak"
 					-- ambiguous radical; randomly pick wāw as radical (but avoid
@@ -1475,7 +1477,8 @@ function export.infer_radicals(headword, form)
 			if form == "I" and (is_waw_ya(rad3) or rad3 == ALIF or rad3 == AMAQ) then
 				-- check for final-weak form I verb. It can end in tall alif
 				-- (rad3 = wāw) or alif maqṣūra (rad3 = yāʾ) or a wāw or yāʾ
-				-- (with a past vowel of i or u, e.g. nasiya/yansā "forget").
+				-- (with a past vowel of i or u, e.g. nasiya/yansā "forget"
+				-- or with a passive-only verb).
 				if rad1 == W then
 					weakness = "assimilated+final-weak"
 				else
@@ -1485,8 +1488,14 @@ function export.infer_radicals(headword, form)
 					rad3 = W
 				elseif rad3 == AMAQ then
 					rad3 = Y
+				else
+					-- ambiguous radical; randomly pick wāw as radical (but
+					-- avoid two wāws); it could be wāw or yāʾ, but doesn't
+					-- affect the conjugation
+					rad3 = (rad1 == W or rad2 == W) and "y" or "w" -- ambiguous
 				end
-			elseif rad3 == AMAQ or rad2 == Y and rad3 == ALIF then
+		elseif rad3 == AMAQ or rad2 == Y and rad3 == ALIF or rad3 == Y then
+				-- rad3 == Y happens in passive-only verbs
 				if form_supports_final_weak(form) then
 					weakness = "final-weak"
 				else
@@ -1495,9 +1504,9 @@ function export.infer_radicals(headword, form)
 						" doesn't support final-weak verbs")
 				end
 				-- ambiguous radical; randomly pick wāw as radical (but avoid
-				-- two wāws in a row); it could be wāw or yāʾ, but doesn't
-				-- affect the conjugation
-				rad3 = rad2 == W and "y" or "w"
+				-- two wāws); it could be wāw or yāʾ, but doesn't affect the
+				-- conjugation
+				rad3 = (rad1 == W or rad2 == W) and "y" or "w"
 			elseif rad2 == ALIF then
 				if form_supports_hollow(form) then
 					weakness = "hollow"
