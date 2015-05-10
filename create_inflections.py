@@ -962,14 +962,14 @@ def create_verbal_nouns(save, startFrom, upTo):
         for vn in vns:
           create_verbal_noun(save, index, vn, form, page, template, uncertain)
 
-def create_participle(save, index, part, page, template, actpass):
+def create_participle(save, index, part, page, template, actpass, apshort):
   dicform = get_dicform(page, template)
 
   # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
   form = re.sub("-.*$", "", blib.getparam(template, "1"))
   create_inflection_entry(save, index, part, None, dicform, None, "Participle",
     "%s participle" % actpass, "dictionary form",
-    "ar-%s participle" % actpass, "|" + form,
+    "ar-%s-participle" % apshort, "|" + form,
     "%s participle of" % actpass, "|lang=ar")
 
 def create_participles(save, startFrom, upTo):
@@ -982,13 +982,15 @@ def create_participles(save, startFrom, upTo):
           if apvalue:
             aps = re.split(",", apvalue)
             for ap in aps:
-              create_participle(save, index, ap, page, template, "active")
+              create_participle(save, index, ap, page, template, "active",
+                  "act")
         if has_passive_form(passive, None):
           ppvalue = get_part_prop(page, template, "ar-verb-part-all|pp")
           if ppvalue:
             pps = re.split(",", ppvalue)
             for pp in pps:
-              create_participle(save, index, pp, page, template, "passive")
+              create_participle(save, index, pp, page, template, "passive",
+                  "pass")
 
 # List of all person/number/gender combinations, using the ID's in
 # {{ar-verb-part-all|...}}
