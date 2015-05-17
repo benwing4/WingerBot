@@ -217,13 +217,13 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   if vn_or_participle or is_verb_part:
     must_match_exactly = True
 
-  def compare_param(template, param, value):
+  def compare_param(template, param, value, require_exact_match=False):
     # In place of unknown we should put infltype or lemmatype but it
     # doesn't matter because of nowarn.
     paramval = blib.getparam(template, param)
     paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
         noremove=is_verb_part)
-    if must_match_exactly:
+    if must_match_exactly or require_exact_match:
       return reorder_shadda(paramval) == reorder_shadda(value)
     else:
       return remove_diacritics(paramval) == remove_diacritics(value)
@@ -677,6 +677,36 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                           (other_template, infltype))
                       # FIXME: Should we break here? Should we insert
                       # a participle defn?
+
+            # At this point, didn't find either headword or definitional
+            # template, or both, and not vn or participle. If we found
+            # headword template, insert new definition in same section.
+            elif infl_headword_templates:
+              # Previously, when looking for a matching headword template,
+              # we may not have required the vowels to match exactly
+              # (e.g. when creating plurals). But now we want to make sure
+              # they do, or we will put the new definition under a wrong
+              # headword.
+              infl_headword_template, infl_headword_matching_param = \
+                  infl_headword_templates[0]
+              if compare_param(infl_headword_template, infl_headword_matching_param, inflection, require_exact_match=True):
+                # Also make sure manual translit matches
+                trparam = "tr" if infl_headword_matching_param == "1" \
+                    else infl_headword_matching_param.replace("head", "tr")
+                existing_tr = blib.getparam(infl_headword_template, trparam)
+                # infltr may be None and existing_tr may be "", but
+                # they should match
+                if (infltr or None) == (existing_tr or None):
+                  subsections[j] = unicode(parsed)
+                  if subsections[j][-1] != '\n':
+                    subsections[j] += '\n'
+                  subsections[j] = re.sub(r"^(.*\n#[^\n]*\n)",
+                      r"\1# %s\n" % new_defn_template, subsections[j], 1, re.S)
+                  sections[i] = ''.join(subsections)
+                  pagemsg("Adding new definitional template to existing defn for pos = %s" % (pos))
+                  comment = "Add new definitional template to existing defn: %s %s, %s %s, pos=%s" % (
+                      infltype, inflection, lemmatype, lemma, pos)
+                  break
 
         # else of for loop over subsections, i.e. no break out of loop
         else:
