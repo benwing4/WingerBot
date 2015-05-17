@@ -194,6 +194,13 @@ local function contains(tab, item)
 	return false
 end
 
+-- append array to array
+local function append_array(tab, items)
+	for _, item in ipairs(items) do
+		table.append(tab, item)
+	end
+end
+
 -- append to array if element not already present
 local function insert_if_not(tab, item)
 	if not contains(tab, item) then
@@ -255,6 +262,9 @@ end
 --local function canonicalize_form(form)
 --	return numeric_to_roman_form[form] or form
 --end
+
+local allowed_forms = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX",
+	"X", "XI", "XII", "XIII", "XIV", "XV", "Iq", "IIq", "IIIq", "IVq"}
 
 local function form_supports_final_weak(form)
 	return form ~= "XI" and form ~= "XV" and form ~= "IVq"
@@ -572,8 +582,8 @@ local impr_endings_uu = imperative_endings_from_jussive(juss_endings_uu)
 -- Main conjugation functions
 -----------------------------
 
-function get_args(frame)
-	local origargs = frame:getParent().args
+function get_args(args)
+	local origargs = args
 	local args = {}
 	-- Convert empty arguments to nil, and "" or '' arguments to empty
 	for k, v in pairs(origargs) do
@@ -582,9 +592,13 @@ function get_args(frame)
 	return origargs, args
 end
 
+function get_frame_args(frame)
+	return get_args(frame:getParent().args)
+end
+
 -- Implement {{ar-conj}}.
 function export.show(frame)
-	local origargs, args = get_args(frame)
+	local origargs, args = get_frame_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1)
 
@@ -647,7 +661,7 @@ end
 -- Implement {{ar-verb}}.
 -- TODO: Move this into [[Module:ar-headword]]
 function export.headword(frame)
-	local origargs, args = get_args(frame)
+	local origargs, args = get_frame_args(frame)
 
 	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 1)
 	local use_params = form == "I" or args["useparam"]
@@ -742,8 +756,8 @@ function export.headword2(parargs, args)
 end
 
 -- Implementation of export.past3sm() and export.past3sm_all().
-function past3sm(frame, doall)
-	local origargs, args = get_args(frame)
+function past3sm(frameargs, doall)
+	local origargs, args = get_args(frameargs)
 
 	local data, form, weakness, past_vowel, nonpast_vowel =	conjugate(args, 1)
 
@@ -772,7 +786,7 @@ end
 -- verb is a passive-only verb). If there are multiple alternatives,
 -- return only the first one.
 function export.past3sm(frame)
-	return past3sm(frame, false)
+	return past3sm(frame:getParent().args, false)
 end
 
 -- Version of past3sm entry point meant for calling from the debug console.
@@ -786,7 +800,7 @@ end
 -- Same as export.past3sm() but return all possible values, separated by
 -- a comma. Multiple values largely come from alternative hamza seats.
 function export.past3sm_all(frame)
-	return past3sm(frame, true)
+	return past3sm(frame:getParent().args, true)
 end
 
 -- Version of past3sm_all entry point meant for calling from the debug console.
@@ -796,9 +810,8 @@ function export.past3sm_all2(parargs, args)
 end
 
 -- Implementation of export.verb_part() and export.verb_part_all().
-function verb_part(frame, doall)
-	local origargs, args = get_args(frame)
-
+function verb_part(frameargs, doall)
+	local origargs, args = get_args(frameargs)
 	local part = args[1]
 	local data, form, weakness, past_vowel, nonpast_vowel =	conjugate(args, 2)
 	local arabic, latin = get_spans(data.forms[part])
@@ -816,7 +829,7 @@ end
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return only the first one.
 function export.verb_part(frame)
-	return verb_part(frame, false)
+	return verb_part(frame:getParent().args, false)
 end
 
 -- Version of verb_part entry point meant for calling from the debug console.
@@ -831,7 +844,7 @@ end
 -- Generate an arbitrary part of the verbal paradigm. If there are multiple
 -- possible alternatives, return all, separated by commas.
 function export.verb_part_all(frame)
-	return verb_part(frame, true)
+	return verb_part(frame:getParent().args, true)
 end
 
 -- Version of verb_part_all entry point meant for calling from the debug
@@ -841,8 +854,8 @@ function export.verb_part_all2(parargs, args)
 end
 
 -- Return a property of the conjugation other than a verb part.
-function export.verb_prop(frame)
-	local origargs, args = get_args(frame)
+function verb_prob(frameargs)
+	local origargs, args = get_args(frameargs)
 
 	local prop = args[1]
 	local data, form, weakness, past_vowel, nonpast_vowel = conjugate(args, 2)
@@ -893,15 +906,125 @@ function export.verb_prop(frame)
 	end
 end
 
+-- Return a property of the conjugation other than a verb part.
+function export.verb_prop(frame)
+	return verb_prob(frame:getParent().args)
+end
+
 -- Version of verb_prop entry point meant for calling from the debug console.
 -- See export.show2().
 function export.verb_prop2(parargs, args)
 	return export.verb_prop(debug_frame(parargs, args))
 end
 
+function export.verb_forms(frame)
+	local origargs, args = get_frame_args(frame)
+	local i = 1
+	local possible_past_vowels = {'a', 'i', 'u'}
+	local combined_root = nil
+	if not args[i] or contains(possible_past_vowels, args[i]) then
+		combined_root = mw.title.getCurrentTitle().text
+		if not rfind(combined_root, " ") then
+			error("When inferring roots from page title, need spaces in page title: " .. combined_root)
+		end
+	elseif rfind(args[i], " ") then
+		combined_root = args[i]
+		i = i + 1
+	else
+		local separate_roots = {}
+		while args[i] and not contains(possible_past_vowels, args[i]) do
+			separate_roots.append(args[i])
+			i = i + 1
+		end
+		combined_root = table.concat(separate_roots, " ")
+	end
+	local past_vowel = args[i]
+	i = i + 1
+	if past_vowel and not contains(possible_past_vowels, past_vowel) then
+		error("Unrecognized past vowel, should be 'a', 'i', 'u' or empty: " .. past_vowel)
+	end
+	if not past_vowel then
+		past_vowel = ""
+	end
+
+	local split_root = rsplit(combined_root, " ")
+	local verb_properties = {}
+	for _, form in ipairs(allowed_forms) do
+		local formprops = {}
+		local derivs = {{"verb", ""}, {"vn", "-vn"}, {"ap", "-ap"}, {"pp", "-pp"}}
+		for _, deriv in ipairs(derivs) do
+			local prop = deriv[1]
+			local extn = deriv[2]
+			if args[form .. extn] == "+" then
+				formprops[prop] = true
+			elseif args[form .. extn] then
+				formprops[prop] = args[form .. extn]
+			end
+			if args[form .. extn .. "-gloss"] then
+				if not formprops[prop] then
+					formprops[prop] = true
+				end
+				formprops[prop .. "-gloss"] = args[form .. extn .. "-gloss"]
+			end
+		end
+		if #formprops > 0 then
+			verb_properties[form] = formprops
+		end
+	end
+
+	-- Go through and create the verb form derivations as necessary, when
+	-- they haven't been explicitly given
+	for form, props in pairs(verb_properties) do
+		local args = {}
+		function append_form_and_root()
+			args.append(form)
+			if form == "I" then
+				args.append(past_vowel)
+				args.append("")
+			end
+			append_array(args, split_root)
+		end
+		if props["verb"] == true then
+			args = {}
+			append_form_and_root()
+			-- FIXME! Deal with all forms
+			props["verb"] = past3sm(args, false)
+		end
+		for _, deriv in ipairs({"vn", "ap", "pp"}) do
+			if props[deriv] == true then
+				args = {deriv}
+				append_form_and_root()
+				-- FIXME! Deal with all forms
+				props[deriv] = verb_part(args, false)
+			end
+		end
+	end
+
+    -- Go through and output the result
+	local formtextarr = {}
+	for form, props in pairs(verb_properties) do
+		local textarr = {}
+		if props["verb"] then
+			local text = "* '''[[Appendix:Arabic verbs#Form " .. form .. "|Form " .. form .. "]]''': "
+			text = text .. m_links.full_link(props["verb"], nil, lang, nil, nil, nil, {gloss = ine(props["verb-gloss"])}, false) .. "\n"
+			textarr.append(text)
+			for _, derivengl in ipairs({{"vn", "Verbal noun"}, {"ap", "Active participle"}, {"pp", "Passive participle"}}) do
+				local deriv = derivengl[1]
+				local engl = derivengl[2]
+				local text = "** " .. engl .. ": "
+				text = text .. m_links.full_link(props[deriv], nil, lang, nil, nil, nil, {gloss = ine(props[deriv .. "-gloss"])}, false) .. "\n"
+				textarr.append(text)
+			end
+			formtextarr.append(table.concat(textarr, ""))
+		end
+	end
+
+	return table.concat(formtextarr, "")
+end
+
 -- Guts of conjugation functions. Shared between {{temp|ar-conj}} and
 -- {{temp|ar-verb}}, among others. ARGS is the frame parent arguments,
--- as returned by get_args() (i.e. with arguments passed through ine()).
+-- as returned by get_frame_args() (i.e. with arguments passed through ine()).
 -- ARGIND is the numbered argument holding the verb form (either 1 or 2);
 -- if form is I, the next two arguments are the past and non-past vowels;
 -- afterwards are the (optional) radicals. Return five values:
