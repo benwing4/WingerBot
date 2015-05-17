@@ -311,7 +311,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 parsed = blib.parse_text(subsections[j])
                 matching_vn_noun_templates += [
                     t for t in parsed.filter_templates()
-                    if t.name == "ar-noun" and compare_param(t, "1", inflection)]
+                    if t.name == "ar-noun" and template_head_matches(t, inflection)]
           if len(matching_vn_noun_templates) > 1:
             pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert VN defn into")
             break
@@ -430,15 +430,16 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           if match_pos or particip_pos_mismatch:
             parsed = blib.parse_text(subsections[j])
 
-            def check_maybe_remove_i3rab(template, wordtype):
+            def check_maybe_remove_i3rab(template, param, wordtype):
               # Check for i3rab in existing lemma or infl and remove it if so
-              existing = blib.getparam(template, "1")
+              existing = blib.getparam(template, param)
               existing_no_i3rab = maybe_remove_i3rab(wordtype, existing,
                   noremove=is_verb_part or wordtype == "dictionary form")
               if reorder_shadda(existing) != reorder_shadda(existing_no_i3rab):
                 notes.append("removed %s i3rab" % wordtype)
-                template.add("1", existing_no_i3rab)
-                existing_tr = blib.getparam(template, "tr")
+                template.add(param, existing_no_i3rab)
+                trparam = "tr" if param == "1" else param.replace("head", "tr")
+                existing_tr = blib.getparam(template, trparam)
                 if existing_tr:
                   pagemsg("WARNING: Removed i3rab from existing %s %s and manual translit %s exists" %
                       (wordtype, existing, existing_tr))
@@ -451,9 +452,33 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # consonants. If verb part, also require that the conj form match
             # in the inflection headword template, but don't require that
             # the lemma match in the definitional template.
-            infl_headword_templates = [t for t in parsed.filter_templates()
-                if t.name == infltemp and compare_param(t, "1", inflection)
-                and (not is_verb_part or compare_param(t, "2", verb_part_form))]
+
+            # First, for each template, return a tuple of
+            # (template, param, matches), where MATCHES is true if any head
+            # matches FORM and PARAM is the (first) matching head param.
+            def template_head_match_info(template, form):
+              # Look at all heads
+              if compare_param(template, "1", form):
+                return (template, "1", True)
+              i = 2
+              while True:
+                param = "head" + str(i)
+                if not blib.getparam(template, param):
+                  return (template, None, False)
+                if compare_param(template, param, form):
+                  return (template, param, True)
+                i += 1
+            # True if any head in the template matches FORM.
+            def template_head_matches(template, form):
+              return template_head_match_info(template, form)[2]
+            head_matches_tuples = [template_head_match_info(t, inflection)
+                for t in parsed.filter_templates()]
+            # Now get a list of (TEMPLATE, PARAM) for all matching templates,
+            # where PARAM is the matching head param, as above.
+            infl_headword_templates = (
+                [(t, param) for t, param, matches in head_matches_tuples
+                 if t.name == infltemp and matches
+                 and (not is_verb_part or compare_param(t, "2", verb_part_form))])
             defn_templates = [t for t in parsed.filter_templates()
                 if t.name == deftemp and (is_verb_part or
                 compare_param(t, "1", lemma))]
@@ -464,7 +489,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # duplicate entry.
             if is_plural_noun:
               headword_collective_templates = [t for t in parsed.filter_templates()
-                  if t.name == "ar-coll-noun" and compare_param(t, "1", inflection)
+                  if t.name == "ar-coll-noun" and template_head_matches(t, inflection)
                   and compare_param(t, "sing", lemma)]
               if headword_collective_templates:
                 pagemsg("WARNING: Exists and has Arabic section and found collective noun with %s already in it; taking no action"
@@ -496,7 +521,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
               particip_mismatch_check()
 
-              infl_headword_template = infl_headword_templates[0]
+              infl_headword_template, infl_headword_matching_param = \
+                  infl_headword_templates[0]
 
               # For verb forms check for an exactly matching definitional
               # template; if not, insert one at end of definition.
@@ -570,21 +596,25 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 #### so conditions like 'len(inflection) > len(existing_infl)'
                 #### won't apply, and there generally isn't existing i3rab.
                 
-                # Check for i3rab in existing infl and remove it if so
+                # Check for i3rab in existing infl and remove it if so.
                 existing_infl = \
-                    check_maybe_remove_i3rab(infl_headword_template, infltype)
+                    check_maybe_remove_i3rab(infl_headword_template,
+                        infl_headword_matching_param, infltype)
 
                 # Check for i3rab in existing lemma and remove it if so
                 existing_lemma = \
-                    check_maybe_remove_i3rab(defn_template, lemmatype)
+                    check_maybe_remove_i3rab(defn_template, "1", lemmatype)
 
                 # Replace existing infl with new one
                 if len(inflection) > len(existing_infl):
                   pagemsg("Updating existing %s %s with %s" %
                       (infltemp, existing_infl, inflection))
-                  infl_headword_template.add("1", inflection)
+                  infl_headword_template.add(infl_headword_matching_param,
+                    inflection)
                   if infltr:
-                    infl_headword_template.add("tr", infltr)
+                    trparam = "tr" if infl_headword_matching_param == "1" \
+                        else infl_headword_matching_param.replace("head", "tr")
+                    infl_headword_template.add(trparam, infltr)
 
                 # Replace existing lemma with new one
                 if len(lemma) > len(existing_lemma):
@@ -622,10 +652,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               # template at least. If so, add definition to beginning as
               # {{ar-verbal noun of}} (or equivalent for participles).
               if infl_headword_templates:
-                infl_headword_template = infl_headword_templates[0]
+                infl_headword_template, infl_headword_matching_param = \
+                    infl_headword_templates[0]
 
                 # Check for i3rab in existing infl and remove it if so
-                check_maybe_remove_i3rab(infl_headword_template, infltype)
+                check_maybe_remove_i3rab(infl_headword_template,
+                    infl_headword_matching_param, infltype)
 
                 # Now actually add {{ar-verbal noun of}} (or equivalent
                 # for participles).
@@ -639,7 +671,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 for other_template in ["ar-noun", "ar-adj"]:
                   other_headword_templates = [
                       t for t in parsed.filter_templates()
-                      if t.name == other_template and compare_param(t, "1", inflection)]
+                      if t.name == other_template and template_head_matches(t, inflection)]
                   if other_headword_templates:
                       pagemsg("WARNING: Found %s matching %s" %
                           (other_template, infltype))
@@ -716,7 +748,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   parsed = blib.parse_text(subsections[j])
                   for t in parsed.filter_templates():
                     if (t.name in ["ar-noun", "ar-adj"] and
-                        compare_param(t, "1", inflection) and insert_at is None):
+                        template_head_matches(t, inflection) and insert_at is None):
                       insert_at = j - 1
 
             if insert_at is not None:
