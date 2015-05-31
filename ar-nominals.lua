@@ -1006,6 +1006,9 @@ function triptote_diptote(stem, tr, data, mod, numgen, is_dip, lc)
 		tr = rsub(tr, "un?$", "")
 	end
 
+	-- special-case for صلوة pronounced ṣalāh; check translit
+		local is_aah = rfind(tr, "āh$")
+
 	if rfind(stem, TAM .. "$") then
 		if rfind(tr, "h$") then
 			tr = rsub(tr, "h$", "t")
@@ -1032,7 +1035,9 @@ function triptote_diptote(stem, tr, data, mod, numgen, is_dip, lc)
 	local tote = lc and "long construct" or is_dip and "diptote" or "triptote"
 	local singpl_tote = "BROKSING " .. tote
 	local cat_prefix = "Arabic NOUNs with " .. tote .. " BROKSING"
-	if rfind(stem, "[" .. AMAD .. ALIF .. "]" .. TAM .. "$") then
+	-- since we're checking translit for -āh we probably don't need to
+	-- check stem too
+	if is_aah or rfind(stem, "[" .. AMAD .. ALIF .. "]" .. TAM .. "$") then
 		add_inflections(stem, rsub(tr, "t$", ""), data, mod, numgen,
 			{{}, {}, {},
 			 {}, {}, {},
