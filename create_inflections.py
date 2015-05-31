@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import codecs
 
 import blib, pywikibot
 from blib import msg
@@ -1198,6 +1199,109 @@ def create_verb_parts(save, startFrom, upTo, partspec):
           create_verb_part(save, index, page, template, dicform, passive,
               voice, person, tense)
 
+def add_bracketing(defn):
+  return " ".join(["[[%s]]" % word for word in defn.split(" ")])
+
+def parse_elative_defn(spec):
+  m = re.match(ur"(.*?) ([\u0600-\u07FF]+)(?: .*)? from (.*) from (.*)$", spec)
+  if not m:
+    print "Unable to match spec: %s" % spec
+  else:
+    defnstext, elative, arpositivetext, roottext = m.groups()
+    defns = []
+    for defn in defnstext.split(" / "):
+      m = re.match(r"\((.*)\)$", defn)
+      if m:
+        defns.append(m.group(1))
+      else:
+        synonyms = []
+        for synonym in defn.split(", "):
+          m = re.match(r"(.*) \[\]$", synonym)
+          if m:
+            synonyms.append([add_bracketing(m.group(1)), None, None])
+            continue
+          m = re.match(r"(.*) \[(.*); (.*)\]$", synonym)
+          if m:
+            synonyms.append([add_bracketing(m.group(1)),
+                add_bracketing(m.group(2)),
+                add_bracketing(m.group(3))])
+            continue
+          m = re.match(r"(.*) \[(.*)\]$", synonym)
+          if m:
+            if not re.match(".*er$", m.group(2)):
+              print "Synonym comparative does not end in -er: %s" % m.group(2)
+            else:
+              synonyms.append([add_bracketing(m.group(1)),
+                  add_bracketing(m.group(2)),
+                  add_bracketing(re.sub("er$", "est", m.group(2)))])
+            continue
+          synonym = add_bracketing(synonym)
+          synonyms.append([synonym, "more " + synonym, "most " + synonym])
+        defns.append(synonyms)
+    arpositives = arpositivetext.split(" and ")
+    roots = roottext.split(" and ")
+    # print "Found entry: %s" % spec
+    # print "  elative: %s" % elative
+    # print "  arpositive: %s" % arpositives
+    # print "  roots: %s" % roots
+    # print "  defns: %s" % defns
+
+    # Create the etymology line
+    etymlinedefns = []
+    for defn in defns:
+      if type(defn) is not list: # literal text in parens
+        continue
+      etymlinedefns.append(", ".join([synonym[0] for synonym in defn]))
+    etymlinedefntext = "; ".join(etymlinedefns)
+    etymlinepos = "{{m|ar|%s||%s}}" % (arpositives[0], etymlinedefntext)
+    if len(arpositives) > 1:
+      etymlinepos += " and " + " and ".join(["{{m|ar|%s||(same)}}" % arpositive for arpositive in arpositives[1:]])
+    etymlineroottext = " and ".join(["{{ar-root|%s}}" % root for root in roots])
+    if len(roots) > 1:
+      etymlineroottext = "roots " + etymlineroottext
+    else:
+      etymlineroottext = "root " + etymlineroottext
+    etymline = "{{ar-elative}} of %s, from the %s." % (
+        etymlinepos, etymlineroottext)
+
+    # Create the "elative of" line
+    elative_of_line = "# " + ", ".join([
+      "{{elative of|%s|lang=ar}}" % pos for pos in arpositives]) + ":"
+
+    # Create the definition lines
+    defn_lines = []
+    for defn in defns:
+      if type(defn) is not list: # literal text in parens
+        defn_lines.append("## %s" % defn)
+      else:
+        comparatives = [synonym[1] for synonym in defn if synonym[1]]
+        superlatives = [synonym[2] for synonym in defn if synonym[2]]
+        defn_lines.append("## %s; %s" % (", ".join(comparatives), ", ".join(superlatives)))
+
+    # Create the definition text
+    defn_text = """%s
+
+===Adjective===
+{{ar-adj|%s}}
+
+%s
+%s
+
+====Declension====
+{{ar-decl-adj|%s}}""" % (etymline, elative, elative_of_line,
+    "\n".join(defn_lines), elative)
+
+    print "Found entry: %s" % spec
+    print defn_text
+    return [defn_text, arpositives]
+
+def create_elatives(save, elfile, startFrom, upTo):
+  elative_defns = []
+  for line in codecs.open(elfile, "r", encoding="utf-8"):
+    line = line.strip()
+    elative_defns.append(parse_elative_defn(line))
+  # FIXME: Write the rest
+
 pa = blib.init_argparser("Create Arabic inflection entries")
 pa.add_argument("-p", "--plural", action='store_true',
     help="Do plural inflections")
@@ -1227,6 +1331,10 @@ if in disagreement with the 'passive' property of the lemma (i.e. passive=no
 means no passive, passive=impers or passive=only-impers means passive only
 in participles and the third singular masculine, and passive=only or
 passive=only-impers means no active).""")
+pa.add_argument("--elative-list",
+    help="File containing elative directives")
+pa.add_argument("--elative", action='store_true',
+    help="Do elatives")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -1245,3 +1353,5 @@ if params.verb_part:
   create_verb_parts(params.save, startFrom, upTo, params.verb_part)
 if params.non_past:
   create_verb_parts(params.save, startFrom, upTo, '3sm-all-impf')
+if params.elative:
+  create_elatives(params.save, params.elative_list, startFrom, upTo)
