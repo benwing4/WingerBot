@@ -1630,11 +1630,11 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	if word == "cdf" then
 		local ret = (
 			sub(ELCD_START .. SK .. CONSPAR .. A .. CONSPAR .. UOPT .. "$",
-				"%1" .. A .. "%2" .. SK .. "%3" .. AOPTA .. HAMZA, "ʾa(.)(.)a(.)u?", "%1a%2%3āʾ") or -- ʾaḥmar
+				"%1" .. A .. "%2" .. SK .. "%3" .. AA .. HAMZA, "ʾa(.)(.)a(.)u?", "%1a%2%3āʾ") or -- ʾaḥmar
 			sub(ELCD_START .. A .. CONSPAR .. SH .. UOPT .. "$",
-				"%1" .. A .. "%2" .. SH .. AOPTA .. HAMZA, "ʾa(.)a(.)%2u?", "%1a%2%2āʾ") or -- ʾalaff
+				"%1" .. A .. "%2" .. SH .. AA .. HAMZA, "ʾa(.)a(.)%2u?", "%1a%2%2āʾ") or -- ʾalaff
 			sub(ELCD_START .. SK .. CONSPAR .. AAMAQ .. "$",
-				"%1" .. A .. "%2" .. SK .. Y .. AOPTA .. HAMZA, "ʾa(.)(.)ā", "%1a%2yāʾ") -- ʾaʿmā
+				"%1" .. A .. "%2" .. SK .. Y .. AA .. HAMZA, "ʾa(.)(.)ā", "%1a%2yāʾ") -- ʾaʿmā
 		)
 		if not ret then
 			error("Singular stem not a color/defect adjective: " .. sgar)
