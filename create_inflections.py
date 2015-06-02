@@ -116,10 +116,13 @@ lemma_inflection_counts = {}
 # one parameter). DEFTEMP is the definitional template that points to the
 # base form (e.g. "plural of", "masculine plural of" or "feminine of").
 # DEFTEMP_PARAM is a parameter or parameters to add to the created DEFTEMP
-# template, similar to INFLTEMP_PARAM.
+# template, similar to INFLTEMP_PARAM. If ENTRYTEXT is given, this is the
+# text to use for the entry, starting directly after the "==Etymology==" line,
+# which is assumed to be necessary. If not given, this text is synthesized
+# from the other parameters.
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
-    deftemp_param):
+    deftemp_param, entrytext=None):
 
   # Did we insert an entry or find an existing one? If not, we need to
   # add a new one. If we break out of the loop through subsections of the
@@ -230,20 +233,31 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       return remove_diacritics(paramval) == remove_diacritics(value)
 
   # Prepare parts of new entry to insert
-  new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
-  new_headword_template = "{{%s%s%s}}" % (new_headword_template_prefix,
-      infltemp_param, "|tr=%s" % infltr if infltr else "")
-  new_defn_template = "{{%s|%s%s%s}}" % (
-    deftemp, lemma,
-    "|tr=%s" % lemmatr if lemmatr else "",
-    deftemp_param)
-  newposbody = """%s
+  if entrytext:
+    entrytextl4 = re.sub("^==(.*?)==$", r"===\1===", entrytext, 0, re.M)
+    newsection = "==Arabic==\n\n===Etymology===\n" + entrytext
+  else:
+    # Synthesize new entry. Some of the parts here besides 'entrytext',
+    # 'entrytextl4' and 'newsection' are used down below when creating
+    # verb parts and participles; these parts don't exist when 'entrytext'
+    # was passed in, but that isn't a problem because it isn't passed in
+    # when creating verb parts or participles.
+    new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
+    new_headword_template = "{{%s%s%s}}" % (new_headword_template_prefix,
+        infltemp_param, "|tr=%s" % infltr if infltr else "")
+    new_defn_template = "{{%s|%s%s%s}}" % (
+      deftemp, lemma,
+      "|tr=%s" % lemmatr if lemmatr else "",
+      deftemp_param)
+    newposbody = """%s
 
-# %s
-""" % (new_headword_template, new_defn_template)
-  newpos = "===%s===\n" % pos + newposbody
-  newposl4 = "====%s====\n" % pos + newposbody
-  newsection = "==Arabic==\n\n" + newpos
+  # %s
+  """ % (new_headword_template, new_defn_template)
+    newpos = "===%s===\n" % pos + newposbody
+    newposl4 = "====%s====\n" % pos + newposbody
+    entrytext = "\n" + newpos
+    entrytextl4 = "\n" + newposl4
+    newsection = "==Arabic==\n" + entrytext
 
   comment = None
   notes = []
@@ -813,7 +827,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             comment = "Append entry (Etymology %s) for %s %s of %s, pos=%s in existing Arabic section" % (
               j, infltype, inflection, lemma, pos)
             sections[i] = ensure_two_trailing_nl(sections[i])
-            sections[i] += "===Etymology %s===\n\n" % j + newposl4
+            sections[i] += "===Etymology %s===\n" % j + entrytextl4
           else:
             pagemsg("Wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"")
             comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for %s %s of %s, pos=%s" % (
@@ -831,7 +845,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 ("\n" if sections[i].startswith("==") else "") +
                 ensure_two_trailing_nl(re.sub("^==(.*?)==$", r"===\1===",
                   sections[i], 0, re.M)) +
-                "===Etymology 2===\n\n" + newposl4)
+                "===Etymology 2===\n" + entrytextl4)
         break
       elif m.group(1) > "Arabic":
         pagemsg("Exists; inserting before %s section" % (m.group(1)))
@@ -1205,7 +1219,7 @@ def add_bracketing(defn):
 def parse_elative_defn(spec):
   m = re.match(ur"(.*?) ([\u0600-\u07FF]+)(?: .*)? from (.*) from (.*)$", spec)
   if not m:
-    print "Unable to match spec: %s" % spec
+    msg("Unable to match spec: %s" % spec)
   else:
     defnstext, elative, arpositivetext, roottext = m.groups()
     defns = []
@@ -1229,7 +1243,7 @@ def parse_elative_defn(spec):
           m = re.match(r"(.*) \[(.*)\]$", synonym)
           if m:
             if not re.match(".*er$", m.group(2)):
-              print "Synonym comparative does not end in -er: %s" % m.group(2)
+              msg("Synonym comparative does not end in -er: %s" % m.group(2))
             else:
               synonyms.append([add_bracketing(m.group(1)),
                   add_bracketing(m.group(2)),
@@ -1240,11 +1254,11 @@ def parse_elative_defn(spec):
         defns.append(synonyms)
     arpositives = arpositivetext.split(" and ")
     roots = roottext.split(" and ")
-    # print "Found entry: %s" % spec
-    # print "  elative: %s" % elative
-    # print "  arpositive: %s" % arpositives
-    # print "  roots: %s" % roots
-    # print "  defns: %s" % defns
+    # msg("Found entry: %s" % spec)
+    # msg("  elative: %s" % elative)
+    # msg("  arpositive: %s" % arpositives)
+    # msg("  roots: %s" % roots)
+    # msg("  defns: %s" % defns)
 
     # Create the etymology line
     etymlinedefns = []
@@ -1291,16 +1305,51 @@ def parse_elative_defn(spec):
 {{ar-decl-adj|%s}}""" % (etymline, elative, elative_of_line,
     "\n".join(defn_lines), elative)
 
-    print "Found entry: %s" % spec
-    print defn_text
-    return [defn_text, arpositives]
+    msg("Found entry: %s" % spec)
+    msg(defn_text)
+    return [defn_text, elative, arpositives]
 
 def create_elatives(save, elfile, startFrom, upTo):
   elative_defns = []
   for line in codecs.open(elfile, "r", encoding="utf-8"):
     line = line.strip()
     elative_defns.append(parse_elative_defn(line))
-  # FIXME: Write the rest
+  for current, index in blib.iter_pages(elative_defns, startFrom, upTo,
+      # key is the elative
+      key = lambda x: x[1]):
+    defn_text, elative, arpositives = current
+    create_inflection_entry(save, index, elative, None, arpositives[0], None,
+      "Adjective", "elative", "positive", "ar-adj", "", "elative of",
+      "|lang=ar")
+    for arpositive in arpositives:
+      def add_elative_param(page, index, text):
+        pagetitle = page.title()
+        if not page.exists:
+          msg("Page %s %s: WARNING, positive %s not found for elative %s" % (
+            index, pagetitle, arpositive, elative))
+          return None, "skipped positive %s elative %s" % (arpositive, elative)
+        for template in text.filter_templates():
+          if template.name == "ar-adj":
+            if reorder_shadda(blib.getparam(template, "1")) != reorder_shadda(arpositive):
+              msg("Page %s %s: Skipping, found adjective template with wrong positive, expecting %s: %s" % (
+                  index, pagetitle, arpositive, template))
+              continue
+            existingel = blib.getparam(template, "el")
+            if existingel:
+              if reorder_shadda(existingel) == reorder_shadda(elative):
+                msg("Page %s %s: Skipping template with elative already in it: %s" % (
+                    index, pagetitle, template))
+              else:
+                msg("Page %s %s: Strange, template has elative already in it but not expected %s: %s" % (
+                    index, pagetitle, elative, template))
+            else:
+              msg("Page %s %s: Adding elative %s to template: %s" % (
+                index, pagetitle, elative, template))
+              template.add("el", elative)
+        return text, "Add el=%s to adjective %s" % (elative, arpositive)
+
+      page = pywikibot.Page(site, remove_diacritics(arpositive))
+      blib.do_edit(page, index, add_elative_param, save=save)
 
 pa = blib.init_argparser("Create Arabic inflection entries")
 pa.add_argument("-p", "--plural", action='store_true',
