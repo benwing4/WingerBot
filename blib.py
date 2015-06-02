@@ -103,7 +103,7 @@ def do_edit(page, index, func=None, null=False, save=False, verbose=False):
 
     break
 
-def iter_pages(pageiter, startsort = None, endsort = None):
+def iter_pages(pageiter, startsort = None, endsort = None, key = None):
   i = 0
   t = None
   steps = 50
@@ -118,11 +118,15 @@ def iter_pages(pageiter, startsort = None, endsort = None):
       if isinstance(endsort, int):
         if i > endsort:
           break
-      elif isinstance(current, basestring):
-        if current >= endsort:
+      else:
+        if key:
+          keyval = key(current)
+        elif isinstance(current, basestring):
+          keyval = current
+        else:
+          keyval = current.title(withNamespace=False)
+        if keyval >= endsort:
           break
-      elif current.title(withNamespace=False) >= endsort:
-        break
 
     if not t and isinstance(endsort, int):
       t = datetime.datetime.now()
