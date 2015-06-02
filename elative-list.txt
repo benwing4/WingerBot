@@ -6,7 +6,7 @@ beautiful / pretty [prettier] أَجْمَل from جَمِيل from ج م ل
 wonderful / surprising أَعْجَب from عَجِيب from ع ج ب
 appropriate / fit [fitter] أَلْيَق from لَائِق from ل ي ق
 calm [calmer], quiet [quieter] أَهْدَأ from هَادِئ from ه د ء
-cheap [cheaper] أَرْخَص from رَخِيص from ر خ ص
+cheap [cheaper] / soft [softer] / mean [meaner], low [lower] أَرْخَص from رَخِيص from ر خ ص
 clean [cleaner] أَنْظَف from نَظِيف from ن ظ ف
 clear [clearer] / pure [purer] أَصْفَى from صَافٍ and صَفِيّ from ص ف و
 clear [clearer] / obvious أَوْضَح from وَاضِح from و ض ح
@@ -68,7 +68,7 @@ simple [simpler] / wide [wider] أَبْسَط from بَسِيط from ب س ط
 slow [slower] أَبْطَأ from بَطِيء from ب ط ء
 smart [smarter] / fragrant / tasty [tastier] أَذْكَى from ذَكِيّ from ذ ك و and ذ ك ي
 obedient / flexible / smooth [smoother] أَسْلَس from سَلِس from س ل س
-soft [softer] / gentle [gentler] أَلْيَن from لَيِّن and لَيْن form ل ي ن
+soft [softer] / gentle [gentler] أَلْيَن from لَيِّن and لَيْن from ل ي ن
 fresh [fresher] / moist [moister] / soft [softer] أَطْرَى from طَرِيّ from ط ر و and ط ر ي
 soft [softer] / smooth [smoother] أَنْعَم from نَاعِم from ن ع م
 strange [stranger] أَغْرَب from غَرِيب from غ ر ب
@@ -90,3 +90,4 @@ bad [worse; worst], evil, wicked [wickeder], corrupt, depraved / worthless / low
 great [greater], important / exalted / revered, honorable, venerable / glorious, magnificent / strong [stronger], stout [stouter], rough [rougher] / old [older], experienced أَجَلّ from جَلِيل from ج ل ل
 eloquent / intense, deep [deeper] / serious, grave [graver] أَبْلَغ from بَلِيغ from ب ل غ
 inhabited, populated, populous / crowded, filled / civilized, flourishing, thriving / cultivated أَعْمَر from عَامِر from ع م ر
+kind [kinder], merciful, compassionate, beneficent أَرْحَم from رَحِيم from ر ح م
