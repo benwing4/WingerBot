@@ -251,8 +251,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       deftemp_param)
     newposbody = """%s
 
-  # %s
-  """ % (new_headword_template, new_defn_template)
+# %s
+""" % (new_headword_template, new_defn_template)
     newpos = "===%s===\n" % pos + newposbody
     newposl4 = "====%s====\n" % pos + newposbody
     entrytext = "\n" + newpos
@@ -1217,11 +1217,11 @@ def add_bracketing(defn):
   return " ".join(["[[%s]]" % word for word in defn.split(" ")])
 
 def parse_elative_defn(spec):
-  m = re.match(ur"(.*?) ([\u0600-\u07FF]+)(?: .*)? from (.*) from (.*)$", spec)
+  m = re.match(ur"(.*?) ([\u0600-\u07FF]+)(?: .*?)? from (.*?) from (.*?)(?: ref (.*?))?$", spec)
   if not m:
     msg("Unable to match spec: %s" % spec)
   else:
-    defnstext, elative, arpositivetext, roottext = m.groups()
+    defnstext, elative, arpositivetext, roottext, reftext = m.groups()
     defns = []
     for defn in defnstext.split(" / "):
       m = re.match(r"\((.*)\)$", defn)
@@ -1254,11 +1254,13 @@ def parse_elative_defn(spec):
         defns.append(synonyms)
     arpositives = arpositivetext.split(" and ")
     roots = roottext.split(" and ")
+    refs = reftext and reftext.split(" and ") or []
     # msg("Found entry: %s" % spec)
     # msg("  elative: %s" % elative)
     # msg("  arpositive: %s" % arpositives)
     # msg("  roots: %s" % roots)
     # msg("  defns: %s" % defns)
+    # msg("  refs: %s" % refs)
 
     # Create the etymology line
     etymlinedefns = []
@@ -1292,6 +1294,22 @@ def parse_elative_defn(spec):
         superlatives = [synonym[2] for synonym in defn if synonym[2]]
         defn_lines.append("## %s; %s" % (", ".join(comparatives), ", ".join(superlatives)))
 
+    # Create the references, if any
+    if not refs:
+      reftext = ""
+    else:
+      ref_lines = []
+      for ref in refs:
+        if "|" in ref:
+          ref_lines.append("* {{R:ar:%s}}" % ref)
+        else:
+          if ref == "Steingass" or ref == "GT" or ref == "Almaany":
+            ref_root = remove_diacritics(elative)
+          else:
+            ref_root = roots[0].replace(" ", "")
+          ref_lines.append("* {{R:ar:%s|%s}}" % (ref, ref_root))
+      reftext = "\n\n====References====\n" + "\n".join(ref_lines)
+
     # Create the definition text
     defn_text = """%s
 
@@ -1302,8 +1320,9 @@ def parse_elative_defn(spec):
 %s
 
 ====Declension====
-{{ar-decl-adj|%s}}""" % (etymline, elative, elative_of_line,
-    "\n".join(defn_lines), elative)
+{{ar-decl-adj|%s}}%s
+""" % (etymline, elative, elative_of_line, "\n".join(defn_lines), elative,
+    reftext)
 
     msg("Found entry: %s" % spec)
     msg(defn_text)
@@ -1320,7 +1339,7 @@ def create_elatives(save, elfile, startFrom, upTo):
     defn_text, elative, arpositives = current
     create_inflection_entry(save, index, elative, None, arpositives[0], None,
       "Adjective", "elative", "positive", "ar-adj", "", "elative of",
-      "|lang=ar")
+      "|lang=ar", entrytext=defn_text)
     for arpositive in arpositives:
       def add_elative_param(page, index, text):
         pagetitle = page.title()
