@@ -2,7 +2,7 @@ mean [meaner] / miserly, stingy [stingier], avaricious أَبْخَل from بَ�
 innocent أَبْرَأ from بَرِيء from ب ر ء ref GT
 distinctive / prominent أَبْرَز from بَارِز from ب ر ز ref Wehr-4
 simple [simpler] / wide [wider] أَبْسَط from بَسِيط from ب س ط ref Wehr-4
-slow [slower] أَبْطَأ from بَطِيء from ب ط ء ref Wehr-4
+slow [slower] أَبْطَأ from بَطِيء from ب ط ء ref Wehr-4|بطؤ
 lasting, permanent / (better [[preserving]], better [[protecting]]; best [[preserving]], best [[protecting]]) أَبْقَى from بَاقٍ from ب ق ي ref Wehr-4
 eloquent / intense, deep [deeper] / serious, grave [graver] أَبْلَغ from بَلِيغ from ب ل غ ref Wehr-4
 complete, perfect أَتَمّ from تَامّ from ت م م ref Wehr-4
@@ -25,7 +25,7 @@ eager, greedy [greedier], covetous / careful, fearful, prudent / compassionate /
 sad [sadder] أَحْزَن from حَزِين from ح ز ن ref GT
 low [lower], mean [meaner], vile [viler] / contemptible / despicable / miserable أَحْقَر from حَقِير from ح ق ر ref Wehr-4
 wise [wiser] أَحْكَم from حَكِيم from ح ك م ref Wehr-4
-praiseworthy / benign أَحْمَد from حَمِيد from ح م د ref Wehr-4 ref Wehr-4
+praiseworthy / benign أَحْمَد from حَمِيد from ح م د ref Wehr-4
 alive / lively [livelier], energetic أَحْيَى from حَيّ from ح ي ي ref Wehr-4
 fertile / prolific أَخْصَب from خَصِيب from خ ص ب ref Lane
 sincere [sincerer] / pure [purer] / clear [clearer] أَخْلَص from خَالِص and خَلِيص from خ ل ص ref Steingass
@@ -108,10 +108,13 @@ holy [holier], saintly أَقْدَس from قَدِيس from ق د س ref Wehr-4
 complete / perfect أَكْمَل from كَامِل from ك م ل ref Wehr-4
 tasty [tastier] / delicious أَلَذّ from لَذِيذ from ل ذ ذ ref Lane
 necessary أَلْزَم from لاَزِم from ل ز م ref Wehr-4
+fine [finer] / delicate / kind [kinder], nice [nicer] / elegant أَلْطَف from لَطِيف from ل ط ف ref Wehr-4
 appropriate / fit [fitter] أَلْيَق from لَائِق from ل ي ق ref Wehr-4
 soft [softer] / gentle [gentler] أَلْيَن from لَيِّن and لَيْن from ل ي ن ref Steingass
+sharp [sharper] / acute / energetic أَمْضَى from مَاضٍ from م ض ي ref Wehr-4
 sick [sicker] أَمْرَض from مَرِيض from م ر ض ref GT
 handsome أَمْلَح from مَلِيح from م ل ح ref Steingass
+clever / skillful أَمْهَر from مَاهِر from م ه ر ref Steingass
 thin [thinner], slim [slimmer] / delicate / lean [leaner] أَنْحَف from نَحِيف from ن ح ف ref GT
 rare [rarer] / strange [stranger] أَنْدَر from نَادِر from ن د ر ref Wehr-4
 active / energetic / pleased, happy [happier] أَنْشَط from نَشِيط from ن ش ط ref GT
@@ -121,9 +124,11 @@ precious أَنْفَس from نَفِيس from ن ف س ref Lane
 useful أَنْفَع from نَافِع from ن ف ع ref GT
 pure [purer] / clear [clearer] أَنْقَى from نَقِيّ from ن ق و and ن ق ي ref Steingass
 important أَهَمّ from هَامّ from ه م م ref Wehr-4
-calm [calmer], quiet [quieter] أَهْدَأ from هَادِئ from ه د ء ref Wehr-4
+calm [calmer], quiet [quieter] أَهْدَأ from هَادِئ from ه د ء ref Wehr-4|هدأ
 handsome / esteemed / clear [clearer] أَوْجَه from وَجِيه from و ج ه ref Steingass
 dirty [dirtier] أَوْسَخ from وَسِخ from و س خ ref Steingass
 wide [wider] / spacious أَوْسَع from وَاسِع from و س ع ref Wehr-4
 handsome أَوْسَم from وَسِيم from و س م ref Almaany
 clear [clearer] / obvious أَوْضَح from وَاضِح from و ض ح ref Wehr-4
+necessary / obligatory / proper, adequate, fair [fairer] أَوْجَب from وَاجِب from و ج ب ref Steingass and Wehr-4|وجب:وَاجِب
+low [lower] / flat [flatter] أَوْطَأ from وَطِيء from و ط ء ref Wehr-4|وطئ
