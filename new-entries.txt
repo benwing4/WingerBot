@@ -1,0 +1,1720 @@
+ch. 33
+
+ADD DEFN Verb: I|u|u ثبت to be firm, to grip
+NOTE USE OF FOLLOWING GEN n: أَحَد one (of + gen)
+ADD DEFN n: ظِفْر pl. أَظْفَار claw, talon; finger-nail
+ADD DEFN v: IV أوقف to load
+ADD DEFN n: حَطَب wood, firewood
+(DONE) CREATE NON-LEMMA FORMS (relative pronoun)
+ADD DEFN v: I|a|u ربط to tie, connect, link
+(DONE) CREATE v: IV أضرب عَن to leave, forsake a thing, desist from
+FIX ETYM (USE COMPOUND) con: إِلَّا except, if not
+ADD DEFN n: مَرَّة pl. مِرَار, مَرَّات time, turn
+CHECK VOCALIZATION, ADD PARTICIPLE ETYM n: مُقَدَّم chief
+(DONE) CREATE n: عُظْم magnitude, greatness
+
+
+ch. 34
+
+ADD CONSTRUAL {{ar-verb|VIII}} استمع إلى {{ar-root|س م ع}} "to listen (to)"
+(DONE) CREATE {{ar-con|كَمَا}} "like, as"
+ADD DEFN, FIX ETYM (USE SUFFIX, ETC.) {{ar-con|كَأَنَّ}} "as, as if"
+(DONE) CREATE {{ar-verb|I|a|i}} عزم على {{ar-root|ع ز م}} "to determine (on)"
+SPLIT ETYM {{ar-verb|II}} زين {{ar-root|ز ي ن}} "to adorn"
+(DONE) CREATE {{ar-noun|غِنَاء|m}} "song"
+FIX ETYM {{ar-verb|II}} غنى {{ar-root|غ ن ي}} "to sing"
+ADD AS USEX (TO أتلق, رصاص and نار) {{ar-verb|IV}} أطلق الرَصَاص ‫(النَار) على ‬ {{ar-root|ط ل ق}} "to shoot (at)"
+CREATE (DONE); ALSO ADD AS DERIVED TERM TO أمس {{ar-adv|أَوَّل أَمْس}} "the day before yesterday" (أَوَّلُ أَمْسِ)
+SPLIT ETYM {{ar-coll-noun|زَهْر|pl=زُهْهر}} "flower" (already in Wiktionary)
+(DONE) CREATE (CHECK AGAIN IT DOESN'T EXIST) {{ar-proper noun|البَحْر الأَبْيَض المُتَوَسِّط}} "the Mediterranean Sea"
+ADD "THE" TO DEFN {{ar-proper noun|البَحْر الأَحْمَر}} "the Red Sea"
+REMOVE HEAD2 FROM HEADWORD, ADD DECL, UNCAPITALIZE "The" {{ar-proper noun|الخَلِيج الفَارِسِيّ}} "the Persian Gulf"
+(DONE) CREATE {{ar-noun|بَيَان}} declaration, statement, announcement
+(DONE) CREATE {{ar-verb|IV}} ألفى to cancel
+(DONE) CREATE {{ar-verb|V}} تسلح to arm oneself
+ADD DEFN {{ar-verb|I|i|a}} رغب فِي to desire, love
+ADD DEFN, FIX CONSTRUAL, MAKE IMPERS PASSIVE Noun: رَغْبَة  love, desire
+(DONE) CREATE AS SINGULAR Noun: تَدَابِير measures, steps
+SPLIT ETYM Noun: خُطْبَة pl. خُطَب sermon (in the mosque)
+ADD DEFN Noun: حُكْم rule
+(DONE) CREATE Adj: ذَاتِيّ self (adj)
+CREATE (DONE); ALSO ADD AS DERIVED TERM IN وزير and خارجية Noun: وَزِير الخاارِجِيَّة foreign secretary
+(DONE) CREATE Noun: إِمْبِرَاطُورِيَّة empire
+(DONE) CREATE Noun: جَلَالَة majesty (term of respect)
+(DONE) CREATE Noun: مَجْد glory
+CREATE AS ALT FORM OF; IN أفريقيا, ADD DECL AND FIX PRONUN noun: إِفْرِيقِيَّا Africa
+(DONE) CREATE verb: IV أثار to arouse, incite
+ADD DEFN noun: عَاطِفَة pl. عَوَاطِف emotion, feeling
+MOVE DECL UP noun: فِلَسْطِين Palestine diptote
+(DONE) CREATE adj: عُثْمَانِيّ Ottoman
+ADD DEFN noun: عَصْر pl. عُصُور age, era, epoch, afternoon
+
+ch. 35
+
+ADD DEFN {{ar-noun|حَرِيق|pl=حَرْقَى}} "fire, conflagration"
+(DONE) CREATE {{ar-verb|I|i|a}} طفئ {{ar-root|ط ف ء}} "to go out, be extinguished"
+(DONE) ADD DEFN {{ar-verb|VII}} انطفأ {{ar-root|ط ف ء}} "to go out, be extinguished"
+(DONE) CREATE {{ar-noun|فِرْقَة المَطَافِئ|tr=(fix tr)}} "fire brigade"
+SPLIT ETYM {{ar-verb|II}} صلى {{ar-root|ص ل و}} "to pray"
+REMOVE "CATEGORY NOUNS" {{ar-noun|طَاوِلَة|pl=طَاوِلَات}} "table" (Syr. from Ital. "tavola"); "backgammon"
+(DONE) CREATE {{ar-verb|IV}} أرضى {{ar-root|ر ض ي}} "to please (anyone)"
+ADD PL2 TO HEADWORD/DECL {{ar-adj|خَائِن|m|pl=خَوَنَة|pl2=خَانَة|pl3=خُوَّان}} "treachorous"
+ADD PL2 TO HEADWORD/DECL {{ar-noun|خَائِن|m|pl=خَوَنَة|pl2=خَانَة|pl3=خُوَّان}} "traitor"
+(DONE) CREATE {{ar-noun|صَنَم|pl=أَصْنَام}} "idol"
+SPLIT ETYM {{ar-verb|I|a|u}} عبد {{ar-root|ع ب د}} "to worship"
+ADD VOCALIZATION TO PROPER NOUN {{ar-noun|بُرْهَان|m|pl=بَرَاهِين}} "proof"
+(DONE) CREATE {{ar-verb|III}} رافق {{ar-root|ر ف ق}} "to accompany"
+ADD DEFN {{ar-verb|VIII}} اجتهد {{ar-root|ج ه د}} "to strive, be diligent"
+(DONE) CREATE {{ar-noun|مَحْصُول|m|pl=مَحْصُولَات|pl2=مَحَاصِيل}} "produce, crops, harvest"
+ADD DEFN {{ar-noun|مَرْكَب|m|pl=مَرَاكِب}} "small ship or boat" (mod.)
+(DONE) CREATE {{ar-verb|I|a|i}} وعظ {{ar-root|و ع ظ}} "to preach"
+(DONE) CREATE {{ar-noun|وَاعِظ|m|pl=وُعَّاظ}} "preacher"
+(DONE) CREATE {{ar-verb|I|a|i}} دفن {{ar-root|د ف ن}} "to bury"
+(DONE) CREATE {{ar-verb|I|i|a}} قنع بِ {{ar-root|ق ن ع}} "to be contented with"
+(DONE) CREATE {{ar-verb|VIII}} اقتنع بِ {{ar-root|ق ن ع}} "to be contented with"
+(DONE) CREATE {{ar-verb|II}} قنع {{ar-root|ق ن ع}} "to satisfy, convince"
+(DONE) CREATE {{ar-verb|IV}} أقنع {{ar-root|ق ن ع}} "to satisfy, convince"
+(DONE) CREATE {{ar-adj|قَنِع|pl=قَنِعُون}} "contented, satisfied"
+(DONE) CREATE (POSSIBLY UNDER بعد) {{ar-adv|فِيمَا بَعْد}} "later, in future"
+ADD DEFN {{ar-noun|عَقْد|m|pl=عُقُود}} "knot, tie, contract"
+(DONE) CREATE {{ar-noun|مُتَعَقِّد|m}} "contractor"
+(DONE) CREATE {{ar-noun|بَال|m}} "mind, state"
+ADD DEFN, PL {{ar-noun|فَرِيق|m|pl=فُرُوق}} "party of men, group, section"
+(DONE) CREATE {{ar-noun|دُولَاب|m|pl=دَوَالِيب}} "cupboard"
+CONSIDER ADDING ELATIVE (NOT IN GOOGLE TRANSLATE) {{ar-adj|بَاطِل}} "vain, useless"
+(DONE) CREATE, ALSO CREATE واسطة {{ar-prep|بِوَاسِطَة|tr=bi-wāsiṭa}} "through, by means of"
+(DONE) CREATE {{ar-prep-auto|بِوَاسِطَة|bi-wāsiṭa|بِوَاسِطَةِ|bi-wāsiṭati}}
+(DONE) CREATE {{ar-verb|II}} دفق {{ar-root|د ف ق}} "to pour" (trans.)
+(DONE) CREATE {{ar-verb|VII}} اندفق {{ar-root|د ف ق}} "to pour" (intrans.), "to be poured"
+ADD DEFN {{ar-noun|غَلَط|m|pl=أَغْلَاط}} "error, fault, mistake"
+
+
+ch. 36
+
+SPLIT ETYM {{ar-adv|فَقَطْ|head2=فَقَطُّ}} "only"
+CHECK PL, IS DIFFERENT FROM ARTICLE {{ar-noun|رَاعٍ|m|pl=رُعَاة}} "shepherd"
+(DONE) CREATE {{ar-noun|رَعِيَّة|f|pl=رَعَايَا}} "flock, subjects (of a ruler)"
+(DONE) CREATE {{ar-adj|مُسِنّ}} "old, aged"
+(DONE) CREATE {{ar-noun|بَرَّادَة|f}} "refrigerator" (Syria, Lebanon) (mod.)
+<!--{{ar-coll-noun|ضَأْن|sing=-}} "sheep" -->
+(DONE) CREATE {{ar-noun|ضَائِن|f=ضَائِنَة|cpl=ضَأْن}} "a sheep"
+(DONE) CREATE {{ar-noun|شَاة|pl=شَاء|pl2=شِيَاه}} "a single sheep"
+ADD HEAD2 {{ar-coll-noun|إِبِل|f|head2=إِبْل|sing=-}} "camels"
+(DONE) CREATE {{ar-noun|نَاقَة|f|pl=نُوق}} "she-camel"
+(DONE) CREATE {{ar-noun|حَدِيقَة الحَيَوَانَات|f|tr=(fix tr)}} "zoo, zoological gardens"
+(DONE) CREATE {{ar-noun|حَمْلَة|f}} "attack"
+FIX ETYM (SUFFIX) {{ar-nisba|فِلِسْطِينِيّ}} "Palestinian"
+SPLIT ETYM {{ar-verb|II}} صدر {{ar-root|ص|د|ر}} "to export"
+(DONE) CREATE {{ar-noun|تَصْرِيح|m}} "declaration (mod. permit, permission)"
+ADD PL {{ar-adj|مُنَاسِب}} "suitable"
+(DONE) CREATE {{ar-noun|مُنَاسَبَة|f}} "suitability"
+(DONE) CREATE {{ar-prep|بِمُنَاسَبَة|tr=bi-munāsaba}} "with reference to, one the occasion of" + gen. (mod.)
+(DONE) CREATE {{ar-prep-auto|بِمُنَاسَبَة|bi-munāsaba|بِمُنَاسَبَةِ|bi-munāsabati}}
+NOTE AS INTRANS {{ar-verb|I|a|i}} زاد {{ar-root|ز|ي|د}} "to increase" (intrans.)
+(DONE) SPLIT ETYM {{ar-verb|II}} زيد {{ar-root|ز|ي|د}} "to increase" (trans.)
+ADD DEFN "MORE" {{ar-noun|زِيَادَة|f}} "increase, more, surplus"
+(DONE) CREATE {{ar-verb|II}} علق {{ar-root|ع|ل|ق}} "to hang" (trans.), "to suspend"
+(DONE) CREATE {{ar-verb|V}} تعلق بِ {{ar-root|ع|ل|ق}} "to hang from, depend on, be attached to, appertain to"
+(DONE) CREATE {{ar-proper noun|المُعَلَّلقَات|p}} "Muʿallaqāt, the name given to 7 pre-Islamic odes said to have been hung from the Kaʿba in Mecca"
+ADD DEFN "ODE" {{ar-noun|قَصِيدَة|f|pl=قَصَائِد}} "ode, poem"
+(DONE) CREATE {{ar-adj|آتٍ}} "coming, next"
+(DONE) CREATE {{ar-noun|مِينَاء|m|pl=مَوَانٍ|pl2=مَوَانِئ}} "port, harbor"
+ADD DECL {{ar-proper noun|أَلْمَانِيَا|f}} "Germany"
+(DONE) CREATE {{ar-nisba|أَلْمَانِيّ|pl=أَلْمَان}} "German"
+ADD DEFN, REMOVE R2L FROM LAST RELATED TERM {{ar-noun|جُمْهُور|m|pl=جَمَاهِير}} "public, crowd, masses"
+(DONE) CREATE {{ar-noun|مُتَكَلِّم|m}} "spokesman" {{i|lang=ar|{{m|ar|بِٱسْم|tr=bi-sm}} for}}
+(DONE) CREATE {{ar-nisba|جُمْهُورِيّ}} "republican"
+SPLIT ETYM {{ar-noun|شِعْر|pl=أَشْعَار}} "poetry"
+(DONE) CREATE {{ar-noun|سَعَادَة|f}} "happiness, good fortune"
+(DONE) CREATE {{ar-proper noun|الصَحْرَاء الكُبْرَى|f}} "the Sahara Desert"
+
+ch. 37
+
+(DONE) CREATE {{ar-verb|V}} توكل على {{ar-root|و ك ل}} "to entrust oneself to, to rely upon"
+(DONE) SPLIT ETYM {{ar-noun|فَرْد|m|pl=فُرُود}} "individual"
+ADD ROOT TO ETYM {{ar-noun|لِوَاء|m|pl=أَلْوِيَة}} "standard, flag; Brigade, major-general"
+ETYM: NOTE ACT PART {{ar-noun|مُرَاسِل|m}} "correspondent"
+(DONE) CREATE ADV {{ar-adv|أَيْ}} "that is to say, namely"
+(DONE) CREATE {{ar-noun|قُنْصُل|m|pl=قَنَاصِل}} "consul"
+CREATE NOUN {{ar-noun|شَرِيف|m|pl=أَشْرَاف}} "noble"
+(DONE) CREATE {{ar-verb|VIII}} اشتمل على {{ar-root|ش م ل}} "to comprise, include"
+(DONE) CREATE {{ar-noun|فَرْع|m|pl=فُرُوع}} "branch"
+DEFN DOESN'T AGREE, ADD DECL {{ar-proper noun|المَغْرِب|m?}} "N.W. Africa, the Maghrib (also used for Morocco) (lit. the West)"
+CLEAN HEADWORD, ADD DECL {{ar-proper noun|الجَزَائِر|p}} "Algeria, Algiers"
+DEFN DOESN'T AGREE {{ar-proper noun|مَرَّاكُش}} "Morocco, Marrakesh" (diptote)
+FIX CONSTRUAL, DEFN "COMPRISE" {{ar-verb|VIII}} احتوى على {{ar-root|ح و ي}} "to contain, comprise"
+DEFN "COMPRISE" {{ar-verb|I|a|i}} حوى {{ar-root|ح و ي}} "to comprise, contain"
+(DONE) CREATE {{ar-noun|مُحْتَوَيَات|p}} "contents" (of a book, etc.)
+CLEAN UP QUOTE DESCRIBING "SUNNA" MEANING {{ar-noun|سُنَّة|f|pl=سُنَن}} "Sunna, religious law in Islam"
+(DONE) CREATE {{ar-noun|سُنِّيّ|m}} "Sunni"
+(DONE) CREATE {{ar-noun|أَهْل السُنَّة|m}} "the Sunnites"
+(DONE) CREATE {{ar-noun|الشِيعَة|f}} "the Shiʿites"
+(DONE) CREATE {{ar-noun|شِيعِيّ|m}} "Shiʿi"
+(DONE) CREATE {{ar-nisba|شُيُوعِيّ}} "Communist"
+ADD ETYM {{ar-noun|شُيُوعِيَّة}} "Communism"
+FIX ETYM {{ar-nisba|اِشْتِرَاكِيّ}} "Socialist"
+FIX ETYM {{ar-noun|اِشْتِرَاكِيَّة}} "Socialism"
+(DONE) CREATE {{ar-proper noun|حِزْب العُمَّال|m}} "the Labour Party"
+(DONE) CREATE {{ar-prep|أَثْرَ|head2=إِثْرَ}} "following on, immediately after"
+(DONE) CREATE {{ar-prep-auto|أَثْرَ}}
+(DONE) CREATE #: {{usex|lang=ar|فِي أَثْرَ|t=following on, immediately after|inline=t}}
+(DONE) CREATE #: {{usex|lang=ar|عَلَى أَثْرَ|t=following on, immediately after|inline=t}}
+(DONE) CREATE {{ar-prep-auto|إِثْرَ}}
+(DONE) CREATE #: {{usex|lang=ar|فِي إِثْرَ|t=following on, immediately after|inline=t}}
+(DONE) CREATE #: {{usex|lang=ar|عَلَى إِثْرَ|t=following on, immediately after|inline=t}}
+(DONE) CREATE {{ar-verb|II} وفق {{ar-root|و ف ق}} "to help, give success to (usually used of God)"
+(DONE) CREATE {{ar-noun|تَوْفِيق|m}} "success (due to God); proper name masc."
+ADD DEFN {{ar-verb|I|a|u}} صلح لِ {{ar-root|ص ل ح}} "to be suitable for"
+ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
+
+
+أي
+
+
+وزير الخارجية
+
+
+
+CREATE; ALSO ADD AS USEX IN وزير and خارجية Noun: وَزِير الخاارِجِيَّة foreign secretary
+
+
+ألماني
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|أَلْمَان|[[Germans]]}}, from {{etyl|fr|ar}} {{m|fr|allemand||[[German]]}}.
+
+===Adjective===
+{{ar-nisba|أَلْمَانِيّ|pl=أَلْمَان}}
+
+# [[German]]
+
+====Declension====
+{{ar-decl-adj|أَلْمَانِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|أَلْمَانِيّ|pl=أَلْمَان}}
+
+# [[German]]
+
+====Declension====
+{{ar-decl-gendered-noun|أَلْمَانِيّ|pl=smp}}
+
+جمهوري
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|جُمْهُور|[[multitude]], [[general]] [[public]]}}, probably calqued on {{etyl|la|-}} {{m|la|rēs pūblica||[[republic]]}}, literally "public thing". Compare {{m|ar|جُمْهُورِيَّة||[[republic]]}}.
+
+===Adjective===
+{{ar-nisba|جُمْهُورِيّ}}
+
+# [[republican]]
+
+====Declension====
+{{ar-decl-adj|جُمْهُورِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|جُمْهُورِيّ}}
+
+# [[republican]]
+
+====Declension====
+{{ar-decl-gendered-noun|جُمْهُورِيّ|pl=smp}}
+
+
+فيما بعد
+
+==Arabic==
+
+===Etymology===
+Literally "in what is after".
+
+===Adverb===
+{{ar-adv|[[فِيمَا]] [[بَعْد]]}}
+
+# in the [[following]]
+# [[later]], in the [[future]]
+
+====References====
+* {{R:ar:Haywood}}
+* {{R:ar:Wehr-4|في}}
+
+فيما
+
+==Arabic==
+
+===Etymology===
+Composed of {{suffix|lang=ar|فِي|t1=[[in]]|مَا|t2=[[what]]}}
+
+===Conjunction===
+{{ar-con|فِيمَا}}
+
+# [[while]]
+# in [[that]], [[as]]
+# in [[what]] {{gloss|[[relative]], not [[interrogative]]}}
+#: {{ux|ar|فِيمَا مَضَى|in [[what]] has [[passed]], in the [[past]]}}
+
+====Derived terms====
+* {{l|ar|فِيمَا بَعْد||in [[what]] [[follows]], [[later]]}}
+
+====References====
+* {{R:ar:Wehr-4|في}}
+
+
+سنة
+
+==Arabic==
+
+===Etymology 1===
+From {{etyl|sem-pro|ar}} {{m|sem-pro|*šan-}}.
+
+====Noun====
+{{ar-noun|سَنَة|f|pl=سَنَوَات|pl2=سِنُون}}
+
+# [[year]]
+
+=====Declension=====
+{{ar-decl-noun|سَنَة|pl=سَنَوَات|pl2=سِنُون}}
+
+[[Category:ar:Time]]
+
+===Etymology 2===
+From the root {{ar-root|س ن ن}}; compare {{term|سَنَّ|lang=ar||to [[establish]] {{i|a [[law]], [[custom]], etc.}}}}.
+
+====Noun====
+{{ar-noun|سُنَّة|f|pl=سُنَن}}
+
+# {{context|Islam|lang=ar}} [[habitual]] [[practice]], [[custom]], [[norm]]
+# {{lb|ar|definite}} the [[Sunna]] {{gloss|[[Muhammad]]'s [[way of life]], as recorded in the [[hadith]]s}}}}
+
+=====Declension=====
+{{ar-decl-noun|سُنَّة|pl=سُنَن}}
+
+=====Derived terms=====
+* {{l|ar|السُنَّة||the [[Sunna]]}}
+* {{l|ar|سُنَّة النَبِيّ|tr=sunnat an-nabiyy||the [[Sunna]]}}
+* {{l|ar|أَهْل السُنَّة||[[Sunni]] [[Islam]], the [[Sunni]]}}
+* {{l|ar|سُنِّيّ||[[Sunni]]}}
+
+=====References=====
+* {{R:ar:Wehr-4|سن}}
+
+سني
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|السُنَّة|the [[Sunna]]}}.
+
+===Adjective===
+{{ar-nisba|سُنِّيّ}}
+
+# [[Sunni]]
+
+====Declension====
+{{ar-decl-adj|سُنِّيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|سُنِّيّ}}
+
+# [[Sunni]]
+
+====Declension====
+{{ar-decl-gendered-noun|سُنِّيّ|pl=smp}}
+
+
+Template:ar-etym-nisba
+
+{{#if:{{{lc|}}}|[[Appendix:Arabic nominals#Relative adjectives (nisba)|relative adjective (nisba)]]|[[Appendix:Arabic nominals#Relative adjectives (nisba)|Relative adjective (nisba)]]}}{{#if:{{{nocat|}}}||[[Category:Arabic relative adjectives (nisba)]]}}{{#if:{{{1|}}}|&#32;composed of {{suffix|lang=ar|{{{1}}}|t1={{{2}}}|tr1={{{tr|}}}|ِيّ|tr2=-iyy}}}}<!--
+
+--><noinclude>{{documentation}}
+
+Template:ar-etym-nisba/documentation
+
+(create, based on Template:characteristic adjective)
+
+Appendix:Arabic nominals
+
+Add section on relative (nisba) adjectives. Note possible nominalization.
+
+Template:ar-nisba
+
+Edit to add [[Category:Arabic relative adjectives (nisba)]].
+
+Template:ar-noun-nisba
+
+Edit to add [[Category:Arabic relative nouns (nisba)]].
+
+Category:Arabic relative adjectives (nisba)
+
+[[Appendix:Arabic nominals#Relative adjectives (nisba)|Arabic relative adjectives (nisba)]] formed using {{m|ar|ِيّ|tr=-iyy}}.
+
+[[Category:Arabic adjectives]]
+
+Category:Arabic relative nouns (nisba)
+
+[[Appendix:Arabic nominals#Relative adjectives (nisba)|Arabic relative nouns (nisba)]] formed using {{m|ar|ِيّ|tr=-iyy}}.
+
+[[Category:Arabic nouns]]
+
+شيعة
+
+==Arabic==
+{{wikipedia|lang=ar}}
+===Etymology===
+From the root {{m|ar|ش ي ع}}; compare {{m|ar|شَاعَ||to [[spread]] {{i|intransitive}}, to become [[known]]}}.
+
+===Noun===
+{{ar-noun|شِيعَة|f|pl=شِيَع}}
+
+# [[cult]], [[sect]]
+# [[followers]], [[assistants]]; [[follower]], [[assistant]]
+# [[adherents]], [[disciples]], [[partisans]]; [[adherent]], [[disciple]], [[partisan]]
+# [[faction]], [[party]]
+# {{lb|ar|definite}} the [[Shi'a]]
+
+====Declension====
+{{ar-decl-noun|شِيعَة|pl=شِيَع}}
+
+===Noun===
+{{ar-noun|شِيعَة|f|pl=أَشْيَاع}}
+
+# [[followers]], [[assistants]]; [[follower]], [[assistant]]
+# [[adherents]], [[disciples]], [[partisans]]; [[adherent]], [[disciple]], [[partisan]]
+
+====Declension====
+{{ar-decl-noun|شِيعَة|pl=أَشْيَاع}}
+
+====Related terms====
+* {{l|ar|الشِيعَة||the [[Shi'a]]}}
+* {{l|ar|شِيعِيّ||[[Shiite]]}}
+
+====See also====
+* {{l|طَائِفَة|g=f|lang=ar}}
+
+السنة
+
+==Arabic==
+
+===Etymology===
+From {{m|ar|سُنَّة||[[custom]], [[norm]]}}.
+
+===Proper noun===
+{{ar-proper noun|السُنَّة|f}}
+
+# the [[Sunna]] {{gloss|[[Muhammad]]'s [[way of life]], as recorded in the [[hadith]]s}}}}
+
+====Declension====
+{{ar-decl-noun|سُنَّة|state=def}}
+
+أهل السنة
+
+===Etymology===
+Literally "people of the [[Sunna]]".
+
+===Proper Noun===
+{{ar-proper noun|[[أَهْل]] [[السُنَّة]]|m}}
+
+# [[Sunni]] [[Islam]], the [[Sunni]]
+
+====Declension====
+{{ar-decl-noun|أَهْل|mod=سُنَّة|state=con|modstate=def|modcase=gen|modnumber=sg}}
+
+
+الشيعة
+
+==Arabic==
+
+===Etymology===
+From {{m|ar|شِيعَة||[[party]], [[sect]], [[adherents]]}}.
+
+===Proper noun===
+{{ar-proper noun|الشِيعَة|f}}
+
+# the [[Shi'a]], the [[Shiites]]
+
+====Declension====
+{{ar-decl-noun|شِيعَة|state=def}}
+
+شيعي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|الشِيعَة|the [[Shi'a]]}}.
+
+===Adjective===
+{{ar-nisba|شِيعِيّ}}
+
+# [[Shiite]]
+
+====Declension====
+{{ar-decl-adj|شِيعِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|شِيعِيّ}}
+
+# [[Shiite]]
+
+====Declension====
+{{ar-decl-gendered-noun|شِيعِيّ|pl=smp}}
+
+
+على الشيوع
+
+==Arabic==
+
+===Etymology===
+From {{m|ar|شُيُوع||[[spread out|spreading out]]}}.
+
+===Adverb===
+{{ar-adv|[[عَلَى]] [[شُيُوع|الشُيُوع]]}}
+
+# [[in common]], [[possessed]] [[jointly]]
+
+====References====
+* {{R:ar:Wehr-4|شيع}}
+
+شيوعي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|عَلَى الشُيُوع|[[in common]], [[possessed]] [[jointly]]}}.
+
+===Adjective===
+{{ar-nisba|شُيُوعِيّ}}
+
+# [[Communist]]
+
+====Declension====
+{{ar-decl-adj|شُيُوعِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|شُيُوعِيّ}}
+
+# [[Communist]]
+
+====Declension====
+{{ar-decl-gendered-noun|شُيُوعِيّ|pl=smp}}
+
+
+توفيق
+
+==Arabic==
+
+===Etymology===
+{{ar-verbal noun}} of {{m|ar|وَفَّقَ}}, from the root {{ar-root|و ف ق}}.
+
+===Noun===
+{{ar-noun|تَوْفِيق|m}}
+
+# {{ar-verbal noun of|وَفَّقَ|form=II||to [[fit]], to [[accommodate]], to [[reconcile]], [[grant]] [[success]]}}
+# [[fitting]]
+# [[accommodation]]
+# [[reconciliation]]
+# [[guidance]] and [[grace]] of [[God]]
+# [[fulfillment]] of one's [[wishes]], [[success]] {{i|especially [[granted]] by [[God]]}}, [[prospering]]
+# [[adjustment]], [[agreement]]
+# [[time]]
+
+===Declension===
+{{ar-decl-noun|تَوْفِيق}}
+
+===References===
+* {{R:ar:Haywood}}
+* {{R:ar:Wehr-4|وفق}}
+
+===Proper noun===
+{{ar-proper noun|تَوْفِيق|m}}
+
+# [[Tawfiq]], {{given name|A=a|lang=ar|male}}
+
+====Declension====
+{{ar-decl-noun|تَوْفِيق|state=ind}}
+
+===References===
+* {{R:ar:Haywood}}
+
+
+قنصل
+
+
+==Arabic==
+
+===Etymology===
+From {{etyl|la|ar}} {{m|la|cōnsul||[[consul]]}}.
+
+===Noun===
+{{ar-noun|قُنْصُل|m|pl=قَنَاصِل}}
+
+# [[consul]]
+
+====Declension=====
+{{ar-decl-noun|قُنْصُل|pl=قَنَاصِل}}
+
+====References====
+* {{R:ar:Haywood}}
+
+
+فرع
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ف ر ع}}.
+
+===Noun===
+{{ar-noun|فَرْع|m|pl=فُرُوع|pl2=أَفْرُع}}
+
+# [[branch]], [[twig]], [[shoot]], [[limb]]
+# [[branches]], [[twigs]]
+# [[top]] of a [[branch]]
+# [[top]]
+# [[section]], [[subdivision]]
+# [[derivation]], [[derivative]]
+# [[branch out|branching out]]
+# [[ramification]]
+# [[corollary]]
+# [[branch office]]
+# [[branch line]]
+# {{lb|ar|electricity}} [[branch]] [[wire]]
+# [[long]] [[hair]]
+
+====Declension====
+{{ar-decl-noun|فَرْع|pl=فُرُوع|pl2=أَفْرُع}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|فرع}}
+
+فرغ
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ف ر غ}}.
+
+===Adjective===
+{{ar-adj|فَرِغ|f=فَرِغَة}}
+
+# [[empty]]
+# [[vacant]]
+
+====Declension====
+{{ar-decl-adj|فَرِغ}}
+
+====References====
+* {{R:ar:Wehr-4|فرغ}}
+
+
+فارغ
+
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|فَرَغَ||to be [[empty]], to be [[vacant]], to be [[available]], to [[finish]], to [[devote]] oneself}}, from the root {{ar-root|ف ر غ}}.
+ 
+===Pronunciation===
+* {{IPA|/faːriɣ/|/faːriʁ/|lang=ar}}
+
+===Adjective===
+{{ar-adj|فَارِغ|f=فَارِغَة|pl=فُرَّاغ}}
+
+# [[empty]]
+# [[vacant]]
+# [[unoccupied]]
+# [[meaningless]], [[inane]], [[pointless]], [[vacuous]], [[vapid]]
+
+====Declension====
+{{ar-decl-adj|فَارِغ|pl=فُرَّاغ}}
+
+
+فصيح
+
+{{also|فصیح}}
+
+==Arabic==
+
+===Adjective===
+{{ar-adj|فَصِيح|f=فَصِيحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|fpl=فِصَاح|fpl2=فَصَائِح|el=أَفْصَح}}
+
+# [[pure]] in [[language]] {{i|especially of [[literary]] [[Arabic]]}}
+# [[eloquent]]
+# [[fluent]]
+# [[loquacious]], [[voluble]]
+# [[clear]] and [[distinct]] in [[speech]]
+
+====Declension====
+{{ar-decl-adj|فَصِيح|f=فَصِيحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|fpl=فِصَاح|fpl2=فَصَائِح}}
+
+====Descendants====
+* Persian: {{l|fa|فصیح|tr=fasih}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|فصح}}
+
+===See also===
+* {{l|ar|لُغَة عَرَبِيَّة فَصْحَى|tr=luḡa ʿarabiyya fuṣḥā}}
+
+فصح
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ف|ص|ح}}.
+
+====Verb====
+{{ar-verb|I|u|u}}
+
+# to be [[eloquent]], to [[speak]] [[clearly]]
+
+=====Conjugation=====
+{{ar-conj|I|u|u|passive=n|vn=فَصَاحَة}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+===Etymology 2===
+
+===Adjective===
+{{ar-adj|فَصْح|f=فَصْحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|el=أَفْصَح}}
+
+# [[eloquent]], [[speaking]] [[distinctly]] and [[elegantly]]
+
+====Declension====
+{{ar-decl-adj|فَصْح|f=فَصْحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|el=أَفْصَح}}
+
+====References====
+* {{R:ar:Steingass}}
+
+أفصح
+
+==Arabic==
+
+===Etymology===
+{{ar-elative}} of {{m|ar|فَصِيح||of [[pure]] [[language]], [[eloquent]], [[fluent]], [[voluble]], [[clear]] in [[speech]]}} and {{m|ar|فَصْح||[[eloquent]]}}, from the root {{ar-root|ف ص ح}}.
+
+===Adjective===
+{{ar-adj|أَفْصَح|f=فُصْحَى}}
+
+# {{elative of|lang=ar|فَصِيح}}, {{elative of|lang=ar|فَصْح}}:
+## [[purer]] in [[language]]; [[purest]] in [[language]]
+## more [[eloquent]]; most [[eloquent]]
+## more [[fluent]]; most [[fluent]]
+## more [[voluble]]; most [[voluble]]
+## [[clearer]] in [[speech]]; [[clearest]] in [[speech]]
+
+====Declension====
+{{ar-decl-adj|أَفْصَح|f=فُصْحَى}}
+
+====References====
+* {{R:ar:Wehr-4|فصح}}
+
+فصحى
+
+==Arabic==
+{{wikipedia|lang=ar|لغة عربية فصحى}}
+
+===Etymology===
+Feminine form of the {{ar-elative|lc=1|nocat=1}} adjective {{m|ar|أَفْصَح||[[purest]] in [[language]], most [[eloquent]]}}, derived from {{m|ar|فَصِيح||[[pure]] in [[language]], [[eloquent]]}}. The noun is derived from the expression {{m|ar|لُغَة عَرَبِيَّة فُصْحَى|tr=luḡa ʿarabiyya fuṣḥā||[[pure]] [[Arabic]] [[language]]}}.
+
+===Adjective===
+{{ar-adj-fem|فُصْحَى}}
+
+# {{feminine of|أَفْصَح|lang=ar}}
+
+===Noun===
+{{ar-noun|فُصْحَى|f}}
+
+# [[Fus-ha]], [[standard]] [[Arabic]] [[language]], [[Modern Standard Arabic]], [[Classical Arabic]]
+
+====Declension====
+{{ar-decl-noun|فُصْحَى}}
+
+====Synonyms====
+* {{l|ar|لُغَة عَرَبِيَّة فُصْحَى|tr=luḡa ʿarabiyya fuṣḥā}}
+
+====Antonyms====
+* {{l|ar|عَامِّيَّة}}
+* {{l|ar|دَارِجَة}}
+* {{l|ar|لَهْجَة}}
+
+====References====
+* {{R:ar:Wehr-4|فصح}}
+
+محتويات
+
+==Arabic==
+
+===Etymology===
+Plural of {{m|ar|مُحْتَوًى}}, {{ar-passive participle|lc=1|nocat=1}} of {{m|ar|اِحْتَوَى||to [[contain]]}}.
+
+===Noun===
+{{ar-noun|مُحْتَوَيَات|p}}
+
+# [[contents]] {{i|of a [[book]], etc.}}
+
+====Declension====
+{{ar-decl-noun|-|pl=مُحْتَوَيَات|number=pl}}
+
+====References====
+* {{R:ar:Haywood}}
+* {{R:ar:Wehr-4|حوي}}
+
+
+إثر
+
+==Arabic==
+
+===Alternative forms===
+* {{l|ar|أَثْرَ}}
+* {{l|ar|فِي أَثْرِ}}
+* {{l|ar|عَلَى أَثْرِ}}
+* {{l|ar|فِي إِثْرِ}}
+* {{l|ar|عَلَى إِثْرِ}}
+
+===Etymology===
+Adverbial accusative of a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
+
+===Preposition===
+{{ar-prep|إِثْرَ}}
+
+# [[following]] on, [[immediately]] [[after]]
+
+====Inflection====
+{{ar-prep-auto|إِثْرَ}}
+
+====References====
+* {{R:ar:Haywood}}
+
+أثر
+
+==Arabic==
+
+===Etymology 2===
+Adverbial accusative of a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
+
+====Alternative forms====
+* {{l|ar|إِثْرَ}}
+* {{l|ar|فِي أَثْرِ}}
+* {{l|ar|عَلَى أَثْرِ}}
+* {{l|ar|فِي إِثْرِ}}
+* {{l|ar|عَلَى إِثْرِ}}
+
+====Preposition====
+{{ar-prep|إِثْرَ}}
+
+# [[following]] on, [[immediately]] [[after]]
+
+=====Inflection=====
+{{ar-prep-auto|إِثْرَ}}
+
+====References====
+* {{R:ar:Haywood}}
+
+في أثر
+
+==Arabic==
+
+===Alternative forms===
+* {{l|ar|أَثْرَ}}
+* {{l|ar|إِثْرَ}}
+* {{l|ar|عَلَى أَثْرِ}}
+* {{l|ar|فِي إِثْرِ}}
+* {{l|ar|عَلَى إِثْرِ}}
+
+===Etymology===
+Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
+
+===Preposition===
+{{ar-prep|[[فِي]] [[أَثْرِ]]}}
+
+# [[following]] on, [[immediately]] [[after]]
+
+====Inflection====
+{{ar-prep-auto|فِي أَثْرِ}}
+
+====References====
+* {{R:ar:Haywood}}
+
+في إثر
+
+==Arabic==
+
+===Alternative forms===
+* {{l|ar|أَثْرَ}}
+* {{l|ar|إِثْرَ}}
+* {{l|ar|فِي أَثْرِ}}
+* {{l|ar|عَلَى أَثْرِ}}
+* {{l|ar|عَلَى إِثْرِ}}
+
+===Etymology===
+Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
+
+===Preposition===
+{{ar-prep|[[فِي]] [[إِثْرِ]]}}
+
+# [[following]] on, [[immediately]] [[after]]
+
+====Inflection====
+{{ar-prep-auto|فِي إِثْرِ}}
+
+====References====
+* {{R:ar:Haywood}}
+
+
+على أثر
+
+==Arabic==
+
+===Alternative forms===
+* {{l|ar|أَثْرَ}}
+* {{l|ar|إِثْرَ}}
+* {{l|ar|فِي أَثْرِ}}
+* {{l|ar|فِي إِثْرِ}}
+* {{l|ar|عَلَى إِثْرِ}}
+
+===Etymology===
+Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
+
+===Preposition===
+{{ar-prep|[[عَلَى]] [[أَثْرِ]]}}
+
+# [[following]] on, [[immediately]] [[after]]
+
+====Inflection====
+{{ar-prep-auto|عَلَى أَثْرِ}}
+
+====References====
+* {{R:ar:Haywood}}
+
+على إثر
+
+==Arabic==
+
+===Alternative forms===
+* {{l|ar|أَثْرَ}}
+* {{l|ar|إِثْرَ}}
+* {{l|ar|فِي أَثْرِ}}
+* {{l|ar|عَلَى أَثْرِ}}
+* {{l|ar|فِي إِثْرِ}}
+
+===Etymology===
+Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
+
+===Preposition===
+{{ar-prep|[[عَلَى]] [[إِثْرِ]]}}
+
+# [[following]] on, [[immediately]] [[after]]
+
+====Inflection====
+{{ar-prep-auto|عَلَى إِثْرِ}}
+
+====References====
+* {{R:ar:Haywood}}
+
+
+حزب العمال
+
+==Arabic==
+
+===Etymology===
+Literally "Party of the Workers".
+
+===Proper noun===
+{{ar-proper noun|[[حِزْب]] [[عَامِل|العُمَّال]]|m}}
+
+# the [[Labour Party]] {{i|or its [[equivalent]] in other [[countries]]}}
+
+====Declension====
+{{ar-decl-noun|حِزْب|mod=-|modpl=عُمَّال|state=con|modstate=def|modcase=gen|modnumber=pl}}
+
+
+فرد
+
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ف|ر|د}}.
+
+====Verb====
+{{ar-verb|I|a,u|u}}
+
+# to be [[single]], be [[alone]]
+# to be [[singular]], be [[unique]]
+
+=====Conjugation=====
+{{ar-conj|I|a,u|u|passive=n?|vn=فُرُودٌ}}
+
+====Verb====
+{{ar-verb|I|a|u}}
+
+# to [[withdraw]], [[retire]], [[segregate]]
+
+=====Conjugation=====
+{{ar-conj|I|a|u|passive=impers?|vn=فُرُودٌ}}
+
+====Verb====
+{{ar-verb|I|a|i}}
+
+# to [[spread]], [[spread out]], [[extend]], [[stretch]]
+# to [[roll out]] (as dough), [[unfold]]
+
+=====Conjugation=====
+{{ar-conj|I|a|i|passive=y|vn=فَرْدٌ}}
+
+===Etymology 2===
+
+====Adjective====
+{{ar-adj|فَرْد|pl=أَفْرَاد|pl2=فُرَادَى}}
+
+# [[alone]], [[single]]
+# [[sole]], [[only]], [[solely]]
+# [[lone]], [[lonesome]]
+# [[solitary]]
+# [[singular]], [[unique]], [[matchless]], [[unrivaled]], [[unparalleled]], [[nonpareil]], [[peerless]], [[incomparable]], [[nonesuch]]
+# one and [[only]]
+# [[odd]], [[uneven]] (number)
+
+=====Declension=====
+{{ar-decl-adj|فَرْد|pl=أَفْرَاد|pl2=فُرَادَى}}
+
+====Noun====
+{{ar-noun|فَرْد|m|pl=أَفْرَاد}}
+
+# [[one]], a [[single]] person, [[individual]], [[somebody]], [[someone]]
+# [[soldier]], [[private]]
+
+=====Declension=====
+{{ar-decl-noun|فَرْد|pl=أَفْرَاد}}
+
+====Noun====
+{{ar-noun|فَرْد|m|pl=فِرَاد}}
+
+# [[one]], one of a couple, one of a pair
+
+=====Declension=====
+{{ar-decl-noun|فَرْد|pl=فِرَاد}}
+
+====Noun====
+{{ar-noun|فَرْد|m|pl=فُرُود|pl2=فُرُودَة}}
+
+# [[pistol]]
+# {{context|linguistics|lang=ar}} [[singular]]
+
+=====Declension=====
+{{ar-decl-noun|فَرْد|pl=فُرُود|pl2=فُرُودَة}}
+
+[[Category:ar:Firearms]]
+
+
+زيد
+
+==Arabic==
+
+===Etymology 1===
+Causative of {{m|ar|زَادَ||to [[increase]] {{i|intransitive}}}}, from the root {{ar-root|ز|ي|د}}.
+
+====Verb====
+{{ar-verb|II|II=ي}}
+
+# {{lb|ar|transitive}} to [[increase]], to [[augment]], to [[grow]], to [[multiply]]
+# to [[raise]] the [[price]]
+# to [[buy]] [[expensively]]
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Lane}}
+* {{R:ar:Steingass}}
+
+===Etymology 2===
+
+====Proper noun====
+{{ar-proper noun|زَيْد|m}}
+
+# [[Zayd]], {{given name|male|lang=ar}}.
+
+=====Declension=====
+{{ar-decl-noun|زَيْدٌ|state=ind}}
+
+خفي
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|خ|ف|ي}}; compare {{m|ar|خَفِيَ||to be [[hidden]]}}.
+
+===Adjective===
+{{ar-adj|خَفِيّ|f=خَفِيَّة}}
+
+# [[hidden]], [[invisible]], [[unseen]], [[veiled]], [[ulterior]], [[cryptic]], [[occult]], [[mysterious]], [[secret]], [[covert]], [[stealthy]], [[surreptitious]]
+
+====Declension====
+{{ar-decl-adj|خَفِيّ}}
+
+
+خلاق
+
+==Arabic==
+{{wikipedia|الخلاق|lang=ar}}
+===Etymology 1===
+From the root {{ar-root|خ ل ق}}; compare {{m|ar|خَلَقَ|gloss=to [[create]]}}.
+
+====Adjective====
+{{ar-adj|خَلَّاق}}
+
+# [[original]], [[artistic]], [[creative]]
+# [[new]], [[fertile]], [[inventive]]
+
+=====Declension=====
+{{ar-decl-adj|خَلَّاق}}
+
+====Noun====
+{{ar-noun|خَلَّاق|m}}
+
+# [[maker]]
+# [[inventor]], [[author]], [[originator]], [[maker]]
+# [[innovator]], [[contriver]], [[creator]]
+# [[seminal]], [[novel]]
+
+=====Declension=====
+{{ar-decl-noun|خَلَّاق}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|خَلَاق|m}}
+
+# [[share]] (of positive qualities, religion)
+
+=====Declension=====
+{{ar-decl-noun|خَلَاق}}
+
+[[Category:ar:Religion]]
+
+
+دوار
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|د|و|ر}}; compare {{m|ar|دَارَ||to [[turn]], to [[revolve]]}}.
+
+====Noun====
+{{ar-noun|دُوَار|m|head2=دَوَار}}
+
+# [[vertigo]], [[dizziness]], [[giddiness]]
+# [[seasickness]]
+
+=====Declension=====
+{{ar-decl-noun|دُوَار|head2=دَوَار}}
+
+===Etymology 2===
+{{ar-characteristic noun}} and {{ar-characteristic adjective|lc=1}} derived from {{m|ar|دَارَ||to [[turn]], to [[rotate]], to [[roam]], to [[circulate]]}}, from the root {{ar-root|د و ر}}.
+
+====Noun====
+{{ar-noun|دَوَّار|m}}
+
+# [[wandering]], [[cruising]], going about
+# [[traveler]], [[nomad]], [[rover]], [[runabout]], [[wanderer]], [[globetrotter]]
+# [[explorer]]
+# [[perambulator]], [[itinerant]]
+# [[rotor]], [[rotator]]
+# [[traffic circle]]
+# [[eddy]], [[whirlpool]], [[vortex]]
+# {{context|Egypt|lang=ar}} farm [[building]], [[farm]]
+
+=====Declension=====
+{{ar-decl-noun|دَوَّار}}
+
+====Adjective====
+{{ar-adj|دَوَّار}}
+
+# [[rotary]], [[gyratory]], [[gyrating]], [[revolving]], [[rotating]]
+# [[roving]], [[itinerant]]
+# [[ambulatory]], [[circulating]]
+
+=====Declension=====
+{{ar-decl-adj|دَوَّار}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun|دِوَار|m}}
+
+# {{ar-verbal noun of|دَاوَرَ|form=III}}
+
+ذكي
+
+==Arabic==
+
+===Etymology===
+From the roots {{ar-root|ذ|ي|و}} and {{ar-root|ذ|ك|ي}}; compare {{m|ar|ذَكِيَ||to be [[intelligent]]}}.
+
+===Adjective===
+{{ar-adj|ذَكِيّ|f=ذَكِيَّة|pl=أَذْكِيَاء}}
+
+# [[intelligent]]
+
+====Declension====
+{{ar-decl-adj|ذَكِيّ|pl=أَذْكِيَاء}}
+
+رتيب
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ر ت ب}}.
+
+===Adjective===
+{{ar-adj|رَتِيب|f=رَتِيبَة}}
+
+# [[monotonous]], [[dull]]
+
+====Declension====
+{{ar-decl-adj|رَتِيب}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+أروح
+
+==Arabic==
+
+===Etymology===
+{{ar-elative}} from the root {{ar-root|ر و ح}}; compare {{m|ar|رَاحَة||[[rest]]}}.
+
+===Adjective===
+{{ar-adj|أَرْوَح}}
+
+# more [[calming]]; most [[calming]]
+
+====Declension====
+{{ar-decl-adj|أَرْوَح}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+شجيع
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ش ج ع}}.
+
+===Adjective===
+{{ar-adj|شَجِيع|f=شَجِيعَة|pl=شُجَعَاء|pl2=شُجْعَان|fpl=شَجَائِع|fpl2=شِجَاع}}
+
+# [[brave]]
+# [[bold]]
+
+====Declension====
+{{ar-decl-adj|شَجِيع|f=شَجِيعَة|pl=شُجَعَاء|pl2=شُجْعَان|fpl=شَجَائِع|fpl2=شِجَاع}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+شجاع
+
+==Arabic==
+
+===Pronunciation===
+* {{IPA|/ʃudʒɑːʕ/|lang=ar}}
+
+===Adjective===
+{{ar-adj|شُجَاع|pl=شَجَعَة|pl2=شُجْعَان}}
+
+# [[brave]]
+# [[bold]]
+
+====Declension====
+{{ar-decl-adj|شُجَاع|pl=شَجَعَة|pl2=شُجْعَان}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+
+صارخ
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|صَرَخَ||to [[scream]], to [[shout]], to [[yell]], to [[call]]}}, from the root {{ar-root|ص ر خ}}.
+
+===Pronunciation===
+* {{IPA|/sˁɑːrix/|lang=ar}}
+
+===Adjective===
+{{ar-adj|صَارِخ}}
+
+# [[gaudy]]
+# [[crude]], [[coarse]]
+# [[noisy]]
+# [[flagrant]]
+# [[outrageous]]
+# [[shameless]], [[shocking]]
+# [[egregious]]
+# [[vociferous]]
+
+====Declension====
+{{ar-decl-adj|صَارِخ}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+
+صحي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|صِحَّة|[[health]]}}.
+
+===Pronunciation===
+* {{audio|Ar-صحي.ogg|Audio|lang=ar}}
+
+===Adjective===
+{{ar-nisba|صِحِّيّ}}
+
+# [[healthy]]
+
+====Declension====
+{{ar-decl-adj|صِحِّيّ|pl=smp}}
+
+صليب
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ص ل ب}}.
+
+===Noun===
+{{ar-noun|صَلِيب|m|pl=صُلْبَان|pl2=صُلُب}}
+
+# [[cross]]
+#: {{usex|lang=ar|inline=y|اَلصَّلِيب اَلْجَنُوبِيّ|t=Southern Cross}}
+# [[crucifix]]
+
+====Declension====
+{{ar-decl-noun|صَلِيب|pl=صُلْبَان|pl2=صُلُب}}
+
+===Adjective===
+{{ar-adj|صَلِيب}}
+
+# [[hard], [[solid]]
+
+====Declension====
+{{ar-decl-adj|صَلِيب}}
+
+
+باق
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|بَقِيَ||to [[remain]]}}, from the root {{ar-root|ب ق ي}}.
+
+===Adjective===
+{{ar-adj|بَاقٍ|f=بَاقِيَة|pl=بَاقُون|inf=بَاقِي}}
+
+# who [[remains]], who [[survives]]
+# [[remaining]], [[left]]
+# [[lasting]], [[permanent]]
+# [[surviving]]
+# [[eternal]] {{i|of [[God]]}}
+
+====Declension====
+{{ar-decl-adj|بَاقٍ|pl=بَاقُون|inf=بَاقِي}}
+
+====References====
+* {{R:ar:Steingass|باقي}}
+* {{R:ar:Wehr-4|بقي}}
+
+===Noun===
+{{ar-noun|بَاقٍ|m|pl=بَاقُون|cons=بَاقِي}}
+
+# [[rest]], [[remainder]]
+# [[balance]] of an [[account]]
+
+====Declension====
+{{ar-decl-noun|بَاقٍ|pl=بَاقُون|cons=بَاقِي}}
+
+====References====
+* {{R:ar:Steingass}}
+
+أجد
+
+==Arabic==
+
+===Etymology===
+{{ar-elative}} of {{m|ar|جَدِيد||[[new]]}} and {{m|ar|جَادّ||[[serious]], [[earnest]]}}.
+
+===Adjective===
+{{ar-adj|أَجَدّ}}
+
+# {{elative of|جَدِيد|lang=ar}}:
+## [[newer]]; [[newest]]
+# {{elative of|جَادّ|lang=ar}}:
+## more [[serious]]; most [[serious]]
+## more [[earnest]]; most [[earnest]]
+
+====References====
+* {{R:ar:Wehr-4|جد}}
+
+جان
+
+==Arabic==
+
+===Etymology 1===
+{{ar-active participle}} of {{m|ar|جَنَى||to [[gather]], to [[harvest]]; to [[commit]] a [[crime]]}}, form the root {{ar-root|ج ن ي}}.
+
+====Noun====
+{{ar-noun|جَانٍ|m|pl=جُنَاة|cons=جَانِي}}
+
+# [[gatherer]], [[harvester]], [[harvestman]], [[reaper]]
+# [[perpetrator]], [[offender]], [[delinquent]], [[criminal]], [[culprit]], [[felon]], [[evildoer]]
+
+=====Declension=====
+{{ar-decl-noun|جَانٍ|pl=جُنَاة}}
+
+===Etymology 2===
+Has the form of an {{ar-active participle|lc=1}}, as if from {{m|ar|جَنَّ||to hide}} (in the passive {{m|ar|جُنَّ||to go [[crazy]]}}), from the root {{ar-root|ج ن ن}}.
+
+====Noun====
+{{ar-noun|جَانّ|m}}
+
+# [[jinn]], [[demon]], [[demons]], [[fairy]]
+
+=====Declension=====
+{{ar-decl-noun|جَانّ}}
+
+
+
+EXISTS, CLEANUP ETYM, ADD FEM/DECL cheap رَخِيص from ر خ ص
+EXISTS, CLEANUP ETYM clean نَظِيف from ن ظ ف
+EXISTS, CLEANUP ETYM, IN DECL CHANGE DEF TO INF, ENSURE INF EXISTS clear / pure صَافٍ from ص ف و
+EXISTS clear / pure صَفِيّ from ص ف و
+EXISTS, ADD ETYM/REF/FEM/DECL clear / obvious وَاضِح from و ض ح
+EXISTS, CLEANUP ETYM (ACT PART), ADD FEM/REF/PL complete / perfect كَامِل from ك م ل
+EXISTS, ADD ETYM/REF/DECL powerful, strong / dear from أَزِيز from ع ز ز
+EXISTS, ADD ETYM/REF/FEM/DEF deep عَمِيق from ع م ق
+EXISTS, ADD ETYM/REF/FEM/DECL/DEF tasty / delicious لَذِيذ from ل ذ ذ
+EXISTS, ADD ETYM/REF/FEM/DECL/DEF dirty أَوْسَخ from وَسِخ from و س خ
+EXISTS, ADD ETYM/DECL dry جَافّ from ج ف ف
+EXISTS, ADD REF/FEM/DECL/DEF easy سَهْل from س ه ل
+EXISTS expensive غَالٍ from غ ل و
+EXISTS, ADD ETYM/REF/DECL/DEF famous مَشْهُور from ش ه ر
+EXISTS famous شَهِير from ش ه ر
+EXISTS, ADD REF/DECL/DEF far, distant / remote بَعِيد from ب ع د
+EXISTS, CLEANUP ETYM, ADD REF/DEF fast سَرِيع from س ر ع
+EXISTS, ADD REF/DECL/DEF pure / clear / obvious / frank صَرِيح from ص ر ح
+EXISTS, ADD ETYM/REF/FEM/DECL/DEF hot / warm حَارّ from ح ر ر
+EXISTS, ADD ETYM/REF/FEM/DECL/DEF sweet / pleasant / pretty أَحْلَى from حُلْو from ح ل و
+EXISTS, ADD ETYM/REF/DECL/DEF general عَامّ from ع م م
+EXISTS thin, slim / sharp رَهِيف from ر ه ف
+EXISTS thin, slim رَهِف from ر ه ف
+EXISTS thin, slim / sharp مُرْهَف from ر ه ف
+EXISTS, ADD ETYM/REF/DEF good جَيِّد from ج و د
+EXISTS, CLEANUP ETYM generous / noble كَرِيم from ك ر م
+EXISTS, ADD ETYM/REF/FEM/DECL/DEF happy / lucky سَعِيد from س ع د
+EXISTS, ADD ETYM/FEM/DECL wide / spacious وَاسِع from و س ع
+EXISTS handsome / esteemed / clear وَجِيه from و ج ه
+EXISTS handsome وَسِيم from و س م
+EXISTS, SPLIT ETYM, CLEANUP ETYM, ADD FEM/DEF/REF hard / difficult صَعْب from ص ع ب
+EXISTS handsome مَلِيح from م ل ح
+EXISTS ... heavy ثَقِيل from ث ق ل
+EXISTS hot سَاخِن َand سُخْن from س خ ن
+EXISTS ... ignorant جَاهِل from ج ه ل
+(EXISTS) important هَامّ from ه م م
+(EXISTS) innocent بَرِيء from ب ر ء
+EXISTS ... high [higher] / exalted / thin [thinner] / refined أَرْفَع from رَفِيع from ر ف ع
+(EXISTS) magnificent / luxurious فَخْم from ف خ م
+(EXISTS) low [lower], mean [meaner], vile [viler] / worthless / cowardly أَدْنَأ from دَنِيء from د ن ء
+(EXISTS) contemptible / despicable / miserable أَحْقَر from حَقِير from ح ق ر
+(EXISTS) miserable أَبْأَس from بَائِس and بَئِيس from ب ء س
+(EXISTS) complete, perfect أَتَمّ from تَامّ from ت م م
+(EXISTS) pale [paler] أَشْحَب from شَاحِب from ش ح ب
+(EXISTS) patient / persistent أَصْبَر from صَابِر from ص ب ر
+EXISTS ... precious أَنْفَس from نَفِيس from ن ف س
+EXISTS few [less; least] / short [shorter] أَقَلّ from قَلِيل from ق ل ل
+(EXISTS) high [higher] / exalted أَسْمَى from سَمِيّ from س م و
+(EXISTS) high [higher] / exalted أَسْمَى from سَامٍ from س م و
+EXISTS ... distinctive / prominent أَبْرَز from بَارِز from ب ر ز
+(EXISTS) proud [prouder] / magnificent أَفْخَر from فَاخِر from ف خ ر
+(EXISTS) pure [purer] / clear [clearer] أَنْقَى from نَقِيّ from ن ق و and ن ق ي
+(EXISTS) sincere [sincerer] / pure [purer] / clear [clearer] أَخْلَص from خَالِص and خَلِيص from خ ل ص
+(EXISTS) rare [rarer] / strange [stranger] أَنْدَر from نَادِر from ن د ر
+EXISTS ... reasonable, rational / intelligent أَعْقَل from عَاقِل from ع ق ل
+EXISTS ... rich [richer] أَغْنَى from غَنِيّ from غ ن ي
+(EXISTS) rough [rougher] أَخْشَن from خَشِن from خ ش ن
+(EXISTS) thick [thicker] / rough [rougher] / rude [ruder] أَغْلَظ from غَلِيظ from غ ل ظ
+EXISTS ... sad [sadder], sorrowful, grieved أَحْزَن from حَزِين and حَزِن from ح ز ن
+(EXISTS) painful آلَم from أَلِيم from ء ل م
+EXISTS ... safe [safer] / healthy [healthier] أَسْلَم fem. سُلْمَى from سَالِم and سَلِيم from س ل م
+EXISTS ... sensible, reasonable / rightly guided, upright, straight [straighter] / mature أَرْشَد from رَاشِد and رَشِيد from ر ش د
+(EXISTS) great [greater], large [larger], big [bigger], bulky [bulkier] / corpulent / important, difficult / highly esteemed أَجْسَم from جَسِيم from ج س م
+EXISTS ... sick [sicker] أَمْرَض from مَرِيض from م ر ض
+EXISTS ... simple [simpler] / wide [wider] أَبْسَط from بَسِيط from ب س ط
+EXISTS ... slow [slower] أَبْطَأ from بَطِيء from ب ط ء
+EXISTS ... smart [smarter] / fragrant / tasty [tastier] أَذْكَى from ذَكِيّ from ذ ك و and ذ ك ي
+(EXISTS) obedient / flexible / smooth [smoother] أَسْلَس from سَلِس from س ل س
+(EXISTS) soft [softer] / gentle [gentler] أَلْيَن from لَيِّن from ل ي ن
+(EXISTS) fresh [fresher] / moist [moister] / soft [softer] أَطْرَى from طَرِيّ from ط ر و and ط ر ي
+EXISTS ... soft [softer] / smooth [smoother] أَنْعَم from نَاعِم from ن ع م
+EXISTS ... strange [stranger] أَغْرَب from غَرِيب from غ ر ب
+EXISTS ... stupid [stupider], foolish أَغْبَى from غَبِيّ from غ ب و and غ ب ي
+EXISTS ... thick [thicker] أَسْمَك from سَمِيك from س م ك
+EXISTS ... thin [thinner], slim [slimmer] / delicate / soft [softer] أَرَقّ from رَقِيق from ر ق ق
+EXISTS ... thin [thinner], slim [slimmer] / delicate / lean [leaner] أَنْحَف from نَحِيف from ن ح ف
+(EXISTS) worthy, deserving حَقِيق from ح ق ق
+(EXISTS) worthy / appropriate جَدِير from ج د ر
+EXISTS ... ugly / infamous / vile قَبِيح from ق ب ح
+(EXISTS) useful نَافِع from ن ف ع
+(EXISTS) severe / rude / violent عَنِيف from ع ن ف
+(EXISTS) warm دَفِئ from د ف ء
+EXISTS ... warm دَافِئ from د ف ء
+EXISTS ... weak ضَعِيف from ض ع ف
+(EXISTS) humid, damp, moist / wet رَطْب and رَاطِب and رَطِيب from ر ط ب
+EXISTS ... wise حَكِيم from ح ك م
+(EXISTS) necessary لاَزِم from ل ز م
+(EXISTS) bad [worse, worst], evil, wicked [wickeder], corrupt, depraved / worthless / low [lower], ignoble, vile [viler], mean [meaner] / vicious / disapproved, disliked, hated, abominable / weak [weaker], impotent أَرْدَأ from رَدِيء from ر د ء {{ar-adj|رَدِيء|pl=أَرْدِئَاء|pl2=أَرْدِيَاء}}
+(EXISTS) great [greater], important / exalted / revered, honorable / glorious أَجَلّ from جَلِيل from ج ل ل
+(EXISTS) glorious / famous / exalted / praiseworthy, excellent, splendid / noble أَمْجَد from مَجِيد from م ج د
+(EXISTS) eloquent / intense, deep [deeper] / serious, grave [graver] أَبْلَغ from بَلِيغ from ب ل غ
+
+
+
+Format of the following:
+  ELATIVEDESC = TEXT ELATIVE DECL from ARPOSITIVE from ROOT
+  ELATIVE = (Arabic)
+  ARPOSITIVE = "(Arabic)" or "(Arabic) and (Arabic) ..."
+  ROOT = (Arabic) or "(Arabic) and (Arabic) ..."
+  DECL = declensional forms, ignored currently
+  TEXT = one or more DEFN, separated by slashes
+  DEFN = one or more SYNONYM, separated by commas, or text in parens
+  SYNONYM = "POSITIVE" or "POSITIVE [COMPARATIVE]" or "POSITIVE [COMPARATIVE; SUPERLATIVE]" or "POSITIVE []"
+
+Each DEFN takes up one line. Text in parens is inserted exactly. For SYNONYMs, comparative and superlative are generated from the positive form as follows:
+1. SYNONYM = POSITIVE: comparative is "more POSITIVE", superlative is "most POSITIVE"
+2. SYNONYM = POSITIVE [COMPARATIVE]: comparative is "COMPARATIVE", superlative is formed from comparative using s/er$/est$/
+3. SYNONYM = POSITIVE [COMPARATIVE; SUPERLATIVE]: comparative and superlative are as given
+4. SYNONYM = POSITIVE []: no comparative or superlative; intended for the case where the elative has a special meaning not derivable from the positive
+The defn line groups all comparative synonyms together, separated by commas, then a semicolon, then all superlative synonyms, separated by commas. In case #4 above where there is no comparative/superlative, the positive form is inserted where the comparative would normally go. All words except "more" and "most" and text in parens are auto-bracketed e.g. "[[prettier]]" or "more [[beautiful]]". If there are multiple words in a POSITIVE entry, each is bracketed individually, e.g. "more [[highly]] [[esteemed]]".
+
+active / energetic أَنْشَط from نَشِيط from ن ش ط
+afraid أَخْوَف from خَائِف from خ و ف
+alive أَحَيّ from حَيّ from ح ي ي
+bad [worse; worst] أَسْوَأ from سَيِّئ from س و ء
+beautiful / pretty [prettier] أَجْمَل from جَمِيل from ج م ل
+wonderful / surprising أَعْجَب from عَجِيب from ع ج ب
+appropriate / fit [fitter] أَلْيَق from لَائِق from ل ي ق
+calm [calmer], quiet [quieter] أَهْدَأ from هَادِئ from ه د ء
+cheap [cheaper] / soft [softer] / mean [meaner], low [lower] أَرْخَص from رَخِيص from ر خ ص
+clean [cleaner] أَنْظَف from نَظِيف from ن ظ ف
+clear [clearer] / pure [purer] أَصْفَى from صَافٍ and صَفِيّ from ص ف و
+clear [clearer] / obvious أَوْضَح from وَاضِح from و ض ح
+complete / perfect أَكْمَل from كَامِل from ك م ل
+deep [deeper] أَعْمَق from عَمِيق from ع م ق
+true [truer] / right, correct / genuine أَصَحّ from صَحِيح from ص ح ح
+tasty [tastier] / delicious أَلَذّ from لَذِيذ from ل ذ ذ
+dirty [dirtier] أَوْسَخ from وَسِخ from و س خ
+dry [drier] أَجَفّ from جَافّ from ج ف ف
+easy [easier] أَسْهَل from سَهْل from س ه ل
+expensive أَغْلَى from غَالٍ from غ ل و
+famous أَشْهَر from شَهِير and مَشْهُور from ش ه ر
+far [farther], distant / remote / bad [] / perishing [] أَبْعَد from بَعِيد from ب ع د
+fast [faster] أَسْرَع from سَرِيع from س ر ع
+fat [fatter] أَسْمَن from سَمِين from س م ن
+pure [purer] / clear [clearer] / obvious / frank [franker] أَصْرَح from صَرِيح from ص ر ح
+hot [hotter] / warm [warmer] أَحَرّ from حَارّ from ح ر ر
+sweet [sweeter] / pleasant / pretty [prettier] / ([[better]]; [[best]]) أَحْلَى from حُلْو from ح ل و
+general أَعَمّ from عَامّ from ع م م
+good [better; best] أَجْوَد from جَيِّد from ج و د
+happy [happier] / lucky [luckier] أَسْعَد from سَعِيد from س ع د
+wide [wider] / spacious أَوْسَع from وَاسِع from و س ع
+handsome / esteemed / clear [clearer] أَوْجَه from وَجِيه from و ج ه
+handsome أَوْسَم from وَسِيم from و س م
+hard [harder] / difficult أَصْعَب from صَعْب from ص ع ب
+strong [stronger] / violent / hard [harder] أشَدّ from شَدِيد from ش د د
+handsome أَمْلَح from مَلِيح from م ل ح
+honest, upright / sound, whole أَصْلَح from صَالِح from ص ل ح
+heavy [heavier] أَثْقَل from ثَقِيل from ث ق ل
+hot [hotter] أَسْخَن from سَاخِن َand سُخْن from س خ ن
+ignorant أَجْهَل from جَاهِل from ج ه ل
+important أَهَمّ from هَامّ from ه م م
+innocent أَبْرَأ from بَرِيء from ب ر ء
+high [higher] / exalted / thin [thinner] / refined أَرْفَع from رَفِيع from ر ف ع
+magnificent / luxurious أَفْخَم from فَخْم from ف خ م
+low [lower], mean [meaner], vile [viler] / worthless / cowardly أَدْنَأ from دَنِيء from د ن ء
+contemptible / despicable / miserable أَحْقَر from حَقِير from ح ق ر
+miserable أَبْأَس from بَائِس and بَئِيس from ب ء س
+complete, perfect أَتَمّ from تَامّ from ت م م
+pale [paler] أَشْحَب from شَاحِب from ش ح ب
+patient / persistent أَصْبَر from صَابِر from ص ب ر
+precious أَنْفَس from نَفِيس from ن ف س
+few [less; least] / short [shorter] أَقَلّ from قَلِيل from ق ل ل
+high [higher] / exalted أَسْمَى from سَمِيّ and سَامٍ from س م و
+distinctive / prominent أَبْرَز from بَارِز from ب ر ز
+proud [prouder] / magnificent أَفْخَر from فَاخِر from ف خ ر
+pure [purer] / clear [clearer] أَنْقَى from نَقِيّ from ن ق و and ن ق ي
+sincere [sincerer] / pure [purer] / clear [clearer] أَخْلَص from خَالِص and خَلِيص from خ ل ص
+rare [rarer] / strange [stranger] أَنْدَر from نَادِر from ن د ر
+reasonable, rational / intelligent أَعْقَل from عَاقِل from ع ق ل
+rich [richer] أَغْنَى from غَنِيّ from غ ن ي
+thick [thicker] / rough [rougher] / rude [ruder] أَغْلَظ from غَلِيظ from غ ل ظ
+sad [sadder] أَحْزَن from حَزِين from ح ز ن
+painful آلَم from أَلِيم from ء ل م
+sensible, reasonable / rightly guided, upright, straight [straighter] / mature أَرْشَد from رَاشِد and رَشِيد from ر ش د
+great [greater], large [larger], big [bigger], bulky [bulkier] / corpulent / important, difficult / highly esteemed أَجْسَم from جَسِيم from ج س م
+sick [sicker] أَمْرَض from مَرِيض from م ر ض
+simple [simpler] / wide [wider] أَبْسَط from بَسِيط from ب س ط
+slow [slower] أَبْطَأ from بَطِيء from ب ط ء
+smart [smarter] / fragrant / tasty [tastier] أَذْكَى from ذَكِيّ from ذ ك و and ذ ك ي
+obedient / flexible / smooth [smoother] أَسْلَس from سَلِس from س ل س
+soft [softer] / gentle [gentler] أَلْيَن from لَيِّن and لَيْن from ل ي ن
+fresh [fresher] / moist [moister] / soft [softer] أَطْرَى from طَرِيّ from ط ر و and ط ر ي
+soft [softer] / smooth [smoother] أَنْعَم from نَاعِم from ن ع م
+strange [stranger] أَغْرَب from غَرِيب from غ ر ب
+stupid [stupider], foolish أَغْبَى from غَبِيّ from غ ب و and غ ب ي
+thick [thicker] أَسْمَك from سَمِيك from س م ك
+thin [thinner], slim [slimmer] / delicate / soft [softer] أَرَقّ from رَقِيق from ر ق ق
+thin [thinner], slim [slimmer] / delicate / lean [leaner] أَنْحَف from نَحِيف from ن ح ف
+worthy [worthier], deserving أَحَقّ from حَقِيق from ح ق ق
+worthy [worthier] / appropriate أَجْدَر from جَدِير from ج د ر
+ugly [uglier] / infamous / vile [viler] أَقْبَح from قَبِيح from ق ب ح
+useful أَنْفَع from نَافِع from ن ف ع
+severe / rude [ruder] / violent أَعْنَف from عَنِيف from ع ن ف
+warm [warmer] أَدْفَأ from دَفِئ and دَافِئ from د ف ء
+weak [weaker] أَضْعَف from ضَعِيف from ض ع ف
+humid, damp [damper], moist [moister] / wet [wetter] أَرْطَب from رَطْب and رَاطِب and رَطِيب from ر ط ب
+wise [wiser] أَحْكَم from حَكِيم from ح ك م
+necessary أَلْزَم from لاَزِم from ل ز م
+bad [worse; worst], evil, wicked [wickeder], corrupt, depraved / worthless / low [lower], ignoble, vile [viler], mean [meaner] / vicious / disapproved, disliked, hated, abominable / weak [weaker], impotent أَرْدَأ from رَدِيء from ر د ء
+great [greater], important / exalted / revered, honorable, venerable / glorious, magnificent / strong [stronger], stout [stouter], rough [rougher] / old [older], experienced أَجَلّ from جَلِيل from ج ل ل
+eloquent / intense, deep [deeper] / serious, grave [graver] أَبْلَغ from بَلِيغ from ب ل غ
+inhabited, populated, populous / crowded, filled / civilized, flourishing, thriving / cultivated أَعْمَر from عَامِر from ع م ر
+kind [kinder], merciful, compassionate, beneficent أَرْحَم from رَحِيم from ر ح م
+
+
+EXISTING ADJECTIVES POTENTIALLY ELATIVE BUT CAN'T FIND ELATIVE DEFN EXISTING IN GOOGLE TRANSLATE, ALMAANY OR WEHR:
+
+el آلَم from أَلِيم painful [GT, HW, LA, ST]
+[same shape] el آمَر from آمِر dictatorial, domineering, imperious [GT, HW, LA]
+[same shape] el آمَن from آمِن safe, secure / trustworthy [GT, HW, LA]
+[clash with آمِر "domineering"] el آمَر from إمْر simple-minded, stupid [GT, HW, LA]
+el أَبَتّ from بَاتّ definite, definitive / categorical [GT, HW, LA]
+el أَبْطَل from بَاطِل vain, foolish / useless/ false [GT, HW, LA]
+el أَبْدَل from بَدَل generous, magnanimous [GT, HW, LA]
+el أَتْبَع from تَابِع following, minor, secondary, etc. [GT, HW, LA]
+el أَتْعَب from تَعِب tired, weary, exhausted [GT, HW, LA]
+el أَجْهَد from جَاهِد toiling, tedious, etc. [GT, HW, LA]
+el أَجْرَح from جَرِيح wounded [GT, HW, LA]
+[clash with أَجْمَع "whole"] el أَجْمَع from جَمِيع whole, entire, all [GT, HW, LA]
+[clash with أَحْوَل "squinting"] el أَحْوَل from حَائِل altering, changing, altered, changed, etc. [GT, HW, LA]
+el أَحْجَب from حَاجِب concealing, screening, protecting [GT, HW, LA]
+[clash with حَارّ "hot, warm"] el أَحَرّ from حُرّ free, etc. [GT, HW, LA]
+el أَحْرَس from حَارِس guarding, keeping watch, preserving / vigilant [GT, HW, LA]
+[clash with أَحْسَب "white and red"] el أَحْسَب from حَاسِب numbering, computing, etc. [GT, HW, LA]
+el أَحْضَر from حَاضِر present, ready, etc. [GT, HW, LA]
+[clash with حَكِيم "wise"] el أَحْكَم from حَاكِم ruling, decisive [GT, HW, LA]
+[clash with حَمِيد "praiseworthy"] el أَحْمَد from حَامِد praising [GT, HW, LA]
+el أَحْرَم from حَرَم forbidden, prohibited, etc. / holy, sacred, etc. [GT, HW, LA]
+[offshape] el أَحْرَف from حِرِّيف pungent, acrid [GT, HW, LA]
+[clash with حَقِيق "worthy, deserving"] el أَحَقّ from حَقّ true, fair, valid, correct, etc. [GT, HW, LA]
+el أَخْوَن from خَائِن disloyal, false, unfaithful, traitorous, treacherous, etc. [GT, HW, LA]
+[clash with أَخْرَج "white and black"] el أَخْرَج from خَارِج outer, exterior, external, foreign, etc. [GT, HW, LA]
+[clash with أَخْطَب "ashy-colored"] el أَخْطَب from خَاطِب engaged, betrothed [GT, HW]
+el أَخْلَى from خَالٍ empty, vacant, free, celibate, etc. [GT, HW, LA]
+[clash with خَلِيق "suitable, adequate" and أَخْلَق "smooth"] el أَخْلَق from خَالِق creative [GT, HW, LA]
+el أَخْجَل from خَجِل embarrassed, shy, etc. [GT, HW, LA]
+[clash with أَخْدَر "dark"] el أَخْدَر from خَدِر numb [GT, HW, LA]
+el أَحْضَل from خَضِل moist, damp, wet [GT, HW, LA]
+el أَخْفَى from خَفِيّ hidden [GT, HW, LA]
+[clash with خَلِيق "suitable, adequate" and أَخْلَق "smooth"] el أَخْلَق from خَلَق worn, threadbare [GT, HW, LA]
+el أَدْخَل from دَاخِل interior, inside [GT, HW, LA]
+el أَدَرّ from دَارّ flowing copiously, productive, rich, profitable, etc. [GT, HW, LA]
+[clash with أَدَبّ "having much hair"] el أَدَبّ from دَبِيب creeping [GT, HW]
+el أَدْيَن from دَيِّن religious, devout, etc. [GT, HW, LA]
+el أَرَبّ from رَبّ many [GT, HW, LA]
+el أَرَخّ from رَخّ soft, relaxed, irresolute [GT, HW, LA]
+el أَرَفّ from رَفِيف thin, fine [GT, HW, LA]
+el أَرْتَب from رَتِيب and رَاتِب monotonous, dull [GT, HW, LA, ST]
+el أَزْيَن from زَيْن beautiful [GT, HW, LA]
+el أَسْيَر from سَائِر walking [GT, HW, LA]
+[clash with أَسْوَق "long in the shanks"] el أَسْوَق from سَائِق driving [GT, HW]
+el أَسْحَر from سَاحِر enchanting, charming [GT, HW, LA]
+[clash with أَسْحَر "intermixed with red"] el أَسْخَر from سَاخِر mocking, sarcastic [GT, HW]
+el أَسْكَت from سَاكِت silent [GT, HW, LA]
+el أَشْهَد from شَاهِد present [GT, HW, LA]
+el أَشْرَك from شُرُك spurious, etc. [GT, HW, LA]
+el أَشْغَف from شَغِف enamored of, etc. [GT, HW, LA]
+[clash with أَشَفّ "greater"] el أَشَفّ from شَفَّاف thin, transparent [GT, HW, LA]
+el أَصْرَخ from صَارِخ gaudy, crude, noisy, flagrant, shameless [GT, HW, LA]
+[clash with أََصْمَط "tongue-tied, mute"] el أَصْمَت from صَامِت silent [GT, HW, LA]
+[clash with أَصْبَح "blackish-red"] el أَصْبَح from صُبَاح and صَبِيح pretty, beautiful, etc. [GT, HW, LA]
+[clash with أَصْدَأ "rusty"] el أَصْدَأ from صَدِئ rusty [GT, HW, LA]
+el أَصْعَد from صَعْد high [GT, HW, LA]
+el أَصْمَد from صَمَد everlasting [GT, HW, LA]
+el أَضْرَب from ضَرْب brave, active, slight, etc. [GT, HW, LA]
+el أَضَرّ from ضَرَر narrow [GT, HW, LA]
+[elative أَطْيَر means "swift-flying" in Lane] el أَطْيَر from طائِر flying [GT, HW, LA]
+el أَعْشَق from عَاشِق in love with, enamored of, infatuated with [GT]
+el أَعْمَر from عَامِر inhabited, populous, crowded, civilized, etc. [GT]
+el أَعْمَل from عَامِل active, effective [GT]
+[clash with أَعَدّ "more/most prepared"] el أَعَدّ from عَدِيد numerous [GT, HW, LA]
+el أَعْرَف from عَرِيف knowing, aware, etc. [GT]
+[clash with أَعْزَب "unarmed, defenseless"] el أَعْزَب from عَزَب celibate, single, unmarried [GT, HW]
+[clash with أَعْزَل "unarmed, defenseless"] el أَعْزَل from عُزُل unarmed, defenseless [GT, HW, LA]
+el أَعْطَر from عَطِر and عَاطِر fragrant, aromatic [GT, HW]
+el أَعْكَس from عَكْس contrary, opposite, etc. [GT]
+el أَعْمَق from عُنُق inclined towards, solicitous for [GT]
+el أَغْيَب from غَائِب hidden, absent, etc. [GT]
+el أَغْيَم from غَائِم cloudy, etc. [GT]
+el أَغْضَب from غَضِب angry, annoyed, etc. [GT, HW, LA]
+el أَغْلَط from غَلَط wrong [GT, HW, LA]
+el أَفْوَز from فَائِز successful, victorious [GT, HW, LA]
+[clash with أَفْرَع "tall, slender; having a full head of hair"] el أَفْرَع from فَارِع tall, slender, beautiful [GT, HW, LA]
+el أَفْنَى from فَانٍ ephemeral, vain, decrepit, perishable, etc. [GT, HW, LA]
+el أَفْرَح from فَرِح happy, etc. [GT, HW, LA]
+el أَفْرَد from فَرْد and فَرِيد sole, lonely, alone, unique, incomparable, etc. [GT, HW, LA]
+el أَفْصَل from فَصْل true (speech) [GT, HW, LA]
+[clash with قَدِيم "old"] el أَقْدَم from قَادِم coming, next [GT, HW]
+el أَقَرّ from قَارّ cold, quiet, etc. [GT, HW, LA]
+[clash with قَارِل "lethal"] el أَقْتَل from قَتِيل killed [GT, HW, LA]
+el أَقَرّ from قَرّ cold, etc. [GT, HW, LA]
+el أَقَرّ from قَرِير cool, fresh, etc. [GT, HW, LA]
+[clash with أَقْرَن "horned"] el أَقْرَن from قَرِين connected [GT, HW, LA]
+el أَقَطّ from قَطّ short and curly [GT, HW, LA]
+el أَقْلَق from قَلِق anxious, etc. [GT, HW, LA]
+el أَقْنَع from قَنِع contented [GT, HW, LA, ST]
+el أَكْفَى from كَافٍ enough [GT, HW, LA (main)]
+el أَكْحَل from كَهِل darkened with kohl [GT, HW, LA (main)]
+el أَكْرَه from كَرِه loathsome, etc. [GT, HW, LA (main)]
+[clash with أَكْلَب "more like a dog"] el أَكْلَب from كَلِب rabid, mad, greedy [GT, HW, LA, ST]
+el أَكَلّ from كَلِيل exhausted, weak, dull [GT, HW, LA (main), ST]
+el أَلْعَب from لَعِب funny, amusing [GT, HW, LA, ST]
+el أَلْهَم from لَهِم greedy, covetous [GT, HW, LA, ST]
+[clash with أَمْرَد "beardless, leafless, withered"] el أَمْرَد from مَارِد defiant [GT, HW, LA, ST]
+el أَمْرَن from مَرِن flexible [GT, HW, LA, ST]
+el أَمْطَر from مَاطِر and مَطِر and مَطِير rainy [GT, HW, LA, ST]
+el أَمْسَك from مُسُك grasping, greedly [GT, HW, LA, ST]
+[clash with أَمْسَح "flat place without  vegetation, etc."] el أَمْسَح from مَسِيح anointed, clean [GT, HW, LA, ST]
+el أَنْقَص from نَاقِص deficient, incomplete [GT, HW, LA, ST]
+el أَنْبَذ from نَبِيذ discarded, rejected [GT, HW, LA, ST]
+el أَنْبَه from نَبِيه righteous, famous, clever, etc. [GT, HW, LA, ST]
+el أَنْظَر from نَظِر similar, equal [GT, HW, LA, ST]
+el أَنْظَر from نَظِير similar, corresponding, opposite [GT, HW, LA, ST]
+el أَنْقَض from نَقِيض opposite, contrary [GT, HW, LA, ST]
+[clash with أَهَمّ "more important"] el أَهَمّ from هِمّ decrepit, senile [GT, HW, LA, ST]
+el أَوْتَر from وَتْر uneven [GT, HW, LA, ST]
+el أَوْرَع from وَرِع pious, cautious, reserved [GT, HW, LA, ST]
+el أَوْلَد from وَلِيد young, new [GT, HW, LA, ST]
