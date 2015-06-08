@@ -1307,6 +1307,12 @@ def parse_elative_defn(spec):
             ref_root = remove_diacritics(elative)
           else:
             ref_root = roots[0].replace(" ", "")
+            if ref_root[-1] == ref_root[-2]:
+              ref_root = ref_root[0:-1]
+            elif ref_root[-1] == u'ي':
+              ref_root = ref_root[0:-1] + u'ى'
+            elif ref_root[-1] == u'ء':
+              ref_root = ref_root[0:-1] + u'أ'
           ref_lines.append("* {{R:ar:%s|%s}}" % (ref, ref_root))
       reftext = "\n\n====References====\n" + "\n".join(ref_lines)
 
