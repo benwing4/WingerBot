@@ -80,6 +80,7 @@ witty [wittier], amusing, agreeable أَطْرَف from طَرِيف from ط ر 
 fresh [fresher] / moist [moister] / tender [tenderer], soft [softer], mild [milder] أَطْرَى from طَرِيّ from ط ر و and ط ر ي ref GT and Steingass|طري
 fresh [fresher] / healthy [healthier], sound [sounder], pure [purer] أَطْزَج from طَازَج from ط ز ج ref GT and Steingass|طاجز
 obedient, compliant, submissive أَطْوَع from طَوْع from ط و ع ref GT
+knowing [knowing better; knowing best], aware / acquainted [better acquainted; best acquainted], familiar / expert أَعْرَف from عَرِيف and عَارِف from ع ر ف ref Wehr-4
 mighty, powerful, strong / noble [nobler] / honorable / rare [rarer] / hard [harder], difficult / precious / dear [dearer], cherished أَعَزّ from عَزِيز from ع ز ز ref Wehr-4
 general أَعَمّ from عَامّ from ع م م ref Lane
 wonderful / surprising أَعْجَب from عَجِيب from ع ج ب ref Wehr-4
@@ -101,6 +102,7 @@ jealous / zealous, eager أَغْيَر from غَيُور from غ ي ر ref Lane
 proud [prouder], boastful / magnificent أَفْخَر from فَاخِر from ف خ ر ref Wehr-4
 magnificent / luxurious أَفْخَم from فَخْم from ف خ م ref GT
 spoiled, rotten / corrupt / destructive أَفْسَد from فَاسِد from ف س د ref Lane and Steingass|فاسد
+effective / efficient أَفْعَل from فَاعِل from ف ع ل ref Wehr-4
 few [fewer] / little [less; least] / sparse [sparser] / rare [rarer] أَقَلّ from قَلِيل from ق ل ل ref Wehr-4
 ugly [uglier] / infamous / vile [viler] أَقْبَح from قَبِيح from ق ب ح ref Wehr-4
 deadly [deadlier], lethal, fatal أَقْتَل from قَاتِل from ق ت ل ref Wehr-4
