@@ -168,9 +168,6 @@ ADD DEFN {{ar-verb|I|a|u}} صلح لِ {{ar-root|ص ل ح}} "to be suitable for"
 ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 
 
-أي
-
-
 وزير الخارجية
 
 
@@ -178,2878 +175,147 @@ ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 CREATE; ALSO ADD AS USEX IN وزير and خارجية Noun: وَزِير الخاارِجِيَّة foreign secretary
 
 
-ألماني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|أَلْمَان|[[Germans]]}}, from {{etyl|fr|ar}} {{m|fr|allemand||[[German]]}}.
-
-===Adjective===
-{{ar-nisba|أَلْمَانِيّ|pl=أَلْمَان}}
-
-# [[German]]
-
-====Declension====
-{{ar-decl-adj|أَلْمَانِيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|أَلْمَانِيّ|pl=أَلْمَان}}
-
-# [[German]]
-
-====Declension====
-{{ar-decl-gendered-noun|أَلْمَانِيّ|pl=smp}}
-
-جمهوري
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|جُمْهُور|[[multitude]], [[general]] [[public]]}}, probably calqued on {{etyl|la|-}} {{m|la|rēs pūblica||[[republic]]}}, literally "public thing". Compare {{m|ar|جُمْهُورِيَّة||[[republic]]}}.
-
-===Adjective===
-{{ar-nisba|جُمْهُورِيّ}}
-
-# [[republican]]
-
-====Declension====
-{{ar-decl-adj|جُمْهُورِيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|جُمْهُورِيّ}}
-
-# [[republican]]
-
-====Declension====
-{{ar-decl-gendered-noun|جُمْهُورِيّ|pl=smp}}
-
-
-فيما بعد
-
-==Arabic==
-
-===Etymology===
-Literally "in what is after".
-
-===Adverb===
-{{ar-adv|[[فِيمَا]] [[بَعْد]]}}
-
-# in the [[following]]
-# [[later]], in the [[future]]
-
-====References====
-* {{R:ar:Haywood}}
-* {{R:ar:Wehr-4|في}}
-
-فيما
-
-==Arabic==
-
-===Etymology===
-Composed of {{suffix|lang=ar|فِي|t1=[[in]]|مَا|t2=[[what]]}}
-
-===Conjunction===
-{{ar-con|فِيمَا}}
-
-# [[while]]
-# in [[that]], [[as]]
-# in [[what]] {{gloss|[[relative]], not [[interrogative]]}}
-#: {{ux|ar|فِيمَا مَضَى|in [[what]] has [[passed]], in the [[past]]}}
-
-====Derived terms====
-* {{l|ar|فِيمَا بَعْد||in [[what]] [[follows]], [[later]]}}
-
-====References====
-* {{R:ar:Wehr-4|في}}
-
-
-سنة
-
-==Arabic==
-
-===Etymology 1===
-From {{etyl|sem-pro|ar}} {{m|sem-pro|*šan-}}.
-
-====Noun====
-{{ar-noun|سَنَة|f|pl=سَنَوَات|pl2=سِنُون}}
-
-# [[year]]
-
-=====Declension=====
-{{ar-decl-noun|سَنَة|pl=سَنَوَات|pl2=سِنُون}}
-
-[[Category:ar:Time]]
-
-===Etymology 2===
-From the root {{ar-root|س ن ن}}; compare {{term|سَنَّ|lang=ar||to [[establish]] {{i|a [[law]], [[custom]], etc.}}}}.
-
-====Noun====
-{{ar-noun|سُنَّة|f|pl=سُنَن}}
-
-# {{context|Islam|lang=ar}} [[habitual]] [[practice]], [[custom]], [[norm]]
-# {{lb|ar|definite}} the [[Sunna]] {{gloss|[[Muhammad]]'s [[way of life]], as recorded in the [[hadith]]s}}}}
-
-=====Declension=====
-{{ar-decl-noun|سُنَّة|pl=سُنَن}}
-
-=====Derived terms=====
-* {{l|ar|السُنَّة||the [[Sunna]]}}
-* {{l|ar|سُنَّة النَبِيّ|tr=sunnat an-nabiyy||the [[Sunna]]}}
-* {{l|ar|أَهْل السُنَّة||[[Sunni]] [[Islam]], the [[Sunni]]}}
-* {{l|ar|سُنِّيّ||[[Sunni]]}}
-
-=====References=====
-* {{R:ar:Wehr-4|سن}}
-
-سني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|السُنَّة|the [[Sunna]]}}.
-
-===Adjective===
-{{ar-nisba|سُنِّيّ}}
-
-# [[Sunni]]
-
-====Declension====
-{{ar-decl-adj|سُنِّيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|سُنِّيّ}}
-
-# [[Sunni]]
-
-====Declension====
-{{ar-decl-gendered-noun|سُنِّيّ|pl=smp}}
-
-
-Template:ar-etym-nisba
-
-{{#if:{{{lc|}}}|[[Appendix:Arabic nominals#Relative adjectives (nisba)|relative adjective (nisba)]]|[[Appendix:Arabic nominals#Relative adjectives (nisba)|Relative adjective (nisba)]]}}{{#if:{{{nocat|}}}||[[Category:Arabic relative adjectives (nisba)]]}}{{#if:{{{1|}}}|&#32;composed of {{suffix|lang=ar|{{{1}}}|t1={{{2}}}|tr1={{{tr|}}}|ِيّ|tr2=-iyy}}}}<!--
-
---><noinclude>{{documentation}}
-
-Template:ar-etym-nisba/documentation
+Template:ar-adj-an/documentation
 
 {{documentation subpage}}
-This template is meant to be used in the etymology section. It displays the word ''Relative adjective (nisba)'' (or lowercase ''relative adjective (nisba)'' if <tt>lc=1</tt> is given), linked to the appropriate section of [[Appendix:Arabic nominals]], and also places the page in [[:Category:Arabic relative adjectives (nisba)]] unless <tt>nocat=1</tt> is given. It also normally displays a ''composed from'' section indicating the composition of the word from an underlying word (usually a noun) and the ending {{m|ar|ِيّ|tr=-iyy}}.
+This template is for displaying the headword line of Arabic adjectives that end in {{m|ar|ـًى|tr=-an}} (e.g. {{m|ar|مُثَنًّى||[[double]]}}). The feminine, plural and feminine plural are regular but complex, and it is easier to have a template produce them.
 
-Parameters:
-* {{para|lc}} If set to non-empty, use initial lowercase.
-* {{para|nocat}} If set to non-empty, don't place in the appropriate category.
-* {{para|1}} Underlying Arabic word. If omitted, don't display a ''composed from'' section.
-* {{para|tr}} Optional transliteration for the word, if it cannot be derived automatically.
-* {{para|2}} Gloss for underlying Arabic word.
-
-<includeonly>
-[[Category:Arabic etymology templates]]
-
-Template:ar-etym-nisba-linking
-
-{{#if:{{{lc|}}}|[[Appendix:Arabic nominals#Relative adjectives (nisba)|relative adjective (nisba)]]|[[Appendix:Arabic nominals#Relative adjectives (nisba)|Relative adjective (nisba)]]}}{{#if:{{{nocat|}}}||[[Category:Arabic relative adjectives (nisba)]]}}{{#if:{{{1|}}}|&#32;composed of {{suffix|lang=ar|{{{1}}}|t1={{{2}}}|tr1={{{tr|}}}|ِ{{{3}}}|tr2=-{{xlit|ar|{{{3}}}}}-|يّ|tr2=-iyy}}}}<!--
-
---><noinclude>{{documentation}}
-
-Template:ar-etym-nisba-linking/documentation
-
-{{documentation subpage}}
-This template is meant to be used in the etymology section. It displays the word ''Relative adjective (nisba)'' (or lowercase ''relative adjective (nisba)'' if <tt>lc=1</tt> is given), linked to the appropriate section of [[Appendix:Arabic nominals]], and also places the page in [[:Category:Arabic relative adjectives (nisba)]] unless <tt>nocat=1</tt> is given. It also normally displays a ''composed from'' section indicating the composition of the word from an underlying word (usually a noun) and the ending {{m|ar|ِيّ|tr=-iyy}}, with a linking syllable in between.
-
-Parameters:
-* {{para|lc}} If set to non-empty, use initial lowercase.
-* {{para|nocat}} If set to non-empty, don't place in the appropriate category.
-* {{para|1}} Underlying Arabic word. If omitted, don't display a ''composed from'' section.
-* {{para|tr}} Optional transliteration for the word, if it cannot be derived automatically.
-* {{para|2}} Gloss for underlying Arabic word.
-* {{para|3}} Arabic text of the linking syllable. Automatically transliterated and the transliteration surrounded with hyphens.
-
-<includeonly>
-[[Category:Arabic etymology templates]]
-
-Template:ar-etym-noun-nisba
-
-{{#if:{{{lc|}}}|[[Appendix:Arabic nominals#Relative nouns (nisba)|relative noun (nisba)]]|[[Appendix:Arabic nominals#Relative nouns (nisba)|Relative noun (nisba)]]}}{{#if:{{{nocat|}}}||[[Category:Arabic relative nouns (nisba)]]}}{{#if:{{{1|}}}|&#32;composed of {{suffix|lang=ar|{{{1}}}|t1={{{2}}}|tr1={{{tr|}}}|{{{3|ِيّ}}}|tr2=-{{xlit|ar|{{{3|ِيّ}}}}}}}}}<!--
-
-Template:ar-etym-noun-nisba/documentation
-
-{{documentation subpage}}
-This template is meant to be used in the etymology section. It displays the word ''Relative noun (nisba)'' (or lowercase ''relative noun (nisba)'' if <tt>lc=1</tt> is given), linked to the appropriate section of [[Appendix:Arabic nominals]], and also places the page in [[:Category:Arabic relative nouns (nisba)]] unless <tt>nocat=1</tt> is given. It also normally displays a ''composed from'' section indicating the composition of the word from an underlying word and the ending (usually either {{m|ar|َة|tr=-a}} when added onto a nisba adjective, or {{m|ar|ِيّ|tr=-iyy}} or {{m|ar|ِيَّة|tr=-iyya}} when added onto something else).
-
-Parameters:
-* {{para|lc}} If set to non-empty, use initial lowercase.
-* {{para|nocat}} If set to non-empty, don't place in the appropriate category.
-* {{para|1}} Underlying Arabic word. If omitted, don't display a ''composed from'' section.
-* {{para|tr}} Optional transliteration for the word, if it cannot be derived automatically.
-* {{para|2}} Gloss for underlying Arabic word.
-* {{para|3}} Arabic text of the suffix. Automatically transliterated and the transliteration prepended with a hyphen. If omitted, defaults to {{m|ar|ِيّ|tr=-iyy}}.
-
-<includeonly>
-[[Category:Arabic etymology templates]]
-
-Template:ar-etym-noun-nisba-linking
-
-{{#if:{{{lc|}}}|[[Appendix:Arabic nominals#Relative nouns (nisba)|relative noun (nisba)]]|[[Appendix:Arabic nominals#Relative nouns (nisba)|Relative noun (nisba)]]}}{{#if:{{{nocat|}}}||[[Category:Arabic relative nouns (nisba)]]}}{{#if:{{{1|}}}|&#32;composed of {{suffix|lang=ar|{{{1}}}|t1={{{2}}}|tr1={{{tr|}}}|{{{3}}}|tr2=-{{xlib|ar|{{{3}}}}}-|{{{4|ِيّ}}}|tr3=-{{xlit|ar|{{{4|ِيّ}}}}}}}}}<!--
-
-Template:ar-etym-noun-nisba-linking/documentation
-
-This template is meant to be used in the etymology section. It displays the word ''Relative noun (nisba)'' (or lowercase ''relative noun (nisba)'' if <tt>lc=1</tt> is given), linked to the appropriate section of [[Appendix:Arabic nominals]], and also places the page in [[:Category:Arabic relative nouns (nisba)]] unless <tt>nocat=1</tt> is given. It also normally displays a ''composed from'' section indicating the composition of the word from an underlying word and the ending (usually either {{m|ar|َة|tr=-a}} when added onto a nisba adjective, or {{m|ar|ِيّ|tr=-iyy}} or {{m|ar|ِيَّة|tr=-iyya}} when added onto something else), with a linking syllable in between.
-
-Parameters:
-* {{para|lc}} If set to non-empty, use initial lowercase.
-* {{para|nocat}} If set to non-empty, don't place in the appropriate category.
-* {{para|1}} Underlying Arabic word. If omitted, don't display a ''composed from'' section.
-* {{para|tr}} Optional transliteration for the word, if it cannot be derived automatically.
-* {{para|2}} Gloss for underlying Arabic word.
-* {{para|3}} Arabic text of the linking syllable. Automatically transliterated and the transliteration surrounded with hyphens.
-* {{para|4}} Arabic text of the suffix. Automatically transliterated and the transliteration prepended with a hyphen. If omitted, defaults to {{m|ar|ِيّ|tr=-iyy}}.
-
-Template:ar-etym-nisba-a
-
-{{ar-etym-nisba-a|{{{1|}}}|{{{2|}}}|tr={{{tr|}}}|َة}}
-
---><noinclude>{{documentation}}
-
-Template:ar-etym-nisba-a/documentation
-
-This template is meant to be used in the etymology section. It displays the word ''Relative noun (nisba)'' (or lowercase ''relative noun (nisba)'' if <tt>lc=1</tt> is given), linked to the appropriate section of [[Appendix:Arabic nominals]], and also places the page in [[:Category:Arabic relative nouns (nisba)]] unless <tt>nocat=1</tt> is given. It also normally displays a ''composed from'' section indicating the composition of the word from an underlying word (usually a nisba adjective) and the ending {{m|ar|َة|tr=-a}}.
-
-Parameters:
-* {{para|lc}} If set to non-empty, use initial lowercase.
-* {{para|nocat}} If set to non-empty, don't place in the appropriate category.
-* {{para|1}} Underlying Arabic word. If omitted, don't display a ''composed from'' section.
-* {{para|tr}} Optional transliteration for the word, if it cannot be derived automatically.
-* {{para|2}} Gloss for underlying Arabic word.
-
-Template:ar-etym-iyya
-
-{{ar-etym-nisba-a|{{{1|}}}|{{{2|}}}|tr={{{tr|}}}|ِيَّة}}
-
---><noinclude>{{documentation}}
-
-Template:ar-etym-iyya/documentation
-
-This template is meant to be used in the etymology section. It displays the word ''Relative noun (nisba)'' (or lowercase ''relative noun (nisba)'' if <tt>lc=1</tt> is given), linked to the appropriate section of [[Appendix:Arabic nominals]], and also places the page in [[:Category:Arabic relative nouns (nisba)]] unless <tt>nocat=1</tt> is given. It also normally displays a ''composed from'' section indicating the composition of the word from an underlying word (usually a noun) and the ending {{m|ar|ِيَّة|tr=-iyya}}.
-
-Parameters:
-* {{para|lc}} If set to non-empty, use initial lowercase.
-* {{para|nocat}} If set to non-empty, don't place in the appropriate category.
-* {{para|1}} Underlying Arabic word. If omitted, don't display a ''composed from'' section.
-* {{para|tr}} Optional transliteration for the word, if it cannot be derived automatically.
-* {{para|2}} Gloss for underlying Arabic word.
-
-
-
-Template:ar-nisba
-
-...
-
--->{{#ifeq:{{NAMESPACE}}||<!--
-        -->[[Category:Arabic relative adjectives (nisba)]]<!--
-        -->{{#if:{{{tr|{{xlit|ar|{{{1|}}}}}}}}||[[Category:Arabic terms needing transliteration]]}}<!--
--->}}</includeonly><noinclude>{{documentation}}
-
-
-
-Template:ar-noun-nisba
-
-...
-
--->{{#ifeq:{{NAMESPACE}}||<!--
-        -->[[Category:Arabic relative nouns (nisba)]]<!--
-        -->{{#if:{{{tr|{{xlit|ar|{{{1|}}}}}}}}||[[Category:Arabic terms needing transliteration]]}}<!--
--->}}</includeonly><noinclude>{{documentation}}
-
-
-
-Template:ar-nisba/documentation
-
-{{documentation subpage}}
-This template is for Arabic {{ar-etym-nisba|lc=1|nocat=1}}, which take the suffix ''-iyy-'' to create an adjective meaning "relating to X" where X is the suffixed noun. See also {{temp|ar-noun-nisba}}, {{temp|ar-adj}}, {{temp|ar-noun}}.
-
-Using this template automatically adds the page to [[Category:Arabic relative adjectives (nisba)]].
-
-Please note that the pronunciation of borrowed nouns, and hence nisba adjectives, often doesn't match their spelling, in that short vowels are often spelled as long vowels to aid in pronunciation. Furthermore, pronunciation of borrowed nouns often includes short and long ''e'' and ''o'', which cannot be indicated using diacritics. Hence, it may not be possible to adequately specify the pronunciation of a borrowed noun using vowel diacritics, and it may also be necessary to explicitly specify a transliteration. All these considerations apply to nisba adjectives as well. Examples is ديموقراطي ''dimuqrāṭiyy'' "democratic", where short ''i'' and ''u'' are spelled with long vowels, and ديالكتيكي ''diyalektīkiyy'' "dialectical", where short ''a'' is spelled long whereas short ''e'' is spelled short (no vowel) and cannot be properly indicated by a diacritic.
+Certain other templates are available for other types of regular adjectives:
+# Adjectives with a regular feminine and sound masculine plural, such as {{m|ar|مُفَضَّل||[[preferable]]}} and other augmented participles, should use {{temp|ar-adj-sound}}.
+# {{ar-relative adjective|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
+# Adjectives ending in ''-in'', such as {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|عَالٍ||[[high]]}}, should use {{temp|ar-adj-in}}.
 
 ==Parameters==
-* {{para|1}} indicate diacritic marks EXCEPT for final tanwin "un". This will automatically add diacritics for feminine and plural forms.
-* {{para|tr}} transliteration (see [[Wiktionary:About Arabic#Romanization]]). Not usually necessary if diacritics are present in {{para|1}}, as it will be automatically determined from {{para|1}} — but see above about borrowed words. If not present, and diacritics aren't present in {{para|1}}, then the word will be added to the category [[:Category:Arabic terms needing transliteration]].
-* {{para|pl}} (optional) overrides the masculine plural for entries such as {{m|ar|عَرَبِيّ|tr=ʿarabiyy}}. Should include diacritics.
-* {{para|pl2}} (optional) second masculine plural. If equal to <tt>+</tt>, supply the normal nisba plural (ending in ''-ūn''). Note that it is ''not'' necessary to specify {{para|pl}} when using {{para|pl2}}. Using {{para|pl2}} without {{para|pl}} is the normal way to add a second irregular masculine plural in addition to a first regular masculine plural. (To put the irregular plural first, specify it using {{para|pl}} and then use {{para|pl2|+}}).
-* {{para|pltr}} transliteration of overridden masculine plural. Not usually necessary if diacritics are present in {{para|pl}}. Same concerns apply as for {{para|tr}}.
-* {{para|pl2tr}} transliteration of second overridden masculine plural. Not usually necessary if diacritics are present in {{para|p2l}}. Same concerns apply as for {{para|tr}}.
-
-With {{para|1}} and optionally {{para|tr}}, feminine and plural forms will be handled automagically.
-
-{{para|tr}} should not be used to show stress, given the somewhat variable nature of Arabic rules regarding which syllable carries stress.
-
- <nowiki>{{ar-nisba|مِصْرِيّ}}</nowiki>
-{{ar-nisba|مِصْرِيّ}}
-
- <nowiki>{{ar-nisba|عَرَبِيّ|pl=عَرَب}}</nowiki>
-{{ar-nisba|عَرَبِيّ|pl=عَرَب}}
-
- <nowiki>{{ar-nisba|دِيمُقرَاطِيّ|tr=dimuqrāṭiyy}}</nowiki>
-{{ar-nisba|دِيمُقرَاطِيّ|tr=dimuqrāṭiyy}}
-<includeonly>
-[[Category:Arabic headword-line templates|nisba]]
-</includeonly>
-
-
-
-
-
-Template:ar-noun-nisba/documentation
-
-{{documentation subpage}}
-This template is for Arabic {{ar-etym-noun-nisba|lc=1|nocat=1}}, which take the suffix ''-iyy-'' to create a noun derived from a nisba adjective (an adjective meaning "relating to X" where X is the suffixed noun). See also {{temp|ar-nisba}}.
-
-Using this template automatically adds the page to [[Category:Arabic relative nouns (nisba)]].
-
-Please note that the pronunciation of borrowed nouns, and hence nisba nouns, often doesn't match their spelling, in that short vowels are often spelled as long vowels to aid in pronunciation. Furthermore, pronunciation of borrowed nouns often includes short and long ''e'' and ''o'', which cannot be indicated using diacritics. Hence, it may not be possible to adequately specify the pronunciation of a borrowed noun using vowel diacritics, and it may also be necessary to explicitly specify a transliteration. All these considerations apply to nisba nouns as well. An example is ديموقراطي ''dimuqrāṭiyy'' "democrat", where short ''i'' and ''u'' are spelled with long vowels.
-
-==Parameters==
-* {{para|1}} indicate diacritic marks EXCEPT for final tanwin "un". This will automatically add diacritics for feminine and plural forms.
-* {{para|tr}} transliteration (see [[Wiktionary:About Arabic#Romanization]]). Not usually necessary if diacritics are present in {{para|1}}, as it will be automatically determined from {{para|1}} — but see above about borrowed words. If not present, and diacritics aren't present in {{para|1}}, then the word will be added to the category [[:Category:Arabic terms needing transliteration]].
-* {{para|pl}} (optional) overrides the plural for entries such as {{m|ar|عَرَبِيّ|tr=ʿarabiyy}}. Should include diacritics.
-* {{para|pl2}} (optional) second plural. If equal to <tt>+</tt>, supply the normal nisba plural (ending in ''-ūn''). Note that it is ''not'' necessary to specify {{para|pl}} when using {{para|pl2}}. Using {{para|pl2}} without {{para|pl}} is the normal way to add a second irregular plural in addition to a first regular plural. (To put the irregular plural first, specify it using {{para|pl}} and then use {{para|pl2|+}}).
-* {{para|pltr}} transliteration of overridden plural. Not usually necessary if diacritics are present in {{para|pl}}. Same concerns apply as for {{para|tr}}.
-* {{para|pl2tr}} transliteration of second overridden plural. Not usually necessary if diacritics are present in {{para|p2l}}. Same concerns apply as for {{para|tr}}.
-
-With {{para|1}} and optionally {{para|tr}}, feminine and plural forms will be handled automagically.
-
-{{para|tr}} should not be used to show stress, given the somewhat variable nature of Arabic rules regarding which syllable carries stress.
+; {{para|1}}
+: Vocalized headword minus the ending {{m|ar|ـًى|tr=-an}}.
+; {{para|pl}}
+: Override the default masculine plural.
 
 ==Examples==
 
- <nowiki>{{ar-noun-nisba|مِصْرِيّ}}</nowiki>
-{{ar-noun-nisba|مِصْرِيّ}}
+The code <code><nowiki>{{ar-adj-an|مُثَنّ}}</nowiki></code> produces the following:
 
- <nowiki>{{ar-noun-nisba|عَسْكَرِيّ|pl2=عَسَاكِر}}</nowiki>
-{{ar-noun-nisba|عَسْكَرِيّ|pl2=عَسَاكِر}}
+{{ar-adj-an|مُثَنّ}}
 
- <nowiki>{{ar-noun-nisba|بَدَوِيّ|pl=بَدْو|pl2=+}}</nowiki>
-{{ar-noun-nisba|بَدَوِيّ|pl=بَدْو|pl2=+}}
+The declension section for an adjective like this looks as follows (note the inclusion of the {{m|ar|ـًى|tr=-an}}, and the use of <tt>awnp</tt> to signal the sound masculine plural in {{m|ar|ـَوْن|tr=-awn}}):
 
- <nowiki>{{ar-noun-nisba|دِيمُقرَاطِيّ|tr=dimuqrāṭiyy}}</nowiki>
-{{ar-noun-nisba|دِيمُقرَاطِيّ|tr=dimuqrāṭiyy}}
+<pre>
+====Declension====
+{{ar-decl-adj|مُثَنًّى|pl=awnp}}
+</pre>
+
 <includeonly>
-[[Category:Arabic headword-line templates|noun-nisba]]
+[[Category:Arabic headword-line templates|adj-an]]
+</includeonly>
+
+Template:ar-adj-in
+
+<includeonly>{{ar-adj|{{{1}}}ٍ|inf={{{1}}}يِ|f={{{1}}}ِيَة<!--
+   -->|pl={{#ifeq:{{{pl|}}}|+|{{{1}}}ُون|{{{pl|}}}}}<!--
+   -->|pl2={{#ifeq:{{{pl2|}}}|+|{{{1}}}ُون|{{{pl2|}}}}}<!--
+   -->|pl3={{#ifeq:{{{pl3|}}}|+|{{{1}}}ُون|{{{pl3|}}}}}<!--
+   -->|pl4={{#ifeq:{{{pl4|}}}|+|{{{1}}}ُون|{{{pl4|}}}}}<!--
+   -->|pl5={{#ifeq:{{{pl5|}}}|+|{{{1}}}ُون|{{{pl5|}}}}}<!--
+   -->|fpl={{#ifeq|{{{fpl|}}}|-||{{{fpl|{{{1}}}ِيَات}}}}}<!--
+-->}}</includeonly><noinclude>{{documentation}}
+
+Template:ar-adj-in/documentation
+
+{{documentation subpage}}
+This template is for displaying the headword line of Arabic adjectives that end in {{m|ar|ٍ|tr=-in}} (e.g. {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|فَانٍ||[[ephemeral]], [[vain]]}}). This automatically produces feminine and informal forms, and optionally a regular plural. These forms are regular but not obvious, and it is easier to have a template produce them.
+
+Certain other templates are available for other types of regular adjectives:
+# Adjectives with a regular feminine and sound masculine plural, such as {{m|ar|مُفَضَّل||[[preferable]]}} and other augmented participles, should use {{temp|ar-adj-sound}}.
+# {{ar-relative adjective|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
+# Adjectives ending in ''-an'', such as {{m|ar|مُثَنًّى||[[double]]}}, should use {{temp|ar-adj-an}}.
+
+==Parameters==
+; {{para|1}}
+: Vocalized headword minus the ending {{m|ar|ٍ|tr=-in}}.
+; {{para|pl}}
+: Specify a masculine plural. If equal to <tt>+</tt>, supply the default sound plural; else, if specified, provide a specific plural; else, no plural will be specified.
+; {{para|pl2}}
+: Specify a second masculine plural. If equal to <tt>+</tt>, supply the default sound plural; else, if specified, provide a specific plural; else, no plural will be specified.
+; {{para|pl3}}, {{para|pl4}}, {{para|pl5}}
+: Specify a third, fourth and/or fifth masculine plural, similar to {{para|pl2}}.
+; {{para|fpl}}
+: Override the default sound feminine plural. If equal to <tt>-</tt>, no plural will be specified; else, if specified, provide a specific plural; else, supply the default sound feminine plural.
+
+==Examples==
+
+I. The code <code><nowiki>{{ar-adj-in|مُسَاو|pl=+}}</nowiki></code> produces the following:
+
+{{ar-adj-in|مُسَاو|pl=+}}
+
+The declension section for an adjective like this looks as follows (note the inclusion of the {{m|ar|ٍ|tr=-in}}, and the use of <tt>smp</tt> to signal the sound masculine plural):
+
+<pre>
+====Declension====
+{{ar-decl-adj|مُسَاوٍ|pl=smp}}
+</pre>
+
+II. The code <code><nowiki>{{ar-adj-in|جَان|pl=جُنَاة}}</nowiki></code> produces the following:
+
+{{ar-adj-in|جَان|pl=جُنَاة}}
+
+The declension section for an adjective like this looks as follows (note again the inclusion of the {{m|ar|ٍ|tr=-in}}):
+
+<pre>
+====Declension====
+{{ar-decl-adj|جَانٍ|pl=جُنَاة}}
+</pre>
+
+
+III. The code <code><nowiki>{{ar-adj-in|فَان}}</nowiki></code> produces the following:
+
+{{ar-adj-in|فَان}}
+
+The declension section for an adjective like this looks as follows (note again the inclusion of the {{m|ar|ٍ|tr=-in}}):
+
+<pre>
+====Declension====
+{{ar-decl-adj|فَانٍ}}
+</pre>
+
+<includeonly>
+[[Category:Arabic headword-line templates|adj-in]]
 </includeonly>
 
 
+Template:ar-adj-sound
 
-Category:Arabic relative adjectives (nisba)
+<includeonly>{{ar-adj|{{{1}}}|f={{{1}}}َة|pl={{{1}}}ُون}}<!--
+--></includeonly><noinclude>{{documentation}}
 
-[[Appendix:Arabic nominals#Relative adjectives (nisba)|Arabic relative adjectives (nisba)]] formed using {{m|ar|ِيّ|tr=-iyy}}.
 
-[[Category:Arabic adjectives]]
+Template:ar-adj-sound/documentation
 
-Category:Arabic relative nouns (nisba)
+{{documentation subpage}}
+This template is for displaying the headword line of regular Arabic adjectives that have a regular feminine and a sound masculine plural (typically, participles of augmented verbal forms). Certain adjectives should use other templates:
+# {{ar-relative adjective|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
+# Adjectives ending in ''-in'', such as {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|عَالٍ||[[high]]}}, should use {{temp|ar-adj-in}}.
+# Adjectives ending in ''-an'', such as {{m|ar|مُثَنًّى||[[double]]}}, should use {{temp|ar-adj-an}}.
 
-[[Appendix:Arabic nominals#Relative nouns (nisba)|Arabic relative nouns (nisba)]] formed using {{m|ar|ِيَّة|tr=-iyya}}.
+==Parameters==
+; {{para|1}}
+: Vocalized masculine singular headword.
 
-[[Category:Arabic nouns]]
+==Examples==
 
-شيعة
+The code <code><nowiki>{{ar-adj-sound|مُفَضَّل}}</nowiki></code> produces the following:
 
-==Arabic==
-{{wikipedia|lang=ar}}
-===Etymology===
-From the root {{m|ar|ش ي ع}}; compare {{m|ar|شَاعَ||to [[spread]] {{i|intransitive}}, to become [[known]]}}.
+{{ar-adj-sound|مُفَضَّل}}
 
-===Noun===
-{{ar-noun|شِيعَة|f|pl=شِيَع}}
+Note that the declension section for an adjective like this looks as follows:
 
-# [[cult]], [[sect]]
-# [[followers]], [[assistants]]; [[follower]], [[assistant]]
-# [[adherents]], [[disciples]], [[partisans]]; [[adherent]], [[disciple]], [[partisan]]
-# [[faction]], [[party]]
-# {{lb|ar|definite}} the [[Shi'a]]
-
-====Declension====
-{{ar-decl-noun|شِيعَة|pl=شِيَع}}
-
-===Noun===
-{{ar-noun|شِيعَة|f|pl=أَشْيَاع}}
-
-# [[followers]], [[assistants]]; [[follower]], [[assistant]]
-# [[adherents]], [[disciples]], [[partisans]]; [[adherent]], [[disciple]], [[partisan]]
-
-====Declension====
-{{ar-decl-noun|شِيعَة|pl=أَشْيَاع}}
-
-====Related terms====
-* {{l|ar|الشِيعَة||the [[Shi'a]]}}
-* {{l|ar|شِيعِيّ||[[Shiite]]}}
-
-====See also====
-* {{l|طَائِفَة|g=f|lang=ar}}
-
-السنة
-
-==Arabic==
-
-===Etymology===
-From {{m|ar|سُنَّة||[[custom]], [[norm]]}}.
-
-===Proper noun===
-{{ar-proper noun|السُنَّة|f}}
-
-# the [[Sunna]] {{gloss|[[Muhammad]]'s [[way of life]], as recorded in the [[hadith]]s}}}}
-
-====Declension====
-{{ar-decl-noun|سُنَّة|state=def}}
-
-أهل السنة
-
-===Etymology===
-Literally "people of the [[Sunna]]".
-
-===Proper Noun===
-{{ar-proper noun|[[أَهْل]] [[السُنَّة]]|m}}
-
-# [[Sunni]] [[Islam]], the [[Sunni]]
-
-====Declension====
-{{ar-decl-noun|أَهْل|mod=سُنَّة|state=con|modstate=def|modcase=gen|modnumber=sg}}
-
-
-الشيعة
-
-==Arabic==
-
-===Etymology===
-From {{m|ar|شِيعَة||[[party]], [[sect]], [[adherents]]}}.
-
-===Proper noun===
-{{ar-proper noun|الشِيعَة|f}}
-
-# the [[Shi'a]], the [[Shiites]]
-
-====Declension====
-{{ar-decl-noun|شِيعَة|state=def}}
-
-شيعي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|الشِيعَة|the [[Shi'a]]}}.
-
-===Adjective===
-{{ar-nisba|شِيعِيّ}}
-
-# [[Shiite]]
-
-====Declension====
-{{ar-decl-adj|شِيعِيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|شِيعِيّ}}
-
-# [[Shiite]]
-
-====Declension====
-{{ar-decl-gendered-noun|شِيعِيّ|pl=smp}}
-
-
-على الشيوع
-
-==Arabic==
-
-===Etymology===
-From {{m|ar|شُيُوع||[[spread out|spreading out]]}}.
-
-===Adverb===
-{{ar-adv|[[عَلَى]] [[شُيُوع|الشُيُوع]]}}
-
-# [[in common]], [[possessed]] [[jointly]]
-
-====References====
-* {{R:ar:Wehr-4|شيع}}
-
-شيوعي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|عَلَى الشُيُوع|[[in common]], [[possessed]] [[jointly]]}}.
-
-===Adjective===
-{{ar-nisba|شُيُوعِيّ}}
-
-# [[Communist]]
-
-====Declension====
-{{ar-decl-adj|شُيُوعِيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|شُيُوعِيّ}}
-
-# [[Communist]]
-
-====Declension====
-{{ar-decl-gendered-noun|شُيُوعِيّ|pl=smp}}
-
-
-توفيق
-
-==Arabic==
-
-===Etymology===
-{{ar-verbal noun}} of {{m|ar|وَفَّقَ}}, from the root {{ar-root|و ف ق}}.
-
-===Noun===
-{{ar-noun|تَوْفِيق|m}}
-
-# {{ar-verbal noun of|وَفَّقَ|form=II||to [[fit]], to [[accommodate]], to [[reconcile]], [[grant]] [[success]]}}
-# [[fitting]]
-# [[accommodation]]
-# [[reconciliation]]
-# [[guidance]] and [[grace]] of [[God]]
-# [[fulfillment]] of one's [[wishes]], [[success]] {{i|especially [[granted]] by [[God]]}}, [[prospering]]
-# [[adjustment]], [[agreement]]
-# [[time]]
-
-===Declension===
-{{ar-decl-noun|تَوْفِيق}}
-
-===References===
-* {{R:ar:Haywood}}
-* {{R:ar:Wehr-4|وفق}}
-
-===Proper noun===
-{{ar-proper noun|تَوْفِيق|m}}
-
-# [[Tawfiq]], {{given name|A=a|lang=ar|male}}
-
-====Declension====
-{{ar-decl-noun|تَوْفِيق|state=ind}}
-
-===References===
-* {{R:ar:Haywood}}
-
-
-قنصل
-
-
-==Arabic==
-
-===Etymology===
-From {{etyl|la|ar}} {{m|la|cōnsul||[[consul]]}}.
-
-===Noun===
-{{ar-noun|قُنْصُل|m|pl=قَنَاصِل}}
-
-# [[consul]]
-
-====Declension=====
-{{ar-decl-noun|قُنْصُل|pl=قَنَاصِل}}
-
-====References====
-* {{R:ar:Haywood}}
-
-
-فرع
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|ف ر ع}}.
-
-===Noun===
-{{ar-noun|فَرْع|m|pl=فُرُوع|pl2=أَفْرُع}}
-
-# [[branch]], [[twig]], [[shoot]], [[limb]]
-# [[branches]], [[twigs]]
-# [[top]] of a [[branch]]
-# [[top]]
-# [[section]], [[subdivision]]
-# [[derivation]], [[derivative]]
-# [[branch out|branching out]]
-# [[ramification]]
-# [[corollary]]
-# [[branch office]]
-# [[branch line]]
-# {{lb|ar|electricity}} [[branch]] [[wire]]
-# [[long]] [[hair]]
-
-====Declension====
-{{ar-decl-noun|فَرْع|pl=فُرُوع|pl2=أَفْرُع}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|فرع}}
-
-فرغ
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|ف ر غ}}.
-
-===Adjective===
-{{ar-adj|فَرِغ|f=فَرِغَة}}
-
-# [[empty]]
-# [[vacant]]
-
-====Declension====
-{{ar-decl-adj|فَرِغ}}
-
-====References====
-* {{R:ar:Wehr-4|فرغ}}
-
-
-فارغ
-
-
-==Arabic==
-
-===Etymology===
-{{ar-active participle}} of {{m|ar|فَرَغَ||to be [[empty]], to be [[vacant]], to be [[available]], to [[finish]], to [[devote]] oneself}}, from the root {{ar-root|ف ر غ}}.
-
-===Pronunciation===
-* {{IPA|/faːriɣ/|/faːriʁ/|lang=ar}}
-
-===Adjective===
-{{ar-adj|فَارِغ|f=فَارِغَة|pl=فُرَّاغ}}
-
-# [[empty]]
-# [[vacant]]
-# [[unoccupied]]
-# [[meaningless]], [[inane]], [[pointless]], [[vacuous]], [[vapid]]
-
-====Declension====
-{{ar-decl-adj|فَارِغ|pl=فُرَّاغ}}
-
-
-فصيح
-
-{{also|فصیح}}
-
-==Arabic==
-
-===Adjective===
-{{ar-adj|فَصِيح|f=فَصِيحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|fpl=فِصَاح|fpl2=فَصَائِح|el=أَفْصَح}}
-
-# [[pure]] in [[language]] {{i|especially of [[literary]] [[Arabic]]}}
-# [[eloquent]]
-# [[fluent]]
-# [[loquacious]], [[voluble]]
-# [[clear]] and [[distinct]] in [[speech]]
-
-====Declension====
-{{ar-decl-adj|فَصِيح|f=فَصِيحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|fpl=فِصَاح|fpl2=فَصَائِح}}
-
-====Descendants====
-* Persian: {{l|fa|فصیح|tr=fasih}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|فصح}}
-
-===See also===
-* {{l|ar|لُغَة عَرَبِيَّة فَصْحَى|tr=luḡa ʿarabiyya fuṣḥā}}
-
-فصح
-
-==Arabic==
-
-===Etymology 1===
-From the root {{ar-root|ف|ص|ح}}.
-
-====Verb====
-{{ar-verb|I|u|u}}
-
-# to be [[eloquent]], to [[speak]] [[clearly]]
-
-=====Conjugation=====
-{{ar-conj|I|u|u|passive=n|vn=فَصَاحَة}}
-
-=====References=====
-* {{R:ar:Steingass}}
-
-===Etymology 2===
-
-===Adjective===
-{{ar-adj|فَصْح|f=فَصْحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|el=أَفْصَح}}
-
-# [[eloquent]], [[speaking]] [[distinctly]] and [[elegantly]]
-
-====Declension====
-{{ar-decl-adj|فَصْح|f=فَصْحَة|pl=فُصَحَاء|pl2=فِصَاح|pl3=فُصُح|el=أَفْصَح}}
-
-====References====
-* {{R:ar:Steingass}}
-
-أفصح
-
-==Arabic==
-
-===Etymology===
-{{ar-elative}} of {{m|ar|فَصِيح||of [[pure]] [[language]], [[eloquent]], [[fluent]], [[voluble]], [[clear]] in [[speech]]}} and {{m|ar|فَصْح||[[eloquent]]}}, from the root {{ar-root|ف ص ح}}.
-
-===Adjective===
-{{ar-adj|أَفْصَح|f=فُصْحَى}}
-
-# {{elative of|lang=ar|فَصِيح}}, {{elative of|lang=ar|فَصْح}}:
-## [[purer]] in [[language]]; [[purest]] in [[language]]
-## more [[eloquent]]; most [[eloquent]]
-## more [[fluent]]; most [[fluent]]
-## more [[voluble]]; most [[voluble]]
-## [[clearer]] in [[speech]]; [[clearest]] in [[speech]]
-
-====Declension====
-{{ar-decl-adj|أَفْصَح|f=فُصْحَى}}
-
-====References====
-* {{R:ar:Wehr-4|فصح}}
-
-فصحى
-
-==Arabic==
-{{wikipedia|lang=ar|لغة عربية فصحى}}
-
-===Etymology===
-Feminine form of the {{ar-elative|lc=1|nocat=1}} adjective {{m|ar|أَفْصَح||[[purest]] in [[language]], most [[eloquent]]}}, derived from {{m|ar|فَصِيح||[[pure]] in [[language]], [[eloquent]]}}. The noun is derived from the expression {{m|ar|لُغَة عَرَبِيَّة فُصْحَى|tr=luḡa ʿarabiyya fuṣḥā||[[pure]] [[Arabic]] [[language]]}}.
-
-===Adjective===
-{{ar-adj-fem|فُصْحَى}}
-
-# {{feminine of|أَفْصَح|lang=ar}}
-
-===Noun===
-{{ar-noun|فُصْحَى|f}}
-
-# [[Fus-ha]], [[standard]] [[Arabic]] [[language]], [[Modern Standard Arabic]], [[Classical Arabic]]
-
-====Declension====
-{{ar-decl-noun|فُصْحَى}}
-
-====Synonyms====
-* {{l|ar|لُغَة عَرَبِيَّة فُصْحَى|tr=luḡa ʿarabiyya fuṣḥā}}
-
-====Antonyms====
-* {{l|ar|عَامِّيَّة}}
-* {{l|ar|دَارِجَة}}
-* {{l|ar|لَهْجَة}}
-
-====References====
-* {{R:ar:Wehr-4|فصح}}
-
-محتويات
-
-==Arabic==
-
-===Etymology===
-Plural of {{m|ar|مُحْتَوًى}}, {{ar-passive participle|lc=1|nocat=1}} of {{m|ar|اِحْتَوَى||to [[contain]]}}.
-
-===Noun===
-{{ar-noun|مُحْتَوَيَات|p}}
-
-# [[contents]] {{i|of a [[book]], etc.}}
-
-====Declension====
-{{ar-decl-noun|-|pl=مُحْتَوَيَات|number=pl}}
-
-====References====
-* {{R:ar:Haywood}}
-* {{R:ar:Wehr-4|حوي}}
-
-
-إثر
-
-==Arabic==
-
-===Alternative forms===
-* {{l|ar|أَثْرَ}}
-* {{l|ar|فِي أَثْرِ}}
-* {{l|ar|عَلَى أَثْرِ}}
-* {{l|ar|فِي إِثْرِ}}
-* {{l|ar|عَلَى إِثْرِ}}
-
-===Etymology===
-Adverbial accusative of a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
-
-===Preposition===
-{{ar-prep|إِثْرَ}}
-
-# [[following]] on, [[immediately]] [[after]]
-
-====Inflection====
-{{ar-prep-auto|إِثْرَ}}
-
-====References====
-* {{R:ar:Haywood}}
-
-أثر
-
-==Arabic==
-
-===Etymology 2===
-Adverbial accusative of a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
-
-====Alternative forms====
-* {{l|ar|إِثْرَ}}
-* {{l|ar|فِي أَثْرِ}}
-* {{l|ar|عَلَى أَثْرِ}}
-* {{l|ar|فِي إِثْرِ}}
-* {{l|ar|عَلَى إِثْرِ}}
-
-====Preposition====
-{{ar-prep|إِثْرَ}}
-
-# [[following]] on, [[immediately]] [[after]]
-
-=====Inflection=====
-{{ar-prep-auto|إِثْرَ}}
-
-====References====
-* {{R:ar:Haywood}}
-
-في أثر
-
-==Arabic==
-
-===Alternative forms===
-* {{l|ar|أَثْرَ}}
-* {{l|ar|إِثْرَ}}
-* {{l|ar|عَلَى أَثْرِ}}
-* {{l|ar|فِي إِثْرِ}}
-* {{l|ar|عَلَى إِثْرِ}}
-
-===Etymology===
-Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
-
-===Preposition===
-{{ar-prep|[[فِي]] [[أَثْرِ]]}}
-
-# [[following]] on, [[immediately]] [[after]]
-
-====Inflection====
-{{ar-prep-auto|فِي أَثْرِ}}
-
-====References====
-* {{R:ar:Haywood}}
-
-في إثر
-
-==Arabic==
-
-===Alternative forms===
-* {{l|ar|أَثْرَ}}
-* {{l|ar|إِثْرَ}}
-* {{l|ar|فِي أَثْرِ}}
-* {{l|ar|عَلَى أَثْرِ}}
-* {{l|ar|عَلَى إِثْرِ}}
-
-===Etymology===
-Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
-
-===Preposition===
-{{ar-prep|[[فِي]] [[إِثْرِ]]}}
-
-# [[following]] on, [[immediately]] [[after]]
-
-====Inflection====
-{{ar-prep-auto|فِي إِثْرِ}}
-
-====References====
-* {{R:ar:Haywood}}
-
-
-على أثر
-
-==Arabic==
-
-===Alternative forms===
-* {{l|ar|أَثْرَ}}
-* {{l|ar|إِثْرَ}}
-* {{l|ar|فِي أَثْرِ}}
-* {{l|ar|فِي إِثْرِ}}
-* {{l|ar|عَلَى إِثْرِ}}
-
-===Etymology===
-Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
-
-===Preposition===
-{{ar-prep|[[عَلَى]] [[أَثْرِ]]}}
-
-# [[following]] on, [[immediately]] [[after]]
-
-====Inflection====
-{{ar-prep-auto|عَلَى أَثْرِ}}
-
-====References====
-* {{R:ar:Haywood}}
-
-على إثر
-
-==Arabic==
-
-===Alternative forms===
-* {{l|ar|أَثْرَ}}
-* {{l|ar|إِثْرَ}}
-* {{l|ar|فِي أَثْرِ}}
-* {{l|ar|عَلَى أَثْرِ}}
-* {{l|ar|فِي إِثْرِ}}
-
-===Etymology===
-Based on a form of {{m|ar|أَثَر||[[track]], [[trace]]}}; approximate meaning "on (its) track".
-
-===Preposition===
-{{ar-prep|[[عَلَى]] [[إِثْرِ]]}}
-
-# [[following]] on, [[immediately]] [[after]]
-
-====Inflection====
-{{ar-prep-auto|عَلَى إِثْرِ}}
-
-====References====
-* {{R:ar:Haywood}}
-
-
-حزب العمال
-
-==Arabic==
-
-===Etymology===
-Literally "Party of the Workers".
-
-===Proper noun===
-{{ar-proper noun|[[حِزْب]] [[عَامِل|العُمَّال]]|m}}
-
-# the [[Labour Party]] {{i|or its [[equivalent]] in other [[countries]]}}
-
-====Declension====
-{{ar-decl-noun|حِزْب|mod=-|modpl=عُمَّال|state=con|modstate=def|modcase=gen|modnumber=pl}}
-
-
-فرد
-
-
-==Arabic==
-
-===Etymology 1===
-From the root {{ar-root|ف|ر|د}}.
-
-====Verb====
-{{ar-verb|I|a,u|u}}
-
-# to be [[single]], be [[alone]]
-# to be [[singular]], be [[unique]]
-
-=====Conjugation=====
-{{ar-conj|I|a,u|u|passive=n?|vn=فُرُودٌ}}
-
-====Verb====
-{{ar-verb|I|a|u}}
-
-# to [[withdraw]], [[retire]], [[segregate]]
-
-=====Conjugation=====
-{{ar-conj|I|a|u|passive=impers?|vn=فُرُودٌ}}
-
-====Verb====
-{{ar-verb|I|a|i}}
-
-# to [[spread]], [[spread out]], [[extend]], [[stretch]]
-# to [[roll out]] (as dough), [[unfold]]
-
-=====Conjugation=====
-{{ar-conj|I|a|i|passive=y|vn=فَرْدٌ}}
-
-===Etymology 2===
-
-====Adjective====
-{{ar-adj|فَرْد|pl=أَفْرَاد|pl2=فُرَادَى}}
-
-# [[alone]], [[single]]
-# [[sole]], [[only]], [[solely]]
-# [[lone]], [[lonesome]]
-# [[solitary]]
-# [[singular]], [[unique]], [[matchless]], [[unrivaled]], [[unparalleled]], [[nonpareil]], [[peerless]], [[incomparable]], [[nonesuch]]
-# one and [[only]]
-# [[odd]], [[uneven]] (number)
-
-=====Declension=====
-{{ar-decl-adj|فَرْد|pl=أَفْرَاد|pl2=فُرَادَى}}
-
-====Noun====
-{{ar-noun|فَرْد|m|pl=أَفْرَاد}}
-
-# [[one]], a [[single]] person, [[individual]], [[somebody]], [[someone]]
-# [[soldier]], [[private]]
-
-=====Declension=====
-{{ar-decl-noun|فَرْد|pl=أَفْرَاد}}
-
-====Noun====
-{{ar-noun|فَرْد|m|pl=فِرَاد}}
-
-# [[one]], one of a couple, one of a pair
-
-=====Declension=====
-{{ar-decl-noun|فَرْد|pl=فِرَاد}}
-
-====Noun====
-{{ar-noun|فَرْد|m|pl=فُرُود|pl2=فُرُودَة}}
-
-# [[pistol]]
-# {{context|linguistics|lang=ar}} [[singular]]
-
-=====Declension=====
-{{ar-decl-noun|فَرْد|pl=فُرُود|pl2=فُرُودَة}}
-
-[[Category:ar:Firearms]]
-
-
-زيد
-
-==Arabic==
-
-===Etymology 1===
-Causative of {{m|ar|زَادَ||to [[increase]] {{i|intransitive}}}}, from the root {{ar-root|ز|ي|د}}.
-
-====Verb====
-{{ar-verb|II|II=ي}}
-
-# {{lb|ar|transitive}} to [[increase]], to [[augment]], to [[grow]], to [[multiply]]
-# to [[raise]] the [[price]]
-# to [[buy]] [[expensively]]
-
-=====Conjugation=====
-{{ar-conj|II|passive=y}}
-
-=====References=====
-* {{R:ar:Lane}}
-* {{R:ar:Steingass}}
-
-===Etymology 2===
-
-====Proper noun====
-{{ar-proper noun|زَيْد|m}}
-
-# [[Zayd]], {{given name|male|lang=ar}}.
-
-=====Declension=====
-{{ar-decl-noun|زَيْدٌ|state=ind}}
-
-خفي
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|خ|ف|ي}}; compare {{m|ar|خَفِيَ||to be [[hidden]]}}.
-
-===Adjective===
-{{ar-adj|خَفِيّ|f=خَفِيَّة}}
-
-# [[hidden]], [[invisible]], [[unseen]], [[veiled]], [[ulterior]], [[cryptic]], [[occult]], [[mysterious]], [[secret]], [[covert]], [[stealthy]], [[surreptitious]]
-
-====Declension====
-{{ar-decl-adj|خَفِيّ}}
-
-
-خلاق
-
-==Arabic==
-{{wikipedia|الخلاق|lang=ar}}
-===Etymology 1===
-From the root {{ar-root|خ ل ق}}; compare {{m|ar|خَلَقَ|gloss=to [[create]]}}.
-
-====Adjective====
-{{ar-adj|خَلَّاق}}
-
-# [[original]], [[artistic]], [[creative]]
-# [[new]], [[fertile]], [[inventive]]
-
-=====Declension=====
-{{ar-decl-adj|خَلَّاق}}
-
-====Noun====
-{{ar-noun|خَلَّاق|m}}
-
-# [[maker]]
-# [[inventor]], [[author]], [[originator]], [[maker]]
-# [[innovator]], [[contriver]], [[creator]]
-# [[seminal]], [[novel]]
-
-=====Declension=====
-{{ar-decl-noun|خَلَّاق}}
-
-===Etymology 2===
-
-====Noun====
-{{ar-noun|خَلَاق|m}}
-
-# [[share]] (of positive qualities, religion)
-
-=====Declension=====
-{{ar-decl-noun|خَلَاق}}
-
-[[Category:ar:Religion]]
-
-
-دوار
-
-==Arabic==
-
-===Etymology 1===
-From the root {{ar-root|د|و|ر}}; compare {{m|ar|دَارَ||to [[turn]], to [[revolve]]}}.
-
-====Noun====
-{{ar-noun|دُوَار|m|head2=دَوَار}}
-
-# [[vertigo]], [[dizziness]], [[giddiness]]
-# [[seasickness]]
-
-=====Declension=====
-{{ar-decl-noun|دُوَار|head2=دَوَار}}
-
-===Etymology 2===
-{{ar-characteristic noun}} and {{ar-characteristic adjective|lc=1}} derived from {{m|ar|دَارَ||to [[turn]], to [[rotate]], to [[roam]], to [[circulate]]}}, from the root {{ar-root|د و ر}}.
-
-====Noun====
-{{ar-noun|دَوَّار|m}}
-
-# [[wandering]], [[cruising]], going about
-# [[traveler]], [[nomad]], [[rover]], [[runabout]], [[wanderer]], [[globetrotter]]
-# [[explorer]]
-# [[perambulator]], [[itinerant]]
-# [[rotor]], [[rotator]]
-# [[traffic circle]]
-# [[eddy]], [[whirlpool]], [[vortex]]
-# {{context|Egypt|lang=ar}} farm [[building]], [[farm]]
-
-=====Declension=====
-{{ar-decl-noun|دَوَّار}}
-
-====Adjective====
-{{ar-adj|دَوَّار}}
-
-# [[rotary]], [[gyratory]], [[gyrating]], [[revolving]], [[rotating]]
-# [[roving]], [[itinerant]]
-# [[ambulatory]], [[circulating]]
-
-=====Declension=====
-{{ar-decl-adj|دَوَّار}}
-
-===Etymology 3===
-
-====Noun====
-{{ar-noun|دِوَار|m}}
-
-# {{ar-verbal noun of|دَاوَرَ|form=III}}
-
-ذكي
-
-==Arabic==
-
-===Etymology===
-From the roots {{ar-root|ذ|ي|و}} and {{ar-root|ذ|ك|ي}}; compare {{m|ar|ذَكِيَ||to be [[intelligent]]}}.
-
-===Adjective===
-{{ar-adj|ذَكِيّ|f=ذَكِيَّة|pl=أَذْكِيَاء}}
-
-# [[intelligent]]
-
-====Declension====
-{{ar-decl-adj|ذَكِيّ|pl=أَذْكِيَاء}}
-
-رتيب
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|ر ت ب}}.
-
-===Adjective===
-{{ar-adj|رَتِيب|f=رَتِيبَة}}
-
-# [[monotonous]], [[dull]]
-
-====Declension====
-{{ar-decl-adj|رَتِيب}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-أروح
-
-==Arabic==
-
-===Etymology===
-{{ar-elative}} from the root {{ar-root|ر و ح}}; compare {{m|ar|رَاحَة||[[rest]]}}.
-
-===Adjective===
-{{ar-adj|أَرْوَح}}
-
-# more [[calming]]; most [[calming]]
-
-====Declension====
-{{ar-decl-adj|أَرْوَح}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-شجيع
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|ش ج ع}}.
-
-===Adjective===
-{{ar-adj|شَجِيع|f=شَجِيعَة|pl=شُجَعَاء|pl2=شُجْعَان|fpl=شَجَائِع|fpl2=شِجَاع}}
-
-# [[brave]]
-# [[bold]]
-
-====Declension====
-{{ar-decl-adj|شَجِيع|f=شَجِيعَة|pl=شُجَعَاء|pl2=شُجْعَان|fpl=شَجَائِع|fpl2=شِجَاع}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-شجاع
-
-==Arabic==
-
-===Pronunciation===
-* {{IPA|/ʃudʒɑːʕ/|lang=ar}}
-
-===Adjective===
-{{ar-adj|شُجَاع|pl=شَجَعَة|pl2=شُجْعَان}}
-
-# [[brave]]
-# [[bold]]
-
-====Declension====
-{{ar-decl-adj|شُجَاع|pl=شَجَعَة|pl2=شُجْعَان}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-
-صارخ
-
-==Arabic==
-
-===Etymology===
-{{ar-active participle}} of {{m|ar|صَرَخَ||to [[scream]], to [[shout]], to [[yell]], to [[call]]}}, from the root {{ar-root|ص ر خ}}.
-
-===Pronunciation===
-* {{IPA|/sˁɑːrix/|lang=ar}}
-
-===Adjective===
-{{ar-adj|صَارِخ}}
-
-# [[gaudy]]
-# [[crude]], [[coarse]]
-# [[noisy]]
-# [[flagrant]]
-# [[outrageous]]
-# [[shameless]], [[shocking]]
-# [[egregious]]
-# [[vociferous]]
-
-====Declension====
-{{ar-decl-adj|صَارِخ}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-
-صحي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|صِحَّة|[[health]]}}.
-
-===Pronunciation===
-* {{audio|Ar-صحي.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|صِحِّيّ}}
-
-# [[healthy]]
-
-====Declension====
-{{ar-decl-adj|صِحِّيّ|pl=smp}}
-
-صليب
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|ص ل ب}}.
-
-===Noun===
-{{ar-noun|صَلِيب|m|pl=صُلْبَان|pl2=صُلُب}}
-
-# [[cross]]
-#: {{usex|lang=ar|inline=y|اَلصَّلِيب اَلْجَنُوبِيّ|t=Southern Cross}}
-# [[crucifix]]
-
-====Declension====
-{{ar-decl-noun|صَلِيب|pl=صُلْبَان|pl2=صُلُب}}
-
-===Adjective===
-{{ar-adj|صَلِيب}}
-
-# [[hard], [[solid]]
-
-====Declension====
-{{ar-decl-adj|صَلِيب}}
-
-
-باق
-
-==Arabic==
-
-===Etymology===
-{{ar-active participle}} of {{m|ar|بَقِيَ||to [[remain]]}}, from the root {{ar-root|ب ق ي}}.
-
-===Adjective===
-{{ar-adj|بَاقٍ|f=بَاقِيَة|pl=بَاقُون|inf=بَاقِي}}
-
-# who [[remains]], who [[survives]]
-# [[remaining]], [[left]]
-# [[lasting]], [[permanent]]
-# [[surviving]]
-# [[eternal]] {{i|of [[God]]}}
-
-====Declension====
-{{ar-decl-adj|بَاقٍ|pl=بَاقُون|inf=بَاقِي}}
-
-====References====
-* {{R:ar:Steingass|باقي}}
-* {{R:ar:Wehr-4|بقي}}
-
-===Noun===
-{{ar-noun|بَاقٍ|m|pl=بَاقُون|cons=بَاقِي}}
-
-# [[rest]], [[remainder]]
-# [[balance]] of an [[account]]
-
-====Declension====
-{{ar-decl-noun|بَاقٍ|pl=بَاقُون|cons=بَاقِي}}
-
-====References====
-* {{R:ar:Steingass}}
-
-أجد
-
-==Arabic==
-
-===Etymology===
-{{ar-elative}} of {{m|ar|جَدِيد||[[new]]}} and {{m|ar|جَادّ||[[serious]], [[earnest]]}}.
-
-===Adjective===
-{{ar-adj|أَجَدّ}}
-
-# {{elative of|جَدِيد|lang=ar}}:
-## [[newer]]; [[newest]]
-# {{elative of|جَادّ|lang=ar}}:
-## more [[serious]]; most [[serious]]
-## more [[earnest]]; most [[earnest]]
-
-====References====
-* {{R:ar:Wehr-4|جد}}
-
-جان
-
-==Arabic==
-
-===Etymology 1===
-{{ar-active participle}} of {{m|ar|جَنَى||to [[gather]], to [[harvest]]; to [[commit]] a [[crime]]}}, form the root {{ar-root|ج ن ي}}.
-
-====Noun====
-{{ar-noun|جَانٍ|m|pl=جُنَاة|cons=جَانِي}}
-
-# [[gatherer]], [[harvester]], [[harvestman]], [[reaper]]
-# [[perpetrator]], [[offender]], [[delinquent]], [[criminal]], [[culprit]], [[felon]], [[evildoer]]
-
-=====Declension=====
-{{ar-decl-noun|جَانٍ|pl=جُنَاة}}
-
-===Etymology 2===
-Has the form of an {{ar-active participle|lc=1}}, as if from {{m|ar|جَنَّ||to hide}} (in the passive {{m|ar|جُنَّ||to go [[crazy]]}}), from the root {{ar-root|ج ن ن}}.
-
-====Noun====
-{{ar-noun|جَانّ|m}}
-
-# [[jinn]], [[demon]], [[demons]], [[fairy]]
-
-=====Declension=====
-{{ar-decl-noun|جَانّ}}
-
-
-خلفي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|خَلْف|[[back]], [[rear]]}}.
-
-===Adjective===
-{{ar-nisba|خَلْفِيّ}}
-
-# [[back]], [[rear]]
-
-====Declension====
-{{ar-decl-adj|خَلْفِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|خلف}}
-
-
-عارض
-
-==Arabic==
-
-===Etymology===
-{{ar-active participle}} of {{m|ar|عَرَضَ||to [[happen]], to [[exhibit]]}}, from the root {{ar-root|ع ر ض}}.
-
-===Noun===
-{{ar-noun|عَارِض|m|f=عَارِضَة|pl=عَارِضُون}}
-
-# [[exhibitor]]
-# [[demonstrator]]
-
-====Declension====
-{{ar-decl-gendered-noun|عَارِض|pl=عَارِضُون}}
-
-====References====
-* {{R:ar:Wehr-4|عرض}}
-
-===Noun===
-{{ar-noun|عَارِض|m|pl=عَوَارِض}}
-
-# [[obstacle]]
-# [[accident]] {{i|something that [[happens]] by [[chance]]}}
-# [[anomalous]] [[situation]]
-# [[calamity]]
-# [[attack]] {{i|e.g. of [[nerves]], of an [[illness]]}}
-# [[cheek]], [[side]] of the [[face]]
-# [[molar]] [[tooth]]
-# something that [[intercepts]] the [[vision]] {{i|[[mountain]], [[cloud]], etc.}}
-# [[present]], [[gift]]
-
-====Declension====
-{{ar-decl-noun|عَارِض|pl=عَوَارِض}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|عرض}}
-
-عارضي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|عَارِض|[[accident]]}}.
-
-===Adjective===
-{{ar-nisba|عَارِضِيّ}}
-
-# [[accidental]]
-
-====Declension====
-{{ar-decl-adj|عَارِضِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Steingass}}
-
-
-اتفاقي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|اِتِّفَاق|[[accident]]}}.
-
-===Adjective===
-{{ar-nisba|اِتِّفَاقِيّ}}
-
-# [[accidental]], [[casual]], [[fortuitous]]
-
-====Declension====
-{{ar-decl-adj|اِتِّفَاقِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Steingass}}
-
-
-قانوني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|قَانُون|[[law]]}}.
-
-===Adjective===
-{{ar-nisba|قَانُونِيّ}}
-
-# [[legal]], [[canonical]], [[according to]] [[law]] or [[rule]]
-
-====Declension====
-{{ar-decl-adj|قَانُونِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Steingass}}
-
-أرضي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|أَرْض|[[earth]]}}.
-
-===Adjective===
-{{ar-nisba|أَرْضِيّ}}
-
-# [[earthly]], [[terrestrial]]
-
-====Declension====
-{{ar-decl-adj|أَرْضِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Steingass}}
-
-فعلي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|فِعْل|[[action]], [[deed]], [[efficacy]], [[verb]]}}.
-
-===Adjective===
-{{ar-nisba|فِعْلِيّ}}
-
-# [[actual]], [[real]]
-# [[effective]], [[efficacious]]
-# {{lb|ar|grammar}} [[active]]
-# {{lb|ar|grammar}} [[transitive]]
-# {{lb|ar|grammar}} [[deverbal]], [[derived]] from a [[verb]]
-
-====Declension====
-{{ar-decl-adj|فِعْلِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Steingass}}
-
-
-فعلية
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-a|فِعْلِيّ|[[real]], [[actual]]}}.
-
-===Adjective===
-{{ar-noun|فِعْلِيَّة|f}}
-
-# [[reality]], [[actuality]]
-
-====Declension====
-{{ar-decl-noun|فِعْلِيَّة}}
-
-====References====
-* {{R:ar:Steingass}}
-
-عارف
-
-==Arabic==
-
-===Etymology===
-{{ar-active participle}} of {{m|ar|عَرَفَ||to [[know]]}}, from the root {{ar-root|ع ر ف}}.
-
-===Adjective===
-{{ar-adj|عَارِف|f=عَارِفَة}}
-
-# [[knowing]]
-# [[acquainted]], [[familiar]] {{i|{{m|ar|بِ}} with}}
-
-====Declension====
-{{ar-decl-adj|عَارِف}}
-
-====References====
-* {{R:ar:Wehr-4|عرف}}
-
-===Noun===
-{{ar-noun|عَارِف|m|f=عَارِفَة}}
-
-# [[expert]], [[connoisseur]]
-# {{lb|ar|Tunisia}} [[master]]
-
-====Declension====
-{{ar-decl-gendered-noun|عَارِف}}
-
-====References====
-* {{R:ar:Wehr-4|عرف}}
-
-أساسي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|أَسَاس|[[foundation]], [[basis]]}}.
-
-===Adjective===
-{{ar-nisba|أَسَاسِيّ}}
-
-# [[fundamental]], [[basic]]
-# [[elementary]]
-# [[essential]]
-# [[main]]
-# [[fundamentalist]]
-
-====Declension====
-{{ar-decl-adj|أَسَاسِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Haywood}}
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|أس}}
-
-===Noun===
-{{ar-noun-nisba|أَسَاسِيّ}}
-
-# [[fundamentalist]]
-
-====Declension====
-{{ar-decl-gendered-noun|أَسَاسِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Haywood}}
-
-رأسمالي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|رَأْس مَال|[[capital]]}}.
-
-===Adjective===
-{{ar-nisba|رَأْسْمَالِيّ|tr=raʾs-māliyy}}
-
-# [[capitalist]], [[capitalistic]]
-
-====Declension====
-{{ar-decl-adj|رَأْسْمَالِيّ/raʾs-māliyy|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|رأس}}
-
-===Noun===
-{{ar-noun-nisba|رَأْسْمَالِيّ|tr=raʾs-māliyy}}
-
-# [[capitalist]]
-
-====Declension====
-{{ar-decl-gendered-noun|رَأْسْمَالِيّ/raʾs-māliyy|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|رأس}}
-
-كيميائي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|كِيمِيَاء|[[chemistry]]}}.
-
-===Adjective===
-{{ar-nisba|كِيمِيَائِيّ}}
-
-# [[chemical]]
-
-====Declension====
-{{ar-decl-adj|كِيمِيَائِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|كيمياء}}
-
-===Noun===
-{{ar-noun-nisba|كِيمِيَائِيّ}}
-
-# [[chemist]]
-
-====Declension====
-{{ar-decl-gendered-noun|كِيمِيَائِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|كيمياء}}
-
-نقدي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|نَقْد|[[cash]], [[money]]; [[criticism]]}}.
-
-===Adjective===
-{{ar-nisba|نَقْدِيّ}}
-
-# [[monetary]]
-# [[cash]]
-# [[critical]] {{gloss|[[criticizing]]}}
-
-====Declension====
-{{ar-decl-adj|نَقْدِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|نقد}}
-
-ديمقراطي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba}} based off of {{etyl|en|-}} {{m|en|democrat}} or {{etyl|fr|-}} {{m|fr|démocrate}}.
-
-===Adjective===
-{{ar-nisba|دِيمُقرَاطِيّ|tr=dimuqrāṭiyy}}
-
-# [[democratic]]
-
-====Declension====
-{{ar-decl-adj|دِيمُقرَاطِيّ/dimuqrāṭiyy|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-===Noun===
-{{ar-noun-nisba|دِيمُقرَاطِيّ|tr=dimuqrāṭiyy}}
-
-# [[democrat]]
-
-====Declension====
-{{ar-decl-noun|دِيمُقرَاطِيّ/dimuqrāṭiyy|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4}}
-
-انفعال
-
-==Arabic==
-
-===Noun===
-{{ar-noun|اِنْفِعَال|m|pl=اِنْفِعَالَات}}
-
-# {{ar-verbal noun of|اِنْفَعَلَ|form=VII}}
-# [[excitement]], [[commotion]], [[agitation]]
-# [[passivity]]
-# {{lb|ar|biology}} [[stimulation]]
-# [[feasibility]], [[practicableness]]
-# [[evil]] [[impression]]
-
-====Declension====
-{{ar-decl-noun|اِنْفِعَال|pl=اِنْفِعَالَات}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|فعل}}
-
-انفعالي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|اِنفِعَال|[[excitement]], [[passivity]]}}.
-
-===Adjective===
-{{ar-nisba|اِنْفِعَالِيّ}}
-
-# [[excitable]]
-# {{lb|ar|biology}} [[susceptible]]
-# {{lb|ar|grammar}} [[passive]]
-
-====Declension====
-{{ar-decl-adj|اِنْفِعَالِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|فعل}}
-
-
-عاطفة
-
-==Arabic==
-
-===Etymology===
-Composed of {{suffix|lang=ar|عَاطِف|t1=[[compassionate]], [[loving]]|َة|tr2=-a}}.
-
-===Noun===
-{{ar-noun|عَاطِفَة|f|pl=عَوَاطِف}}
-
-# [[emotion]], [[sentiment]]
-# [[loving]] [[affection]]
-# [[benevolence]], [[compassion]]
-# [[sympathy]]
-
-====Declension====
-{{ar-decl-noun|عَاطِفَة|pl=عَوَاطِف}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|عطف}}
-
-عاطفي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|عَاطِفَة|[[emotion]], [[compassion]]}}.
-
-===Adjective===
-{{ar-nisba|عَاطِفِيّ}}
-
-# [[emotional]]
-# [[sentimental]]
-# [[affectionate]]
-# [[passionate]]
-# [[romantic]]
-
-====Declension====
-{{ar-decl-adj|عَاطِفِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|عطف}}
-
-
-أمامي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|أَمَام|[[front]]}}.
-
-===Adjective===
-{{ar-nisba|أَمَامِيّ}}
-
-# [[front]]
-# [[fore-]]
-# [[forward]]
-
-====Declension====
-{{ar-decl-adj|أَمَامِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|أم}}
-
-إنساني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|إِنْسَان|[[human]]}}.
-
-===Adjective===
-{{ar-nisba|إِنسَانِيّ}}
-
-# [[human]]
-# [[humane]]
-
-====Declension====
-{{ar-decl-adj|إِنسَانِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|انس}}
-
-===Noun===
-{{ar-noun-nisba|إِنسَانِيّ}}
-
-# [[philanthropist]]
-# [[humanitarian]]
-
-====Declension====
-{{ar-decl-gendered-noun|إِنسَانِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|انس}}
-
-أنسانية
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-a|إِنْسَانِيّ|[[human]], [[humane]]}}.
-
-===Adjective===
-{{ar-noun|إِنسَانِيَّة|f}}
-
-# [[humanity]]
-# [[politeness]]
-# [[mankind]]
-
-====Declension====
-{{ar-decl-noun|إِنسَانِيَّة}}
-
-====References====
-* {{R:ar:Wehr-4|انس}}
-
-صحي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|صِحَّة|[[health]], [[hygiene]]}}.
-
-===Pronunciation===
-* {{audio|Ar-صحي.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|صِحِّيّ}}
-
-# [[healthy]]
-# [[sanitary]]
-# [[hygienic]]
-
-====Declension====
-{{ar-decl-adj|صِحِّيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|صح}}
-
-
-فاعل
-
-==Arabic==
-
-===Etymology 1===
-{{ar-active participle}} of the verb {{term|فَعَلَ|lang=ar||to [[do]], to [[affect]]}}, from the root {{ar-root|ف|ع|ل}}.
-
-====Pronunciation====
-* {{IPA|/fæːʕil/|lang=ar}}
-
-====Adjective====
-{{ar-adj|فَاعِل|f=فَاعِلَة}}
-
-# [[effective]]
-# [[efficient]]
-
-=====Declension=====
-{{ar-decl-adj|فَاعِل}}
-
-=====Synonyms=====
-* {{l|ar|فَعَّال}}
-
-=====References=====
-* {{R:ar:Wehr-4|فعل}}
-
-====Noun====
-{{ar-noun|فَاعِل|m|pl=فَاعِلُون|f=فَاعِلَة}}
-
-# [[doer]], one who [[does]] something
-
-=====Declension=====
-{{ar-decl-noun|فَاعِل|pl=فَاعِلُون}}
-
-=====Related terms=====
-* {{l|ar|مَفْعُول}}
-
-=====References=====
-* {{R:ar:Wehr-4|فعل}}
-
-====Noun====
-{{ar-noun|فَاعِل|m|pl=فَعَلَة|f=فَاعِلَة}}
-
-# [[worker]]
-
-=====Declension=====
-{{ar-decl-gendered-noun|فَاعِل|pl=فَعَلَة}}
-
-=====References=====
-* {{R:ar:Steingass}}
-
-===Etymology 2===
-From the root {{ar-root|ف|ع|ل}}.
-
-====Verb====
-{{ar-verb|III}}
-
-# to [[treat]], to [[deal with]]
-
-=====Conjugation=====
-{{ar-conj|III|passive=y?}}
-
-
-خيالي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|خيَال|[[imagination]]}}.
-
-===Adjective===
-{{ar-nisba|خَيَالِيّ}}
-
-# [[imaginary]]
-# [[conceptual]]
-# [[utopian]]
-
-====Declension====
-{{ar-decl-adj|خَيَالِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|خيل}}
-
-ابتداءيي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|اِبْتِدَاء|[[beginning]]}}.
-
-===Adjective===
-{{ar-nisba|اِبْتِدَائِيّ}}
-
-# [[initial]]
-# [[primary]]
-# [[elementary], [[preparatory]]
-
-====Declension====
-{{ar-decl-adj|اِبْتِدَائِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|بدأ}}
-
-
-باطني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|بَاطِن|[[inner]]}}.
-
-===Adjective===
-{{ar-nisba|بَاطِنِيّ}}
-
-# [[internal]]
-
-====Declension====
-{{ar-decl-adj|بَاطِنِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|بطن}}
-
-باطن
-
-==Arabic==
-
-===Etymology===
-{{ar-active participle}} of {{m|ar|بَطَنَ||to be [[hidden]], to [[hide]]}}, from the root {{ar-root|ب ط ن}}; compare {{m|ar|بَطْن||[[stomach]], [[womb]], [[interior]]}}.
-
-===Adjective===
-{{ar-adj|بَاطِن|pl=بَوَاطِن}}
-
-# [[interior]], [[inner]]
-# [[intrinsic]]
-# [[secret]]
-
-====Declension====
-{{ar-decl-adj|بَاطِن|pl=بَوَاطِن}}
-
-====References====
-* {{R:ar:Wehr-4|بطن}}
-
-داخلي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|دَاخِل|[[inner]], [[interior]]}}.
-
-===Adjective===
-{{ar-nisba|دَاخِلِيّ}}
-
-# [[inner]]
-# [[internal]]
-# [[interior]]
-# [[domestic]]
-# [[indigenous]
-# [[private]]
-
-====Declension====
-{{ar-decl-adj|دَاخِلِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|دخل}}
-
-داخلة
-
-==Arabic==
-
-===Etymology===
-From {{suffix|lang=ar|دَاخِل|t1=[[inner]], [[interior]]|َة|tr2=-a}}.
-
-===Adjective===
-{{ar-noun|دَاخِلَة|f|pl=دَوَاخِل}}
-
-# [[interior]]
-
-====Declension====
-{{ar-decl-noun|دَاخِلَة|pl=دَوَاخِل}}
-
-====References====
-* {{R:ar:Wehr-4|دخل}}
-
-
-داخلي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|خَارِج|[[outer]], [[exterior]]}}.
-
-===Adjective===
-{{ar-nisba|خَارِجِيّ}}
-
-# [[outer]]
-# [[external]]
-# [[foreign]]
-# [[nonresident]]
-
-====Declension====
-{{ar-decl-adj|خَارِجِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|خرج}}
-
-دولي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|دَوْلَة|[[state]]}} and {{ar-etym-nisba|دُوَل|[[states]]|lc=1}}.
-
-===Adjective===
-{{ar-nisba|دُوَلِيّ}}
-{{ar-nisba|دَوْلِيّ}}
-
-# [[international]]
-
-====Declension====
-{{ar-decl-adj|دُوَلِيّ|pl=smp}}
-{{ar-decl-adj|دَوْلِيّ|pl=smp}}
-
-ذهن
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|ذ ه ن}}.
-
-===Noun===
-{{ar-noun|ذِهْن|m|pl=أَذْهَان}}
-
-# [[mind]]
-# [[intellect]]
-
-====Declension====
-{{ar-decl-noun|ذِهْن|pl=أَذْهَان}}
-
-====References====
-* {{R:ar:Wehr-4|ذهن}}
-
-ذهني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|ذِهْن|[[mind]], [[intellect]]}}.
-
-===Adjective===
-{{ar-nisba|ذِهْنِيّ}}
-
-# [[mental]]
-# [[intellectual]]
-
-====Declension====
-{{ar-decl-adj|ذِهْنِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|ذهن}}
-
-ذهنية
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-a|ذِهْنِيّ|[[mental]]}}.
-
-===Adjective===
-{{ar-noun|ذِهْنِيَّة|f}}
-
-# [[mentality]]
-
-====Declension====
-{{ar-decl-noun|ذِهْنِيَّة}}
-
-====References====
-* {{R:ar:Wehr-4|ذهن}}
-
-
-عسكري
-
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|عَسْكَر|[[army]]}}.
-
-===Pronunciation===
-* {{audio|Ar-عسكري.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|عَسْكَرِيّ}}
-
-# [[military]]
-#: {{ux|ar|العَسْكَرِيُّون|the [[military]]|inline=t}}
-# [[army]]
-
-====Declension====
-{{ar-decl-adj|عَسْكَرِيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|عَسْكَرِيّ|pl2=عَسَاكِر}}
-
-# [[soldier]]
-# {{lb|ar|military}} [[private]]
-# [[policeman]]
-# {{lb|ar|plural}} [[enlisted men]]
-
-====Declension====
-{{ar-decl-gendered-noun|عَسْكَرِيّ|pl=smp|pl2=عَسَاكِر}}
-
-====See also====
-* {{l|ar|جُنْدِيّ|g=m}}
-
-====References====
-* {{R:ar:Haywood}}
-* {{R:ar:Wehr-4|عسكر}}
-
-
-عصري
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|عَصْر|[[age]], [[period]] of [[time]]}}.
-
-===Adjective===
-{{ar-nisba|عَصْرِيّ}}
-
-# [[modern]]
-# [[contemporary]]
-
-====Declension====
-{{ar-decl-adj|عَصْرِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|عصر}}
-
-===Noun===
-{{ar-noun-nisba|عَصْرِيّ}}
-
-# [[contemporary]]
-
-====Declension====
-{{ar-decl-gendered-noun|عَصْرِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|عصر}}
-
-عصرية
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-a|عَسْرِيّ|[[modern]]}}.
-
-===Adjective===
-{{ar-noun|عَسْرِيَّة|f}}
-
-# [[modernism]]
-
-====Declension====
-{{ar-decl-noun|ذِهْنِيَّة}}
-
-====References====
-* {{R:ar:Wehr-4|عصر}}
-
-خلق
-
-...
-
-===Etymology 6===
-From the root {{ar-root|خ|ل|ق}}.
-
-====Noun====
-{{ar-noun|خَلَق|m|g2=f|pl=خُلْقَان|pl2=أَخْلَاق}}
-
-# {{ar-verbal noun of|خَلِقَ|form=I}}
-# [[rags]]
-# [[old age]]
-# [[men]], [[people]]
-
-=====Declension=====
-{{ar-decl-noun|خَلَق|pl=خُلْقَان|pl2=أَخْلَاق}}
-
-=====References=====
-* {{R:ar:Steingass}}
-
-====Adjective====
-{{ar-adj|خَلَق|f=خَلَق|cpl=خُلْقَان|cpl2=أَخْلَاق}}
-
-# [[worn]], [[threadbare]]
-
-=====Declension=====
-{{ar-decl-adj|خَلَق|f=خَلَق|pl=خُلْقَان|pl2=أَخْلَاق|fpl=خُلْقَان|fpl2=أَخْلَاق}}
-
-=====References=====
-* {{R:ar:Steingass}}
-
-===Etymology 7===
-
-====Noun====
-{{ar-noun|خُلْق|head2=خُلُق|m|pl=أَخْلَاق}}
-
-# [[natural]] [[disposition]], [[character]], [[nature]]
-# [[inborn]] [[quality]]
-# [[manners]]
-# {{lb|ar|plural}} [[character]]
-# {{lb|ar|plural}} [[morals]]
-# {{lb|ar|plural}} [[morality]]
-# {{lb|ar|"modern"}} [[anger]], [[irritation]]
-# {{lb|ar|"modern"}} [[bravery]]
-# {{lb|ar|"modern"}} [[religion]]
-# {{lb|ar|"modern"}} [[humanity]]
-# {{lb|ar|"modern"}} [[refinement]]
-
-=====Declension=====
-{{ar-decl-noun|خُلْق|head2=خُلُق|pl=أَخْلَاق}}
-
-=====References=====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|خلق}}
-
-خلقي
-
-==Arabic==
-
-===Etymology 1===
-{{ar-etym-nisba|خُلْق|[[character]] (in plural, ''[[morals]]'')}}.
-
-====Adjective====
-{{ar-nisba|خُلْقِيّ}}
-
-# [[moral]], [[ethical]]
-
-=====Declension=====
-{{ar-decl-adj|خُلْقِيّ|pl=smp}}
-
-=====Synonyms=====
-* {{l|ar|أَخْلَاقِيّ}}
-
-=====References=====
-* {{R:ar:Wehr-4|خلق}}
-
-===Etymology 2===
-{{ar-etym-nisba|خِلَْقة|[[innate]] [[nature]])}}.
-
-====Adjective====
-{{ar-nisba|خِلْقِيّ}}
-
-# [[natural]], [[innate]]
-
-=====Declension=====
-{{ar-decl-adj|خِلْقِيّ|pl=smp}}
-
-=====References=====
-* {{R:ar:Wehr-4|خلق}}
-
-أخلاقي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|أَخْلَاق|[[morals]]}}.
-
-===Adjective===
-{{ar-nisba|أَخْلَاقِيّ}}
-
-# [[moral]], [[ethical]]
-
-====Declension====
-{{ar-decl-adj|أَخْلَاقِيّ|pl=smp}}
-
-====Synonyms====
-* {{l|ar|خُلْقِيّ}}
-
-====References====
-* {{R:ar:Wehr-4|خلق}}
-
-خلقة
-
-==Arabic==
-
-===Etymology===
-From the root {{ar-root|خ ل ق}}; compare {{m|ar|خَلَقَ||to [[create]]}}, {{m|ar|خَلُقَ||to be [[suitable]]}}.
-
-===Noun===
-{{ar-noun|خِلْقَة|f|pl=خِلَق}}
-
-# [[creation]]
-# [[innate]] [[nature]]
-
-====Declension====
-{{ar-decl-noun|خِلْقَة|pl=خِلَق}}
-
-====References====
-* {{R:ar:Wehr-4|خلق}}
-
-أخلقية
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-a|أَخْلَاقِيّ|[[moral]]}}.
-
-===Adjective===
-{{ar-noun|أَخْلَاقِيَّة|f}}
-
-# [[morality]]
-
-====Declension====
-{{ar-decl-noun|أَخْلَاقِيَّة}}
-
-====References====
-* {{R:ar:Wehr-4|خلق}}
-
-قومي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|قَوْم|t1=[[people]], [[nation]], [[tribe]]|ِيّ}}, from the root {{ar-root|ق و م}}.
-
-===Adjective===
-{{ar-nisba|قَوْمِيّ}}
-
-# [[national]]
-# [[nationalist]]
-
-====Declension====
-{{ar-decl-adj|قَوْمِيّ|pl=smp}}
-
-===Noun===
-{{ar-noun-nisba|قَوْمِيّ}}
-
-# [[nationalist]]
-
-====Declension====
-{{ar-decl-gendered-noun|قَوْمِيّ|pl=smp}}
-
-عادي
-
-{{also|عادی}}
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|عَادَة|[[habit]], [[custom]]}}, from the root {{ar-root|ع و م}}.
-
-===Pronunciation===
-* {{audio|Ar-عادي.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|عَادِيّ}}
-
-# [[normal]], [[regular]], [[ordinary]]
-
-====Declension====
-{{ar-decl-adj|عَادِيّ|pl=smp}}
-
-
-شخصي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|شَخْص|[[person]], [[individual]]}}.
-
-===Pronunciation===
-* {{audio|Ar-شخصي.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|شَخْصِيّ}}
-
-# [[own]]
-# [[personal]
-# {{context|grammar|lang=ar}} [[personal]]
-
-====Declension====
-{{ar-decl-adj|شَخْصِيّ|pl=smp}}
-
-
-سياسي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|سِيَاسَة|[[policy]]}}.
-
-===Pronunciation===
-* {{audio|Ar-سياسي.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|سِيَاسِيّ}}
-
-# [[political]]
-# [[diplomatic]]
-
-====Declension====
-{{ar-decl-adj|سِيَاسِيّ|pl=smp}}
-
-====Related terms====
-* {{l|ar|سِيَاسَة}}
-
-===Noun===
-{{ar-nisba|سِيَاسِيّ|pl2=سَاسَة}}
-
-# [[politician]]
-# [[diplomat]], [[statesman]]
-
-====Declension====
-{{ar-decl-noun|سِيَاسِيّ|pl=smp|pl2=سَاسَة}}
-
-====References====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4}} <!-- defn. "diplomat" and pls -->
-
-
-تقدم
-
-==Arabic==
-
-===Etymology 1===
-From the root {{ar-root|ق|د|م}}
-
-====Verb====
-{{ar-verb|V}}
-
-# to [[precede]]
-# to [[proceed]]
-
-=====Conjugation=====
-{{ar-conj|V|passive=y}}
-
-===Etymology 2===
-
-====Noun====
-{{ar-noun|تَقَدُّم|m|pl=تَقَدُّمَات}}
-
-# {{ar-verbal noun of|تَقَدَّمَ|form=V}}
-# [[preeminence]]
-# [[priority]]
-# [[premise]]
-# [[advance]], [[drive]]
-# [[progression]], [[progress]]
-
-=====Declension=====
-{{ar-decl-noun|تَقَدُّم|pl=تَقَدُّمَات}}
-
-=====References=====
-* {{R:ar:Steingass}}
-* {{R:ar:Wehr-4|قدم}}
-
-تقدمي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|تَقَدُّم|[[progression]], [[progress]]}}.
-
-===Adjective===
-{{ar-nisba|تَقَدُّمِيّ}}
-
-# [[progressive]]
-
-====Declension====
-{{ar-decl-adj|تَقَدُّمِيّ|pl=smp}}
-
-رجعي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|رَجْع|[[return]]}}.
-
-===Adjective===
-{{ar-nisba|رَجْعِيّ}}
-
-# [[reactionary]]
-# [[retroactive]]
-
-====Declension====
-{{ar-decl-adj|رَجْعِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|رجع}}
-
-يميني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|يَمِين|[[right]] {{gloss|[[side]], [[direction]]}}, [[right]] [[hand]]}}.
-
-===Adjective===
-{{ar-nisba|يَمِينِيّ}}
-
-# [[right]] {{gloss|[[side]], [[direction]]}}, [[right-hand]]
-
-====Declension====
-{{ar-decl-adj|يَمِينِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|يمن}}
-
-يساري
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|يَسَار|[[left]] {{gloss|[[side]], [[direction]]}}, [[left]] [[hand]]}}.
-
-===Adjective===
-{{ar-nisba|يَسَارِيّ}}
-
-# {{lb|ar|politics}} [[leftist]]
-
-====Declension====
-{{ar-decl-adj|يَسَارِيّ|pl=smp}}
-
-====References====
-* {{R:ar:Wehr-4|يسر}}
-
-روم
-
-==Arabic==
-{{wikipedia|lang=ar}}
-
-===Etymology===
-Ultimately from {{etyl|la|ar}} {{m|la|Rōma||[[Rome]]}}, by way of {{etyl|grc|ar}}.
-
-===Proper noun===
-{{ar-proper noun|رُوم}}
-
-# [[Byzantium]]
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-===Noun===
-{{ar-coll-noun|رُوم|m-p|sing=رُومِيّ|pl=أَرْوَام}}
-
-# [[Byzantines]]
-# {{lb|ar|plural}} [[followers]] of the [[Greek Orthodox Church]]
-
-====Declension====
-{{ar-decl-coll-noun|رُوم|pl=أَرْوَام|pauc=أَرْوَام|sing=رُومِيّ}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-أروام
-
-==Arabic==
-
-===Etymology===
-Plural of {{m|ar|رُوم||[[Byzantines]]}} and {{m|ar|رُومِيّ||[[Byzantine]]}}.
-
-===Noun===
-{{ar-proper noun|أَرْوَام|m-p}}
-
-# {{plural of|lang=ar|رُوم||[[Byzantines]]}}
-# [[followers]] of the [[Greek Orthodox Church]]
-
-====Declension====
-{{ar-decl-noun|-|pl=أَرْوَام|number=pl}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-===Adjective===
-{{ar-adj-pl|أَرْوَام}}
-
-# {{masc plural of|lang=ar|رُومِيّ|gloss=[[Byzantine]]}}
-
-===Noun===
-{{ar-noun-pl|أَرْوَام}}
-
-# {{plural of|lang=ar|رُومِيّ|gloss=[[Byzantine]]}}
-
-رومي
-
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|رُوم|[[Byzantines]]}}.
-
-===Adjective===
-{{ar-nisba|رُومِيّ|pl=أَرْوَام}}
-
-# [[Byzantine]]
-
-====Declension====
-{{ar-decl-adj|رُومِيّ|pl=أَرْوَام}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-===Noun===
-{{ar-noun-nisba|رُومِيّ|pl=أَرْوَام}}
-
-# [[Byzantine]]
-
-====Declension====
-{{ar-decl-gendered-noun|رُومِيّ|pl=أَرْوَام}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-رومان
-
-==Arabic==
-{{wikipedia|lang=ar}}
-
-===Etymology===
-Ultimately from {{etyl|la|ar}} {{m|la|Rōmānus||[[Roman]]}}.
-
-===Noun===
-{{ar-coll-noun|رُومَان|m-p|sing=رُومَانيِّ}}
-
-# [[Romans]]
-# [[Romanic]] peoples
-
-====Declension====
-{{ar-decl-coll-noun|رُومَان|sing=رُومَانيِّ}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-روماني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|رُومَان|[[Romans]], [[Romanic]] people}} and {{ar-etym-nisba|رُومَانِيَا|[[Romania]]|lc=1}}.
-
-===Adjective===
-{{ar-nisba|رُومَانِيّ}}
-
-# [[Roman]]
-# [[Romanic]]
-# [[Romanian]]
-
-====Declension====
-{{ar-decl-nisba|رُومَانِيّ}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-===Noun===
-{{ar-noun-nisba|رُومَانِيّ|pl=رُومَان}}
-
-# [[Roman]]
-# [[Romanic]] person
-# [[Romanian]]
-
-====Declension====
-{{ar-decl-gendered-noun|رُومَانِيّ|pl=رُومَان}}
-
-====References====
-* {{R:ar:Wehr-4|روم}}
-
-حقيقي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba|حَقِيقَة|[[truth]], [[reality]]}}.
-
-===Pronunciation===
-* {{audio|Ar-حقيقي.ogg|Audio|lang=ar}}
-
-===Adjective===
-{{ar-nisba|حَقِيقِيّ}}
-
-# [[true]], [[real]], [[actual]]
-
-====Declension====
-{{ar-decl-adj|حَقِيقِيّ|pl=smp}}
-
-ثانوي
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-linking|ثَانٍ|[[second]]|َو}}, from the root {{ar-root|ث|ن|ي}}, related to {{m|ar|اِثْنَان||[[two]]}}.
-
-===Adjective===
-{{ar-nisba|ثانَوِيّ}}
-
-# [[secondary]], [[minor]]
-#: {{ux|ar|مَدْرَسَة ثانَوِيَّة|secondary school|inline=y}}
-#: {{ux|ar|أَوامِر ثانَوِيَّة|matters of secondary importance|inline=y}}
-
-====Declension====
-{{ar-decl-adj|ثانَوِيّ|pl=smp}}
-
-
-أناني
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-linking|أَنَا|tr=ʾana|[[I]]|َان}}.
-
-
-===Adjective===
-{{ar-nisba|أَنَانِيّ}}
-
-# [[egotistical]], [[selfish]], [[self-centered]]
-
-====Declension====
-{{ar-decl-adj|أَنَانِيّ|pl=smp}}
-
-أنانية
-
-==Arabic==
-
-===Etymology===
-{{ar-etym-nisba-a|أَنَانِيّ|[[egotistical]]}}.
-
-===Adjective===
-{{ar-noun|أَنَانِيَّة|f}}
-
-# [[egotism]]
-
+<pre>
 ====Declension====
-{{ar-decl-noun|أَنَانِيَّة}}
+{{ar-decl-adj|مُفَضَّل|pl=smp}}
+</pre>
 
-====References====
-* {{R:ar:Wehr-4|أنا}}
+<includeonly>
+[[Category:Arabic headword-line templates|adj-sound]]
+</includeonly>
 
 
 علماني
@@ -3234,7 +500,7 @@ Ultimately from {{etyl|la|ar}} {{m|la|Rōmānus||[[Roman]]}}.
 Feminine of {{m|ar|اِشْتِرَاكِيّ||[[socialist]]}}.
 
 ====Adjective====
-{{ar-adj|اِشْتِرَاكِيَّة}}
+{{ar-adj-fem|اِشْتِرَاكِيَّة}}
 
 # {{feminine of|lang=ar|اِشْتِرَاكِيّ||[[socialist]]}}
 
@@ -3538,25 +804,2426 @@ From the root {{ar-root|م|ث|ل}}; compare {{m|ar|مَثَلَ||to [[resemble]]
 * {{R:ar:Steingass}}
 * {{R:ar:Wehr-4|مثل}}
 
+علوي
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba|عُلُوّ|[[height]], [[grandeur]]}}, with a modified version of {{m|ar|عُلُوّ}}; from the root {{ar-root|ع|ل|و}}.
+
+====Adjective====
+{{ar-nisba|عُلْوِيّ}}
+
+# [[upper]]
+# [[high]], [[lofty]]
+# [[roof]], [[upstairs]], [[overhead]]
+# [[sublime]], [[exalted]]
+# [[heavenly]], [[divine]], [[celestial]], [[astral]], [[ethereal]], [[empyreal]]
+
+=====Declension=====
+{{ar-decl-adj|عُلْوِيّ|pl=smp}}
+
+===Etymology 2===
+{{ar-etym-nisba-linking|عَلِيّ|[[high]], [[exalted]]; [[Ali]]|َو}}, from the root {{ar-root|ع|ل|و}}.
+
+====Adjective====
+{{ar-nisba|عَلَوِيّ}}
+
+# [[upper]]
+# [[heavenly]], [[celestial]]
+# [[w:Alawite|Alawi]]
+
+=====Declension=====
+{{ar-decl-adj|عَلَوِيّ|pl=smp}}
+
+====Noun====
+{{ar-noun-nisba|عَلَوِيّ}}
+
+# [[Alawite]]
+
+=====Declension=====
+{{ar-decl-gendered-noun|عَلَوِيّ|pl=smp}}
+
+=====Related terms=====
+* {{l|ar|إِعْلَاء||[[elevation]], [[raising]]}}
+* {{l|ar|أَعْلَى||[[higher]], [highest]]}}
+* {{l|ar|تَعْلِيَة||[[elevation]], [[raising]]}}
+* {{l|ar|عَالٍ||[[high]]}}
+* {{l|ar|عَلَاء||[[nobility]}}
+* {{l|ar|عَلَايَة||[[height]]}}
+* {{l|ar|عَلَى||[[on]]}}
+* {{l|ar|عَلْيَاء||[[loftiness]]}}
+* {{l|ar|عُلِّيَة||[[upper]] [[room]}}
+* {{l|ar|عِلِّيُّون||[[uppermost]] [[heaven]]}}
+* {{l|ar|مُتَعَالٍ||[[high]], [[exalted]]}}
 
 
-Appendix:Arabic nominals
+فوقاني
 
-...
+==Arabic==
 
-===Relative adjectives (nisba)===
-Relative adjectives, also known by the Arabic term [[nisba]], are adjectives formed from another word by adding {{m|ar|ِيّ|tr=-iyy}} (usually pronounced as if written {{m|ar|ِ|ي|tr=-ī}}, also the pronunciation with ''yy'' returns in the feminine {{m|ar||ِيَّة|tr=-iyya}}, the masculine plural {{m|ar||ِيُّون|tr=-iyyūn}}, and the feminine plural {{m|ar||ِيَّات|tr=-iyyāt}}). This construction is quite flexible, and the nisba suffix can be added to any sort of noun, including plurals, as well as in some cases other parts of speech (e.g. {{m|ar|خَارِجِيّ||[[outer]], [[external]]}} from the adjective {{m|ar|خَارِج||[[outer]], [[outside]]}}, {{m|ar|ثَانَوَِيّ||[[secondary]]}} from the adjective {{m|ar|ثَانٍ||[[second]]}}, {{m|ar|أَنَانِيّ||[[egotistical]], [[selfish]]}} from the pronoun {{m|ar|أَنَا|tr=ʾana||[[I]]}}). Nisba adjectives can also be formed directly from foreign words, such as {{m|ar|دِيمُقْرَاطِيّ|tr=dimuqrāṭiyy||[[democratic]]}}, where no such word #{{m|ar||دِيمُقْرَاط|tr=dimuqrāṭ}} exists.
+===Etymology===
+{{ar-etym-nisba-linking|فَوْقُ|[[above]]|َان}}.
 
-When nisba adjectives are added to a feminine noun in {{m|ar|َة|tr=-a}} or {{m|ar|َاة|tr=-āh}}, this suffix is normally dropped, as in the adjective {{m|ar|مَادِّيّ||[[material]], [[physical]]}}, formed from the noun {{m|ar|مَادَّة||[[matter]], [[material]]}}.  The common suffix {{m|ar|ِيَا|tr=-iyā}} occurring in country names (sometimes written {{m|ar|ِيَة|tr=-iya}}, both forms borrowed from [[-ia]]) is also dropped; for example, from {{m|ar|بِرِيطَانِيَا|tr=biriṭāniyā||[[Britain]]}} is formed {{m|ar|بِرِيطَانِيّ|tr=biriṭāniyy||[[British]]}}. Other suffixes may also be dropped, e.g. from {{m|ar|كِيمِيَاء||[[chemistry]]}} is formed {{m|ar|كِيمِيّ||[[chemical]]}} (also {{m|ar|كِيمِيَائِيّ}} or {{m|ar|كِيمَاوِيّ}}).
+===Adjective===
+{{ar-nisba|فَوْقَانِيّ}}
 
-In some cases, especially in very short words with only consonants and a short vowel intervening, a linking consonant added, as in {{m|ar|سَنَوِيّ||[[annual]]}} from {{m|ar|سَنَة||[[year]]}}, {{m|ar|نَوَوِيّ||[[nuclear]]}} from {{m|ar|نَوَاة||[[nucleus]]}}, {{m|ar|يَدَوِيّ||[[manual]]}} from {{m|ar|يَد||[[hand]]}}, {{m|ar|دَمَوِيّ||[[blood|blood-]]}} from {{m|ar|دَم||[[blood]]}} (also {{m|ar|دَمِيّ}} without a linking consonant). The particular linking consonant is usually ''w'', but may be a different consonant if that consonant appears in other derived forms of the underlying word; cf. {{m|ar|شَفَهيِّ||[[labial]]}}, also {{m|ar|شَفَوِيّ}}, from {{m|ar|شَفَة||[[lip]]}} (cf. plural {{m|ar|شِفَاه||[[lips]]}}, also {{m|ar|شَفَوَات}}). Note that linking consonants are ''not'' used in cases like {{m|ar|عَادِيّ||[[normal]]}} with a long vowel (from {{m|ar|عَادَة||[[custom]], [[habit]]) or {{m|ar|صِحِّيّ||[[healthy]]}} with a geminate consonant (from {{m|ar|صِحَّة||[[healthy]]}}). Linking consonants may also appear with weak stems ending in {{m|ar||ٍ|tr=-in}} or {{m|ar||ًا|tr=-an}}, e.g. {{m|ar|ثَانَوَِيّ||[[secondary]]}} from {{m|ar|ثَانٍ||[[second]]}}. Examples with a linking {{m|ar||َان|tr=-ān-}} are {{m|ar|أَنَانِيّ||[[egotistical]], [[selfish]]}} from {{m|ar|أَنَا|tr=ʾana||[[I]]}} and {{m|ar|عَلْمَانِيّ||[[secular]], [[worldly]]}} from {{m|ar|عَالَم||[[world]]}} (note also the distortion of the stem in the latter case).
+# [[upper]]
 
-===Relative nouns (nisba)===
-Relative ([[nisba]]) adjectives can be freely made into nouns. For example, from the adjective {{m|ar|بِرِيطَانِيّ|tr=biriṭāniyy||[[British]]}} is derived the noun {{m|ar|بِرِيطَانِيّ|tr=biriṭāniyy||[[British]] man, [[Briton]]}} and from the adjective {{m|ar|دِيمُقْرَاطِيّ|tr=dimuqrāṭiyy||[[democratic]]}} is formed the noun {{m|ar|دِيمُقْرَاطِيّ|tr=dimuqrāṭiyy||[[democrat]]}}. These nouns form feminines and plurals the same way as the corresponding adjectives.
+====Declension====
+{{ar-decl-adj|فَوْقَانِيّ|pl=smp}}
 
-In addition, the feminine nisba noun frequently has the meaning of an abstract noun, e.g. {{m|ar|دِيمُقْرَاطِيَّة|tr=dimuqrāṭiyya||[[democracy]]}} from {{m|ar|دِيمُقْرَاطِيّ|tr=dimuqrāṭiyy||[[democratic]]}} or {{m|ar|ذِهْنِيَّة||[[mentality]]}} from {{m|ar|ذِهْنيِّ||[[mental]]}} (in turn formed from {{m|ar|ذِهْن||[[mind]]}}). In some cases, it is best to view these nouns as being formed directly using a suffix {{m|ar|ِيَّة|tr=-iyya}}, especially since the corresponding word in {{m|ar|ِيّ|tr=-iyy}} may not exist. Examples are {{m|ar|كَمِّيَة||[[quantity]]}} formed from {{m|ar|كَمّ||[[quantity]]}}, {{m|ar|أَهَمِّيَة||[[importance]]}} formed from {{m|ar|أَهَمّ||more [[important]], very [[important]]}} and {{m|ar|هُوِيَّة||[[identity]]}} formed from {{m|ar|هُوَ||[[he]]}} (note that the last two examples are formed from parts of speech other than nouns).
+====References====
+* {{R:ar:Lane|فوق}}
 
-...
+تحتاني
+
+
+
+تحت
+
+==Arabic==
+
+===Etymology 1===
+Originally a case form of a defective noun {{m|ar|تَحْت||[[location]] that is [[below]]}}; see the usage note. From the root {{ar-root|ت ح ت}}.
+
+====Adverb====
+{{ar-adv|تَحْتُ}}
+
+# [[below]]
+
+=====Usage notes=====
+This originates as a case form of a defective noun {{m|ar|تَحْت||[[location]] that is [[below]]}}. It is declined normally when definite, e.g. {{m|ar||التَحْتُ|the [[location]] that is [[below]]}}. Other forms are the adverbial accusative in the preposition {{m|ar|تَحْتَ||[[below]]}}, the genitive in the expression {{m|ar|مِن تَحْتِ||[[from]] [[below]], [[below]]}} (also with an attached pronoun, as in {{m|ar||مِن تَحْتِهَا|([[from]]) [[below]] it}}), and the irregular expression {{m|ar|مِن تَحْتُ||(from) [[below]]}}.
+
+=====References=====
+* {{R:ar:Lane|تحت}}
+
+===Etymology 2===
+Adverbial accusative of {{m|ar|تَحْت||[[location]] that is [[below]]}}. Related to {{etyl|he|-}} {{term|תַּחַת|tr=tákhat|lang=he}}.
+
+====Pronunciation====
+* {{audio|Ar-تحت.ogg|Audio|lang=ar}}
+
+====Preposition====
+{{ar-prep|تَحْتَ}}
+
+# {{l|en|under}}
+
+=====Inflection=====
+{{ar-prep-auto|تَحْتَ}}
+
+فوق
+
+==Arabic==
+
+===Etymology 1===
+Originally a case form of a defective noun {{m|ar|فَوْق||[[location]] that is [[above]]}}; see the usage note. From the root {{ar-root|ف و ق}}.
+
+====Adverb====
+{{ar-adv|فَوْقُ}}
+
+# [[above]]
+
+=====Usage notes=====
+This originates as a case form of a defective noun {{m|ar|فَوْق||[[location]] that is [[above]]}}. It is declined normally when definite or in the construct state, e.g. {{m|ar||الفَوْقُ|the [[location]] that is [[above]]}}, {{m|ar||فَوْقُهُ|his [[upper]] [[part]]}}. Other forms are the adverbial accusative in the preposition {{m|ar|فَوْقَ||[[above]]}}, the genitive in the expression {{m|ar|مِن فَوْقٍ||[[from]] [[above]], [[above]]}} (also with an attached pronoun, as in {{m|ar||مِن فَوْقِهِم|([[from]]) [[above]] them}}), and the irregular expression {{m|ar|مِن فَوْقُ||(from) [[above]]}}.
+
+=====References=====
+* {{R:ar:Lane|فوق}}
+
+===Etymology 2===
+Adverbial accusative of {{m|ar|فَوْق||[[location]] that is [[above]]}}.
+
+====Pronunciation====
+* {{audio|Ar-فوق.ogg|Audio|lang=ar}}
+
+====Preposition====
+{{ar-prep|فَوْقَ}}
+
+# [[above]], [[on top of]]
+
+=====Inflection=====
+{{ar-prep-auto|فَوْقَ}}
+
+أدمن
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|د م ن}}.
+
+===Verb===
+{{ar-verb|IV}}
+
+# to be [[addicted]] {{i|{{m|ar|عَلَى}} to}}
+# {{lb|ar|transitive|or|construed with {{m|ar|عَلَى}}}} to [[devote]] oneself to
+
+====Conjugation====
+{{ar-conj|IV|passive=y}}
+
+====References====
+* {{R:ar:Wehr-4|د م ن}}
+
+
+مدمن
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَدْمَنَ||to be [[addicted]]}}, from the root {{ar-root|د م ن}}.
+
+===Adjective===
+{{ar-adj-sound|مُدْمِن}}
+
+# [[addicted]] {{i|{{m|ar|عَلَى}} to}}
+
+====Declension====
+{{ar-decl-adj|مُدْمِن|pl=smp}}
+
+===Noun===
+{{ar-noun|مُدْمِن|f=مُدْمِنَة|pl=مُدْمِنُون}}
+
+# [[addict]]
+
+====Declension====
+{{ar-decl-gendered-noun|مُدْمِن|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|دمن}}
+
+إدمان
+
+==Arabic==
+
+===Etymology===
+{{ar-verbal noun}} of {{m|ar|أَدْمَنَ||to be [[addicted]] to}}, from the root {{ar-root|د م ن}}.
+
+===Noun===
+{{ar-noun|إِدْمَان|m}}
+
+# {{ar-verbal noun of|أَدْمَنَ|form=IV}}
+# [[addiction]]
+# [[mania]]
+# [[excess]
+
+====Declension====
+{{ar-decl-noun|إِدْمَان}}
+
+====References====
+* {{R:ar:Wehr-4|دمن}}
+
+
+متقدم
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|تَقَدَّمَ||to [[precede]], to [[proceed]]}}, from the root {{ar-root|ق د م}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَقَدِّم}}
+
+# [[preceding]]
+# [[advanced]]
+# [[ahead]], [[in front]]
+# [[advancing]]
+
+====Declension====
+{{ar-decl-adj|مُتَقَدِّم|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|قدم}}
+
+مسل
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|سَلَّى||to [[comfort]], to [[amuse]]}}, from the roots {{ar-root|س ل و}} and {{ar-root|س ل ي}}.
+
+===Adjective===
+{{ar-adj-in|مُسَلّ|pl=+}}
+
+# [[amusing]]
+# [[comforting]]
+
+====Declension====
+{{ar-decl-adj|مُسَلٍّ|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|سلو}}
+
+===Noun===
+{{ar-noun|مُسَلٍّ|m|cons=مُسَلِّي|f=مُسَلِّيَة|pl=مُسَلُّون}}
+
+# [[comforter]] {{gloss|one who [[comforts]]}}
+
+====Declension====
+{{ar-decl-gendered-noun|مُسَلٍّ|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|سلو}}
+
+
+ضايق
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ض ي ق}}; compare {{m|ar|ضَاقَ||to be or become [[narrow]], to be or become [[tired]]}}.
+
+===Verb===
+{{ar-verb|III}}
+
+# to [[annoy]]
+# to [[harass]]
+# to [[bother]], to [[disturb]]
+# {{lb|ar|transitive}} to [[cause]] [[trouble]] to 
+
+====Conjugation====
+{{ar-conj|III|passive=y}}
+
+====References====
+* {{R:ar:Wehr-4|ضيق}}
+
+
+مضايق
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|ضَايَقَ||to [[annoy]], to [[harass]], to [[bother]]}, from the root {{ar-root|ض ي ق}}.
+
+===Adjective===
+{{ar-adj-sound|مُضَايِق}}
+
+# [[annoying]], [[bothersome]], [[tiresome]]
+
+====Declension====
+{{ar-decl-adj|مُضَايِق|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ضيق}}
+
+===Noun===
+{{ar-noun|مُضَايِق|m|f=مُضَايِقَة|pl=مُضَايِقُون}}
+
+# [[nuisance]] {{gloss|person who is a [[nuisance]]}}
+
+====Declension====
+{{ar-decl-gendered-noun|مُضَايِق|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ضيق}}
+
+
+مضايقة
+
+==Arabic==
+
+===Etymology===
+{{ar-verbal noun}} of {{m|ar|ضَايَقَ||to [[annoy]], to [[harass]], to [[bother]]}}, from the root {{ar-root|ض ي ق}}.
+
+===Noun===
+{{ar-noun|مُضَايَقَة|f|pl=مُضَايَقَات}}
+
+# {{ar-verbal noun of|ضَايَقَ|form=III}}
+# [[annoyance]], [[anger]]
+# [[distress]], [[embarrassment]]
+# [[disturbance]], [[obstruction]]
+# [[harassment]], [[molestation]]
+# [[trouble]], [[nuisance]], [[difficulty]]
+
+====Declension====
+{{ar-decl-noun|مُضَايَقَة|pl=مُضَايَقَات}}
+
+====References====
+* {{R:ar:Wehr-4|ضيق}}
+
+معدل
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|عَدَّلَ||to [[balance]]}}, from the root {{ar-root|ع د ل}}.
+
+===Adjective===
+{{ar-adj-sound|مُعَدَّل}}
+
+# [[average]]
+
+====Declension====
+{{ar-decl-adj|مُعَدَّل|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|عدل}}
+
+===Noun===
+{{ar-noun|مُعَدَّل|m}}
+
+# [[rate]]
+# [[average]]
+
+====Declension====
+{{ar-decl-noun|مُعَدَّل}}
+
+====References====
+* {{R:ar:Wehr-4|عدل}}
+
+عدل
+
+==Arabic==
+
+===Etymology 1===
+
+====Verb====
+{{ar-verb|I|a|i}}
+
+# to act [[justly]]
+
+=====Conjugation=====
+{{ar-conj|I|a|i|passive=impers?|vn=عَدْلٌ،مَعْدِلَةٌ،مَعْدَلَةٌ،عَدَالَةٌ،عُدُولَةٌ}}
+
+====Verb====
+{{ar-verb|I|a|i}}
+
+# to make (someone) [[equal]] ({{l|ar|بِ}} to)
+# {{lbl|ar|transitive}} to be [[equal]] to, to be [[equivalent]] to
+# {{lbl|ar|transitive}} to [[balance]]
+
+=====Conjugation=====
+{{ar-conj|I|a|i|passive=y|vn=عَدْلٌ،عُدُولٌ}}
+
+====Verb====
+{{ar-verb|I|a|i}}
+
+# to [[deviate]], to [[turn away]] ({{l|ar|عَن}} from)
+
+=====Conjugation=====
+{{ar-conj|I|a|i|passive=impers?|vn=عُدُولٌ،عَدْلٌ}}
+
+====Verb====
+{{ar-verb|I|a|i}}
+
+# to make [[deviate]], to cause to [[turn away]]
+
+=====Conjugation=====
+{{ar-conj|I|a|i|passive=y|vn=عَدْلٌ}}
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb|I|u|u}}
+
+# to be [[just]]
+
+=====Conjugation=====
+{{ar-conj|I|u|u|passive=n|vn=عَدَالَةٌ}}
+
+===Etymology 3===
+
+====Verb====
+{{ar-verb|I|i|a}}
+
+# to act [[wrongfully]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=impers?|vn=عَدَلٌ}}
+
+===Etymology 4===
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[give]] [[judgment]] [[according to]] the [[right]]
+# to [[make]] [[just]]
+# to [[make]] [[equal]] in [[size]] or [[weight]], to [[declare]] to be [[equal]]
+# to [[set]] into the [[right]] [[proportion]]
+# to [[straighten]]
+# to [[lead]] [[straight]]
+# {{lb|ar|transitive}} to [[weigh]] [[rightly]]
+# to [[balance]], to [[adjust]], to [[fix]], to [[rectify]]
+# {{lb|ar|transitive}} to [[adapt]]
+# {{lb|ar|transitive}} to [[change]], to [[improve]]
+# to [[place]] {{i|a [[balance]]}} in [[equilibrium]]
+# to [[admit]] {{i|a [[witness]]}} as [[lawful]]
+# to [[drink]] to [[excess]]
+# {{lb|ar|"modern"}} to [[grow]] [[thick]] or [[stout]]
+# {{lb|ar|electricity}} to [[modulate]]
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass|عدل}}
+* {{R:ar:Wehr-4|عدل}}
+
+===Etymology 5===
+From the root {{ar-root|ع|د|ل}}.
+
+====Noun====
+{{ar-noun|عَدْل|m|pl=عُدُول}}
+
+# {{ar-verbal noun of|عَدَلَ|form=I}}
+# [[justice]], [[equity]]
+#: {{ux|ar|مِن العَدْل|[[fair]]|inline=t}}
+# [[righteousness]], [[uprightness]], [[honesty]]
+# [[right]] [[measure]]
+# [[compensation]]
+# [[reward]]
+# [[ransom]]
+# [[deviation]] from what is [[right]], [[anomaly]]
+
+=====Declension=====
+{{ar-decl-noun|عَدْل|pl=عُدُول}}
+
+=====References=====
+* {{R:ar:Lane}}
+* {{R:ar:Steingass}}
+
+====Adjective====
+{{ar-adj|عَدْل|f=عَدْلَة|pl=عُدُول}}
+
+# [[just]], [[upright]], [[honest]]
+# [[lawful]], [[admissible]]
+# of [[equal]] [[value]]
+
+=====Declension=====
+{{ar-decl-adj|عَدْل|pl=عُدُول}}
+
+=====References=====
+* {{R:ar:Lane}}
+* {{R:ar:Steingass}}
+
+===Etymology 6===
+
+====Noun====
+{{ar-noun|عَدَل|m}}
+
+# {{ar-verbal noun of|عَدِلَ|form=I}}
+# [[equilibration]] of the two [[side]] [[loads]]
+
+=====Declension=====
+{{ar-decl-noun|عَدَل}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+===Etymology 7===
+
+====Adjective====
+{{ar-adj|عِدْل|f=عِدْلَة|pl=أَعْدَال|pl2=عِدَال|pl3=عُدُول}}
+
+# [[equal]]
+# of [[equal]] [[weight]]
+# of [[equal]] [[value]]
+# [[similar]], [[corresponding]]
+
+=====Declension=====
+{{ar-decl-adj|عِدْل|pl=أَعْدَال|pl2=عِدَال|pl3=عُدُول}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+====Noun====
+{{ar-noun|عِدْل|m|pl=أَعْدَال|pl2=عِدَال|pl3=عُدُول}}
+
+# [[balanced]] [[bale]] of [[merchandise]], [[half]] of a [[counterbalanced]] [[load]]
+
+=====Declension=====
+{{ar-decl-noun|عِدْل|pl=أَعْدَال|pl2=عِدَال|pl3=عُدُول}}
+
+=====References=====
+* {{R:ar:Lane}}
+* {{R:ar:Steingass}}
+
+===Etymology 8===
+
+====Noun====
+{{ar-noun-pl|عَدْل}}
+
+# {{plural of|عَادِل|lang=ar}}
+
+====Adjective====
+{{ar-adj-pl|عَدْل}}
+
+# {{masculine plural of|عَادِل|lang=ar}}
+
+
+تعديل
+
+==Arabic==
+
+===Etymology===
+{{ar-verbal noun}} of {{m|ar|عَدَّلَ||to [[straighten]], to [[adjust]], to [[change]], to [[improve]], {{i|[[electricity]]}} to [[modulate]]}}, from the root {{ar-root|ع د ل}}.
+
+===Noun===
+{{ar-noun|تَعْدِيل|m|pl=تَعْدِيلَات}}
+
+# {{ar-verbal noun of|عَدَّلَ|form=III}}
+# [[straightening]]
+# [[adjustment]]
+# [[change]]
+# [[improvement]]
+# {{lb|ar|electricity}} [[modulation]]
+
+====Declension====
+{{ar-decl-noun|تَعْدِيل|m|pl=تَعْدِيلَات}}
+
+====References====
+* {{R:ar:Wehr-4|عدل}}
+
+مناسب
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|نَاسَبَ||to [[correspond]], to [[fit]]}}, from the root {{ar-root|ن س ب}}.
+
+===Adjective===
+{{ar-adj-sound|مُنَاسِب}}
+
+# [[appropriate]], [[suitable]], [[proper]], [[adequate]]
+# [[fitting]], [[corresponding]], [[conformable]], [[analogous]]
+# [[fit]], [[worthy]]
+# [[referring]] to, [[belonging]] to
+# {{lb|ar|mathematics}} [[proportional]]
+
+====Declension====
+{{ar-decl-adj|مُنَاسِب|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|نسب}}
+
+متوسط
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of the verb {{m|ar|تَوَسَّطَ||to be in the [[middle]]}}, constructed from the root {{ar-root|و س ط}} of {{m|ar|وَسْط||[[middle]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَوَسِّط}}
+
+# being in the [[middle]], [[mediating]]
+# [[middle]], [[central]]
+# [[medium]]
+# [[average]], [[middling]], [[indifferent]]
+
+====Declension====
+{{ar-decl-adj|مُتَوَسِّط|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+
+
+مشغول
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|شَغَلَ||to [[occupy]], to [[keep]] [[busy]]}}, from the root {{ar-root|ش غ ل}}.
+
+===Adjective===
+{{ar-adj|مَشْغُول|f=مَشْغُولَة}}
+
+# [[busy]]
+# [[distracted]]
+# [[occupied]] {{i|[[telephone]] [[line]], [[seat]], etc.}}
+
+====Declension====
+{{ar-decl-adj|مَشْغُول}}
+
+
+معطل
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|عَطَّلَ||to [[neglect]], to [[leave]] [[idle]], to [[damage]]}}, from the root {{ar-root|ع ط ل}}.
+
+===Adjective===
+{{ar-adj-sound|مُعَطَّل}}
+
+# [[out of order]], [[broken]] {{i|[[machine]], etc.}}
+# [[unemployed]], [[idle]]
+# [[closed]] {{i|[[store]], [[office]], etc.}}
+# [[stopped]] {{i|[[engine]]}}
+
+====Declension====
+{{ar-adj|مُعَطَّل|pl=smp}}
+
+عطل
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ع ط ل}}.
+
+====Verb====
+{{ar-verb|I|i|a}}
+
+# to [[lack]] {{i|{{m|ar|مِن}} something}}
+# to be [[unemployed]], to be [[idle]]
+# to be [[unadorned]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=impers|vn=عَطَل،عُطُول}}
+
+=====References=====
+* {{R:ar:Steingass|عطل}}
+* {{R:ar:Wehr-4|عطل}}
+
+====Verb====
+{{ar-verb|I|i|a}}
+
+# to be [[tall]]
+# {{lb|ar|"modern"}} to be [[spoiled]], to be [[no longer]] of [[use]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=impers|vn=عَطَل}}
+
+=====References=====
+* {{R:ar:Steingass|عطل}}
+
+===Etymology 2===
+Causative of {{m|ar|عَطِلَ}}.
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[neglect]]
+# to make [[unemployed]], to [[leave]] [[idle]]
+# to [[damage]], to [[destroy]], to [[devastate]], to [[ruin]], to [[render]] [[inoperable]]
+# to [[deprive]] of one's [[property]]
+# to [[deprive]] of [[adornments]]
+# to [[empty]]
+# to [[free]]
+# to [[obstruct]]
+# to [[interrupt]]
+# to [[suspend]] {{i|a [[publication]]}}
+# to [[turn off]] {{i|an [[engine]], etc.}}
+# to [[close]] {{i|a [[store]], an [[office]], etc.}}
+# {{lb|ar|"modern"}} to [[injure]], to [[cause]] [[loss]] {{i|{{m|ar|عَلَى}} to}}
+# {{lb|ar|"modern"}} to [[lend]] at [[interest]]
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass|عطل}}
+* {{R:ar:Wehr-4|عطل}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun|عَطَل|m|head2=عَطْل}}
+
+# {{ar-verbal noun of|عَطِلَ|form=I||to [[lack]], to be [[unemployed]], to be [[unadorned]], etc.}}
+# [[unemployment]]
+# [[inactivity]]
+# [[inefficiency]]
+# [[lack]]
+# [[absence]] of [[adornment]], [[simplicity]]
+
+=====Declension=====
+{{ar-decl-noun|عَطَل|head2=عَطْل}}
+
+=====References=====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|عطل}}
+
+مهمل
+
+==Arabic==
+
+===Etymology 1===
+{{ar-active participle}} of {{m|ar|أَهْمَلَ||to [[neglect]], to [[overlook]]}}, from the root {{ar-root|ه م ل}}.
+
+====Adjective====
+{{ar-adj-sound|مُهْمِل}}
+
+# [[careless]]
+# [[negligent]]
+
+=====Declension=====
+{{ar-adj|مُهْمِل|pl=smp}}
+
+=====References=====
+* {{R:ar:Wehr-4|همل}}
+
+===Etymology 2===
+{{ar-passive participle}} of {{m|ar|أَهْمَلَ||to [[neglect]], to [[overlook]], to [[leave]] [[unpointed]] {{i|[[letter]]}}}}, from the root {{ar-root|ه م ل}}.
+
+====Adjective====
+{{ar-adj-sound|مُهْمَل}}
+
+# [[neglected]]
+# [[obsolete]], [[antiquated]]
+# [[meaningless]]
+# {{lb|ar|grammar}} [[unpointed]] {{i|[[letter]]}}
+
+=====Declension=====
+{{ar-adj|مُهْمَل|pl=smp}}
+
+=====References=====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|همل}}
+
+أهمل
+
+==Arabic==
+
+===Etymology===
+From the root {{ه م ل}}
+
+===Verb===
+{{ar-verb|IV}}
+
+# to [[neglect]]
+# to [[omit]]
+# to [[overlook]], to [[forget]]
+# to [[stop]] [[using]]
+# to [[leave]] {{i|[[people]]}} to [[themselves]]
+# to [[allow]] {{i|[[things]]}} to [[go on]] as they may
+# to [[allow]] {{i|[[camels]]}} to [[pasture]] [[at large]]
+# {{lb|ar|grammar}} to [[leave]] {{i|a [[letter]]}} [[unpointed]]
+# {{lb|ar|grammar}} to [[suspend]] the [[government]] of {{i|a [[word]]}}
+
+====Conjugation====
+{{ar-conj|IV|passive=y}}
+
+====References====
+* {{R:ar:Steingass|همل}}
+* {{R:ar:Wehr-4|همل}}
+
+
+النقب
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Etymology===
+From {{etyl|he|ar}} {{m|he|נֶגֶב}}.
+
+===Proper noun===
+{{ar-proper noun|النَقَب}}
+
+# the [[Negev]] {{gloss|[[desert]] in [[Israel]]}}
+
+====Declension====
+{{ar-decl-noun|نَقَب|state=def}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+محافظ
+
+==Arabic==
+
+===Etymology 1===
+{{ar-active participle}} of {{m|ar|حَافَظَ||to [[protect]], to [[preserve]]}}, from the root {{ar-root|ح ف ظ}}.
+
+====Adjective====
+{{ar-adj-sound|مُحَافِظ}}
+
+# {{context|politics|lang=ar}} [[conservative]]
+# [[protective]]; [[guarding]]
+# [[preserving]]
+
+=====Declension=====
+{{ar-decl-adj|مُحَافِظ|pl=smp}}
+
+=====Antonyms=====
+*{{sense|politically liberal}} {{l|ar|ليبرالي}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun-pl|مَحَافِظ}}
+
+# {{plural of|مَحْفَظَة|lang=ar}}
+
+تونسي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|تُونِس|[[Tunisia]]}}.
+
+===Adjective===
+{{ar-nisba|تُونِسِيّ|pl2=تَوَانِسَة}}
+
+# [[Tunisian]]
+
+====Declension====
+{{ar-decl-adj|تُونِسِيّ|pl=smp|pl2=تَوَانِسَة}}
+
+====References====
+* {{R:ar:Wehr-4|تونس}}
+
+تركي
+
+{{also|ترکی}}
+
+==Arabic==
+
+===Adjective===
+{{ar-nisba|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+# [[Turkish]]
+
+====Declension====
+{{ar-decl-adj|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+====References====
+* {{R:ar:Haywood}}
+
+تونس
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Proper noun===
+{{ar-proper noun|تُونِس|f}}
+
+# [[Tunisia]]
+# [[Tunis]]
+
+====Declension====
+{{ar-decl-noun|تُونِس:di|state=ind}}
+
+====Derived terms====
+* {{l|ar|تُونِسِيّ}}
+
+[[Category:ar:Countries]]
+[[Category:ar:Capital cities]]
+
+
+الربع الخالي
+
+==Arabic==
+
+===Etymology===
+Literally "the Empty Quarter".
+
+===Proper noun===
+{{ar-proper noun|[[ربع|اَلرُّبْع]] [[خال|اَلْخَالِي]]}}
+
+# [[Rub' al Khali]]
+
+====Declension====
+{{ar-decl-noun|رُبْع|state=def|mod=خَالٍ}}
+
+المدينة
+
+==Arabic==
+
+===Etymology===
+Literally "the city".
+
+===Proper noun===
+{{ar-proper noun|[[مدينة|المَدِينَة]]|f}}
+
+# [[Medina]]
+
+====Declension====
+{{ar-decl-noun|مَدِينَة|state=def}}
+
+====Synonyms====
+* {{l|ar|المَدِينَة المُنَوَّرَة|tr=al-madīna l-munawwara}}
+
+====Related terms====
+* {{l|ar|مَدِينَة}}
+
+====Descendants====
+* Azeri: {{l|az|Mədinə}}
+* Bashkir: {{l|ba|Мәҙинә}}
+* Turkish: {{l|tr|Medine}}
+
+===Noun===
+{{head|ar|noun form|head=المَدِينَة|g=f}}
+
+# {{definite of|مَدِينَة|lang=ar}}
+
+[[Category:ar:Cities]]
+
+الرياض
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Proper noun===
+{{ar-proper noun|اَلرِّيَاض|m}}
+
+# [[Riyadh]]
+
+====Declension====
+{{ar-decl-noun|رِيَاض|state=def}}
+
+[[Category:ar:Capital cities]]
+
+المملكة العربية السعودية
+
+==Arabic==
+
+===Etymology===
+Literally the "Saudi Arab Kingdom".
+
+===Pronunciation===
+* {{audio|Ar-Saudia-Full.ogg|Audio (AR)|lang=ar}}
+
+===Proper noun===
+{{ar-proper noun|[[مملكة|اَلْمَمْلَكَة]] [[عربي|ٱلْعَرَبِيَّة]] [[سعودي|ٱلسَّعُودِيَّة]]|f|tr=al-mamlaka l-ʿarabiyya s-saʿūdiyya}}
+
+# [[kingdom]] of [[Saudi Arabia]]
+
+====Declension====
+Both {{m|ar||عَرَبِيَّة}} and {{m|ar||سَعُودِيَّة}} are feminine adjectives modifying {{m|ar|مَمْلَكَة}}.
+
+سعودي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|السَعُود|the {{w|House of Saud}}}}.
+
+===Adjective===
+{{ar-nisba|سَعُودِيّ}}
+
+# [[Saudi]]
+
+====Declension====
+{{ar-decl-adj|سَعُودِيّ|pl=smp}}
+
+أسبانية
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Etymology 1===
+From {{etyl|es|ar}} {{m|es|España||[[Spain]]}}.
+
+====Alternative forms====
+* {{l|ar|إِسْبَانِيَا}}
+
+====Proper noun====
+{{ar-proper noun|إِسْبَانِيَة|f}}
+
+# [[Spain]]
+
+[[Category:ar:Countries]]
+
+=====Declension=====
+{{ar-decl-noun|إِسْبَانِيَة:di|state=ind}}
+
+===Etymology 2===
+Inflected form.
+
+====Noun====
+{{ar-noun-fem|إِسْبَانِيَة}}
+
+# {{feminine of|lang=ar|إِسْبَانِيّ}}
+
+إسبانيا
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Alternative forms===
+* {{l|ar|إِسْبَانِيَة}}
+
+===Etymology===
+From {{etyl|es|ar}} {{m|es|España||[[Spain]]}}.
+
+===Proper noun===
+{{ar-proper noun|إِسْبَانِيَا|f}}
+
+# [[Spain]]
+
+====Declension====
+{{ar-decl-noun|إِسْبَانِيَا|state=ind}}
+
+[[Category:ar:Countries]]
+
+إسبان
+
+==Arabic==
+
+===Etymology===
+Back-formed from {{m|ar|إِسْبَانِيَا||[[Spain]]}}.
+
+===Noun===
+{{ar-coll-noun|إِسْبَان|m-p|sing=إِسْبَانِيّ}}
+
+# [[Spaniards]]
+
+====Declension====
+{{ar-decl-coll-noun|إِسْبَان|sing=إِسْبَانِيّ}}
+
+
+إسباني
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|إِسْبَان|[[Spaniards]]}}.
+
+===Adjective===
+{{ar-nisba|إِسْبَانِيّ}}
+
+# [[Spanish]]
+
+====Declension====
+{{ar-decl-adj|إِسْبَانِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|إِسْبَانِيّ|pl2=إِسْبَان}}
+
+# [[Spaniard]]
+
+====Declension====
+{{ar-decl-gendered-noun|إِسْبَانِيّ|pl=smp|pl2=إِسْبَان}}
+
+الناصرة
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Proper noun===
+{{ar-proper noun|النَاصِرَة}}
+
+# [[Nazareth]]
+
+====Declension====
+{{ar-decl-noun|نَاصِرَة|state=def}}
+
+[[Category:ar:Cities]]
+
+
+أراح
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ر و ح}}; compare {{m|ar|رَاحَة||[[rest]], [[comfort]]}}.
+
+===Verb===
+{{ar-verb|IV|II=و}}
+
+# to [[let]] {{i|someone}} [[rest]]
+# to [[free]] {{i|someone {{m|ar|مِن}} from}}
+# to [[release]] {{i|someone {{m|ar|مِن}} from}}
+# to [[gladden]] {{i|someone {{m|ar|بِ}} with}}
+# to [[soothe]]
+
+====Conjugation====
+{{ar-conj|IV|passive=y}}
+
+====See also====
+* {{l|ar|أَرْوَحَ||to [[stink]]}}
+
+====References====
+* {{R:ar:Wehr-4|روح}}
+
+أروح
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ر و ح}}; compare {{m|ar|رِيحَة||[[smell]]}}.
+
+===Verb===
+{{ar-verb|IV-sound|II=و}}
+
+# to [[stink]]
+
+====Conjugation====
+{{ar-conj|IV-sound|passive=n}}
+
+====See also====
+* {{l|ar|أَرَاحَ||to [[let]] [[rest]]}}
+
+====References====
+* {{R:ar:Wehr-4|روح}}
+
+
+
+ارتاح
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ر و ح}}; compare {{m|ar|رَاحَة||[[rest]], [[comfort]]}}.
+
+===Verb===
+{{ar-verb|VIII|II=و}}
+
+# to [[rest]], to [[relax]]
+# to [[find]] [[rest]] {{i|{{m|ar|مِن}} from}}
+# to be [[satisfied]] {{i|{{m|ar|إِلَى}} with}}
+# to [[like]] {{i|{{m|ar|إِلَى}} or {{m|ar|لِ}} something}}
+# to [[agree]] {{i|{{m|ar|إِلَى}} to}}
+
+====Conjugation====
+{{ar-conj|VIII|passive=impers}}
+
+====References====
+* {{R:ar:Wehr-4|روح}}
+
+مريح
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَرَاحَ||to [[let]] [[rest]], to [[soothe]]}} and {{m|ar|أَرْوَحَ||to [[stink]]}}, from the root {{ar-root|ر و ح}}; compare {{m|ar|رَاحَة||[[rest]], [[comfort]]}} and {{m|ar|رِيحَة||[[smell]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُرِيح}}
+
+# [[comfortable]] {{i|of a [[thing]]}}
+# [[soothing]]
+# [[restful]]
+# [[flatulent]]
+
+====Declension====
+{{ar-decl-adj|مُرِيح|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|روح}}
+
+مرتاح
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِرْتَاحَة||to [[rest]], to be [[pleased]], to be [[satisfied]]}}, from the root {{ar-root|ر و ح}}; compare {{m|ar|رَاحَة||[[rest]], [[comfort]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُرْتَاح}}
+
+# [[comfortable]] {{i|of a [[person]]}}
+# [[calm]], [[relaxed]]
+# [[resting]]
+# [[pleased]]
+# [[satisfied]]
+
+====Declension====
+{{ar-decl-adj|مُرْتَاح|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|روح}}
+
+
+مكلف
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|كَلَّفَ||to [[entrust]], to [[cost]]}}, from the root {{ar-root|ك ل ف}}.
+
+===Adjective===
+{{ar-adj-sound|مُكَلَّف}}
+
+# [[in charge]] {{i|{{m|ar|بِ}} of}}, [[responsible]] {{i|{{m|ar|بِ}} for}}
+# [[authorized]] {{i|{{m|ar|بِ}} with}}
+# [[obligated]] {{i|{{m|ar|بِ}} to do something}}
+# [[expensive]], [[fine]], [[excellent]
+# [[magnificently]] [[adorned]]
+# [[bombastic]], [[overdone]]
+# [[freckled]]
+# [[full]] of [[pimples]]
+# [[taxable]]
+# {{lb|ar|Islamic|_|law}} of [[sound]] [[mind]], [[compos mentis]]
+
+====Declension====
+{{ar-decl-adj|مُكَلَّف|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|كلف}}
+
+كلف
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ك ل ف}}.
+
+====Verb====
+{{ar-verb|I|i|a}}
+
+# to [[spend]] [[zeal]], [[pains]] and [[costs]] {{i|on a thing}}
+# to be [[eager]]
+# to be or [[fall in love]] {{i|{m|ar|بِ}} with}}
+# to [[like]] {{i|{{m|ar|بِ}} something}}, to be very [[attached]] {{i|{{m|ar|بِ}} to}}
+# to become [[reddish]] [[brown]] {{i|of the [[face]]}}
+# to become [[freckled]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=impers|vn=كَلَف}}
+
+=====References=====
+* {{R:ar:Steingass|كلف}}
+* {{R:ar:Wehr-4|كلف}}
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[entrust]] {{i|[transitive] someone [transitive or {{m|ar|بِ}}] with something}}, to [[impose]] {{i|a matter on someone}}
+# {{lb|ar|ditransitive}} to [[assign]] {{i|someone a task}}
+# to [[molest]], to make [[difficulties]] for, to [[trouble]]
+# {{lb|ar|ditransitive}} to [[cost]] {{i|someone something}}
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass|كلف}}
+* {{R:ar:Wehr-4|كلف}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun|كَلَف|m|pl=أَكْلَاف}}
+
+# {{ar-verbal noun of|كَلِفَ|form=I}}
+# [[pains]] and [[care]] [[taken]]
+# [[amorousness]]
+# [[brown]] [[spot]], [[freckle]]
+# [[cost]]
+
+=====Declension=====
+{{ar-decl-noun|كَلَف|pl=أَكْلَاف}}
+
+=====References=====
+* {{R:ar:Steingass|كلف}}
+
+ارتبك
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ر ب ك}}; compare {{m|ar|رَبَكَ||to [[confuse]]}}.
+
+===Verb===
+{{ar-verb|VIII}}
+
+# to be [[confused]]
+# to be [[involved]] {{i|{{m|ar|فِي}} in}}
+
+====Conjugation====
+{{ar-conj|VIII|passive=n?}}
+
+====References====
+* {{R:ar:Wehr-4|ربك}}
+
+مرتبك
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِرْتَبَكَ||to be [[confused]], to be [[involved]] in}}, from the root {{ar-root|ر ب ك}}.
+
+===Adjective===
+{{ar-adj-sound|مُرْتَبِك}}
+
+# [[confused]]
+# [[embarrassed]]
+# [[involved]] {{i|{{m|ar|فِي}} in}}
+
+====Declension====
+{{ar-decl-adj|مُرْتَبِك|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ربك}}
+
+تأزم
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ء ز م}}; compare {{m|ar|أَزْمَة||[[crisis]], [[emergency]]}}.
+
+===Verb===
+{{ar-verb|V}}
+
+# to be [[critical]], to be in a state of [[crisis]]
+
+====Conjugation====
+{{ar-conj|V|passive=n}}
+
+====References====
+* {{R:ar:Wehr-4|أزم}}
+
+متأزم
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|مُتَأَزِّم||to be [[critical]], to be in a state of [[crisis]]}}, from the root {{ar-root|ء ز م}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَأَزِّم}}
+
+# [[critical]], in [[crisis]]
+
+====Declension====
+{{ar-decl-adj|مُتَأَزِّم|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|أزم}}
+
+
+
+ازدحم
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ز ح م}}; compare {{m|ar|زَحَمَ||to [[crowd]], to [[shove]]}}.
+
+===Verb===
+{{ar-verb|VIII}}
+
+# to be [[crowded]]
+# to [[crowd]] [[together]]
+
+====Conjugation====
+{{ar-conj|VIII|passive=impers?}}
+
+====References====
+* {{R:ar:Wehr-4|زحم}}
+
+مزدحم
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِزْدَحَمَ||to [[crowd]], to [[shove]]}}, from the root {{ar-root|ز ح م}}.
+
+===Adjective===
+{{ar-adj-sound|مُزْدَحِم}}
+
+# [[crowded]] {{i|{{m|ar|بِ}} with}}
+
+====Declension====
+{{ar-decl-adj|مُزْدَحِم|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|زحم}}
+
+تداول
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|د و ل}}; compare {{m|ar|دَالَ||to [[alternate]] {{i|intransitive}}}}.
+
+===Verb===
+{{ar-verb|VI}}
+
+# to [[confer]]
+# to [[negotiate]]
+# {{lb|ar|transitive}} to [[alternate]] with
+# to do [[alternately]], to [[reach]] to one another
+# {{lb|ar|transitive}} to [[circulate]], to [[pass]] around
+# {{lb|ar|intransitive}} to [[circulate]], to be [[current]]
+# to [[snatch]] from one another
+# to do [[frequently]], to do from [[day to day]]
+# to use [[frequently]]
+
+====Conjugation====
+{{ar-conj|VI|passive=y}}
+
+====References====
+* {{R:ar:Steingass|دول}}
+* {{R:ar:Wehr-4|دول}}
+
+
+متداول
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|تَدَاوَلَ||to [[circulate]]}}, from the root {{ar-root|د و ل}}; compare {{m|ar|دَالَ||to [[alternate]] {{i|intransitive}}}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَدَاوَل}}
+
+# [[current]]
+# [[common]]
+# [[valid]]
+
+====Declension====
+{{ar-decl-adj|مُتَدَاوَل|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|دول}}
+
+محدد
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|حَدَّدَ||to [[define]], to [[sharpen]]}}, from the root {{ar-root|ح د د}}; compare {{m|ar|حَدَّ||to [[limit]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُحَدَّد}}
+
+# [[definite]]
+# [[sharpened]]
+# [[fixed]], [[destined]] {{i|{{m|ar|لِ}} for}}
+
+====Declension====
+{{ar-decl-adj|مُحَدَّد|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|حد}}
+
+باشر
+
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ب ش ر}}.
+
+===Verb===
+{{ar-verb|III}}
+
+# to [[carry out]] {{i|a [[task]]}}
+# to [[exercise]] {{i|a [[profession]]}}
+# to [[take]] {{i|a [[matter]]}} into one's own hands
+# {{lb|ar|transitive}} to [[touch]] {{gloss|be in [[contact]]}}
+# to have [[sexual]] [[intercourse]] with
+
+====Conjugation====
+{{ar-conj|III|passive=y}}
+
+====References====
+* {{R:ar:Steingass|بشر}}
+* {{R:ar:Wehr-4|بشر}}
+
+
+مباشر
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|بَاشَرَ||to [[touch]], to [[carry out]] {{i|a [[task]]}}}}, from the root {{ar-root|ب ش ر}}.
+
+===Adjective===
+{{ar-adj-sound|مُبَاشِر}}
+
+# [[direct]]
+
+====Declension====
+{{ar-decl-adj|مُبَاشِر|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|بشر}}
+
+===Noun===
+{{ar-noun|مُبَاشِر|m|f=مُبَاشِرَة|pl=مُبَاشِرُون}}
+
+====Declension====
+{{ar-decl-gendered-noun|مُبَاشِر|pl=smp}}
+
+# [[agent]], [[operator]], [[factor]], [[plenipotentiary]], [[proxy]]
+# [[director]]
+# [[inspector]]
+# {{lb|ar|Egyptian}} [[manager]]
+# {{lb|ar|Egyptian|military}} [[staff sergeant]]
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|بشر}}
+
+بشر
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ب|ش|ر}}. Cognate with {{etyl|he|-}} {{m|he|בָּשָׂר||flesh, meat|tr=basár, bāśār}}.
+
+====Noun====
+{{ar-noun|بَشَر|m|pl=بَشَر|pl2=أَبْشَار}}
+
+# [[human]]
+# [[humankind]]
+
+=====Declension=====
+{{ar-decl-noun|بَشَر|pl=بَشَر|pl2=أَبْشَار}}
+
+====Noun====
+{{ar-coll-noun|بَشَر|sing=بَشَرَة|pl=أَبْشَار}}
+
+# [[skin]], [[outer]] [[skin]], [[epidermis]]
+
+=====Declension=====
+{{ar-decl-coll-noun|بَشَر|sing=بَشَرَة|pl=أَبْشَار}}
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb|I|a|u}}
+
+# to [[peel]], to [[pare]]
+# to [[shave]] so as to [[render]] the [[skin]] [[visible]]
+# {{lbl|ar|of locusts}} to [[eat]] the [[ground]] [[bare]]
+# to take {{a [[matter]]}} into one's [[own]] [[hands]]
+
+=====Conjugation=====
+{{ar-conj|I|a|u|passive=y|vn=بَشْرٌ}}
+
+=====References=====
+* {{R:ar:Steingass}}
+* {{R:ar:Lane}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun|بَشْر|m}}
+
+# {{ar-verbal noun of|بَشَرَ|form=I}}
+
+===Etymology 4===
+From the root {{ar-root|ب|ش|ر}}. Perhaps related to {{m|ar|بَشَر||skin}}. Cognate with {{etyl|he|-}} {{m/he|בישר|dwv=בִּשֵׂר||to bring good news|tr=bisér, biśśēr}}.
+
+====Verb====
+{{ar-verb|I|i|a}} <br />
+{{ar-verb|I|a|i}}
+
+# to [[rejoice]] at, to become [[glad]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=impers?|vn=بَشَرٌ}}
+{{ar-conj|I|a|i|passive=impers?|vn=بَشَرٌ}}
+
+===Etymology 5===
+Causative of {{m|ar|بَشِرَ||to [[rejoice]] at}}.
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[bring]] good [[news]] (to)
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+===Etymology 6===
+
+====Noun====
+{{ar-noun|بَشَر|m}}
+
+# {{ar-verbal noun of|بَشِرَ|form=I}}
+# {{ar-verbal noun of|بَشَرَ|form=I}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+
+اشمأز
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ش م ء ز}}.
+
+===Verb===
+{{ar-verb|IVq}}
+
+# {{lb|ar|intransitive}} to [[shrink]]
+# to [[detest]] {{i|{{m|ar|مِن}} something}}, to be [[disgusted]] {{i|{{m|ar|مِن}} by}}
+
+====Conjugation====
+{{ar-conj|IVq|passive=impers}}
+
+====References====
+* {{R:ar:Wehr-4|شمأز}}
+
+مشمئز
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اشْمَأَزَّ||to be [[disgusted]] by}}, from the root {{ar-root|ش م ء ز}}.
+
+===Adjective===
+{{ar-adj-sound|مُشْمَئِزّ}}
+
+# [[disgusted]] {{i|{{m|ar|مِن}} by}}
+
+====Declension====
+{{ar-decl-adj|مُشْمَئِزّ|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|شمأز}}
+
+مثير
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَثَارَ||to [[arouse]], to [[excite]], to [[provoke]], to [[stimulate]], to [[irritate]]}}, from the root {{ar-root|ث و ر}}; compare {{m|ar|ثَارَ||to be [[aroused]]}}, {{m|ar|ثَوْرَة||[[excitement]], [[uprising]], [[revolution]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُثِير}}
+
+# [[arousing]]
+# [[exciting]]
+# [[provocative]]
+# [[stimulating]]
+# [[irritating]]
+
+====Declension====
+{{ar-decl-adj|مُثِير|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ثور}}
+
+===Noun===
+{{ar-noun|مُثِير|m|pl=مُثِيرَات}}
+
+# [[stimulant]]
+# [[irritant]]
+# [[germ]]
+
+====Declension====
+{{ar-decl-noun|مُثِير|pl=مُثِيرَات}}
+
+====References====
+* {{R:ar:Wehr-4|ثور}}
+
+===Noun===
+{{ar-noun|مُثِير|m|pl=مُثِيرُون}}
+
+# [[instigator]]
+
+====Declension====
+{{ar-decl-noun|مُثِير|pl=مُثِيرُون}}
+
+====References====
+* {{R:ar:Wehr-4|ثور}}
+
+باكر
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|بَكَرَ||to be [[early]], to come [[early]]}}, from the root {{ar-root|ب ك ر}}.
+
+===Adjective===
+{{ar-adj|بَاكِر|f=بَاكِرَة}}
+
+# [[early]]
+# [[premature]]
+
+====Declension====
+{{ar-decl-adj|بَاكِر}}
+
+====References====
+* {{R:ar:Wehr-4|بكر}}
+
+بكر
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ب ك ر}}.
+
+====Verb====
+{{ar-verb|I|a|u}}
+
+# to be [[early]] {{i|{{m|ar|إِلَى}} at}}
+# to [[come]] [[early]] {{i|{{m|ar|إِلَى}} to}}
+# to [[get up]] [[early]]
+
+=====Conjugation=====
+{{ar-conj|I|a|u|passive=impers?|vn=بُكُور}}
+
+=====References=====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|بكر}}
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb|II}}
+
+# to be [[early]] {{i|{{m|ar|إِلَى}} at}}
+# to [[come]] [[early]] {{i|{{m|ar|إِلَى}} to}}
+# to [[get up]] [[early]]
+# to do [[early]] or [[prematurely]] {{i|with {{m|ar|فِي}} or {{m|ar|بِ}} + verbal noun}}
+
+=====Conjugation=====
+{{ar-conj|II|passive=impers?}}
+
+مبكر
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|بَكَّرَ||to be [[early]], to come [[early]], to [[do]] [[early]]}}, from the root {{ar-root|ب ك ر}}.
+
+===Adjective===
+{{ar-adj-sound|مُبَكِّر}}
+
+# [[early]]
+# [[doing]] [[early]]
+
+====Declension====
+{{ar-decl-adj|مُبَكِّر|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|بكر}}
+
+بكرة
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ب ك ر}}; compare {{m|ar|بَكَرَ||to be [[early]]}}.
+
+====Noun====
+{{ar-noun|بُكْرَة|f|pl=بُكَر}}
+
+# [[early]] [[morning]]
+
+=====Declension=====
+{{ar-decl-noun|بُكْرَة|pl=بُكَر}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+===Etymology 2===
+Adverbial accusative of {{m|ar|بُكْرَة||[[early]] [[morning]]}}, from the root {{ar-root|ب ك ر}}.
+
+====Adverb====
+{{ar-adv|بُكْرَةً}}
+
+# [[early]] in the [[morning]]
+# [[tomorrow]]
+# the [[next]] [[day]]
+
+=====References=====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|بكر}}
+
+ثقف
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ث ق ف}}.
+
+====Verb====
+{{ar-verb|I|i|a}} <br />
+{{ar-verb|I|u|u}}
+
+# to have a [[sharp]] and [[penetrating]] [[intellect]]
+# to be [[clever]] and [[successful]]
+# to [[surpass]] in [[intellect]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=impers?|vn=ثَقْف،ثَقَف}}
+{{ar-conj|I|u|u|passive=impers?|vn=ثَقَافَة}}
+
+=====References=====
+* {{R:ar:Steingass|ثقف}}
+
+====Verb====
+{{ar-verb|I|i|a}}
+
+# to [[meet]]
+# to [[reach]]
+# to [[seize]], to [[take hold]] of
+# to [[understand]]
+# to [[obtain]], to [[find]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=y|vn=ثَقَف}}
+
+=====References=====
+* {{R:ar:Steingass|ثقف}}
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[straighten]]
+# to [[educate]], to [[refine]]
+# to [[correct]]
+# to [[confiscate]]
+# to [[arrest]]
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass|ثقف}}
+* {{R:ar:Wehr-4|ثقف}}
+
+===Etymology 3===
+
+====Verb====
+{{ar-noun|ثَقْف|m}}
+
+# {{ar-verbal noun of|ثَقِفَ}}
+# {{ar-verbal noun of|ثَقُفَ}}
+
+=====Declension=====
+{{ar-decl-noun|ثَقْف}}
+
+===Etymology 4===
+
+====Verb====
+{{ar-noun|ثَقَف|m}}
+
+# {{ar-verbal noun of|ثَقِفَ}}
+# {{ar-verbal noun of|ثَقُفَ}}
+
+=====Declension=====
+{{ar-decl-noun|ثَقَف}}
+
+مثقف
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|ثَقَّفَ||to [[educate]], to [[refine]]}}, from the root {{ar-root|ث ق ف}}.
+
+===Adjective===
+{{ar-adj-sound|مُثَقَّف}}
+
+# [[educated]]
+# [[refined]], [[cultured]]
+# [[trained]]
+
+====Declension====
+{{ar-decl-adj|مُثَقَّف|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ثقف}}
+
+ثقافة
+
+==Arabic==
+
+===Etymology===
+{{ar-verbal noun}} of {{m|ar|ثَقُفَ||to be [[skillful]], to be [[smart]]}}, from the root {{ar-root|ث|ق|ف}}.
+
+===Pronunciation===
+* {{audio|Ar-ثقافة.ogg|Audio|lang=ar}}
+
+===Noun===
+{{ar-noun|ثَقَافَة|f|pl=ثَقَافَات}}
+
+# [[sagacity]], [[intelligence]], [[wit]], [[refinement]], [[culture]]
+# [[culture]] {{gloss|[[civilization]]}}
+# [[education]], [[literacy]]
+
+====Declension====
+{{ar-decl-noun|ثَقَافَة|pl=ثَقَافَات}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|ثقف}}
+
+أربك
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ر ب ك}}; compare {{m|ar|رَبَكَ||to [[confuse]]}}.
+
+===Verb===
+{{ar-verb|IV}}
+
+# to [[confuse]]
+# to [[embarrass]]
+
+====Conjugation====
+{{ar-conj|IV|passive=y}}
+
+====References====
+* {{R:ar:GT}}
+
+مربك
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَرْبَكَ||to [[confuse]], to [[embarrass]]}}, from the root {{ar-root|ر ب ك}}.
+
+===Adjective===
+{{ar-adj-sound|مُرْبِك}}
+
+# [[confusing]]
+# [[embarrassing]]
+
+====Declension====
+{{ar-decl-adj|مُرْبِك|pl=smp}}
+
+====References====
+* {{R:ar:GT}}
+
+ممتع
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَمْتَعَ||to [[cause]] to [[enjoy]]}}, from the root {{ar-root|م ت ع}}; compare {{m|ar|مُتْعَة||[[enjoyment]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُمْتِع}}
+
+# [[pleasant]], [[delicious]], [[amusing]], [[enjoyable]]
+# [[interesting]]
+
+====Declension====
+{{ar-decl-adj|مُمْتِع|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|متع}}
+
+مساو
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|سَاوَى||to [[equal]]}}, from the root {{ar-root|س و ي}}.
+
+===Adjective===
+{{ar-adj-in|مُسَاو|pl=+}}
+
+# [[equal]], [[similar]]
+
+====Declension====
+{{ar-decl-adj|مُسَاوٍ|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|سوي}}
+
+مساوي
+
+==Arabic==
+
+===Adjective===
+{{ar-adj-inf-def|مُسَاوِي|مُسَاوٍ}}
+
+
+سوي
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|س و ي}}.
+
+====Verb====
+{{ar-verb|I|i|a|III=ي}}
+
+# to [[equal]]
+
+=====Conjugation=====
+{{ar-conj|I|i|a|passive=y?|vn=سِوًى?}}
+
+=====Synonyms=====
+* {{l|ar|سَاوَى}}
+
+===Etymology 2===
+
+====Adjective====
+{{ar-adj|سَوِيّ|f=سَوِيَّة|pl=أَسْوِيَاء|pl2=سَوَايَا}}
+
+# [[equal]], [[symmetrical]], [[proportional]], [[parallel]]
+# [[smooth]] and [[even]]
+# [[straight]]
+# [[whole]], in [[good]] [[condition]]
+
+=====Declension=====
+{{ar-decl-adj|سَوِيّ|f=سَوِيَّة|pl=أَسْوِيَاء|pl2=سَوَايَا}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+ساوى
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|س|و|ي}}.
+
+===Verb===
+{{ar-verb|III|III=ي}}
+
+# to [[equal]]
+# to [[equalize]] {{i|something {{m|ar|بِ}} something}}
+# to [[institute]] [[parity]] {{i|{{m|ar|بَيْنَ}} between something {{m|ar|وَبَيْنَ|tr=wa-bayna}} and something}}
+# to be [[worth]]
+# to [[settle]] {{i|a [[dispute]]}}
+
+====Conjugation====
+{{ar-conj|III|passive=y}}
+
+====Synonyms====
+* {{sense|to equal}} {{l|ar|سَوِيَ}}
+* {{sense|to equalize, to [[settle]] {{i|a [[dispute]]}}}} {{l|ar|سَوَّى}}
+
+====References====
+* {{R:ar:Steingass|سوي}}
+* {{R:ar:Wehr-4|سوي}}
+
+سوى
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|س و ي}}.
+
+===Verb===
+{{ar-verb|II|III=ي}}
+
+# to [[equalize]]
+# to [[smooth]]
+# to [[straighten]], to make [[even]]
+# to [[settle]] {{qualifier|lang=ar|a dispute}}
+# to [[reconcile]] {{i|{{m|ar|بَيْنَ}}}}
+# to [[regularize]]
+
+====Conjugation====
+{{ar-conj|II|passive=y}}
+
+====Synonyms====
+* {{sense|to equalize, to settle {{i|a dispute}}}} {{l|ar|سَاوَى}}
+
+====References====
+* {{R:ar:Wehr-4|سوي}}
+
+مساواة
+
+==Arabic==
+
+===Noun===
+{{ar-noun|مُسَاوَاة|f}}
+
+# {{ar-verbal noun of|سَاوَى|form=III}}
+# [[equality]], [[equivalence]]
+# [[equal rights]]
+# [[settlement]] {{qualifier|lang=ar|of a bill}}
+
+====Declension====
+{{ar-decl-noun|مُسَاوَاة}}
+
+====References====
+* {{R:ar:Wehr-4|سوي}}
+
+
+تطرف
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ط ر ف}}; compare {{m|ar|طَرَف||[[edge]]}}.
+
+===Verb===
+{{ar-verb|V}}
+
+# to be [[extreme]]
+# {{lb|ar|politics}} to be [[radical]]
+
+====Conjugation====
+{{ar-conj|V|passive=n}}
+
+====References====
+* {{R:ar:Wehr-4|طرف}}
+
+متطرف
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|تَطَرَّفَ||to be [[extreme]], to be [[radical]]}}, from the root {{ar-root|ط ر ف}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَطَرِّف}}
+
+# [[extreme]]
+# {{lb|ar|politics}} [[radical]]
+
+====Declension====
+{{ar-decl-adj|مُتَطَرِّف|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|طرف}}
+
+===Noun===
+{{ar-noun|مُتَطَرِّف|f=مُتَطَرِّفَة|pl=مُتَطَرِّفُون}}
+
+# {{lb|ar|politics}} [[extremist]], [[radical]]
+
+====Declension====
+{{ar-decl-gendered-noun|مُتَطَرِّف|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|طرف}}
+
+
+أنصف
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ن ص ف}}; compare {{m|ar|نِصْف||[[half]]}}.
+
+===Verb===
+{{ar-verb|IV}}
+
+# to [[take]] [[half]] of
+# to [[divide]] [[justly]]
+# to [[act]] [[justly]]
+# to [[treat]] {{i|someone}} [[justly]]
+# to be [[just]] and [[equitable]], to be [[fair]]
+# to [[stand]] in the [[middle]]
+# to [[serve]]
+
+====Conjugation====
+{{ar-conj|IV|passive=y}}
+
+====References====
+* {{R:ar:Steingass|نصف}}
+* {{R:ar:Wehr-4|نصف}}
+
+منصف
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَنْسَفَ||to be [[just]], to be [[fair]]}}, from the root {{ar-root|ن ص ف}}; compare {{m|ar|نِصْف||[[half]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُنْصِف}}
+
+# [[just]], [[fair]]
+
+====Declension====
+{{ar-decl-adj|مُنْصِف|pl=smp}}
+
+====Synonyms====
+* {{l|ar|عَادِل}}
+
+====References====
+* {{R:ar:Wehr-4|نصف}}
+
+===Noun===
+{{ar-noun|مُنْصِف|f=مُنْصِفَة|pl=مُنْصِفُون}}
+
+# [[just]] [[man]]
+
+====Declension====
+{{ar-decl-gendered-noun|مُنْصِف|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|نصف}}
+
+عادل
+
+Add {{l|ar|مُنْصِف}} "just, fair" as synonym
+
+مزخرف
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|زَخْرَفَ||to [[embellish]], to [[decorate]], to [[adorn]]}}, from the root {{ar-root|ز خ ر ف}}.
+
+===Adjective===
+{{ar-adj-sound|مُزَخْرَف}}
+
+# [[adorned]], [[ornamented]], [[decorated]], [[embellished]]
+# [[fancy]]
+
+====Declension====
+{{ar-decl-adj|مُزَخْرَف|pl=smp}}
+
+====Synonyms====
+* {{l|ar|مُزَرْكَش}}
+
+====References====
+* {{R:ar:Lane|زخرف}}
+
+زركش
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ز ر ك ش}}.
+
+====Verb====
+{{ar-verb|Iq}}
+
+# to [[embroider]] with [[gold]]
+# to [[make]] [[gold]] [[brocade]]
+# to [[adorn]], to [[decorate]], to [[embellish]]
+
+=====Conjugation=====
+{{ar-conj|Iq|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass|زركش}}
+
+===Etymology 2===
+From the root {{ar-root|ز ر ك ش}}.
+
+====Noun====
+{{ar-noun|زَرْكَش|m}}
+
+# [[gold]] [[brocade]]
+# [[stuff]] [[embroidered]] with [[gold]]
+
+=====Declension=====
+{{ar-decl-noun|زَرْكَش}}
+
+=====References=====
+* {{R:ar:Steingass|زركش}}
+
+
+مزركش
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|زَرْكَشَ||to [[embroider]] with [[gold]], to [[brocade]] with [[gold]], to [[adorn]]}}, from the root {{ar-root|ز ر ك ش}}.
+
+===Adjective===
+{{ar-adj-sound|مُزَرْكَش}}
+
+# [[embroidered]] with [[gold]]
+# [[brocaded]] with [[gold]]
+# [[embroidered]]
+# [[adorned]], [[ornamented]], [[decorated]], [[embellished]]
+# [[fancy]]
+
+====Declension====
+{{ar-decl-adj|مُزَرْكَش|pl=smp}}
+
+====Synonyms====
+* {{sense|decorated, fancy}} {{l|ar|مُزَخْرَف}}
+
+====References====
+* {{R:ar:Steingass|زركش}}
+* {{R:ar:Wehr-4|زركش}}
+
+أسرع
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|س ر ع}}; compare {{m|ar|سَرِيع||[[fast]]}}.
+
+====Verb====
+{{ar-verb|IV}}
+
+# to be [[fast]]
+# {{lb|ar|intransitive}} to [[hurry]], to [[rush]] {{i|{{m|ar|إِلَى}} to something, {{m|ar|بِ}} or {{m|ar|فِي}} to do something}}
+# {{lb|ar|transitive}} to [[quicken]] {{i|the [[pace]]}}, to [[speed up]] {{i|something}}
+
+=====Conjugation=====
+{{ar-conj|IV|passive=y}}
+
+=====References=====
+* {{R:ar:Lane|سرع}}
+* {{R:ar:Wehr-4|سرع}}
+
+===Etymology 2===
+{{ar-elative}} of {{m|ar|سَرِيع||[[fast]]}}, from the root {{ar-root|س ر ع}}.
+
+====Adjective====
+{{ar-adj|أَسْرَع|f=سُرْعَى|pl=أَسَارِع}}
+
+# {{elative of|lang=ar|سَرِيع}}:
+## [[faster]]; [[fastest]]
+
+=====Declension=====
+{{ar-decl-adj|أَسْرَع|f=سُرْعَى|pl=أَسَارِع}}
+
+=====References=====
+* {{R:ar:Lane}}
+
+مسرع
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَسْرَعَ||to be [[fast]], to [[hurry]], to [[accelerate]] {{i|transitive}}}}, from the root {{ar-root|س ر ع}}.
+
+===Adjective===
+{{ar-adj-sound|مُسْرِع}}
+
+# [[fast]]
+# [[hurrying]]
+
+====Declension====
+{{ar-decl-adj|مُسْرِع|pl=smp}}
+
+====Synonyms====
+* {{sense|fast}} {{l|ar|سَرِيع}}
+* {{sense|fast}} {{l|ar|عَجِيل}}
+* {{sense|fast}} {{l|ar|عَجِل}}
+* {{sense|fast}} {{l|ar|عَجْلَان}}
+
+====References====
+* {{R:ar:Lane|سرع}}
+
+===Noun===
+{{ar-noun|مُسْرِع|m}}
+
+# [[accelerator]]
+
+====Declension====
+{{ar-decl-noun|مُسْرِع}}
+
+====References====
+* {{R:ar:GT}}
+
+سريع
+
+Add:
+
+====Synonyms====
+* {{l|ar|مُسْرِع}}
+* {{l|ar|عَجِيل}}
+* {{l|ar|عَجِل}}
+* {{l|ar|عَجْلَان}}
+
+عجل، عجيل، عجلان
+
+Add سَرِيع and مُسْرِع as synonyms
+
+مفضل
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|فَضَّلَ||to [[prefer]]}}, from the root {{ar-root|ف ض ل}}.
+
+===Adjective===
+{{ar-adj-sound|مُفَضَّل}}
+
+# [[preferable]]
+
+====Declension====
+{{ar-decl-adj|مُفَضَّل|pl=smp}}
+
+====Synonyms====
+* {{l|ar|أَفْضَل}}
+
+====References====
+* {{R:ar:Wehr-4|فضل}}
 
 
 
