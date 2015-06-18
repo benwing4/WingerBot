@@ -17,7 +17,6 @@ local DAGGER_ALIF = u(0x0670)
 local DIACRITIC_ANY_BUT_SH = "[" .. A .. I .. U .. AN .. IN .. UN .. SK .. DAGGER_ALIF .. "]"
 
 -- various letters and signs
-local AMAQ   = u(0x0649) -- ʾalif maqṣūra = ى
 local TAM    = u(0x0629) -- tāʾ marbūṭa = ة
 
 -- common combinations
@@ -672,22 +671,6 @@ pos_functions["passive participles"] = {
 	end
 }
 
--- Used in {{ar-adj-in}} so that we can specify a full lemma rather than
--- requiring the user to truncate the -in ending. FIXME: Move ar-adj-in
--- into Lua.
-function export.remove_in(frame)
-	local lemma = frame.args[1] or error("Lemma required.")
-	return rsub(reorder_shadda(lemma), IN .. "$", "")
-end
-
--- Used in {{ar-adj-an}} so that we can specify a full lemma rather than
--- requiring the user to truncate the -an ending. FIXME: Move ar-adj-an
--- into Lua.
-function export.remove_an(frame)
-	local lemma = frame.args[1] or error("Lemma required.")
-	return rsub(reorder_shadda(lemma), AN .. AMAQ .. "$", "")
-end
-	
 return export
 
 -- For Vim, so we get 4-space tabs
