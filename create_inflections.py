@@ -103,7 +103,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         lemmatype, lemma, " (%s)" % lemmatr if lemmatr else ""))
 
   # Remove trailing -un/-u i3rab from inflected form and lemma
-
   def maybe_remove_i3rab(wordtype, word, nowarn=False, noremove=False):
     if noremove:
       return word
@@ -176,6 +175,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   if vn_or_participle or is_verb_part:
     must_match_exactly = True
 
+  # Compare parameter PARAM (e.g. "1", "head2", etc.) of template TEMPLATE
+  # with value VALUE. If REQUIRE_EXACT_MATCH, match must be exact (after
+  # canonicalizing shadda); otherwise, match on non-vocalized text.
   def compare_param(template, param, value, require_exact_match=False):
     # In place of unknown we should put infltype or lemmatype but it
     # doesn't matter because of nowarn.
@@ -638,7 +640,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # Couldn't find headword template; if we're a participle,
                 # see if there's a generic noun or adjective template
                 # with the same head.
-                for other_template in ["ar-noun", "ar-adj"]:
+                for other_template in ["ar-noun", "ar-adj", "ar-adj-sound",
+                    "ar-adj-in", "ar-adj-an"]:
                   other_headword_templates = [
                       t for t in parsed.filter_templates()
                       if t.name == other_template and template_head_matches(t, inflection)]
@@ -747,7 +750,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 if re.match("^===+(Noun|Adjective)===+", subsections[j - 1]):
                   parsed = blib.parse_text(subsections[j])
                   for t in parsed.filter_templates():
-                    if (t.name in ["ar-noun", "ar-adj"] and
+                    if (t.name in ["ar-noun", "ar-adj", "ar-adj-sound",
+                      "ar-adj-in", "ar-adj-an"] and
                         template_head_matches(t, inflection) and insert_at is None):
                       insert_at = j - 1
 
@@ -1305,15 +1309,17 @@ def create_elatives(save, elfile, startFrom, upTo):
       def add_elative_param(page, index, text):
         pagetitle = page.title()
         if not page.exists:
-          msg("Page %s %s: WARNING, positive %s not found for elative %s" % (
+          msg("Page %s %s: WARNING, positive %s not found for elative %s (page nonexistent)" % (
             index, pagetitle, arpositive, elative))
           return None, "skipped positive %s elative %s" % (arpositive, elative)
+        found_positive = False
         for template in text.filter_templates():
-          if template.name == "ar-adj":
+          if template.name in ["ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an"]:
             if reorder_shadda(blib.getparam(template, "1")) != reorder_shadda(arpositive):
               msg("Page %s %s: Skipping, found adjective template with wrong positive, expecting %s: %s" % (
                   index, pagetitle, arpositive, template))
               continue
+            found_positive = True
             existingel = blib.getparam(template, "el")
             if existingel:
               if reorder_shadda(existingel) == reorder_shadda(elative):
@@ -1326,6 +1332,9 @@ def create_elatives(save, elfile, startFrom, upTo):
               msg("Page %s %s: Adding elative %s to template: %s" % (
                 index, pagetitle, elative, template))
               template.add("el", elative)
+        if not found_positive:
+          msg("Page %s %s: WARNING, positive %s not found for elative %s (page exists but couldn't find appropriate template)" % (
+            index, pagetitle, arpositive, elative))
         return text, "Add el=%s to adjective %s" % (elative, arpositive)
 
       page = pywikibot.Page(site, remove_diacritics(arpositive))
