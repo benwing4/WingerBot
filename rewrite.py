@@ -15,11 +15,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import blib, re
+from arabiclib import *
 
-def rewrite_pages(refrom, reto, refs, cat, save, verbose, startFrom, upTo):
+def rewrite_pages(refrom, reto, refs, cat, save, verbose, fix_shadda,
+    startFrom, upTo):
   def rewrite_one_page(page, index, text):
     #blib.msg("From: [[%s]], To: [[%s]]" % (refrom, reto))
-    text = re.sub(refrom, reto, unicode(text))
+    text = unicode(text)
+    if fix_shadda:
+      text = reorder_shadda(text)
+    text = re.sub(refrom, reto, text)
     return text, "replace %s -> %s" % (refrom, reto)
 
   if refs:
@@ -37,6 +42,10 @@ pa.add_argument("-r", "--references", "--refs",
     help="Do pages with references to this page")
 pa.add_argument("-c", "--category", "--cat",
     help="Do pages in this category")
+pa.add_argument("--reorder-shadda",
+    help="""Reorder shadda before search/replace. Generally useful when
+doing operations with Arabic text but may trigger unnecessary saves, so not
+default.""")
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
@@ -44,4 +53,5 @@ if not params.references and not params.category:
   raise ValueError("--references or --category must be present")
 
 rewrite_pages(params.from_, params.to, params.references,
-    params.category, params.save, params.verbose, startFrom, upTo)
+    params.category, params.save, params.verbose, params.reorder_shadda,
+    startFrom, upTo)
