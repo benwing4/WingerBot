@@ -175,147 +175,20 @@ ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 CREATE; ALSO ADD AS USEX IN وزير and خارجية Noun: وَزِير الخاارِجِيَّة foreign secretary
 
 
-Template:ar-adj-an/documentation
-
-{{documentation subpage}}
-This template is for displaying the headword line of Arabic adjectives that end in {{m|ar|ـًى|tr=-an}} (e.g. {{m|ar|مُثَنًّى||[[double]]}}). The feminine, plural and feminine plural are regular but complex, and it is easier to have a template produce them.
-
-Certain other templates are available for other types of regular adjectives:
-# Adjectives with a regular feminine and sound masculine plural, such as {{m|ar|مُفَضَّل||[[preferable]]}} and other augmented participles, should use {{temp|ar-adj-sound}}.
-# {{ar-relative adjective|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
-# Adjectives ending in ''-in'', such as {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|عَالٍ||[[high]]}}, should use {{temp|ar-adj-in}}.
-
-==Parameters==
-; {{para|1}}
-: Vocalized headword minus the ending {{m|ar|ـًى|tr=-an}}.
-; {{para|pl}}
-: Override the default masculine plural.
-
-==Examples==
-
-The code <code><nowiki>{{ar-adj-an|مُثَنّ}}</nowiki></code> produces the following:
-
-{{ar-adj-an|مُثَنّ}}
-
-The declension section for an adjective like this looks as follows (note the inclusion of the {{m|ar|ـًى|tr=-an}}, and the use of <tt>awnp</tt> to signal the sound masculine plural in {{m|ar|ـَوْن|tr=-awn}}):
-
-<pre>
-====Declension====
-{{ar-decl-adj|مُثَنًّى|pl=awnp}}
-</pre>
-
-<includeonly>
-[[Category:Arabic headword-line templates|adj-an]]
-</includeonly>
 
 Template:ar-adj-in
 
-<includeonly>{{ar-adj|{{{1}}}ٍ|inf={{{1}}}يِ|f={{{1}}}ِيَة<!--
-   -->|pl={{#ifeq:{{{pl|}}}|+|{{{1}}}ُون|{{{pl|}}}}}<!--
-   -->|pl2={{#ifeq:{{{pl2|}}}|+|{{{1}}}ُون|{{{pl2|}}}}}<!--
-   -->|pl3={{#ifeq:{{{pl3|}}}|+|{{{1}}}ُون|{{{pl3|}}}}}<!--
-   -->|pl4={{#ifeq:{{{pl4|}}}|+|{{{1}}}ُون|{{{pl4|}}}}}<!--
-   -->|pl5={{#ifeq:{{{pl5|}}}|+|{{{1}}}ُون|{{{pl5|}}}}}<!--
-   -->|fpl={{#ifeq|{{{fpl|}}}|-||{{{fpl|{{{1}}}ِيَات}}}}}<!--
--->}}</includeonly><noinclude>{{documentation}}
 
 Template:ar-adj-in/documentation
 
-{{documentation subpage}}
-This template is for displaying the headword line of Arabic adjectives that end in {{m|ar|ٍ|tr=-in}} (e.g. {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|فَانٍ||[[ephemeral]], [[vain]]}}). This automatically produces feminine and informal forms, and optionally a regular plural. These forms are regular but not obvious, and it is easier to have a template produce them.
-
-Certain other templates are available for other types of regular adjectives:
-# Adjectives with a regular feminine and sound masculine plural, such as {{m|ar|مُفَضَّل||[[preferable]]}} and other augmented participles, should use {{temp|ar-adj-sound}}.
-# {{ar-relative adjective|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
-# Adjectives ending in ''-an'', such as {{m|ar|مُثَنًّى||[[double]]}}, should use {{temp|ar-adj-an}}.
-
-==Parameters==
-; {{para|1}}
-: Vocalized headword minus the ending {{m|ar|ٍ|tr=-in}}.
-; {{para|pl}}
-: Specify a masculine plural. If equal to <tt>+</tt>, supply the default sound plural; else, if specified, provide a specific plural; else, no plural will be specified.
-; {{para|pl2}}
-: Specify a second masculine plural. If equal to <tt>+</tt>, supply the default sound plural; else, if specified, provide a specific plural; else, no plural will be specified.
-; {{para|pl3}}, {{para|pl4}}, {{para|pl5}}
-: Specify a third, fourth and/or fifth masculine plural, similar to {{para|pl2}}.
-; {{para|fpl}}
-: Override the default sound feminine plural. If equal to <tt>-</tt>, no plural will be specified; else, if specified, provide a specific plural; else, supply the default sound feminine plural.
-
-==Examples==
-
-I. The code <code><nowiki>{{ar-adj-in|مُسَاو|pl=+}}</nowiki></code> produces the following:
-
-{{ar-adj-in|مُسَاو|pl=+}}
-
-The declension section for an adjective like this looks as follows (note the inclusion of the {{m|ar|ٍ|tr=-in}}, and the use of <tt>smp</tt> to signal the sound masculine plural):
-
-<pre>
-====Declension====
-{{ar-decl-adj|مُسَاوٍ|pl=smp}}
-</pre>
-
-II. The code <code><nowiki>{{ar-adj-in|جَان|pl=جُنَاة}}</nowiki></code> produces the following:
-
-{{ar-adj-in|جَان|pl=جُنَاة}}
-
-The declension section for an adjective like this looks as follows (note again the inclusion of the {{m|ar|ٍ|tr=-in}}):
-
-<pre>
-====Declension====
-{{ar-decl-adj|جَانٍ|pl=جُنَاة}}
-</pre>
-
-
-III. The code <code><nowiki>{{ar-adj-in|فَان}}</nowiki></code> produces the following:
-
-{{ar-adj-in|فَان}}
-
-The declension section for an adjective like this looks as follows (note again the inclusion of the {{m|ar|ٍ|tr=-in}}):
-
-<pre>
-====Declension====
-{{ar-decl-adj|فَانٍ}}
-</pre>
-
-<includeonly>
-[[Category:Arabic headword-line templates|adj-in]]
-</includeonly>
 
 
 Template:ar-adj-sound
 
-<includeonly>{{ar-adj|{{{1}}}|f={{{1}}}َة|pl={{{1}}}ُون}}<!--
---></includeonly><noinclude>{{documentation}}
 
 
 Template:ar-adj-sound/documentation
 
-{{documentation subpage}}
-This template is for displaying the headword line of regular Arabic adjectives that have a regular feminine and a sound masculine plural (typically, participles of augmented verbal forms). Certain adjectives should use other templates:
-# {{ar-relative adjective|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
-# Adjectives ending in ''-in'', such as {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|عَالٍ||[[high]]}}, should use {{temp|ar-adj-in}}.
-# Adjectives ending in ''-an'', such as {{m|ar|مُثَنًّى||[[double]]}}, should use {{temp|ar-adj-an}}.
-
-==Parameters==
-; {{para|1}}
-: Vocalized masculine singular headword.
-
-==Examples==
-
-The code <code><nowiki>{{ar-adj-sound|مُفَضَّل}}</nowiki></code> produces the following:
-
-{{ar-adj-sound|مُفَضَّل}}
-
-Note that the declension section for an adjective like this looks as follows:
-
-<pre>
-====Declension====
-{{ar-decl-adj|مُفَضَّل|pl=smp}}
-</pre>
-
-<includeonly>
-[[Category:Arabic headword-line templates|adj-sound]]
-</includeonly>
 
 
 علماني
@@ -3224,6 +3097,527 @@ Add سَرِيع and مُسْرِع as synonyms
 
 ====References====
 * {{R:ar:Wehr-4|فضل}}
+
+أضحك
+
+==Arabic==
+
+===Etymology 1===
+Causative of {{m|ar|ضَحِكَ||to [[laugh]]}}, from the root {{ar-root|ض ح ك}}.
+
+====Verb====
+{{ar-verb|IV}}
+
+# to make {{i|someone}} [[laugh]] {{i|{{m|ar|مِن}} about}}
+
+=====Conjugation=====
+{{ar-conj|IV|passive=y}}
+
+=====References=====
+* {{R:ar:Wehr-4|ضحك}}
+
+===Etymology 2===
+{{ar-elative}} from the root {{ar-root|س ر ع}}, as if elative of {{m|ar|مُضْحِك||[[funny]], [[comical]], [[ridiculous]]}}.
+
+====Adjective====
+{{ar-adj|أَضْحَك}}
+
+# [[funnier]], more [[comical]]; [[funniest]], most [[comical]]
+# more [[ridiculous]]; most [[ridiculous]]
+
+=====Declension=====
+{{ar-decl-adj|أَضْحَك}}
+
+=====References=====
+* {{R:ar:Wehr-4|ضحك}}
+
+مضحك
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَضْحَكَ||to cause to [[laugh]]}}, from the root {{ar-root|ض ح ك}}.
+
+===Adjective===
+{{ar-adj-sound|مُضْحِك}}
+
+# [[funny]], [[comical]]
+# [[ridiculous]]
+
+====Declension====
+{{ar-decl-adj|مُضْحِك|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ضحك}}
+
+===Noun===
+{{ar-noun|مُضْحِك|m|pl=مُضْحِكُون}}
+
+# [[comedian]]
+# [[jester]]
+
+====Declension====
+{{ar-decl-noun|مُضْحِك|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ضحك}}
+
+
+أذنب
+
+
+==Arabic==
+
+===Etymology===
+Denominative from the root {{ar-root|ذ ن ب}} of {{m|ar|ذَنْب||[[crime]], [[sin]]}}.
+
+===Verb===
+{{ar-verb|IV}}
+
+# to be [[guilty]]
+# to [[commit]] a [[crime]], to [[sin]]
+
+====Conjugation====
+{{ar-conj|IV|passive=impers?}}
+
+====References====
+* {{R:ar:Wehr-4|ذنب}}
+
+مذنب
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَذْنَبَ||to be [[guilty]], to [[commit]] a [[crime]], to [[sin]]}}, from the root {{ar-root|ذ ن ب}}.
+
+===Adjective===
+{{ar-adj-sound|مُذْنِب}}
+
+# [[guilty]]
+
+====Declension====
+{{ar-decl-adj|مُذْنِب|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ذنب}}
+
+===Noun===
+{{ar-noun|مُذْنِب|m|pl=مُذْنِبُون}}
+
+# [[criminal]]
+# [[sinner]]
+
+====Declension====
+{{ar-decl-noun|مُذْنِب|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|ذنب}}
+
+قدس
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ق د س}}.
+
+====Verb====
+{{ar-verb|I|u|u}}
+
+# to be [[pure]], to be [[immaculate]]
+# to be [[holy]]
+
+=====Conjugation=====
+{{ar-conj|I|u|u|passive=n|vn=قُدْس،قُدُس}}
+
+=====References=====
+* {{R:ar:Steingass|قدس}}
+* {{R:ar:Wehr-4|قدس}}
+
+===Etymology 2===
+Causative of {{m|ar|قَدُسَ}}.
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[purify]]
+# to [[sanctify]]
+# to [[consecrate]] {{i|something}} to [[God]]
+# to [[worship]], to [[venerate]]
+# {{lb|ar|Christianity}} to [[say]] or [[hear]] [[Mass]]
+# {{lb|ar|Christianity}} to [[canonize]]
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass|قدس}}
+* {{R:ar:Wehr-4|قدس}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun|قُدْس|m|head2=قُدُس|pl=أَقْدَاس}}
+
+# {{ar-verbal noun of|قَدُسَ|form=I||to be [[pure]], to be [[holy]]}}
+# [[purity]]
+# [[sanctity]], [[holiness]]
+# [[shrine]], [[sanctuary]]
+# [[Paradise]]
+
+=====Declension=====
+{{ar-decl-noun|قُدْس|head2=قُدُس|pl=أَقْدَاس}}
+
+=====Derived terms=====
+* {{l|ar|القُدْس||[[Jerusalem]]}}
+
+=====References=====
+* {{R:ar:Steingass|قدس}}
+* {{R:ar:Wehr-4|قدس}}
+
+مقدس
+
+==Arabic==
+
+===Etymology===
+{{ar-passive participle}} of {{m|ar|قَدَّسَ||to [[sanctify]], to make [[holy]], to [[consecrate]]}}, from the root {{ar-root|ق د س}}.
+
+===Adjective===
+{{ar-adj-sound|مُقَدَّس}}
+
+# [[sacred]], [[holy]]
+# [[sanctified]]
+# [[consecrated]]
+
+====Declension====
+{{ar-decl-adj|مُقَدَّس|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|قدس}}
+
+===Noun===
+{{ar-noun|مُقَدَّس|m|pl=مُقَدَّسَات}}
+
+# [[sacred]] [[thing]]
+
+====Declension====
+{{ar-decl-noun|مُقَدَّس|pl=مُقَدَّسَات}}
+
+====Derived terms====
+* {{l|ar|بَيْت المُقَدَّس||[[Jerusalem]]}}
+* {{l|ar|البَيْت المُقَدَّس||[[Jerusalem]]}}
+* {{l|ar|الأَرْض المُقَدَّس||[[Palestine]]}}
+
+====References====
+* {{R:ar:Wehr-4|قدس}}
+
+
+تواضع
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|و ض ع}}; compare {{m|ar|وَضُعَ||to be [[humble]]}}.
+
+===Verb===
+{{ar-verb|VI}}
+
+# to [[humble]] oneself, to be [[humble]]
+# to [[behave]] [[humbly]] and [[modestly]]
+# to [[agree]] {{i|{{m|ar|عَلَى}} on}}
+
+====Conjugation====
+{{ar-conj|VI|passive=impers?}}
+
+====References====
+* {{R:ar:Steingass|وضع}}
+* {{R:ar:Wehr-4|وضع}}
+
+متواضع
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|تَوَاضَعَ||to [[humble]] oneself, to be [[humble]], to behave [[modestly]]}}, from the root {{ar-root|و ض ع}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَوَاضِع}}
+
+# [[humble]], [[submissive]]
+# [[modest]]
+# [[insignificant]]
+# [[condescending]]
+
+====Declension====
+{{ar-decl-adj|مُتَوَاضِع|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وضع}}
+
+استعجل
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ع ج ل}}; compare {{m|ar|عَجِلَ||to [[hurry]]}}.
+
+===Verb===
+{{ar-verb|X}}
+
+# {{lb|ar|intransitive}} to [[hurry]]
+# {{lb|ar|transitive}} to [[hurry]], to [[speed up]], to [[urge]] 
+# to [[want]], [[ask]] or [[require]] {{i|someone, something}} to [[hurry]] or [[speed up]]
+# to [[anticipate]]
+
+====Conjugation====
+{{ar-conj|X|passive=y}}
+
+====Synonyms====
+* {{sense|to hurry {{i|intransitive}}}} {{l|ar|عَجِلَ}}
+* {{sense|to hurry {{i|transitive}}}} {{l|ar|أَعْجَلَ}}
+* {{sense|to anticipate}} {{l|ar|أَعْجَلَ}}
+
+====References====
+* {{R:ar:Lane|عجل}}
+* {{R:ar:Steingass|عجل}}
+* {{R:ar:Wehr-4|عجل}}
+
+مستعجل
+
+==Arabic==
+
+===Etymology 1===
+{{ar-active participle}} of {{m|ar|اِسْتَعْجَلَ||to [[hurry]] {{i|transitive, intransitive}}}}, from the root {{ar-root|ع ج ل}}.
+
+====Adjective====
+{{ar-adj-sound|مُسْتَعْجِل}}
+
+# [[hurried]]
+
+=====Declension=====
+{{ar-decl-adj|مُسْتَعْجِل|pl=smp}}
+
+=====References=====
+* {{R:ar:Wehr-4|عجل}}
+
+===Etymology 2===
+{{ar-passive participle}} of {{m|ar|اِسْتَعْجَلَ||to [[hurry]] {{i|transitive, intransitive}}}}, from the root {{ar-root|ع ج ل}}.
+
+====Adjective====
+{{ar-adj-sound|مُسْتَعْجَل}}
+
+# [[urgent]]
+# [[accelerated]]
+# [[premature]]
+
+=====Declension=====
+{{ar-decl-adj|مُسْتَعْجَل|pl=smp}}
+
+=====References=====
+* {{R:ar:Wehr-4|عجل}}
+
+مهم
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|أَهَمَّ||to be [[important]]}}, from the root {{ar-root|ه م م}}; compare {{m|ar|هَامّ||[[important]]}}.
+
+===Pronunciation===
+* {{audio|Ar-مهم.ogg|Audio|lang=ar}}
+
+===Adjective===
+{{ar-adj-sound|مُهِمّ}}
+
+# [[important]]
+
+====Declension====
+{{ar-decl-adj|مُهِمّ|pl=smp}}
+
+[[Category:Arabic palindromes]]
+
+مستحيل
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of the verb {{m|ar|اِسْتَحَالَ||to be [[impossible]]}}, from the {{ar-root|ح و ل}}.
+
+===Adjective===
+{{ar-adj-sound|مُسْتَحِيل}}
+
+# [[impossible]]
+# [[absurd]]
+# [[transformed]]
+
+====Declension====
+{{ar-decl-adj|مُسْتَحِيل|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+
+مستقل
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِسْتَقَلَّ|gloss=to be [[independent]]}}, from the root {{ar-root|ق|ل|ل}}.
+
+===Adjective===
+{{ar-adj-sound|مُسْتَقِلّ}}
+
+# [[independent]]
+# [[autonomous]]
+# [[separate]], [[distinct]], [[particular]]
+
+====Declension====
+{{ar-decl-adj|مُسْتَقِلّ|pl=smp}}
+
+====Related terms====
+* {{l|ar|اِسْتَقَلَّ}}
+* {{l|ar|اِسْتِقْلَال}}
+* {{l|ar|اِسْتِقْلَالِيّ}}
+
+مجتهد
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِجْتَهَدَ||to [[work]] [[hard]], to [[strive]]}}, from the root {{ar-root|ج ه د}}.
+
+===Adjective===
+{{ar-adj-sound|مُجْتَهِد}}
+
+# [[diligent]]
+# [[exerting]], [striving]]
+# {{lb|ar|Islamic law}} [[mujtahid]] {{gloss|[[lawyer]] [[entitled]] to give [[decisions]]}}
+
+====Declension====
+{{ar-decl-adj|مُجْتَهِد|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|جهد}}
+
+===Noun===
+{{ar-noun|مُجْتَهِد}}
+
+# [[diligent]]
+# [[exerting]], [striving]]
+# {{lb|ar|Islamic law}} [[mujtahid]] {{gloss|[[lawyer]] [[entitled]] to give [[decisions]]}}
+
+====Declension====
+{{ar-decl-adj|مُجْتَهِد|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|جهد}}
+
+تعمد
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ع م د}}; compare {{m|ar|عَمَدَ||to [[intend]]}}.
+
+===Verb===
+{{ar-verb|V}}
+
+# to [[intend]] {{i|something}}, to do {{i|something}} [[purposely]]
+# to [[resolve]] [[firmly]] upon
+# {{lb|ar|transitive}} to [[go]] to
+# to [[aim]] at
+# to [[single out]]
+# to be [[baptized]]
+
+====Conjugation====
+{{ar-conj|V|passive=y}}
+
+====References====
+* {{R:ar:Steingass|عمد}}
+* {{R:ar:Wehr-4|عمد}}
+
+متعمد
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|تَعَمَّدَ||to do [[purposely]], to [[intend]]}}, from the root {{ar-root|ع م د}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَعَمِّد}}
+
+# [[intentional]], [[deliberate]]
+
+====Declension====
+{{ar-decl-adj|مُتَعَمِّد|pl=smp}}
+
+====Synonyms====
+* {{l|ar|عَمْدِيّ}}
+* {{l|ar|تَعَمُّدِيّ}}
+
+====References====
+* {{R:ar:Wehr-4|عمد}}
+
+مهتم
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِهْتَمَّ||to be [[interested]] in, to be [[concerned]] about}}, from the root {{ar-root|ه م م}}.
+
+===Adjective===
+{{ar-adj-sound|مُهْتَمّ}}
+
+# [[interested]] {{i|{{m|ar|بِ}} in}}
+# [[concerned]] {{i|{{m|ar|بِ}} about}}
+# [[mindful]] {{i|{{m|ar|بِ}} of}}
+
+====Declension====
+{{ar-decl-adj|مُهْتَمّ|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|هم}}
+
+تزمت
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ز م ت}}; compare {{m|ar|زَمُتَ||to [[possess]] [[dignity]], to [[possess]] [[gravity]]}}.
+
+===Verb===
+{{ar-verb|V}}
+
+# to be [[prim]]
+# to be [[sedate]]
+
+====Conjugation====
+{{ar-conj|V|passive=n}}
+
+====References====
+* {{R:ar:Wehr-4|زمت}}
+
+متعمد
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|تَزَمَّتَ||to be [[prim]], to be [[sedate]]}}, from the root {{ar-root|ز م ت}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَزَمِّت}}
+
+# [[prim]], [[strict]]
+# [[narrow-minded]], [[intolerant]]
+# [[sedate]]
+
+====Declension====
+{{ar-decl-adj|مُتَزَمِّت|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|زمت}}
+
 
 
 
