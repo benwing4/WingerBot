@@ -175,20 +175,177 @@ ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 CREATE; ALSO ADD AS USEX IN وزير and خارجية Noun: وَزِير الخاارِجِيَّة foreign secretary
 
 
+Template:ar-adj-an
+
+<includeonly>{{ar-adj|{{#invoke:ar-headword|remove_an|{{{1}}}}}ًى<!--
+   -->|f={{#invoke:ar-headword|remove_an|{{{1}}}}}َاة<!--
+   -->|pl={{{pl|{{#invoke:ar-headword|remove_an|{{{1}}}}}َوْن}}}<!--
+   -->|fpl={{#invoke:ar-headword|remove_an|{{{1}}}}}َيَات}}<!--
+   -->|el={{{el|}}}<!--
+--></includeonly><noinclude>{{documentation}}
+
+
+Template:ar-adj-an/documentation
+
+{{documentation subpage}}
+This template is for displaying the headword line of Arabic adjectives that end in {{m|ar|ـًى|tr=-an}} (e.g. {{m|ar|مُثَنًّى||[[double]]}}). The feminine, plural and feminine plural are regular but complex, and it is easier to have a template produce them.
+
+Certain other templates are available for other types of regular adjectives:
+# Adjectives with a regular feminine and sound masculine plural, such as {{m|ar|مُفَضَّل||[[preferable]]}} and other augmented participles, should use {{temp|ar-adj-sound}}.
+# {{ar-etym-nisba|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
+# Adjectives ending in ''-in'', such as {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|عَالٍ||[[high]]}}, should use {{temp|ar-adj-in}}.
+
+==Parameters==
+; {{para|1}}
+: Vocalized headword.
+; {{para|pl}}
+: Override the default masculine plural.
+; {{para|el}}
+: Specify an elative.
+
+==Examples==
+
+The code <code><nowiki>{{ar-adj-an|مُثَنًّى}}</nowiki></code> produces the following:
+
+{{ar-adj-an|مُثَنًّى}}
+
+The declension section for an adjective like this looks as follows (note the use of <tt>awnp</tt> to signal the sound masculine plural in {{m|ar|ـَوْن|tr=-awn}}):
+
+<pre>
+====Declension====
+{{ar-decl-adj|مُثَنًّى|pl=awnp}}
+</pre>
+
+<includeonly>
+[[Category:Arabic headword-line templates|adj-an]]
+</includeonly>
+
+
+Uses of ar-adj-an
+
+Edit uses of ar-adj-an and add the -an ending.
+
 
 Template:ar-adj-in
+
+<includeonly>{{ar-adj|{{#invoke:ar-headword|remove_in|{{{1}}}}}ٍ<!--
+   -->|inf={{#invoke:ar-headword|remove_in|{{{1}}}}}ِي<!--
+   -->|f={{#invoke:ar-headword|remove_in|{{{1}}}}}ِيَة<!--
+   -->|pl={{#ifeq:{{{pl|}}}|+|{{#invoke:ar-headword|remove_in|{{{1}}}}}ُون|{{{pl|}}}}}<!--
+   -->|pl2={{#ifeq:{{{pl2|}}}|+|{{#invoke:ar-headword|remove_in|{{{1}}}}}ُون|{{{pl2|}}}}}<!--
+   -->|pl3={{#ifeq:{{{pl3|}}}|+|{{#invoke:ar-headword|remove_in|{{{1}}}}}ُون|{{{pl3|}}}}}<!--
+   -->|pl4={{#ifeq:{{{pl4|}}}|+|{{#invoke:ar-headword|remove_in|{{{1}}}}}ُون|{{{pl4|}}}}}<!--
+   -->|pl5={{#ifeq:{{{pl5|}}}|+|{{#invoke:ar-headword|remove_in|{{{1}}}}}ُون|{{{pl5|}}}}}<!--
+   -->|fpl={{#ifeq:{{{fpl|}}}|-||{{{fpl|{{#invoke:ar-headword|remove_in|{{{1}}}}}ِيَات}}}}}<!--
+   -->|el={{{el|}}}<!--
+-->}}</includeonly><noinclude>{{documentation}}
 
 
 Template:ar-adj-in/documentation
 
+{{documentation subpage}}
+This template is for displaying the headword line of Arabic adjectives that end in {{m|ar|ٍ|tr=-in}} (e.g. {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|فَانٍ||[[ephemeral]], [[vain]]}}). This automatically produces feminine and informal forms, and optionally a regular plural. These forms are regular but not obvious, and it is easier to have a template produce them.
+
+Certain other templates are available for other types of regular adjectives:
+# Adjectives with a regular feminine and sound masculine plural, such as {{m|ar|مُفَضَّل||[[preferable]]}} and other augmented participles, should use {{temp|ar-adj-sound}}.
+# {{ar-etym-nisba|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
+# Adjectives ending in ''-an'', such as {{m|ar|مُثَنًّى||[[double]]}}, should use {{temp|ar-adj-an}}.
+
+==Parameters==
+; {{para|1}}
+: Vocalized headword.
+; {{para|pl}}
+: Specify a masculine plural. If equal to <tt>+</tt>, supply the default sound plural; else, if specified, provide a specific plural; else, no plural will be specified.
+; {{para|pl2}}
+: Specify a second masculine plural. If equal to <tt>+</tt>, supply the default sound plural; else, if specified, provide a specific plural; else, no plural will be specified.
+; {{para|pl3}}, {{para|pl4}}, {{para|pl5}}
+: Specify a third, fourth and/or fifth masculine plural, similar to {{para|pl2}}.
+; {{para|fpl}}
+: Override the default sound feminine plural. If equal to <tt>-</tt>, no plural will be specified; else, if specified, provide a specific plural; else, supply the default sound feminine plural.
+; {{para|el}}
+: Specify an elative.
+
+==Examples==
+
+I. The code <code><nowiki>{{ar-adj-in|مُسَاوٍ|pl=+}}</nowiki></code> produces the following:
+
+{{ar-adj-in|مُسَاوٍ|pl=+}}
+
+The declension section for an adjective like this looks as follows (note the use of <tt>smp</tt> to signal the sound masculine plural):
+
+<pre>
+====Declension====
+{{ar-decl-adj|مُسَاوٍ|pl=smp}}
+</pre>
+
+II. The code <code><nowiki>{{ar-adj-in|جَانٍ|pl=جُنَاة}}</nowiki></code> produces the following:
+
+{{ar-adj-in|جَانٍ|pl=جُنَاة}}
+
+The declension section for an adjective like this looks as follows:
+
+<pre>
+====Declension====
+{{ar-decl-adj|جَانٍ|pl=جُنَاة}}
+</pre>
+
+III. The code <code><nowiki>{{ar-adj-in|فَانٍ}}</nowiki></code> produces the following:
+
+{{ar-adj-in|فَانٍ}}
+
+The declension section for an adjective like this looks as follows:
+
+<pre>
+====Declension====
+{{ar-decl-adj|فَانٍ}}
+</pre>
+
+<includeonly>
+[[Category:Arabic headword-line templates|adj-in]]
+</includeonly>
+
+
+
+Uses of ar-adj-in
+
+Edit uses of ar-adj-in and add the -in ending.
 
 
 Template:ar-adj-sound
 
-
+<includeonly>{{ar-adj|{{{1}}}|f={{{1}}}َة|pl={{{1}}}ُون|el={{{el|}}}}}<!--
+--></includeonly><noinclude>{{documentation}}
 
 Template:ar-adj-sound/documentation
 
+{{documentation subpage}}
+This template is for displaying the headword line of regular Arabic adjectives that have a regular feminine and a sound masculine plural (typically, participles of augmented verbal forms). Certain adjectives should use other templates:
+# {{ar-etym-nisba|nocat=1|pl=1}}, such as {{m|ar|شَرْقِيّ||[[eastern]]}}, should use {{temp|ar-nisba}}.
+# Adjectives ending in ''-in'', such as {{m|ar|مُسَاوٍ||[[equal]]}} or {{m|ar|عَالٍ||[[high]]}}, should use {{temp|ar-adj-in}}.
+# Adjectives ending in ''-an'', such as {{m|ar|مُثَنًّى||[[double]]}}, should use {{temp|ar-adj-an}}.
+
+==Parameters==
+; {{para|1}}
+: Vocalized masculine singular headword.
+; {{para|el}}
+: Specify an elative.
+
+==Examples==
+
+The code <code><nowiki>{{ar-adj-sound|مُفَضَّل}}</nowiki></code> produces the following:
+
+{{ar-adj-sound|مُفَضَّل}}
+
+Note that the declension section for an adjective like this looks as follows:
+
+<pre>
+====Declension====
+{{ar-decl-adj|مُفَضَّل|pl=smp}}
+</pre>
+
+<includeonly>
+[[Category:Arabic headword-line templates|adj-sound]]
+</includeonly>
 
 
 علماني
@@ -914,7 +1071,7 @@ From the root {{ar-root|د م ن}}.
 {{ar-active participle}} of {{m|ar|سَلَّى||to [[comfort]], to [[amuse]]}}, from the roots {{ar-root|س ل و}} and {{ar-root|س ل ي}}.
 
 ===Adjective===
-{{ar-adj-in|مُسَلّ|pl=+}}
+{{ar-adj-in|مُسَلٍّ|pl=+}}
 
 # [[amusing]]
 # [[comforting]]
@@ -2672,7 +2829,7 @@ From the root {{ar-root|ر ب ك}}; compare {{m|ar|رَبَكَ||to [[confuse]]}
 {{ar-active participle}} of {{m|ar|سَاوَى||to [[equal]]}}, from the root {{ar-root|س و ي}}.
 
 ===Adjective===
-{{ar-adj-in|مُسَاو|pl=+}}
+{{ar-adj-in|مُسَاوٍ|pl=+}}
 
 # [[equal]], [[similar]]
 

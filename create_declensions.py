@@ -506,6 +506,20 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
 
           def process_param(param):
             arabic = remove_i3rab(param)
+            # Value of + is used in ar-nisba, ar-noun-nisba, ar-adj-in
+            # to signal the strong masculine plural.
+            if arabic.endswith("=+"):
+              newarabic = re.sub(r"=\+$", "=smp", arabic)
+              msg("Page %s: Converting %s to %s: %s" % (pagename, arabic,
+                newarabic, unicode(headword_template)))
+              arabic = newarabic
+            # Value of - is used in ar-adj-in to signal an unknown
+            # feminine plural.
+            if arabic.endswith("=-"):
+              newarabic = re.sub(r"=-$", "=?", arabic)
+              msg("Page %s: Converting %s to %s: %s" % (pagename, arabic,
+                newarabic, unicode(headword_template)))
+              arabic = newarabic
             # Don't process translit in modifier constructions, where the
             # translit is also processed.
             if not headspace:
@@ -515,8 +529,12 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             return arabic
 
           params = '|'.join([process_param(param) for param in headword_template.params if not param_should_be_removed(param)])
-          if (tempname == "ar-noun-nisba" or tempname == "ar-nisba") and not getp("pl"):
+          # For templates that automatically supply the masculine plural,
+          # supply it here, too if not overridden.
+          if tempname in ["ar-nisba", "ar-noun-nisba", "ar-adj-sound"] and not getp("pl"):
             params += '|pl=smp'
+          if tempname in ["ar-adj-an"] and not getp("pl"):
+            params += '|pl=awnp'
 
           # Separate off any [[Category: Foo]] declarators, insert before them
           m = re.match(r"^(.*?\n+)((\[\[[A-Za-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
@@ -566,24 +584,51 @@ pa = blib.init_argparser("Create Arabic declensions")
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
+params_to_remove = [
+    "2", # gender; not included in declension tables
+    "g2", # second gender; not included in declension tables
+    "singg", # singulative gender; not included in declension tables
+    "collg", # collective gender; not included in declension tables
+    "tr", # transliterations; we check for them in the declension code and
+          # handle them specially
+    "cons", # construct state; always predictable and we do it
+    "dcons", # dual construct state; always predictable and we do it
+    "pauccons", # paucal construct state; always predictable and we do it
+    "plcons", # plural construct state; always predictable and we do it
+    "cplcons", # common plural construct state; always predictable and we do it
+    "fplcons", # feminine plural construct state; always predictable and we do it
+    "inf", # informal; always predictable and we do it
+    "dinf", # dual informal; always predictable and we do it
+    "paucinf", # paucal informal; always predictable and we do it
+    "plinf", # plural informal; always predictable and we do it
+    "cplinf", # common plural informal; always predictable and we do it
+    "fplinf", # feminine plural informal; always predictable and we do it
+    "obl", # oblique; always predictable and we do it
+    "dobl", # dual oblique; always predictable and we do it
+    "paucobl", # paucal oblique; always predictable and we do it
+    "plobl", # plural oblique; always predictable and we do it
+    "cplobl", # common plural oblique; always predictable and we do it
+    "fplobl", # feminine plural oblique; always predictable and we do it
+    "el" # adjectival elative; not included in declension tables
+]
+
+non_gendered_params_to_remove = params_to_remove + [
+    "f", "m" # masculine, feminine; not included in non-gendered declension
+             # table (FIXME, perhaps instead we should generate a gendered
+             # declension table)
+]
+
 create_declensions(params.save, "Noun", "ar-noun", "ar-decl-noun",
-    "sg", startFrom, upTo,
-    ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
+    "sg", startFrom, upTo, non_gendered_params_to_remove)
 create_declensions(params.save, "Verbal noun", "ar-verbal noun", "ar-decl-noun",
-    "sg", startFrom, upTo,
-    ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
+    "sg", startFrom, upTo, non_gendered_params_to_remove)
 create_declensions(params.save, "Noun", "ar-coll-noun", "ar-decl-coll-noun",
-    "coll", startFrom, upTo,
-    ["2", "tr", "g2", "singg", "cons", "plcons", "dobl", "paucobl", "plobl"])
+    "coll", startFrom, upTo, non_gendered_params_to_remove)
 create_declensions(params.save, "Noun", "ar-sing-noun", "ar-decl-sing-noun",
-    "sing", startFrom, upTo,
-    ["2", "tr", "g2", "collg", "cons", "plcons", "dobl", "paucobl", "plobl"])
-create_declensions(params.save, "Adjective", "ar-nisba", "ar-decl-adj",
-    "sg", startFrom, upTo,
-    ["2", "tr", "g2", "collg", "cons", "plcons", "dobl", "paucobl", "plobl"])
+    "sing", startFrom, upTo, non_gendered_params_to_remove)
 create_declensions(params.save, "Noun", "ar-noun-nisba", "ar-decl-gendered-noun",
-    "sg", startFrom, upTo,
-    ["2", "tr", "g2", "f", "m", "cons", "plcons", "dobl", "plobl"])
-create_declensions(params.save, "Adjective", "ar-adj", "ar-decl-adj",
-    "sg", startFrom, upTo,
-    ["tr", "el", "cons", "plcons", "dobl", "cplobl", "plobl", "fplobl"])
+    "sg", startFrom, upTo, params_to_remove)
+for adj_template in ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in",
+    "ar-adj-an"]:
+  create_declensions(params.save, "Adjective", adj_template, "ar-decl-adj",
+      "sg", startFrom, upTo, params_to_remove)
