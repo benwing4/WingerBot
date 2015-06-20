@@ -188,7 +188,8 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
           # Retrieve headword_template, make sure exactly one and it is the right type
           headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
               ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
-                "ar-verbal noun", "ar-adj", "ar-nisba", "ar-noun-nisba"]]
+                "ar-verbal noun", "ar-adj", "ar-nisba", "ar-noun-nisba",
+                "ar-adj-sound", "ar-adj-in", "ar-adj-an"]]
           if len(headword_templates) == 0:
             pagemsg("Can't find headword template in text, skipping")
             continue
