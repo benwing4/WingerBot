@@ -872,20 +872,20 @@ def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-adj-fem", "", "feminine of", "|lang=ar")
 
-def default_inflectfn(infl, infltr, lemma, lemmatr, param):
+def default_inflectfn(infl, infltr, lemma, lemmatr, template, param):
     return (infl, infltr)
 
 # Inflection function when we default pl= to the sound masculine plural.
 # A value of + also indicates the sound masculine plural in any inflection
 # param.
-def sound_pl_inflection(infl, infltr, lemma, lemmatr, param):
+def sound_pl_inflection(infl, infltr, lemma, lemmatr, template, param):
   if infl == "+" or (not infl and param == "pl"):
     return (lemma + UUN, lemmatr and lemmatr + u"ūn" or "")
   return (infl, infltr)
 
 # Inflection function for -in plurals when a value of + indicates the sound
 # masculine plural.
-def in_pl_inflection(infl, infltr, lemma, lemmatr, param):
+def in_pl_inflection(infl, infltr, lemma, lemmatr, template, param):
   if infl == "+":
     lemma = reorder_shadda(lemma)
     if lemma.endswith(IN):
@@ -897,7 +897,7 @@ def in_pl_inflection(infl, infltr, lemma, lemmatr, param):
 # Inflection function for -an plurals when we default pl= to the sound
 # masculine -awn plural. A value of + also indicates the sound masculine
 # -awn plural in any inflection param.
-def an_pl_inflection(infl, infltr, lemma, lemmatr, param):
+def an_pl_inflection(infl, infltr, lemma, lemmatr, template, param):
   if infl == "+" or (not infl and param == "pl"):
     lemma = reorder_shadda(lemma)
     if lemma.endswith(AN + AMAQ):
@@ -909,7 +909,7 @@ def an_pl_inflection(infl, infltr, lemma, lemmatr, param):
 # Inflection function when we default f= to the regular feminine.
 # A value of + also indicates the feminine in any inflection param.
 # We also handle -an and -in lemmas here.
-def sound_fem_inflection(infl, infltr, lemma, lemmatr, param):
+def reg_fem_inflection(infl, infltr, lemma, lemmatr, template, param):
   if infl == "+" or (not infl and param == "f"):
     lemma = reorder_shadda(lemma)
     if lemma.endswith(AN + AMAQ):
@@ -940,20 +940,23 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
     createfn, inflectfn=None):
   if not inflectfn:
     inflectfn = default_inflectfn
+  if type(tempname) is not list:
+    tempname = [tempname]
   for cat in [u"Arabic %ss" % pos.lower()]:
     for page, index in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
-        if template.name == tempname:
+        if template.name in tempname:
           lemma = blib.getparam(template, "1")
           lemmatr = blib.getparam(template, "tr")
           # Handle blank head; use page title
           if lemma == "":
             lemma = page.title()
             msg("Page %s: blank head in template %s (tr=%s)" % (
-              lemma, tempname, lemmatr))
+              lemma, template.name, lemmatr))
           infl = blib.getparam(template, param)
           infltr = blib.getparam(template, param + "tr")
-          infl, infltr = inflectfn(infl, infltr, lemma, lemmatr, param)
+          infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
+              template, param)
           if infl:
             createfn(save, index, infl, infltr, lemma, lemmatr, pos)
           i = 2
@@ -964,10 +967,10 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
             otherheadtr = blib.getparam(template, "tr" + str(i))
             if otherhead:
               infl, infltr = inflectfn(infl, infltr, otherhead, otherheadtr,
-                  param + str(i))
+                  template, param + str(i))
             else:
               infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
-                  param + str(i))
+                  template, param + str(i))
             if infl:
               if otherhead:
                 msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
@@ -1450,27 +1453,37 @@ pa.add_argument("--elative", action='store_true',
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
+def pl_inflection(infl, infltr, lemma, lemmatr, template, param):
+  if template.name in ["ar-noun-nisba", "ar-nisba", "ar-adj-sound"]:
+    return sound_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
+  elif template.name == "ar-adj-in":
+    return in_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
+  elif template.name == "ar-adj-an":
+    return an_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
+  else:
+    return default_inflectfn(infl, infltr, lemma, lemmatr, template, param)
+
 if params.plural:
-  create_plurals(params.save, "Noun", "ar-noun", startFrom, upTo)
-  create_plurals(params.save, "Noun", "ar-noun-nisba", startFrom, upTo,
-      sound_pl_inflection)
-  create_plurals(params.save, "Adjective", "ar-adj", startFrom, upTo)
-  create_plurals(params.save, "Adjective", "ar-nisba", startFrom, upTo,
-      sound_pl_inflection)
-  create_plurals(params.save, "Adjective", "ar-adj-sound", startFrom, upTo,
-      sound_pl_inflection)
-  create_plurals(params.save, "Adjective", "ar-adj-in", startFrom, upTo,
-      in_pl_inflection)
-  create_plurals(params.save, "Adjective", "ar-adj-an", startFrom, upTo,
-      an_pl_inflection)
+  create_plurals(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
+      startFrom, upTo, pl_inflection)
+  create_plurals(params.save, "Adjective",
+      ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
+      startFrom, upTo, pl_inflection)
+
+def fem_inflection(infl, infltr, lemma, lemmatr, template, param):
+  if template.name in ["ar-noun-nisba", "ar-nisba", "ar-adj-sound",
+      "ar-adj-in", "ar-adj-an"]:
+    return reg_fem_inflection(infl, infltr, lemma, lemmatr, template, param)
+  else:
+    return default_inflectfn(infl, infltr, lemma, lemmatr, template, param)
+
 if params.feminine:
-  #create_feminines(params.save, "Noun", "ar-noun", startFrom, upTo)
-  #create_plurals(params.save, "Noun", "ar-noun-nisba", startFrom, upTo,
-  #    sound_fem_inflection)
-  create_feminines(params.save, "Adjective", "ar-adj", startFrom, upTo)
-  for template in ["ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"]:
-    create_plurals(params.save, "Adjective", template, startFrom, upTo,
-        sound_fem_inflection)
+  #create_feminines(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
+  #    startFrom, upTo, fem_inflection)
+  create_feminines(params.save, "Adjective",
+      ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
+      startFrom, upTo, fem_inflection)
+
 if params.verbal_noun:
   create_verbal_nouns(params.save, startFrom, upTo)
 if params.participle:
