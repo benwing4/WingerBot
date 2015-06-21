@@ -74,10 +74,10 @@ lemma_inflection_counts = {}
 # template, similar to INFLTEMP_PARAM. If ENTRYTEXT is given, this is the
 # text to use for the entry, starting directly after the "==Etymology==" line,
 # which is assumed to be necessary. If not given, this text is synthesized
-# from the other parameters.
+# from the other parameters. GENDER is used for noun plurals.
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
-    deftemp_param, entrytext=None):
+    deftemp_param, entrytext=None, gender=None):
 
   # Did we insert an entry or find an existing one? If not, we need to
   # add a new one. If we break out of the loop through subsections of the
@@ -136,6 +136,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     verb_part_form = infltemp_param[1:]
     verb_part_inserted_defn = False
   is_plural_noun = infltype == "plural" and pos == "Noun"
+  is_plural = infltype == "plural"
+  is_feminine = infltype == "feminine"
   vn_or_participle = is_vn or is_participle
   lemma_is_verb = is_verb_part or vn_or_participle
 
@@ -188,6 +190,28 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       return reorder_shadda(paramval) == reorder_shadda(value)
     else:
       return remove_diacritics(paramval) == remove_diacritics(value)
+
+  # First, for each template, return a tuple of
+  # (template, param, matches), where MATCHES is true if any head
+  # matches FORM and PARAM is the (first) matching head param.
+  def template_head_match_info(template, form,
+      require_exact_match=False):
+    # Look at all heads
+    if compare_param(template, "1", form, require_exact_match):
+      return (template, "1", True)
+    i = 2
+    while True:
+      param = "head" + str(i)
+      if not blib.getparam(template, param):
+        return (template, None, False)
+      if compare_param(template, param, form, require_exact_match):
+        return (template, param, True)
+      i += 1
+  # True if any head in the template matches FORM.
+  def template_head_matches(template, form,
+      require_exact_match=False):
+    return template_head_match_info(template, form,
+        require_exact_match)[2]
 
   # Prepare parts of new entry to insert
   if entrytext:
@@ -425,24 +449,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # in the inflection headword template, but don't require that
             # the lemma match in the definitional template.
 
-            # First, for each template, return a tuple of
-            # (template, param, matches), where MATCHES is true if any head
-            # matches FORM and PARAM is the (first) matching head param.
-            def template_head_match_info(template, form):
-              # Look at all heads
-              if compare_param(template, "1", form):
-                return (template, "1", True)
-              i = 2
-              while True:
-                param = "head" + str(i)
-                if not blib.getparam(template, param):
-                  return (template, None, False)
-                if compare_param(template, param, form):
-                  return (template, param, True)
-                i += 1
-            # True if any head in the template matches FORM.
-            def template_head_matches(template, form):
-              return template_head_match_info(template, form)[2]
             head_matches_tuples = [template_head_match_info(t, inflection)
                 for t in parsed.filter_templates()]
             # Now get a list of (TEMPLATE, PARAM) for all matching templates,
@@ -451,9 +457,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 [(t, param) for t, param, matches in head_matches_tuples
                  if t.name == infltemp and matches
                  and (not is_verb_part or compare_param(t, "2", verb_part_form))])
-            defn_templates = [t for t in parsed.filter_templates()
-                if t.name == deftemp and (is_verb_part or
-                compare_param(t, "1", lemma))]
+
             # Special-case handling for actual noun plurals. We expect an
             # ar-noun but if we encounter an ar-coll-noun with the plural as
             # the (collective) head and the singular as the singulative, we
@@ -478,6 +482,114 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               pagemsg("WARNING: Found multiple inflection headword templates for %s; taking no action"
                   % (infltype))
               break
+
+            # Get list of definition templates that match. We may or may
+            # not be matching in a way that ignores vowels (see
+            # must_match_exactly above).
+            approx_defn_templates = [t for t in parsed.filter_templates()
+                if t.name == deftemp and (is_verb_part or
+                compare_param(t, "1", lemma))]
+            # Get list of definition templates that match, checking vowels.
+            defn_templates = [t for t in parsed.filter_templates()
+                if t.name == deftemp and (is_verb_part or
+                compare_param(t, "1", lemma, require_exact_match=True))]
+
+            # Check the existing gender of the given headword template
+            # and attempt to make sure it matches the given gender.
+            # If the new gender is missing or plain "p" (plural), do nothing.
+            # If the existing gender is missing or plain "p", set the
+            # gender to the new one. Return False if the existing gender
+            # is not plain "p" and doesn't match the new gender, else True.
+            # If WARNING_ON_FALSE, issue a warning when we can't match
+            # the gender.
+            def check_fix_gender(headword_template, gender, warning_on_false):
+              if not gender or gender == ["p"]:
+                return True
+              existing_gender = blib.getparam(headword_template, "2")
+              existing_gender2 = blib.getparam(headword_template, "g2")
+              if not existing_gender:
+                existing_gender = ["p"]
+              elif not existing_gender2:
+                existing_gender = [existing_gender]
+              else:
+                existing_gender = [existing_gender, existing_gender2]
+              if existing_gender == ["p"]:
+                pagemsg("Modifying gender from [p] to %s" % gender)
+                headword_template.add("2", gender[0])
+                if len(gender) > 1:
+                  headword_template.add("g2", gender[1])
+                return True
+              elif existing_gender == gender:
+                return True
+              else:
+                if warning_on_false:
+                  pagemsg("WARNING: Can't modify gender from %s to %s" % (
+                      existing_gender, gender))
+                return False
+
+            if (infl_headword_templates and len(approx_defn_templates) == 1
+                and not must_match_exactly):
+
+              #### Code for plurals and feminines, which may be partly
+              #### vocalized and may have existing i3rab.
+
+              infl_headword_template, infl_headword_matching_param = \
+                  infl_headword_templates[0]
+              defn_template = approx_defn_templates[0]
+                
+              # Check for i3rab in existing infl and remove it if so.
+              existing_infl = \
+                  check_maybe_remove_i3rab(infl_headword_template,
+                      infl_headword_matching_param, infltype)
+
+              # Check for i3rab in existing lemma and remove it if so
+              existing_lemma = \
+                  check_maybe_remove_i3rab(defn_template, "1", lemmatype)
+
+              # Check that new inflection is the same as or longer then
+              # existing inflection, and same for the lemma. In such a
+              # case we assume that the existing lemma/inflection represents
+              # a possibly partly vocalized version of new lemma/inflection.
+              if ((len(inflection) > len(existing_infl) or
+                   inflection == existing_infl) and
+                  (len(lemma) > len(existing_lemma) or
+                   lemma == existing_lemma)):
+                if inflection != existing_infl or lemma != existing_lemma:
+                  pagemsg("Approximate match to partly vocalized: Exists and has Arabic section and found %s already in it"
+                      % (infltype))
+                else:
+                  pagemsg("Exists and has Arabic section and found %s already in it"
+                      % (infltype))
+
+                # First, if we're a plural noun, update gender and make sure
+                # we can do it
+                if (not is_plural_noun or
+                    check_fix_gender(infl_headword_template, gender, True)):
+                  # Replace existing infl with new one
+                  if len(inflection) > len(existing_infl):
+                    pagemsg("Updating existing %s %s with %s" %
+                        (infltemp, existing_infl, inflection))
+                    infl_headword_template.add(infl_headword_matching_param,
+                      inflection)
+                    if infltr:
+                      trparam = "tr" if infl_headword_matching_param == "1" \
+                          else infl_headword_matching_param.replace("head", "tr")
+                      infl_headword_template.add(trparam, infltr)
+
+                  # Replace existing lemma with new one
+                  if len(lemma) > len(existing_lemma):
+                    pagemsg("Updating existing '%s' %s with %s" %
+                        (deftemp, existing_lemma, lemma))
+                    defn_template.add("1", lemma)
+                    if lemmatr:
+                      defn_template.add("tr", lemmatr)
+
+                  subsections[j] = unicode(parsed)
+                  sections[i] = ''.join(subsections)
+                  comment = "Update Arabic with better %svocalized versions: %s %s, %s %s, pos=%s" % (
+                      is_plural_noun and "gender and " or "",
+                      infltype, inflection, lemmatype, lemma, pos)
+                  break
 
             # We found both templates and their heads matched; inflection
             # entry is probably already present. For verb forms, however,
@@ -552,56 +664,19 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 verb_part_inserted_defn = True
                 need_new_entry = False
 
-              # Else, not verb form. Remove i3rab from existing headword and
-              # definitional template, and maybe update the template heads
-              # with better-vocalized versions.
-              else:
-                if len(defn_templates) > 1:
-                  pagemsg("WARNING: Found multiple definitional templates for %s; taking no action"
-                      % (infltype))
-                  break
-                defn_template = defn_templates[0]
-
-                #### Rest of this code primarily for plurals and feminines,
-                #### which may be partly vocalized and may have existing i3rab.
-                #### For verbal nouns and participles, we require exact match
-                #### so conditions like 'len(inflection) > len(existing_infl)'
-                #### won't apply, and there generally isn't existing i3rab.
-                
-                # Check for i3rab in existing infl and remove it if so.
-                existing_infl = \
-                    check_maybe_remove_i3rab(infl_headword_template,
-                        infl_headword_matching_param, infltype)
-
-                # Check for i3rab in existing lemma and remove it if so
-                existing_lemma = \
-                    check_maybe_remove_i3rab(defn_template, "1", lemmatype)
-
-                # Replace existing infl with new one
-                if len(inflection) > len(existing_infl):
-                  pagemsg("Updating existing %s %s with %s" %
-                      (infltemp, existing_infl, inflection))
-                  infl_headword_template.add(infl_headword_matching_param,
-                    inflection)
-                  if infltr:
-                    trparam = "tr" if infl_headword_matching_param == "1" \
-                        else infl_headword_matching_param.replace("head", "tr")
-                    infl_headword_template.add(trparam, infltr)
-
-                # Replace existing lemma with new one
-                if len(lemma) > len(existing_lemma):
-                  pagemsg("Updating existing '%s' %s with %s" %
-                      (deftemp, existing_lemma, lemma))
-                  defn_template.add("1", lemma)
-                  if lemmatr:
-                    defn_template.add("tr", lemmatr)
-
-                #### End of code primarily for plurals and feminines.
-
+              # Else, not verb form. If plural noun, set the gender
+              # appropriately.
+              elif is_plural_noun:
+                check_fix_gender(infl_headword_template, gender, True)
                 subsections[j] = unicode(parsed)
                 sections[i] = ''.join(subsections)
-                comment = "Update Arabic with better vocalized versions: %s %s, %s %s, pos=%s" % (
-                    infltype, inflection, lemmatype, lemma, pos)
+                comment = "Update gender of plural noun to %s: %s %s, %s %s" % (
+                    gender, infltype, inflection, lemmatype, lemma)
+                break
+
+              # Else, not verb form and not plural noun. Already have
+              # defn so do nothing.
+              else:
                 break
 
             # At this point, didn't find either headword or definitional
@@ -670,16 +745,22 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # infltr may be None and existing_tr may be "", but
                 # they should match
                 if (infltr or None) == (existing_tr or None):
-                  subsections[j] = unicode(parsed)
-                  if subsections[j][-1] != '\n':
-                    subsections[j] += '\n'
-                  subsections[j] = re.sub(r"^(.*\n#[^\n]*\n)",
-                      r"\1# %s\n" % new_defn_template, subsections[j], 1, re.S)
-                  sections[i] = ''.join(subsections)
-                  pagemsg("Adding new definitional template to existing defn for pos = %s" % (pos))
-                  comment = "Add new definitional template to existing defn: %s %s, %s %s, pos=%s" % (
-                      infltype, inflection, lemmatype, lemma, pos)
-                  break
+                  # If plural noun, also make sure we can set the gender
+                  # appropriately. If not, we will end up adding an entirely
+                  # new entry.
+                  if (not is_plural_noun or
+                      check_fix_gender(infl_headword_template, gender, False)):
+                    subsections[j] = unicode(parsed)
+                    if subsections[j][-1] != '\n':
+                      subsections[j] += '\n'
+                    subsections[j] = re.sub(r"^(.*\n#[^\n]*\n)",
+                        r"\1# %s\n" % new_defn_template, subsections[j], 1,
+                        re.S)
+                    sections[i] = ''.join(subsections)
+                    pagemsg("Adding new definitional template to existing defn for pos = %s" % (pos))
+                    comment = "Add new definitional template to existing defn: %s %s, %s %s, pos=%s" % (
+                        infltype, inflection, lemmatype, lemma, pos)
+                    break
 
         # else of for loop over subsections, i.e. no break out of loop
         else:
@@ -764,10 +845,66 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               if insert_at > 0:
                 subsections[insert_at - 1] = ensure_two_trailing_nl(
                     subsections[insert_at - 1])
-              subsections[insert_at:insert_at] = [newpos + "\n"]
+              # Determine indent level
+              m = re.match("^(==+)", subsections[insert_at])
+              indentlevel = len(m.group(1))
+              if indentlevel == 3:
+                subsections[insert_at:insert_at] = [newpos + "\n"]
+              else:
+                assert(indentlevel == 4)
+                subsections[insert_at:insert_at] = [newposl4 + "\n"]
               sections[i] = ''.join(subsections)
               break
 
+          # If plural or feminine, try to find an existing noun or adjective
+          # form with the same headword to insert after. Insert after the
+          # last such one.
+          if is_plural or is_feminine:
+            insert_at = None
+            for j in xrange(len(subsections)):
+              if j > 0 and (j % 2) == 0:
+                if re.match("^===+(Noun|Adjective)===+", subsections[j - 1]):
+                  parsed = blib.parse_text(subsections[j])
+                  for t in parsed.filter_templates():
+                    if (t.name in ["ar-noun-pl", "ar-adj-pl", "ar-noun-fem",
+                        "ar-adj-fem", "ar-coll-noun"] and
+                        template_head_matches(t, inflection,
+                          require_exact_match=True)):
+                      insert_at = j + 1
+            if insert_at:
+              pagemsg("Found section to insert %s after: [[%s]]" %
+                  (infltype, subsections[insert_at - 1]))
+
+              # Determine indent level and skip past sections at higher indent
+              m = re.match("^(==+)", subsections[insert_at - 2])
+              indentlevel = len(m.group(1))
+              while insert_at < len(subsections):
+                if (insert_at % 2) == 0:
+                  insert_at += 1
+                  continue
+                m = re.match("^(==+)", subsections[insert_at])
+                newindent = len(m.group(1))
+                if newindent <= indentlevel:
+                  break
+                pagemsg("Skipped past higher-indented subsection: [[%s]]" %
+                    subsections[insert_at])
+                insert_at += 1
+
+              pagemsg("Inserting after noun/adjective section for same inflection")
+              comment = "Insert entry for %s %s of %s after noun/adjective section for same inflection" % (
+                infltype, inflection, lemma)
+              subsections[insert_at - 1] = ensure_two_trailing_nl(
+                  subsections[insert_at - 1])
+              if indentlevel == 3:
+                subsections[insert_at:insert_at] = [newpos + "\n"]
+              else:
+                assert(indentlevel == 4)
+                subsections[insert_at:insert_at] = [newposl4 + "\n"]
+              sections[i] = ''.join(subsections)
+              break
+
+          # At this point, couldn't find an existing section to insert
+          # next to.
           pagemsg("Exists and has Arabic section, appending to end of section")
           # FIXME! Conceivably instead of inserting at end we should insert
           # next to any existing ===Noun=== (or corresponding POS, whatever
@@ -855,25 +992,113 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     if save:
       page.save(comment = comment)
 
-def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
-  create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "plural", "singular", "ar-noun-pl", "", "plural of", "|lang=ar")
+# FIXME: For Nisba nouns and maybe other nouns in -uun, use gender of m-p
+def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
+    template, pos):
+  # Figure out plural gender
+  if template.name == "ar-noun-nisba":
+    gender = ["m-p"]
+  else:
+    singgender = blib.getparam(template, "2")
+    if not singgender:
+      gender = None
+    else:
+      if singgender in ["m", "f"]:
+        gender = ["%s-p" % singgender]
+      else:
+        gender = [singgender]
+      singgender2 = blib.getparam(template, "g2")
+      if singgender2:
+        if singgender2 in ["m", "f"]:
+          gender.append("%s-p" % singgender2)
+        else:
+          gender.append(singgender2)
+  if not gender:
+    genderparam = ""
+  elif len(gender) == 1:
+    genderparam = "|%s" % gender[0]
+  else:
+    assert(len(gender) == 2)
+    genderparam = "|%s|g2=%s" % (gender[0], gender[1])
 
-def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr, pos):
+  create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
+      "plural", "singular", "ar-noun-pl", genderparam, "plural of", "|lang=ar",
+      gender=gender)
+
+def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr,
+    template, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "plural", "singular", "ar-adj-pl", "", "masculine plural of", "|lang=ar")
 
-def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr, pos):
+def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
+    template, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", None, # FIXME
       "", "feminine of", "|lang=ar")
 
-def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr, pos):
+def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
+    template, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-adj-fem", "", "feminine of", "|lang=ar")
 
-def default_inflectfn(infl, infltr, lemma, lemmatr, template, param):
-    return (infl, infltr)
+# Create inflection entries for POS (the part of speech, which should be
+# capitalized, e.g "Noun") by looking for inflections in the parameter
+# PARAM (e.g. "pl") of templates named TEMPNAME (e.g. "ar-noun"). Entries
+# created are limited by STARTFROM and UPTO (which are typically numbers
+# but may be strings, and are the same as the START and END parameters
+# passed on the command line), and only saved if SAVE is true (which is
+# specified by --save on the command line). CREATEFN is the actual function
+# called to the creation, and is passed seven parameters; see
+# 'create_noun_plural' for an example. INFLECTFN is used to create the
+# actual inflected form given the form specified in the template; the default
+# is to use the template form unmodified. This function is always
+# called even if no inflected form is found, and hence can be used in cases
+# where the inflection is auto-generated by the template (e.g. in 'ar-nisba').
+def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
+    createfn, inflectfn=None):
+  if not inflectfn:
+    inflectfn = default_inflection
+  if type(tempname) is not list:
+    tempname = [tempname]
+  for cat in [u"Arabic %ss" % pos.lower()]:
+    for page, index in blib.cat_articles(cat, startFrom, upTo):
+      for template in blib.parse(page).filter_templates():
+        if template.name in tempname:
+          lemma = blib.getparam(template, "1")
+          lemmatr = blib.getparam(template, "tr")
+          # Handle blank head; use page title
+          if lemma == "":
+            lemma = page.title()
+            msg("Page %s: blank head in template %s (tr=%s)" % (
+              lemma, template.name, lemmatr))
+          infl = blib.getparam(template, param)
+          infltr = blib.getparam(template, param + "tr")
+          infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
+              template, param)
+          if infl:
+            createfn(save, index, infl, infltr, lemma, lemmatr, template, pos)
+          i = 2
+          while infl:
+            infl = blib.getparam(template, param + str(i))
+            infltr = blib.getparam(template, param + str(i) + "tr")
+            otherhead = blib.getparam(template, "head" + str(i))
+            otherheadtr = blib.getparam(template, "tr" + str(i))
+            if otherhead:
+              infl, infltr = inflectfn(infl, infltr, otherhead, otherheadtr,
+                  template, param + str(i))
+            else:
+              infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
+                  template, param + str(i))
+            if infl:
+              if otherhead:
+                msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
+                  lemma, i, otherhead, otherheadtr, infl, infltr))
+                createfn(save, index, infl, infltr, otherhead, otherheadtr,
+                    template, pos)
+              else:
+                createfn(save, index, infl, infltr, lemma, lemmatr,
+                    template, pos)
+            i += 1
 
 # Inflection function when we default pl= to the sound masculine plural.
 # A value of + also indicates the sound masculine plural in any inflection
@@ -906,89 +1131,47 @@ def an_pl_inflection(infl, infltr, lemma, lemmatr, template, param):
     return (lemma + AWN, lemmatr and lemmatr + u"awn" or "")
   return (infl, infltr)
 
-# Inflection function when we default f= to the regular feminine.
-# A value of + also indicates the feminine in any inflection param.
-# We also handle -an and -in lemmas here.
-def reg_fem_inflection(infl, infltr, lemma, lemmatr, template, param):
-  if infl == "+" or (not infl and param == "f"):
-    lemma = reorder_shadda(lemma)
-    if lemma.endswith(AN + AMAQ):
-      lemma = re.sub(AN + AMAQ + "$", "", lemma)
-      lemmatr = re.sub("an$", "", lemmatr)
-      return (lemma + AAH, lemmatr and lemmatr + u"āh" or "")
-    if lemma.endswith(IN):
-      lemma = re.sub(IN + "$", "", lemma)
-      lemmatr = re.sub("in$", "", lemmatr)
-      return (lemma + IYAH, lemmatr and lemmatr + u"iya" or "")
-    return (lemma + AH, lemmatr and lemmatr + u"a" or "")
-  return (infl, infltr)
+def pl_inflection(infl, infltr, lemma, lemmatr, template, param):
+  if template.name in ["ar-noun-nisba", "ar-nisba", "ar-adj-sound"]:
+    return sound_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
+  elif template.name == "ar-adj-in":
+    return in_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
+  elif template.name == "ar-adj-an":
+    return an_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
+  else:
+    return (infl, infltr)
 
-# Create inflection entries for POS (the part of speech, which should be
-# capitalized, e.g "Noun") by looking for inflections in the parameter
-# PARAM (e.g. "pl") of templates named TEMPNAME (e.g. "ar-noun"). Entries
-# created are limited by STARTFROM and UPTO (which are typically numbers
-# but may be strings, and are the same as the START and END parameters
-# passed on the command line), and only saved if SAVE is true (which is
-# specified by --save on the command line). CREATEFN is the actual function
-# called to the creation, and is passed seven parameters; see
-# 'create_noun_plural' for an example. INFLECTFN is used to create the
-# actual inflected form given the form specified in the template; the default
-# is to use the template form unmodified. This function is always
-# called even if no inflected form is found, and hence can be used in cases
-# where the inflection is auto-generated by the template (e.g. in 'ar-nisba').
-def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
-    createfn, inflectfn=None):
-  if not inflectfn:
-    inflectfn = default_inflectfn
-  if type(tempname) is not list:
-    tempname = [tempname]
-  for cat in [u"Arabic %ss" % pos.lower()]:
-    for page, index in blib.cat_articles(cat, startFrom, upTo):
-      for template in blib.parse(page).filter_templates():
-        if template.name in tempname:
-          lemma = blib.getparam(template, "1")
-          lemmatr = blib.getparam(template, "tr")
-          # Handle blank head; use page title
-          if lemma == "":
-            lemma = page.title()
-            msg("Page %s: blank head in template %s (tr=%s)" % (
-              lemma, template.name, lemmatr))
-          infl = blib.getparam(template, param)
-          infltr = blib.getparam(template, param + "tr")
-          infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
-              template, param)
-          if infl:
-            createfn(save, index, infl, infltr, lemma, lemmatr, pos)
-          i = 2
-          while infl:
-            infl = blib.getparam(template, param + str(i))
-            infltr = blib.getparam(template, param + str(i) + "tr")
-            otherhead = blib.getparam(template, "head" + str(i))
-            otherheadtr = blib.getparam(template, "tr" + str(i))
-            if otherhead:
-              infl, infltr = inflectfn(infl, infltr, otherhead, otherheadtr,
-                  template, param + str(i))
-            else:
-              infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
-                  template, param + str(i))
-            if infl:
-              if otherhead:
-                msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
-                  lemma, i, otherhead, otherheadtr, infl, infltr))
-                createfn(save, index, infl, infltr, otherhead, otherheadtr, pos)
-              else:
-                createfn(save, index, infl, infltr, lemma, lemmatr, pos)
-            i += 1
+# Inflection function when we default f= to the regular feminine for
+# certain templates. A value of + also indicates the feminine in any
+# inflection param for these templates. We also handle -an and -in
+# lemmas here.
+def fem_inflection(infl, infltr, lemma, lemmatr, template, param):
+  if template.name in ["ar-noun-nisba", "ar-nisba", "ar-adj-sound",
+      "ar-adj-in", "ar-adj-an"]:
+    if infl == "+" or (not infl and param == "f"):
+      lemma = reorder_shadda(lemma)
+      if lemma.endswith(AN + AMAQ):
+        lemma = re.sub(AN + AMAQ + "$", "", lemma)
+        lemmatr = re.sub("an$", "", lemmatr)
+        return (lemma + AAH, lemmatr and lemmatr + u"āh" or "")
+      if lemma.endswith(IN):
+        lemma = re.sub(IN + "$", "", lemma)
+        lemmatr = re.sub("in$", "", lemmatr)
+        return (lemma + IYAH, lemmatr and lemmatr + u"iya" or "")
+      return (lemma + AH, lemmatr and lemmatr + u"a" or "")
+    return (infl, infltr)
+  else:
+    return (infl, infltr)
 
-def create_plurals(save, pos, tempname, startFrom, upTo, inflectfn=None):
+def create_plurals(save, pos, tempname, startFrom, upTo):
   return create_inflection_entries(save, pos, tempname, "pl", startFrom, upTo,
       create_noun_plural if pos == "Noun" else create_adj_plural,
-      inflectfn)
+      pl_inflection)
 
-def create_feminines(save, pos, tempname, startFrom, upTo, inflectfn=None):
+def create_feminines(save, pos, tempname, startFrom, upTo):
   return create_inflection_entries(save, pos, tempname, "f", startFrom, upTo,
       create_noun_feminine if pos == "Noun" else create_adj_feminine,
-      inflectfn)
+      fem_inflection)
 
 def expand_template(page, text):
   # Make an expand-template call to expand the template text.
@@ -1453,36 +1636,19 @@ pa.add_argument("--elative", action='store_true',
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-def pl_inflection(infl, infltr, lemma, lemmatr, template, param):
-  if template.name in ["ar-noun-nisba", "ar-nisba", "ar-adj-sound"]:
-    return sound_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
-  elif template.name == "ar-adj-in":
-    return in_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
-  elif template.name == "ar-adj-an":
-    return an_pl_inflection(infl, infltr, lemma, lemmatr, template, param)
-  else:
-    return default_inflectfn(infl, infltr, lemma, lemmatr, template, param)
-
 if params.plural:
-  create_plurals(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
-      startFrom, upTo, pl_inflection)
+  #create_plurals(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
+  #    startFrom, upTo)
   create_plurals(params.save, "Adjective",
       ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
-      startFrom, upTo, pl_inflection)
-
-def fem_inflection(infl, infltr, lemma, lemmatr, template, param):
-  if template.name in ["ar-noun-nisba", "ar-nisba", "ar-adj-sound",
-      "ar-adj-in", "ar-adj-an"]:
-    return reg_fem_inflection(infl, infltr, lemma, lemmatr, template, param)
-  else:
-    return default_inflectfn(infl, infltr, lemma, lemmatr, template, param)
+      startFrom, upTo)
 
 if params.feminine:
   #create_feminines(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
   #    startFrom, upTo, fem_inflection)
   create_feminines(params.save, "Adjective",
       ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
-      startFrom, upTo, fem_inflection)
+      startFrom, upTo)
 
 if params.verbal_noun:
   create_verbal_nouns(params.save, startFrom, upTo)
