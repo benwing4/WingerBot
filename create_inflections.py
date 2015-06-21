@@ -313,8 +313,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             break
 
         # If verbal noun, convert existing ===Verbal noun=== headers into
-        # ===Noun===, and existing {{ar-verbal noun}} templates into
-        # {{ar-noun}}
+        # ===Noun===.
         if is_vn:
           for j in xrange(len(subsections)):
             if j > 0 and (j % 2) == 0:
@@ -323,13 +322,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     r"\1Noun\2", subsections[j - 1])
                 pagemsg("Converting 'Verbal noun' section header to 'Noun'")
                 notes.append("converted 'Verbal noun' section header to 'Noun'")
-              parsed = blib.parse_text(subsections[j])
-              for t in parsed.filter_templates():
-                if t.name == "ar-verbal noun":
-                  t.name = "ar-noun"
-                  pagemsg("Converting 'ar-verbal noun' template into 'ar-noun'")
-                  notes.append("converted 'ar-verbal noun' template into 'ar-noun'")
-              subsections[j] = unicode(parsed)
               sections[i] = ''.join(subsections)
 
         def sort_verb_part_sections():
