@@ -309,21 +309,50 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 notes.append("converted 'Verbal noun' section header to 'Noun'")
               sections[i] = ''.join(subsections)
 
-        # If verbal noun or participle, count how many matching existing
-        # entries of the sort we might insert a definition into. If exactly
-        # one, we will insert a defn into it if necessary. If more than one,
-        # we won't know which one to insert the defn into, so remember
-        # how many; when we get to the point where we need to insert a defn,
-        # we will punt if more than one.
+        # If verbal noun or participle, check for an existing entry matching
+        # the headword and defn. If so, don't do anything. We need to do this
+        # because otherwise we might have a situation with two entries for a
+        # given noun (or participle) and the second one having an appropriate
+        # defn, and when we encounter the first one we see it doesn't have a
+        # defn and go ahead and insert it, which we don't want to do.
+        #
+        # Also count number of entries for given noun (or participle). If
+        # none have a defn and there's more than one, we don't know which one
+        # to insert the defn into, so issue a warning and punt.
         if vn_or_participle:
           num_matching_headword_templates = 0
+          found_matching_headword_and_defn_templates = False
           for j in xrange(len(subsections)):
             if j > 0 and (j % 2) == 0:
               if re.match("^===+%s===+" % pos, subsections[j - 1]):
                 parsed = blib.parse_text(subsections[j])
-                num_matching_headword_templates += len([
+
+                # While we're at it, check for verbal noun defn templates
+                # missing form=
+                if is_vn:
+                  for t in parsed.filter_templates():
+                    if t.name == deftemp and not blib.getparam(t, "form"):
+                      pagemsg("WARNING: Verbal noun template %s missing form= param" % unicode(t))
+
+                matching_headword_templates = [
                     t for t in parsed.filter_templates()
-                    if t.name == infltemp and template_head_matches(t, inflection)])
+                    if t.name == infltemp and
+                    template_head_matches(t, inflection)]
+                matching_defn_templates = [
+                    t for t in parsed.filter_templates()
+                    if t.name == deftemp and compare_param(t, "1", lemma,
+                      require_exact_match=True)]
+                num_matching_headword_templates += len(
+                    matching_headword_templates)
+                if matching_headword_templates and matching_defn_templates:
+                  found_matching_headword_and_defn_templates = True
+          if found_matching_headword_and_defn_templates:
+            pagemsg("Exists and has Arabic section and found %s already in it"
+                % infltype)
+            break
+          if num_matching_headword_templates > 1:
+            pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert %s defn into" % infltype)
+            break
 
         def sort_verb_part_sections():
           def sort_one_section(start, end):
@@ -486,12 +515,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             defn_templates = [t for t in parsed.filter_templates()
                 if t.name == deftemp and (is_verb_part or
                 compare_param(t, "1", lemma, require_exact_match=True))]
-
-            # Check for verbal noun defn templates missing form=
-            if is_vn:
-              for t in parsed.filter_templates():
-                if t.name == deftemp and not blib.getparam(t, "form"):
-                  pagemsg("WARNING: Verbal noun template %s missing form= param" % unicode(t))
 
             # Check the existing gender of the given headword template
             # and attempt to make sure it matches the given gender.
@@ -704,10 +727,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # Check for i3rab in existing infl and remove it if so
                 check_maybe_remove_i3rab(infl_headword_template,
                     infl_headword_matching_param, infltype)
-
-                if num_matching_headword_templates > 1:
-                  pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert %s defn into" % infltype)
-                  break
 
                 # Don't insert defn when there are multiple heads because
                 # we don't know that all heads are actually legit verbal noun
@@ -940,11 +959,22 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # Wrap existing text in "Etymology 1" and increase the indent level
             # by one of all headers
             sections[i] = re.sub("^\n*==Arabic==\n+", "", sections[i])
-            wikilink_re = r"^(\{\{wikipedia\|.*?\}\})\n*"
+            # Peel off stuff we expect before the first header; it will be
+            # put back later
+            wikilink_re = r"^((\{\{wikipedia\|.*?\}\}\n|\[\[File:.*?\]\]\n)+)\n*"
             mmm = re.match(wikilink_re, sections[i])
-            wikilink = (mmm.group(1) + "\n") if mmm else ""
+            wikilink = mmm.group(1) if mmm else ""
             if mmm:
               sections[i] = re.sub(wikilink_re, "", sections[i])
+            # Check for any other stuff before the first header
+            if not re.match("^=", sections[i]):
+              mmm = re.match("^(.*?\n)=", sections[i], re.S)
+              if not mmm:
+                pagemsg("WARNING: Strange section lacking headers: [[%s]]" %
+                    sections[i])
+              else:
+                pagemsg("WARNING: Stuff before first header: [[%s]]" %
+                    mmm.group(1))
             # Stuff like "===Alternative forms===" that goes before the
             # etymology section should be moved after.
             sections[i] = re.sub(r"^(.*\n)(===Etymology===\n([^=\n]*\n)*)",
