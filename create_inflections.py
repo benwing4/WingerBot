@@ -708,13 +708,21 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               # Return comment (can't set it inside of fn).
               def insert_vn_defn():
                 subsections[j] = unicode(parsed)
-                subsections[j] = re.sub("^#",
-                    "# %s\n#" % new_defn_template,
-                    subsections[j], 1, re.M)
+                # If there's already a defn line present, insert after
+                # any such defn lines. Else, insert at beginning.
+                if re.search(r"^# \{\{%s\|" % deftemp, subsections[j], re.M):
+                  if not subsections[j].endswith("\n"):
+                    subsections[j] += "\n"
+                  subsections[j] = re.sub(r"(^(# \{\{%s\|.*\n)+)" % deftemp,
+                      r"\1# %s\n" % new_defn_template, subsections[j],
+                      1, re.M)
+                else:
+                  subsections[j] = re.sub(r"^#", "# %s\n#" % new_defn_template,
+                      subsections[j], 1, re.M)
                 sections[i] = ''.join(subsections)
-                pagemsg("Insert existing defn with {{%s}} at beginning" % (
+                pagemsg("Insert existing defn with {{%s}} at beginning after any existing such defns" % (
                     deftemp))
-                return "Insert existing defn with {{%s}} at beginning: %s %s, %s %s" % (
+                return "Insert existing defn with {{%s}} at beginning after any existing such defns: %s %s, %s %s" % (
                     deftemp, infltype, inflection, lemmatype, lemma)
 
               # If verb or participle, see if we found inflection headword
@@ -1103,6 +1111,10 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
     inflectfn = default_inflection
   if type(tempname) is not list:
     tempname = [tempname]
+  # FIXME!! If there are multiple heads, we should consider iterating over
+  # them and creating plural entries for each, esp. if there is only one
+  # plural. When multiple heads and multiple plurals, unclear what to do.
+  # Need to think through this.
   for cat in [u"Arabic %ss" % pos.lower()]:
     for page, index in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
