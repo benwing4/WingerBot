@@ -277,12 +277,14 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     for i in xrange(len(sections)):
       m = re.match("^==([^=\n]+)==$", sections[i], re.M)
       if not m:
-        pagemsg("Can't find language name in text: [[%s]]" % (sections[i]))
+        pagemsg("WARNING: Can't find language name in text: [[%s]]" % (sections[i]))
       elif m.group(1) == "Arabic":
         # Extract off trailing separator
         mm = re.match(r"^(.*?\n)(\n*--+\n*)$", sections[i], re.S)
         if mm:
           sections[i:i+1] = [mm.group(1), mm.group(2)]
+        elif i < len(sections) - 1:
+          pagemsg("WARNING: Arabic language section %s is non-final and missing trailing separator" % i)
 
         # If verb part, correct mistaken indent from a previous run,
         # where level-3 entries were inserted instead of level 4.
@@ -295,23 +297,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
         subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
 
-        # If verbal noun, count how many matching noun entries; if exactly
-        # one, we will insert a verbal noun defn into it if necessary.
-        # If more than one, punt because we don't know which one, or more
-        # than one, to insert the verbal noun defn into.
-        if is_vn:
-          matching_vn_noun_templates = []
-          for j in xrange(len(subsections)):
-            if j > 0 and (j % 2) == 0:
-              if re.match("^===+Noun===+", subsections[j - 1]):
-                parsed = blib.parse_text(subsections[j])
-                matching_vn_noun_templates += [
-                    t for t in parsed.filter_templates()
-                    if t.name == "ar-noun" and template_head_matches(t, inflection)]
-          if len(matching_vn_noun_templates) > 1:
-            pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert VN defn into")
-            break
-
         # If verbal noun, convert existing ===Verbal noun=== headers into
         # ===Noun===.
         if is_vn:
@@ -323,6 +308,22 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 pagemsg("Converting 'Verbal noun' section header to 'Noun'")
                 notes.append("converted 'Verbal noun' section header to 'Noun'")
               sections[i] = ''.join(subsections)
+
+        # If verbal noun or participle, count how many matching existing
+        # entries of the sort we might insert a definition into. If exactly
+        # one, we will insert a defn into it if necessary. If more than one,
+        # we won't know which one to insert the defn into, so remember
+        # how many; when we get to the point where we need to insert a defn,
+        # we will punt if more than one.
+        if vn_or_participle:
+          num_matching_headword_templates = 0
+          for j in xrange(len(subsections)):
+            if j > 0 and (j % 2) == 0:
+              if re.match("^===+%s===+" % pos, subsections[j - 1]):
+                parsed = blib.parse_text(subsections[j])
+                num_matching_headword_templates += len([
+                    t for t in parsed.filter_templates()
+                    if t.name == infltemp and template_head_matches(t, inflection)])
 
         def sort_verb_part_sections():
           def sort_one_section(start, end):
@@ -485,6 +486,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             defn_templates = [t for t in parsed.filter_templates()
                 if t.name == deftemp and (is_verb_part or
                 compare_param(t, "1", lemma, require_exact_match=True))]
+
+            # Check for verbal noun defn templates missing form=
+            if is_vn:
+              for t in parsed.filter_templates():
+                if t.name == deftemp and not blib.getparam(t, "form"):
+                  pagemsg("WARNING: Verbal noun template %s missing form= param" % unicode(t))
 
             # Check the existing gender of the given headword template
             # and attempt to make sure it matches the given gender.
@@ -698,10 +705,20 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 check_maybe_remove_i3rab(infl_headword_template,
                     infl_headword_matching_param, infltype)
 
-                # Now actually add {{ar-verbal noun of}} (or equivalent
-                # for participles).
-                comment = insert_vn_defn()
-                break
+                if num_matching_headword_templates > 1:
+                  pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert %s defn into" % infltype)
+                  break
+
+                # Don't insert defn when there are multiple heads because
+                # we don't know that all heads are actually legit verbal noun
+                # (or participle) alternants.
+                if blib.getparam(infl_headword_template, "head2"):
+                  pagemsg("Inflection template has multiple heads, not inserting %s defn into it" % (infltype))
+                else:
+                  # Now actually add {{ar-verbal noun of}} (or equivalent
+                  # for participles).
+                  comment = insert_vn_defn()
+                  break
 
               elif is_participle:
                 # Couldn't find headword template; if we're a participle,
@@ -928,6 +945,10 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             wikilink = (mmm.group(1) + "\n") if mmm else ""
             if mmm:
               sections[i] = re.sub(wikilink_re, "", sections[i])
+            # Stuff like "===Alternative forms===" that goes before the
+            # etymology section should be moved after.
+            sections[i] = re.sub(r"^(.*\n)(===Etymology===\n([^=\n]*\n)*)",
+                r"\2\1", sections[i], 0, re.S)
             sections[i] = re.sub("^===Etymology===\n", "", sections[i])
             sections[i] = ("==Arabic==\n" + wikilink + "\n===Etymology 1===\n" +
                 ("\n" if sections[i].startswith("==") else "") +
