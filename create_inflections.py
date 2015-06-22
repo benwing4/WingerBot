@@ -815,7 +815,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   for t in parsed.filter_templates():
                     if (t.name == deftemp and compare_param(t, "1", lemma) or
                         t.name == infltemp and (not t.has("2") or compare_param(t, "2", verb_part_form)) or
-                        t.name == "ar-verb" and re.sub("-.*$", "", blib.getparam(t, "1")) == verb_part_form and remove_diacritics(get_dicform(page, t)) == remove_diacritics(lemma)):
+                        t.name == "ar-verb" and re.sub("-.*$", "", blib.getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)]):
                       insert_at = j + 1
             if insert_at:
               pagemsg("Found section to insert verb part after: [[%s]]" %
@@ -1235,8 +1235,11 @@ def get_part_prop(page, template, prefix):
   return expand_template(page,
       re.sub("\{\{ar-(conj|verb)\|", "{{%s|" % prefix, unicode(template)))
 
-def get_dicform(page, template):
-  return get_part_prop(page, template, "ar-past3sm")
+#def get_dicform(page, template):
+#  return get_part_prop(page, template, "ar-past3sm")
+
+def get_dicform_all(page, template):
+  return get_part_prop(page, template, "ar-past3sm-all").split(",")
 
 def get_passive(page, template):
   return get_part_prop(page, template, "ar-verb-prop|passive")
@@ -1265,20 +1268,20 @@ def has_passive_form(passive, pers):
 # UNCERTAIN is true if the verbal noun is uncertain (indicated with a ? at
 # the end of the vn=... parameter in the conjugation template).
 def create_verbal_noun(save, index, vn, form, page, template, uncertain):
-  dicform = get_dicform(page, template)
+  for dicform in get_dicform_all(page, template):
 
-  gender = get_vn_gender(vn, form)
-  if gender == "?":
-    msg("Page %s %s: WARNING: Unable to determine gender: verbal noun %s, dictionary form %s"
-        % (index, remove_diacritics(vn), vn, dicform))
-    genderparam = ""
-  else:
-    genderparam = "|%s" % gender
+    gender = get_vn_gender(vn, form)
+    if gender == "?":
+      msg("Page %s %s: WARNING: Unable to determine gender: verbal noun %s, dictionary form %s"
+          % (index, remove_diacritics(vn), vn, dicform))
+      genderparam = ""
+    else:
+      genderparam = "|%s" % gender
 
-  defparam = "|form=%s%s" % (form, uncertain and "|uncertain=yes" or "")
-  create_inflection_entry(save, index, vn, None, dicform, None, "Noun",
-    "verbal noun", "dictionary form", "ar-noun", genderparam,
-    "ar-verbal noun of", defparam)
+    defparam = "|form=%s%s" % (form, uncertain and "|uncertain=yes" or "")
+    create_inflection_entry(save, index, vn, None, dicform, None, "Noun",
+      "verbal noun", "dictionary form", "ar-noun", genderparam,
+      "ar-verbal noun of", defparam)
 
 def create_verbal_nouns(save, startFrom, upTo):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
@@ -1301,14 +1304,14 @@ def create_verbal_nouns(save, startFrom, upTo):
           create_verbal_noun(save, index, vn, form, page, template, uncertain)
 
 def create_participle(save, index, part, page, template, actpass, apshort):
-  dicform = get_dicform(page, template)
+  for dicform in get_dicform_all(page, template):
 
-  # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
-  form = re.sub("-.*$", "", blib.getparam(template, "1"))
-  create_inflection_entry(save, index, part, None, dicform, None, "Participle",
-    "%s participle" % actpass, "dictionary form",
-    "ar-%s-participle" % apshort, "|" + form,
-    "%s participle of" % actpass, "|lang=ar")
+    # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
+    form = re.sub("-.*$", "", blib.getparam(template, "1"))
+    create_inflection_entry(save, index, part, None, dicform, None, "Participle",
+      "%s participle" % actpass, "dictionary form",
+      "ar-%s-participle" % apshort, "|" + form,
+      "%s participle of" % actpass, "|lang=ar")
 
 def create_participles(save, startFrom, upTo):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
@@ -1468,11 +1471,11 @@ def create_verb_parts(save, startFrom, upTo, partspec):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
-        dicform = get_dicform(page, template)
         passive = get_passive(page, template)
-        for voice, person, tense in parts_desired:
-          create_verb_part(save, index, page, template, dicform, passive,
-              voice, person, tense)
+        for dicform in get_dicform_all(page, template):
+          for voice, person, tense in parts_desired:
+            create_verb_part(save, index, page, template, dicform, passive,
+                voice, person, tense)
 
 def add_bracketing(defn):
   return " ".join(["[[%s]]" % word for word in defn.split(" ")])
