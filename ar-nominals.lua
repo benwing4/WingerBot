@@ -223,16 +223,54 @@ function init_data()
 	}
 end
 
--- Initialize and return DATA (see init_data()) and ARGS (a table of
--- user-supplied arguments, with empty-string arguments converted to nil).
+-- Initialize and return ARGS, ORIGARGS and DATA (see init_data()).
+-- ARGS is a table of user-supplied arguments, massaged from the original
+-- arguments by converting empty-string arguments to nil and appending
+-- translit arguments to their base arguments with a separating slash.
+-- ORIGARGS is the original table of arguments.
 function init(origargs)
+	-- Massage arguments by converting empty arguments to nil, and
+	--  "" or '' arguments to empty.
 	local args = {}
-	-- Convert empty arguments to nil, and "" or '' arguments to empty
 	for k, v in pairs(origargs) do
 		args[k] = ine(v)
 	end
 
+	-- Further massage arguments by appending translit arguments to the
+	-- corresponding base arguments, with a slash separator, as is expected
+	-- in the rest of the code.
+	--
+	-- FIXME: We should consider separating translit and base arguments by the
+	-- separators ; , | (used in overrides; see handle_lemma_and_overrides())
+	-- and matching up individual parts, to allow separate translit arguments
+	-- to be specified for overrides. But maybe not; the point of allowing
+	-- separate translit arguments is for compatibility with headword
+	-- templates such as 'ar-noun' and 'ar-adj', and those templates don't
+	-- handle override arguments.
+
+	local function dotr(arg, argtr)
+		if not args[arg] then
+			error("Argument '" .. argtr .."' specified but not corresponding base argument '" .. arg .. "'")
+		end
+		args[arg] = args[arg] .. "/" .. args[argtr]
+	end
+
+	-- By convention, corresponding to arg 1 is 'tr'; corresponding to
+	-- head2, head3, ... is tr2, tr3, ...; corresponding to all other
+	-- arguments FOO, FOO2, ... is FOOtr, FOO2tr, ...
+	for k, v in pairs(args) do
+		if k == "tr" then
+			dotr(1, "tr")
+		elseif rfind(k, "^tr[0-9]") then
+			dotr(rsub(k, "^tr", "head"), k)
+		elseif rfind(k, "tr$") then
+			dotr(rsub(k, "tr$", ""), k)
+		end
+	end
+
+	-- Construct data.
 	local data = init_data()
+
 	return args, origargs, data
 end
 
