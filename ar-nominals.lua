@@ -1007,7 +1007,7 @@ function triptote_diptote(stem, tr, data, mod, numgen, is_dip, lc)
 	end
 
 	-- special-case for صلوة pronounced ṣalāh; check translit
-		local is_aah = rfind(tr, "āh$")
+	local is_aah = rfind(stem, TAM .. "$") and rfind(tr, "āh$")
 
 	if rfind(stem, TAM .. "$") then
 		if rfind(tr, "h$") then
@@ -1145,7 +1145,7 @@ function in_defective(stem, tr, data, mod, numgen, tri)
 	stem = rsub(stem, IN .. "$", "")
 	tr = rsub(tr, "in$", "")
 
-	local acc_ind_ending = tri and IY .. AN or IY .. A
+	local acc_ind_ending = tri and IY .. AN .. ALIF or IY .. A
 	add_inflections(stem, tr, data, mod, numgen,
 		{IN, acc_ind_ending, IN,
 		 II, IY .. A, II,
@@ -1444,7 +1444,7 @@ function export.detect_type(stem, isfem, num, pos)
 		return 'inv'
 	elseif rfind(stem, ALIF .. "$") then -- kāmērā, lībiyā (spelled with tall alif; we catch dunyā and hadāyā above)
 		return 'lwinv'
-	elseif rfind(stem, II .. "$") then -- cases like كُوبْرِي kubrī "bridge" and صَوَانِي ṣawānī pl. of ṣīniyya; modern words that would probably end with -ia
+	elseif rfind(stem, II .. "$") then -- cases like كُوبْرِي kubrī "bridge" and صَوَانِي ṣawānī pl. of ṣīniyya; modern words that would probably end with -in
 		dotrack("ii")
 		return 'inv'
 	elseif rfind(stem, UU .. "$") then -- FIXME: Does this occur? Check the tracking
@@ -1587,8 +1587,9 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	local function is_elcd_adj(ar)
 		return rfind(ar, ELCD_START .. SK .. CONS .. A .. CONS .. UOPT .. "$") or -- ʾabyaḍ "white", ʾakbar "greater"
 			rfind(ar, ELCD_START .. A .. CONS .. SH .. UOPT .. "$") or -- ʾalaff "plump", ʾaqall "fewer"
-			rfind(ar, ELCD_START .. SK .. CONS .. AAMAQ .. "$" or -- ʾaʿmā "blind", ʾadnā "lower"
+			rfind(ar, ELCD_START .. SK .. CONS .. AAMAQ .. "$") or -- ʾaʿmā "blind", ʾadnā "lower"
 			rfind(ar, "^" .. AMAD .. CONS .. A .. CONS .. UOPT .. "$") -- ʾālam "more painful", ʾāḵar "other"
+	end
 
 	if word == "?" or
 			(rfind(word, "^[a-z][a-z]*$") and sgtype == "?") then
