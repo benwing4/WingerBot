@@ -409,38 +409,52 @@ function get_pos(data, ismod)
 end
 
 -- Find the stems associated with a particular gender/number combination.
--- ARGS is the set of all arguments. ARG is the name of the argument prefix
+-- ARGS is the set of all arguments. ARGPREFS is an array of argument prefixes
 -- (e.g. 'f' for the actual arguments 'f', 'f2', ..., for the feminine
--- singular). SGS is a "stem-type list" (see do_gender_number()), and is the
--- list of stems to base derived forms off of (masculine or feminine as
--- appropriate), an array of length-two arrays of {COMBINED_STEM, TYPE} as
--- returned by stem_and_type(). DEFAULT, ISFEM and NUM are as in
--- do_gender_number().
-function do_gender_number_1(data, args, arg, sgs, default, isfem, num)
+-- singular; we allow more than one to handle 'cpl'). SGS is a
+-- "stem-type list" (see do_gender_number()), and is the list of stems to
+-- base derived forms off of (masculine or feminine as appropriate), an array
+-- of length-two arrays of {COMBINED_STEM, TYPE} as returned by
+-- stem_and_type(). DEFAULT, ISFEM and NUM are as in do_gender_number().
+-- ISMOD is true if we're handling a modifier argument (basically, if the
+-- argument begins with 'mod').
+function do_gender_number_1(data, args, argprefs, sgs, default, isfem, num, ismod)
 	local results = {}
 	local function handle_stem(stem)
-		insert_stems(stem, results, sgs, isfem, num,
-			get_pos(data, rfind(arg, "^mod")))
+		insert_stems(stem, results, sgs, isfem, num, get_pos(data, ismod))
 	end
 
-	if not args[arg] then
+	-- If no arguments specified, use the default instead.
+	need_default = true
+	for _, argpref in ipairs(argprefs) do
+		if args[argpref] then
+			need_default = false
+			break
+		end
+	end
+	if need_default then
 		if not default then
 			return results
 		end
 		handle_stem(default)
 		return results
 	end
+
 	-- For explicitly specified arguments, make sure there's at least one
 	-- stem to generate off of; otherwise specifying e.g. 'sing=- pauc=فُلَان'
 	-- won't override paucal.
 	if #sgs == 0 then
 		sgs = {{"", ""}}
 	end
-	handle_stem(args[arg])
-	local i = 2
-	while args[arg .. i] do
-		handle_stem(args[arg .. i])
-		i = i + 1
+	for _, argpref in ipairs(argprefs) do
+		if args[argpref] then
+			handle_stem(args[argpref])
+		end
+		local i = 2
+		while args[argpref .. i] do
+			handle_stem(args[argpref .. i])
+			i = i + 1
+		end
 	end
 	return results
 end
@@ -460,11 +474,12 @@ end
 -- manually-specified diptote, or auto-detected (see stem_and_type() and
 -- detect_type()).
 -- 
--- DATA and ARGS are as in init(). ARG is the prefix for the argument(s)
--- specifying the stem (and optional translit and declension type). We check
--- ARG, ARG2, ARG3, ... in turn for the base, and modARG, modARG2, modARG3, ...
--- in turn for the modifier. SGS is a stem specification (see above), giving
--- the stems that are used to base derived forms off of (e.g. if a stem type
+-- DATA and ARGS are as in init(). ARGPREFS is an array of the prefixes for
+-- the argument(s) specifying the stem (and optional translit and declension
+-- type). For a given ARGPREF, we check ARGPREF, ARGPREF2, ARGPREF3, ... in
+-- turn for the base, and modARGPREF, modARGPREF2, modARGPREF3, ... in turn
+-- for the modifier. SGS is a stem specification (see above), giving the
+-- stems that are used to base derived forms off of (e.g. if a stem type
 -- "smp" appears in place of a stem, the sound masculine plural of the
 -- stems in SGS will be derived). DEFAULT is a single stem (i.e. a string) that
 -- is used when no stems were explicitly given by the user (typically either
@@ -482,9 +497,15 @@ end
 -- A construct modifier is generally a noun, whereas an adjectival modifier
 -- is an adjective that agrees in state, number and case with the base
 -- noun.
-function do_gender_number(data, args, arg, sgs, default, isfem, num)
-	local results = do_gender_number_1(data, args, arg, sgs["base"], default, isfem, num)
-	local mod_results = do_gender_number_1(data, args, "mod" .. arg, sgs["mod"] or {}, default, isfem, num)
+function do_gender_number(data, args, argprefs, sgs, default, isfem, num)
+	local results = do_gender_number_1(data, args, argprefs, sgs["base"],
+		default, isfem, num, false)
+	local mod_argprefs = {}
+	for _, argpref in ipairs(argprefs) do
+		table.insert(mod_argprefs, "mod" .. argpref)
+	end
+	local mod_results = do_gender_number_1(data, args, mod_argprefs,
+		sgs["mod"] or {}, default, isfem, num, true)
 	return {base=results, mod=mod_results}
 end
 
@@ -560,7 +581,7 @@ end
 -- appended to ARGN. The returned value is an array of stems, where
 -- each element is a size-two array of {COMBINED_STEM, STEM_TYPE}.
 -- See do_gender_number().
-function get_heads_1(data, args, arg1, argn)
+function get_heads_1(data, args, arg1, argn, ismod)
 	if not args[arg1] then
 		return {}
 	end
@@ -570,13 +591,13 @@ function get_heads_1(data, args, arg1, argn)
 	else
 		heads = {}
 		insert_stems(args[arg1], heads, {{args[arg1], ""}}, false, 'sg',
-			get_pos(data, rfind(arg1, "^mod")))
+			get_pos(data, ismod))
 	end
 	local i = 2
 	while args[argn .. i] do
 		local arg = args[argn .. i]
 		insert_stems(arg, heads, {{arg, ""}}, false, 'sg',
-			get_pos(data, rfind(argn, "^mod")))
+			get_pos(data, ismod))
 		i = i + 1
 	end
 	return heads
@@ -601,8 +622,8 @@ function get_heads(data, args, headtype)
 	end
 
 	if not args[1] then error("Parameter 1 (" .. headtype .. " stem) may not be empty.") end
-	local base = get_heads_1(data, args, 1, "head")
-	local mod = get_heads_1(data, args, "mod", "mod")
+	local base = get_heads_1(data, args, 1, "head", false)
+	local mod = get_heads_1(data, args, "mod", "mod", true)
 	return {base=base, mod=mod}, false
 end
 
@@ -615,7 +636,7 @@ function export.show_noun(frame)
 
 	local sgs, is_template = get_heads(data, args, 'singular')
 	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
-		do_gender_number(data, args, "pl", sgs, nil, false, "pl")
+		do_gender_number(data, args, {"pl", "cpl"}, sgs, nil, false, "pl")
 	-- always do dual so cases like يَوْم الاِثْنَيْن work -- a singular with
 	-- a dual modifier, where data.number refers only the singular
 	-- but we need to go ahead and compute the dual so it parses the
@@ -623,7 +644,7 @@ function export.show_noun(frame)
 	-- is parsed, it will store the resulting dual declension for اِثْنَيْن
 	-- in the modifier slot for all numbers, including specifically
 	-- the singular.
-	local dus =	do_gender_number(data, args, "d", sgs, "d", false, "du")
+	local dus = do_gender_number(data, args, {"d"}, sgs, "d", false, "du")
 
 	parse_state_etc_spec(data, args)
 
@@ -679,7 +700,7 @@ function export.show_coll_noun(frame)
 
 	local colls, is_template = get_heads(data, args, 'collective')
 	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
-		do_gender_number(data, args, "pl", colls, nil, false, "pl")
+		do_gender_number(data, args, {"pl", "cpl"}, colls, nil, false, "pl")
 
 	parse_state_etc_spec(data, args)
 
@@ -687,11 +708,12 @@ function export.show_coll_noun(frame)
 	-- form a feminine singulative
 	local collfem = any_feminine(data, colls)
 
-	local sings = do_gender_number(data, args, "sing", colls,
+	local sings = do_gender_number(data, args, {"sing"}, colls,
 		not already_feminine and "f" or nil, true, "sg")
 	local singfem = all_feminine(data, sings)
-	local dus = do_gender_number(data, args, "d", sings, "d", singfem, "du")
-	local paucs = do_gender_number(data, args, "pauc", sings, "paucp", singfem, "pl")
+	local dus = do_gender_number(data, args, {"d"}, sings, "d", singfem, "du")
+	local paucs = do_gender_number(data, args, {"pauc"}, sings, "paucp",
+		singfem, "pl")
 
 	-- Can manually specify which numbers are to appear, and exactly those
 	-- numbers will appear. Otherwise, if any plurals given, plurals appear,
@@ -739,12 +761,13 @@ function export.show_sing_noun(frame)
 	-- If all singulative nouns feminine in form, form a masculine collective
 	local singfem = all_feminine(data, sings)
 
-	local colls = do_gender_number(data, args, "coll", sings,
+	local colls = do_gender_number(data, args, {"coll"}, sings,
 		singfem and "m" or nil, false, "sg")
-	local dus = do_gender_number(data, args, "d", sings, "d", singfem, "du")
-	local paucs = do_gender_number(data, args, "pauc", sings, "paucp", singfem, "pl")
+	local dus = do_gender_number(data, args, {"d"}, sings, "d", singfem, "du")
+	local paucs = do_gender_number(data, args, {"pauc"}, sings, "paucp",
+		singfem, "pl")
 	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
-		do_gender_number(data, args, "pl", colls, nil, false, "pl")
+		do_gender_number(data, args, {"pl", "cpl"}, colls, nil, false, "pl")
 
 	-- Can manually specify which numbers are to appear, and exactly those
 	-- numbers will appear. Otherwise, if any plurals given, plurals appear;
@@ -802,11 +825,13 @@ function show_gendered(frame, isadj, pos)
 	local msgs = get_heads(data, args, 'masculine singular')
 	-- Always do all of these so cases like يَوْم الاِثْنَيْن work.
 	-- See comment in show_noun().
-	local fsgs = do_gender_number(data, args, "f", msgs, "f", true, "sg")
-	local mdus = do_gender_number(data, args, "d", msgs, "d", false, "du")
-	local fdus = do_gender_number(data, args, "fd", fsgs, "d", true, "du")
-	local mpls = do_gender_number(data, args, "pl", msgs, isadj and "p" or nil, false, "pl")
-	local fpls = do_gender_number(data, args, "fpl", fsgs, "fp", true, "pl")
+	local fsgs = do_gender_number(data, args, {"f"}, msgs, "f", true, "sg")
+	local mdus = do_gender_number(data, args, {"d"}, msgs, "d", false, "du")
+	local fdus = do_gender_number(data, args, {"fd"}, fsgs, "d", true, "du")
+	local mpls = do_gender_number(data, args, {"pl", "cpl"}, msgs,
+		isadj and "p" or nil, false, "pl")
+	local fpls = do_gender_number(data, args, {"fpl", "cpl"}, fsgs, "fp",
+		true, "pl")
 
 	if isadj then
 		parse_number_spec(data, args)
@@ -897,7 +922,7 @@ end
 -- and ENDINGS (and definite article where necessary) and store in DATA,
 -- for the number or gender/number determined by MOD ("" or "mod_"; see
 -- call_inflection()) and NUMGEN ("sg", "du", "pl", or "m_sg", "f_pl",
--- etc. for adjectives). ENDINGS is an array of 12 values, each of which
+-- etc. for adjectives). ENDINGS is an array of 15 values, each of which
 -- is a string or array of alternatives. The order of ENDINGS is indefinite
 -- nom, acc, gen; definite nom, acc, gen; construct-state nom, acc, gen;
 -- informal indefinite, definite, construct; lemma indefinite, definite,
@@ -988,12 +1013,17 @@ function insert_cat(data, mod, numgen, catvalue, engvalue)
 	end
 end
 
--- Modifier part of lemma should agree in case with modifier's case if it's
--- restricted in case (typically genitive, in an ʾidāfa construction).
+-- Return true if we're handling modifier inflections and the modifier's
+-- case is limited to an oblique case (gen or acc; typically genitive,
+-- in an ʾidāfa construction). This is used when returning lemma
+-- inflections -- the modifier part of the lemma should agree in case
+-- with modifier's case if it's restricted in case.
 function mod_oblique(mod, data)
 	return mod ~= "" and data.modcase and (data.modcase == "acc" or data.modcase == "gen")
 end
 
+-- Similar to mod_oblique but specifically when the modifier case is
+-- limited to the accusative (which is rare or nonexistent in practice).
 function mod_acc(mod, data)
 	return mod ~= "" and data.modcase and data.modcase == "acc"
 end
@@ -1151,6 +1181,10 @@ function in_defective(stem, tr, data, mod, numgen, tri)
 		 II, IY .. A, II,
 		 II, IY .. A, II,
 		 II, II, II,
+		 -- FIXME: What should happen with the lemma when modifier case
+		 -- is limited to the accusative and modifier state is e.g. definite?
+		 -- Should the lemma end in -iya or -ī? In practice this will rarely
+		 -- if ever happen.
 		 mod_acc(mod, data) and acc_ind_ending or IN, II, II,
 		})
 	local tote = tri and "triptote" or "diptote"
