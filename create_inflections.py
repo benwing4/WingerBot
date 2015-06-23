@@ -18,7 +18,7 @@ import re
 import codecs
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 from arabiclib import *
 
 site = pywikibot.Site()
@@ -183,7 +183,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   def compare_param(template, param, value, require_exact_match=False):
     # In place of unknown we should put infltype or lemmatype but it
     # doesn't matter because of nowarn.
-    paramval = blib.getparam(template, param)
+    paramval = getparam(template, param)
     paramval = maybe_remove_i3rab("unknown", paramval, nowarn=True,
         noremove=is_verb_part)
     if must_match_exactly or require_exact_match:
@@ -202,7 +202,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     i = 2
     while True:
       param = "head" + str(i)
-      if not blib.getparam(template, param):
+      if not getparam(template, param):
         return (template, None, False)
       if compare_param(template, param, form, require_exact_match):
         return (template, param, True)
@@ -331,7 +331,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # missing form=
                 if is_vn:
                   for t in parsed.filter_templates():
-                    if t.name == deftemp and not blib.getparam(t, "form"):
+                    if t.name == deftemp and not getparam(t, "form"):
                       pagemsg("WARNING: Verbal noun template %s missing form= param" % unicode(t))
 
                 matching_headword_templates = [
@@ -381,7 +381,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               for t in parsed.filter_templates():
                 if t.name == "ar-verb-form":
                   vf_vowels = re.sub("[^" + A + I + U + "]", "",
-                      blib.getparam(t, "1")[0:-1])
+                      getparam(t, "1")[0:-1])
                   if len(vf_vowels) > 0:
                     if vf_vowels[-1] == A:
                       vf_last_vowel = "a"
@@ -450,14 +450,14 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
             def check_maybe_remove_i3rab(template, param, wordtype):
               # Check for i3rab in existing lemma or infl and remove it if so
-              existing = blib.getparam(template, param)
+              existing = getparam(template, param)
               existing_no_i3rab = maybe_remove_i3rab(wordtype, existing,
                   noremove=is_verb_part or wordtype == "dictionary form")
               if reorder_shadda(existing) != reorder_shadda(existing_no_i3rab):
                 notes.append("removed %s i3rab" % wordtype)
                 template.add(param, existing_no_i3rab)
                 trparam = "tr" if param == "1" else param.replace("head", "tr")
-                existing_tr = blib.getparam(template, trparam)
+                existing_tr = getparam(template, trparam)
                 if existing_tr:
                   pagemsg("WARNING: Removed i3rab from existing %s %s and manual translit %s exists" %
                       (wordtype, existing, existing_tr))
@@ -527,8 +527,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             def check_fix_gender(headword_template, gender, warning_on_false):
               if not gender or gender == ["p"]:
                 return True
-              existing_gender = blib.getparam(headword_template, "2")
-              existing_gender2 = blib.getparam(headword_template, "g2")
+              existing_gender = getparam(headword_template, "2")
+              existing_gender2 = getparam(headword_template, "g2")
               if not existing_gender:
                 existing_gender = ["p"]
               elif not existing_gender2:
@@ -739,7 +739,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # Don't insert defn when there are multiple heads because
                 # we don't know that all heads are actually legit verbal noun
                 # (or participle) alternants.
-                if blib.getparam(infl_headword_template, "head2"):
+                if getparam(infl_headword_template, "head2"):
                   pagemsg("Inflection template has multiple heads, not inserting %s defn into it" % (infltype))
                 else:
                   # Now actually add {{ar-verbal noun of}} (or equivalent
@@ -777,7 +777,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # Also make sure manual translit matches
                 trparam = "tr" if infl_headword_matching_param == "1" \
                     else infl_headword_matching_param.replace("head", "tr")
-                existing_tr = blib.getparam(infl_headword_template, trparam)
+                existing_tr = getparam(infl_headword_template, trparam)
                 # infltr may be None and existing_tr may be "", but
                 # they should match
                 if (infltr or None) == (existing_tr or None):
@@ -823,7 +823,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   for t in parsed.filter_templates():
                     if (t.name == deftemp and compare_param(t, "1", lemma) or
                         t.name == infltemp and (not t.has("2") or compare_param(t, "2", verb_part_form)) or
-                        t.name == "ar-verb" and re.sub("-.*$", "", blib.getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)]):
+                        t.name == "ar-verb" and re.sub("-.*$", "", getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)]):
                       insert_at = j + 1
             if insert_at:
               pagemsg("Found section to insert verb part after: [[%s]]" %
@@ -1049,7 +1049,7 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
   if template.name == "ar-noun-nisba":
     gender = ["m-p"]
   else:
-    singgender = blib.getparam(template, "2")
+    singgender = getparam(template, "2")
     if not singgender:
       gender = None
     else:
@@ -1057,7 +1057,7 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
         gender = ["%s-p" % singgender]
       else:
         gender = [singgender]
-      singgender2 = blib.getparam(template, "g2")
+      singgender2 = getparam(template, "g2")
       if singgender2:
         if singgender2 in ["m", "f"]:
           gender.append("%s-p" % singgender2)
@@ -1118,25 +1118,25 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
     for page, index in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
         if template.name in tempname:
-          lemma = blib.getparam(template, "1")
-          lemmatr = blib.getparam(template, "tr")
+          lemma = getparam(template, "1")
+          lemmatr = getparam(template, "tr")
           # Handle blank head; use page title
           if lemma == "":
             lemma = page.title()
             msg("Page %s: blank head in template %s (tr=%s)" % (
               lemma, template.name, lemmatr))
-          infl = blib.getparam(template, param)
-          infltr = blib.getparam(template, param + "tr")
+          infl = getparam(template, param)
+          infltr = getparam(template, param + "tr")
           infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
               template, param)
           if infl:
             createfn(save, index, infl, infltr, lemma, lemmatr, template, pos)
           i = 2
           while infl:
-            infl = blib.getparam(template, param + str(i))
-            infltr = blib.getparam(template, param + str(i) + "tr")
-            otherhead = blib.getparam(template, "head" + str(i))
-            otherheadtr = blib.getparam(template, "tr" + str(i))
+            infl = getparam(template, param + str(i))
+            infltr = getparam(template, param + str(i) + "tr")
+            otherhead = getparam(template, "head" + str(i))
+            otherheadtr = getparam(template, "tr" + str(i))
             if otherhead:
               infl, infltr = inflectfn(infl, infltr, otherhead, otherheadtr,
                   template, param + str(i))
@@ -1298,8 +1298,8 @@ def create_verbal_nouns(save, startFrom, upTo):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
-        form = re.sub("-.*$", "", blib.getparam(template, "1"))
-        vnvalue = blib.getparam(template, "vn")
+        form = re.sub("-.*$", "", getparam(template, "1"))
+        vnvalue = getparam(template, "vn")
         uncertain = False
         if vnvalue.endswith("?"):
           vnvalue = vnvalue[:-1]
@@ -1318,7 +1318,7 @@ def create_participle(save, index, part, page, template, actpass, apshort):
   for dicform in get_dicform_all(page, template):
 
     # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
-    form = re.sub("-.*$", "", blib.getparam(template, "1"))
+    form = re.sub("-.*$", "", getparam(template, "1"))
     create_inflection_entry(save, index, part, None, dicform, None, "Participle",
       "%s participle" % actpass, "dictionary form",
       "ar-%s-participle" % apshort, "|" + form,
@@ -1399,7 +1399,7 @@ def create_verb_part(save, index, page, template, dicform, passive,
   partid = (voice == "active" and "%s-%s" % (person, tense) or
       "%s-ps-%s" % (person, tense))
   # Retrieve form, eliminate any weakness value (e.g. "I" from "I-sound")
-  form = re.sub("-.*$", "", blib.getparam(template, "1"))
+  form = re.sub("-.*$", "", getparam(template, "1"))
   value = get_part_prop(page, template, "ar-verb-part-all|%s" % partid)
   if value:
     parts = re.split(",", value)
@@ -1631,12 +1631,12 @@ def create_elatives(save, elfile, startFrom, upTo):
         found_positive = False
         for template in text.filter_templates():
           if template.name in ["ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an"]:
-            if reorder_shadda(blib.getparam(template, "1")) != reorder_shadda(arpositive):
+            if reorder_shadda(getparam(template, "1")) != reorder_shadda(arpositive):
               msg("Page %s %s: Skipping, found adjective template with wrong positive, expecting %s: %s" % (
                   index, pagetitle, arpositive, template))
               continue
             found_positive = True
-            existingel = blib.getparam(template, "el")
+            existingel = getparam(template, "el")
             if existingel:
               if reorder_shadda(existingel) == reorder_shadda(elative):
                 msg("Page %s %s: Skipping template with elative already in it: %s" % (

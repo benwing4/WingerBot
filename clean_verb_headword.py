@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 
 # Clean the verb headword templates on a given page with the given text.
 # Returns the changed text along with a changelog message.
@@ -27,11 +27,11 @@ def clean_one_page_verb_headword(page, index, text):
   for template in text.filter_templates():
     paramschanged = []
     if template.name in ["ar-verb"]:
-      form = blib.getparam(template, "form")
+      form = getparam(template, "form")
       if form == "1" or form == "I":
         msg("Page %s %s: skipped ar-verb because form I" % (index, pagetitle))
         continue
-      elif blib.getparam(template, "useparam"):
+      elif getparam(template, "useparam"):
         msg("Page %s %s: skipped ar-verb because useparam" % (index, pagetitle))
         continue
       origtemp = unicode(template)
@@ -46,18 +46,18 @@ def clean_one_page_verb_headword(page, index, text):
       remove_param("impf")
       remove_param("impfhead")
       remove_param("impftr")
-      if blib.getparam(template, "sc") == "Arab":
+      if getparam(template, "sc") == "Arab":
         remove_param("sc")
-      I = blib.getparam(template, "I")
+      I = getparam(template, "I")
       if I in [u"ء", u"و", u"ي"] and form not in ["8", "VIII"]:
         msg("Page %s %s: form=%s, removing I=%s" % (index, pagetitle, form, I))
         remove_param("I")
-      II = blib.getparam(template, "II")
+      II = getparam(template, "II")
       if (II == u"ء" or II in [u"و", u"ي"] and
           form in ["2", "II", "3", "III", "5", "V", "6", "VI"]):
         msg("Page %s %s: form=%s, removing II=%s" % (index, pagetitle, form, II))
         remove_param("II")
-      III = blib.getparam(template, "III")
+      III = getparam(template, "III")
       if III == u"ء":
         msg("Page %s %s: form=%s, removing III=%s" % (index, pagetitle, form, III))
         remove_param("III")

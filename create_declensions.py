@@ -19,7 +19,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 from arabiclib import *
 
 import ar_translit
@@ -201,7 +201,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             pagemsg("Headword template should be '%s' but is '%s', skipping" % (tempname, headword_template.name))
             continue
           def getp(param):
-            return blib.getparam(headword_template, param)
+            return getparam(headword_template, param)
           def putp(param, value):
             headword_template.add(param, value)
           head = getp("1")
@@ -414,7 +414,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
               # Also remove al- from remaining head and pl params
               def check_for_al(param):
                 param = remove_links(param)
-                value = blib.getparam(headword_template, param)
+                value = getparam(headword_template, param)
                 if value:
                   if '[' in value or ']' in value or '|' in value:
                     pagemsg("Param %s value %s has link in it" % (param, value))
@@ -430,7 +430,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
                   check_for_al("%s%s" % (param, i))
               # Also remove al- from transliteration
               def check_for_al_tr(param):
-                value = blib.getparam(headword_template, param)
+                value = getparam(headword_template, param)
                 if value:
                   putp(param, remove_al_tr(value))
               check_for_al("tr")
@@ -524,7 +524,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             # Don't process translit in modifier constructions, where the
             # translit is also processed.
             if not headspace:
-              tr = blib.getparam(headword_template, trparam(unicode(param.name)))
+              tr = getparam(headword_template, trparam(unicode(param.name)))
               if tr:
                 return arabic + "/" + tr
             return arabic

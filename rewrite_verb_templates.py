@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 
 numeric_to_roman_form = {
   "1":"I", "2":"II", "3":"III", "4":"IV", "5":"V",
@@ -40,7 +40,7 @@ def rewrite_one_page_verb_headword(page, index, text):
   for template in text.filter_templates():
     if template.name in ["ar-verb"]:
       origtemp = unicode(template)
-      form = blib.getparam(template, "form")
+      form = getparam(template, "form")
       if form:
         # In order to keep in the same order, just forcibly change the
         # param "names" (numbers)
@@ -58,7 +58,7 @@ def rewrite_one_page_verb_headword(page, index, text):
         msg("Replacing %s with %s" % (origtemp, newtemp))
       if re.match("^[1I](-|$)", form):
         actions_taken.append("form=%s (%s/%s)" % (form,
-          blib.getparam(template, "2"), blib.getparam(template, "3")))
+          getparam(template, "2"), getparam(template, "3")))
       else:
         actions_taken.append("form=%s" % form)
   changelog = "ar-verb: form= -> 1= and canonicalize to Roman numerals, move other params up: %s" % '; '.join(actions_taken)
@@ -82,7 +82,7 @@ def canonicalize_verb_form(save, startFrom, upTo, tempname, formarg):
     for template in text.filter_templates():
       if template.name == tempname:
         origtemp = unicode(template)
-        form = blib.getparam(template, formarg)
+        form = getparam(template, formarg)
         if form:
           template.add(formarg, canonicalize_form(form))
         newtemp = unicode(template)
@@ -90,8 +90,8 @@ def canonicalize_verb_form(save, startFrom, upTo, tempname, formarg):
           msg("Replacing %s with %s" % (origtemp, newtemp))
         if re.match("^[1I](-|$)", form):
           actions_taken.append("form=%s (%s/%s)" % (form,
-            blib.getparam(template, str(1+int(formarg))),
-            blib.getparam(template, str(2+int(formarg)))))
+            getparam(template, str(1+int(formarg))),
+            getparam(template, str(2+int(formarg)))))
         else:
           actions_taken.append("form=%s" % form)
     changelog = "%s: canonicalize form (%s=) to Roman numerals: %s" % (

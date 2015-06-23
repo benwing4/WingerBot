@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 
 import ar_translit
 
@@ -47,8 +47,8 @@ def do_vocalize_param(param, arabic, latin):
 # parameter PARAMTR. If PARAM not found, return False. Else, return the
 # vocalized Arabic if different from unvocalized, else return True.
 def vocalize_param(template, param, paramtr):
-  arabic = blib.getparam(template, param)
-  latin = blib.getparam(template, paramtr)
+  arabic = getparam(template, param)
+  latin = getparam(template, paramtr)
   if not arabic:
     return False
   if latin:
@@ -90,7 +90,7 @@ def vocalize_head(page, template):
 
     # Check for multiple transliterations of head or 1. If so, split on
     # the multiple transliterations, with separate vocalized heads.
-    latin = blib.getparam(template, "tr")
+    latin = getparam(template, "tr")
     if "," in latin:
       trs = re.split(",\\s*", latin)
       # Find the first alternate head (head2, head3, ...) not already present
@@ -99,7 +99,7 @@ def vocalize_head(page, template):
         i += 1
       template.add("tr", trs[0])
       if template.has("1"):
-        head = blib.getparam(template, "1")
+        head = getparam(template, "1")
         # for new heads, only use existing head in 1= if ends with -un (tanwīn),
         # because many of the existing 1= values are vocalized according to the
         # first transliterated entry in the list and won't work with the others
@@ -121,7 +121,7 @@ def vocalize_head(page, template):
     # If 1= not found, try vocalizing the page title and make it the 1= value
     if not result:
       arabic = unicode(pagetitle)
-      latin = blib.getparam(template, "tr")
+      latin = getparam(template, "tr")
       if arabic and latin:
         vocalized = do_vocalize_param("page title", arabic, latin)
         if vocalized:
@@ -161,7 +161,7 @@ def vocalize_one_page_headwords(page, index, text):
         paramschanged += vocalize_param_chain(template, param)
       if len(paramschanged) > 0:
         if template.has("tr"):
-          tempname = "%s %s" % (template.name, blib.getparam(template, "tr"))
+          tempname = "%s %s" % (template.name, getparam(template, "tr"))
         else:
           tempname = template.name
         actions_taken.append("%s (%s)" % (', '.join(paramschanged), tempname))

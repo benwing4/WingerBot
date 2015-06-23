@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 from arabiclib import *
 
 site = pywikibot.Site()
@@ -54,7 +54,7 @@ def do_nouns(poses, headtempls, save, startFrom, upTo):
       if template.name in headtempls:
         nouncount += 1
         params_done = []
-        entry = blib.getparam(template, "1")
+        entry = getparam(template, "1")
         for param in template.params:
           value = param.value
           newvalue = remove_i3rab(pagename, index, entry, unicode(value))
@@ -79,7 +79,7 @@ def do_verbs(save, startFrom, upTo):
     for template in text.filter_templates():
       if template.name == "ar-conj":
         verbcount += 1
-        vnvalue = blib.getparam(template, "vn")
+        vnvalue = getparam(template, "vn")
         uncertain = False
         if vnvalue.endswith("?"):
           vnvalue = vnvalue[:-1]
@@ -89,10 +89,10 @@ def do_verbs(save, startFrom, upTo):
         if not vnvalue:
           continue
         vns = re.split(u"[,،]", vnvalue)
-        form = blib.getparam(template, "1")
+        form = getparam(template, "1")
         verbid = "#%s form %s" % (verbcount, form)
         if re.match("^[1I](-|$)", form):
-          verbid += " (%s,%s)" % (blib.getparam(template, "2"), blib.getparam(template, "3"))
+          verbid += " (%s,%s)" % (getparam(template, "2"), getparam(template, "3"))
         no_i3rab_vns = []
         for vn in vns:
           no_i3rab_vns.append(remove_i3rab(pagename, index, verbid, vn))

@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg
+from blib import msg, getparam
 
 import ar_translit
 
@@ -30,8 +30,8 @@ def process_param(page, template, param, paramtr,
     include_tempname_in_changelog=False):
   def prn(text):
     msg("Page %s, %s.%s: %s" % (page.title(), template.name, param, text))
-  arabic = blib.getparam(template, param)
-  latin = blib.getparam(template, paramtr)
+  arabic = getparam(template, param)
+  latin = getparam(template, paramtr)
   if include_tempname_in_changelog:
     paramtrname = "%s.%s" % (template.name, paramtr)
   else:
@@ -163,7 +163,7 @@ def process_one_page_headwords(page, index, text):
         "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
         "ar-adj-pl", "ar-noun-dual", "ar-adj-dual", "ar-nisba"]: # ar-adj-color
       thisactions = []
-      tr = blib.getparam(template, "tr")
+      tr = getparam(template, "tr")
       thisactions += process_head(page, template)
       for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
           "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
@@ -195,7 +195,7 @@ def process_links(save, startFrom, upTo):
   def do_process_param(page, template, param, paramtr):
     result = process_param(page, template, param, paramtr,
         include_tempname_in_changelog=True)
-    if blib.getparam(template, "sc") == "Arab":
+    if getparam(template, "sc") == "Arab":
       msg("Page %s, %s.%s: Removing sc=Arab" % (page.title(), template.name, "sc"))
       oldtempl = "%s" % unicode(template)
       template.remove("sc")
