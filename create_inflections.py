@@ -120,7 +120,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       mymsg("Removing i3rab (UUNA -> UUN) from %s" % wordtype)
       return re.sub(UUNA + "$", UUN, word)
     if word and word[-1] in [A, I, U, AN]:
-      mymsg("FIXME: Strange diacritic at end of %s %s" % (wordtype, word))
+      mymsg("WARNING: Strange diacritic at end of %s %s" % (wordtype, word))
     if word and word[0] == ALIF_WASLA:
       mymsg("Changing alif wasla to plain alif for %s %s" % (wordtype, word))
       word = ALIF + word[1:]
@@ -1043,7 +1043,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     if save:
       page.save(comment = comment)
 
-# FIXME: For Nisba nouns and maybe other nouns in -uun, use gender of m-p
 def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
   # Figure out plural gender
