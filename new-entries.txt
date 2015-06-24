@@ -178,23 +178,341 @@ CREATE; ALSO ADD AS USEX IN وزير and خارجية Noun: وَزِير الخ�
 
 وحد
 
-COMPLETE
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|و ح د}}; compare {{m|ar|وَاحِد||[[one]]}}.
+
+====Verb====
+{{ar-verb|I|a,i,u|i}}<br /><!-- u|i is not a mistake, found in both Lane and Steingass -->
+{{ar-verb|I-sound|i|a}}
+
+# to be [[single]]
+# to be [[alone]]
+# to be [[unique]]
+# to be [[incomparable]]
+
+=====Conjugation=====
+{{ar-conj|I|a,i|i|passive=n|vn=حِدَة،وَحْد،وَحْدَة،وُحُود}}
+{{ar-conj|I-sound|i|a|passive=n|vn=حِدَة،وَحْد،وَحْدَة،وُحُود}}
+{{ar-conj|I|u|i|passive=n|vn=وَحَادَة،وُحُودَة}}<!-- u|i is not a mistake, found in both Lane and Steingass -->
+
+=====References=====
+* {{R:ar:Lane|وحد}}
+* {{R:ar:Steingass|وحد}}
+
+===Etymology 2===
+Causative of {{m|ar|وَحَدَ}} and {{m|ar|وَحِدَ}} and {{m|ar|وَحُدَ}}.
+
+====Verb====
+{{ar-verb|II}}
+
+# to [[unify]], to [[reduce]] to one, to [[unite]], to [[regularize]]
+# to [[consider]] as [[single]] or [[unique]]
+# to [[profess]] the [[unity]] of
+# to [[connect]]
+# to [[combine]]
+
+=====Conjugation=====
+{{ar-conj|II|passive=y}}
+
+=====References=====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun|وَحْد|m}}
+
+# {{ar-verbal noun of|وَحَدَ|form=I||to be [[single]], [[alone]], [[unique]], [[incomparable]]}}
+# {{ar-verbal noun of|وَحِدَ|form=I||to be [[single]], [[alone]], [[unique]], [[incomparable]]}}
+# [[solitude]]
+
+=====Declension=====
+{{ar-decl-noun|وَحْد}}
+
+=====References=====
+* {{R:ar:Steingass}}
+
+====Adjective====
+{{ar-adj|وَحْد|f=وَحْدَة}}
+
+# [[single]]
+# [[alone]]
+# [[unique]]
+# by one's [[self]] {{i|with pronoun affixes}}
+# [[solitary]]
+
+=====Declension=====
+{{ar-decl-adj|وَحْد}}
+
+=====References=====
+* {{R:ar:Steingass}}
 
 توحد
 
-COMPLETE
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|و ح د}}; compare {{m|ar|وَاحِد||[[one]]}}.
+
+===Verb===
+{{ar-verb|V}}
+
+# to be one, to be [[single]]
+# to be [[alone]]
+# to be [[unified]], to be [[reduced]] to one
+# to [[isolate]] oneself, to [[live]] in [[solitude]]
+# to become an [[original]]
+# to do [[alone]] {{i|{{m|ar|بِ}} something}}
+
+====Conjugation====
+{{ar-conj|V|passive=impers}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
+اتحد
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|و ح د}}; compare {{m|ar|وَاحِد||[[one]]}}.
+
+===Verb===
+{{ar-verb|VIII}}
+
+# to be [[united]]
+# {{lb|ar|intransitive}} to [[unite]], to [[merge]] {{i|{{m|ar|بِ}} with}}
+# to be [[one]]
+# to [[act]] [[jointly]]
+# to [[agree]] with, to be [[agreed]]
+
+====Conjugation====
+{{ar-conj|VIII|passive=impers}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
 
 توحيد
 
-COMPLETE
+==Arabic==
+
+===Noun===
+{{ar-noun|تَوْحِيد|m}}
+
+# {{ar-verbal noun of|وَحَّدَ|form=II||to [[unify]], to [[connect]], to [[combine]], to [[profess]] the [[unity]] of}}
+# [[union]], [[unification]]
+# [[merger]]
+# [[regularization]]
+# [[monotheism]]
+# [[profession]] of or [[belief]] in the [[unity]] of [[God]]
+
+====Declension====
+{{ar-decl-noun|تَوْحِيد}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
+أوحد
+
+==Arabic==
+
+===Etymology===
+According to Lane, a {{ar-color/defect adjective|lc=1}}, although according to him the expected feminine {{m|ar||وَحْدَاء}} does not occur. From the root {{ar-root|و ح د}}; compare {{m|ar|وَاحِد||[[one]]}}.
+
+===Adjective===
+{{ar-adj|أَوْحَد|pl=أُحْدَان}}
+
+# [[unique]], [[singular]]
+
+====Declension====
+{{ar-decl-adj|أَوْحَد|pl=أُحْدَان}}
+
+====References====
+* {{R:ar:Lane|وحد}}
+* {{R:ar:Wehr-4|وحد}}
+
 
 متوحد
 
-COMPLETE
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|تَوَحَّدَ||to be [[one]], [[unified]], [[alone]], [[isolated]]; to do [[alone]]}}, from the root {{ar-root|و ح د}}; compare {{m|ar|وَاحِد||[[one]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَوَحِّد}}
+
+# [[isolated]]
+# [[alone]]
+# [[unique]]
+
+====Declension====
+{{ar-decl-adj|مُتَوَحِّد|pl=smp}}
+
+====Derived terms====
+* {{l|ar|المُتَوَحِّد||[[God]]}}
+
+====References====
+* {{R:ar:Steingass}}
+
+===Noun===
+{{ar-noun|مُتَوَحِّد|m|pl=مُتَوَحِّدُون}}
+
+# [[hermit]]
+
+====Declension====
+{{ar-decl-noun|مُتَوَحِّد|pl=smp}}
+
+====References====
+* {{R:ar:Wehr-4|وحد}}
+
 
 وحداني
 
-COMPLETE
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba-linking|وَحْد|[[single]], [[alone]], [[solitude]]|َان}}, from the root {{ar-root|و ح د}}.
+
+===Adjective===
+{{ar-nisba|وَحْدَانِيّ}}
+
+# [[single]], [[isolated]]
+# [[sole]]
+# [[unmarried]]
+# [[unique]]
+# [[incomparable]]
+
+====Declension====
+{{ar-decl-adj|وَحْدَانِيّ|pl=smp}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
+وحدانية
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-noun-nisba|وَحْدَانِيّ|[[single]], [[sole]], [[unique]], [[incomparable]]}}, from the root {{ar-root|و ح د}}.
+
+===Adjective===
+{{ar-noun|وَحْدَانِيَّة}}
+
+# [[unity]] {{i|esp. of [[God]]}}
+# [[being]] [[unique]], [[uniqueness]], [[incomparability]]
+# [[loneliness]]
+# [[privacy]]
+# [[isolation]]
+
+====Declension====
+{{ar-decl-noun|وَحْدَانِيَّة}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
+
+متحد
+
+==Arabic==
+
+===Etymology===
+{{ar-active participle}} of {{m|ar|اِتَّحَدَ||to be [[united]]}}, from the root {{ar-root|و ح د}}; compare {{m|ar|وَاحِد||[[one]]}}.
+
+===Adjective===
+{{ar-adj-sound|مُتَّحِد}}
+
+# [[united]]
+
+====Declension====
+{{ar-decl-adj|مُتَّحِد|pl=smp}}
+
+====Derived terms====
+* {{l|ar|الوِلَايَات المُتَّحِدَة||the [[United States]]}}
+* {{l|ar|الأُمَم المُتَّحِدَة||the [[United Nations]]}}
+
+----
+
+==Persian==
+
+===Etymology===
+From {{etyl|ar|fa}}.
+
+===Adjective===
+{{fa-adj|tr=mottahed}}
+
+# [[united]]
+# [[unified]]
+# [[allied]]
+
+====Related terms====
+* {{l|fa|سازمان ملل متحد|tr=Sâzmân-e Melal-e Mottahed}}
+
+واحد
+
+
+==Arabic==
+
+===Pronunciation===
+* {{IPA|[wæːħɪd]|lang=ar}}
+
+===Numeral===
+{{ar-numeral|وَاحِد|m|f=وَاحِدَة}}
+
+# {{cx|cardinal|lang=ar}} {{l|en|one}}
+#: Eastern Arabic numeral: {{l|ar|١}}
+#: {{ux|ar|وَلِدٌ وَاحِدٌ|one boy|inline=y}}
+#: {{ux|ar|فَتَاةٌ وَاحِدَةٌ|one girl|inline=y}}
+
+====Declension====
+{{ar-decl-adj|وَاحِد|f=وَاحِدَة|number=sg}}
+
+====Usage notes====
+* Numbers "one" and "two" follow the gender of the related word.
+* Numbers "one" and "two" are optional, since nouns have singular (one), dual (two) and plural forms.
+
+====Coordinate terms====
+* Last: {{l|ar|صِفْر}} (or {{lang|ar|٠}} = 0)
+* Next: {{l|ar|اِثْنَان}} (or {{lang|ar|٢}} = 2)
+
+====Related terms====
+* {{l|ar|أَحَد}}, {{l|ar|إِحْدَى}}
+
+===Adjective===
+{{ar-adj|وَاحِد|f=وَاحِدَة|pl=وَاحِدُون|pl2=وُحْدَان|pl3=أُحْدَان}}
+
+# [[single]]
+# [[unique]], [[incomparable]]
+# a [[certain]]
+
+====Declension====
+{{ar-decl-adj|وَاحِد|pl=وَاحِدُون|pl2=وُحْدَان|pl3=أُحْدَان}}
+
+====References====
+* {{R:ar:Steingass}}
+* {{R:ar:Wehr-4|وحد}}
+
+===Pronoun===
+{{ar-pron|وَاحِد|m|f=وَاحِدَة}}
+
+# [[someone]]
+
+====Declension====
+{{ar-decl-gendered-noun|وَاحِد|f=وَاحِدَة|pos=Pronoun}}
+
+====References====
+* {{R:ar:Wehr-4|وحد}}
+
+
 
 
 EXISTS, CLEANUP ETYM, ADD FEM/DECL cheap رَخِيص from ر خ ص
