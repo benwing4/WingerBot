@@ -1217,49 +1217,86 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
     inflectfn = default_inflection
   if type(tempname) is not list:
     tempname = [tempname]
-  # FIXME!! If there are multiple heads, we should consider iterating over
-  # them and creating plural entries for each, esp. if there is only one
-  # plural. When multiple heads and multiple plurals, unclear what to do.
-  # Need to think through this.
   for cat in [u"Arabic %ss" % pos.lower()]:
     for page, index in blib.cat_articles(cat, startFrom, upTo):
       for template in blib.parse(page).filter_templates():
         if template.name in tempname:
+          # Get first head and list of heads
+          heads = []
           lemma = getparam(template, "1")
           lemmatr = getparam(template, "tr")
           # Handle blank head; use page title
           if lemma == "":
             lemma = page.title()
-            msg("Page %s: blank head in template %s (tr=%s)" % (
-              lemma, template.name, lemmatr))
+            msg("Page %s %s(lemma): blank head in template %s (tr=%s)" % (
+              index, remove_diacritics(lemma), template.name, lemmatr))
+          heads.append([lemma, lemmatr])
+          i = 2
+          while True:
+            head = getparam(template, "head" + str(i))
+            headtr = getparam(template, "tr" + str(i))
+            if not head:
+              break
+            heads.append([head, headtr])
+            i += 1
+
+          # Figure out how many inflection entries (we don't get the list
+          # of entries here because the entries might be generated based
+          # on the head)
+          numinfls = 0
           infl = getparam(template, param)
           infltr = getparam(template, param + "tr")
           infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
               template, param)
-          if infl:
-            createfn(save, index, infl, infltr, lemma, lemmatr, template, pos)
           i = 2
           while infl:
+            numinfls += 1
             infl = getparam(template, param + str(i))
             infltr = getparam(template, param + str(i) + "tr")
-            otherhead = getparam(template, "head" + str(i))
-            otherheadtr = getparam(template, "tr" + str(i))
-            if otherhead:
-              infl, infltr = inflectfn(infl, infltr, otherhead, otherheadtr,
-                  template, param + str(i))
-            else:
-              infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
-                  template, param + str(i))
-            if infl:
-              if otherhead:
-                msg("Page %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
-                  lemma, i, otherhead, otherheadtr, infl, infltr))
-                createfn(save, index, infl, infltr, otherhead, otherheadtr,
-                    template, pos)
-              else:
-                createfn(save, index, infl, infltr, lemma, lemmatr,
-                    template, pos)
+            infl, infltr = inflectfn(infl, infltr, lemma, lemmatr,
+                template, param + str(i))
             i += 1
+
+          # Should we match heads to inflections (first head to first
+          # inflection, second head to second inflection, etc.)? If not,
+          # we iterate over all pairs of heads and inflections.
+          def should_match_heads_infls():
+            if len(heads) > 1 and numinfls > 1:
+              msg("Page %s %s(lemma): WARNING: More than one head and inflection: %s" % (
+                index, remove_diacritics(heads[0][0]), unicode(template)))
+            return len(heads) == numinfls
+
+          if should_match_heads_infls():
+            for i in xrange(numinfls):
+              head, headtr = heads[i]
+              if i == 0:
+                inflparam = param
+              else:
+                inflparam = param + str(i + 1)
+              infl = getparam(template, inflparam)
+              infltr = getparam(template, inflparam + "tr")
+              infl, infltr = inflectfn(infl, infltr, head, headtr, template,
+                  inflparam)
+              if infl:
+                if i > 0:
+                  msg("Page %s %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
+                    index, remove_diacritics(infl), i + 1, head, headtr,
+                    infl, infltr))
+                createfn(save, index, infl, infltr, head, headtr, template, pos)
+          else:
+            for head, headtr in heads:
+              infl = getparam(template, param)
+              infltr = getparam(template, param + "tr")
+              infl, infltr = inflectfn(infl, infltr, head, headtr,
+                  template, param)
+              i = 2
+              while infl:
+                createfn(save, index, infl, infltr, head, headtr, template, pos)
+                infl = getparam(template, param + str(i))
+                infltr = getparam(template, param + str(i) + "tr")
+                infl, infltr = inflectfn(infl, infltr, head, headtr,
+                    template, param + str(i))
+                i += 1
 
 # Inflection function when we default pl= to the sound masculine plural.
 # A value of + also indicates the sound masculine plural in any inflection
