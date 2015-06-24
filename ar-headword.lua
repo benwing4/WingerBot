@@ -301,21 +301,21 @@ local function handle_noun_plural(args, data)
 end
 
 local valid_genders = list_to_set(
-	{"m", "m-pe", "m-np",
-	 "f", "f-pe", "f-np",
-	 "m-d", "m-d-pe", "m-d-np",
-	 "f-d", "f-d-pe", "f-d-np",
-	 "m-p", "m-p-pe", "m-p-np",
-	 "f-p", "f-p-pe", "f-p-np",
-	 "p", "p-pe", "p-np",
-	 "pe", "np"
+	{"m", "m-pr", "m-np",
+	 "f", "f-pr", "f-np",
+	 "m-d", "m-d-pr", "m-d-np",
+	 "f-d", "f-d-pr", "f-d-np",
+	 "m-p", "m-p-pr", "m-p-np",
+	 "f-p", "f-p-pr", "f-p-np",
+	 "p", "p-pr", "p-np",
+	 "pr", "np"
 	})
 
 local function is_masc_sg(g)
-	return g == "m" or g == "m-pe" or g == "m-np"
+	return g == "m" or g == "m-pr" or g == "m-np"
 end
 local function is_fem_sg(g)
-	return g == "f" or g == "f-pe" or g == "f-np"
+	return g == "f" or g == "f-pr" or g == "f-np"
 end
 
 -- Handle gender in unnamed param 2 and a second gender in param g2,
