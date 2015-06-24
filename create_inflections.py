@@ -74,7 +74,9 @@ lemma_inflection_counts = {}
 # template, similar to INFLTEMP_PARAM. If ENTRYTEXT is given, this is the
 # text to use for the entry, starting directly after the "==Etymology==" line,
 # which is assumed to be necessary. If not given, this text is synthesized
-# from the other parameters. GENDER is used for noun plurals.
+# from the other parameters. GENDER is used for noun plural. (When GENDER
+# is specified, the gender parameters should also be present in
+# ِINFLTEMP_PARAM. GENDER is used to update the gender in existing entries.)
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
     deftemp_param, entrytext=None, gender=None):
@@ -128,54 +130,52 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
   is_participle = infltype.endswith("participle")
   is_vn = infltype == "verbal noun"
-  is_verb_part = pos == "Verb"
+  is_verb_part = infltype.startswith("verb part")
+  is_plural = infltype == "plural"
+  is_feminine = infltype == "feminine"
+  is_plural_noun = infltype == "plural" and pos == "Noun"
+  vn_or_participle = is_vn or is_participle
+  lemma_is_verb = is_verb_part or vn_or_participle
+
   if is_verb_part:
     # Make sure infltemp_param is '|' + FORM, as we expect
     assert(len(infltemp_param) >= 2 and infltemp_param[0] == '|'
         and infltemp_param[1] in ["I", "V", "X"])
     verb_part_form = infltemp_param[1:]
     verb_part_inserted_defn = False
-  is_plural_noun = infltype == "plural" and pos == "Noun"
-  is_plural = infltype == "plural"
-  is_feminine = infltype == "feminine"
-  vn_or_participle = is_vn or is_participle
-  lemma_is_verb = is_verb_part or vn_or_participle
 
   lemma = maybe_remove_i3rab(lemmatype, lemma, noremove=lemma_is_verb)
   inflection = maybe_remove_i3rab(infltype, inflection, noremove=is_verb_part)
 
   if inflection == "-":
-    pagemsg("Not creating %s entry - for %s %s%s" % (
-      infltype, lemmatype, lemma, " (%s)" % lemmatr if lemmatr else ""))
+    pagemsg("Not creating entry '-'")
     return
 
   # Prepare to create page
   pagemsg("Creating entry")
-  infl_no_vowels = pagename
-  lemma_no_vowels = remove_diacritics(lemma)
   page = pywikibot.Page(site, pagename)
 
-  # For singular قطعة and plural قطع, three different possible
-  # sets of vocalizations. For this case, require that the
-  # existing versions match exactly, rather than matching with
-  # removed diacritics.
-  #
-  # This should now be handled by the general code to detect cases
-  # where multiple lemmas that are the same when unvocalized have
-  # inflections that are the same when unvocalized.
-  # must_match_exactly = is_plural_noun and infl_no_vowels == u"قطع" and lemma_no_vowels == u"قطعة"
-  must_match_exactly = False
+  must_match_exactly = not is_feminine and not is_plural
 
-  li_no_vowels = (lemma_no_vowels, infl_no_vowels)
-  lemma_inflection_counts[li_no_vowels] = (
-      lemma_inflection_counts.get(li_no_vowels, 0) + 1)
-  if lemma_inflection_counts[li_no_vowels] > 1:
-    pagemsg("Found multiple (%s) vocalized possibilities for %s %s, %s %s" % (
-      lemma_inflection_counts[li_no_vowels], lemmatype, lemma_no_vowels,
-      infltype, infl_no_vowels))
-    must_match_exactly = True
-  if vn_or_participle or is_verb_part:
-    must_match_exactly = True
+  # Detect cases where multiple lemmas that are the same when unvocalized
+  # have inflections that are the same when unvocalized. For example, for
+  # singular قطعة and plural قطع, there are three different possible
+  # vocalizations. If so, require the existing versions match exactly
+  # rather than matching with removed diacritics. (The first time around
+  # this won't happen and we may change the vowels to match the first set,
+  # but when processing the later sets, we'll add new entries and the first
+  # set's entry will stand.)
+  if not must_match_exactly:
+    infl_no_vowels = pagename
+    lemma_no_vowels = remove_diacritics(lemma)
+    li_no_vowels = (lemma_no_vowels, infl_no_vowels)
+    lemma_inflection_counts[li_no_vowels] = (
+        lemma_inflection_counts.get(li_no_vowels, 0) + 1)
+    if lemma_inflection_counts[li_no_vowels] > 1:
+      pagemsg("Found multiple (%s) vocalized possibilities for %s %s, %s %s" % (
+        lemma_inflection_counts[li_no_vowels], lemmatype, lemma_no_vowels,
+        infltype, infl_no_vowels))
+      must_match_exactly = True
 
   # Compare parameter PARAM (e.g. "1", "head2", etc.) of template TEMPLATE
   # with value VALUE. If REQUIRE_EXACT_MATCH, match must be exact (after
@@ -356,7 +356,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
         def sort_verb_part_sections():
           def sort_one_section(start, end):
-            #msg("sort_one_section called with [%s,%s]" % (start, end))
+            #pagemsg("sort_one_section called with [%s,%s]" % (start, end))
             if end == start:
               return
             assert(start > 0 and (start % 2) == 0)
@@ -401,7 +401,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   for k in xrange(len(persons)):
                     if "|" + persons[k] in tstr:
                       vf_person = k
-              #msg("Sort key: %s" % ((vf_person, vf_voice, vf_last_vowel, vf_mood),))
+              #pagemsg("Sort key: %s" % ((vf_person, vf_voice, vf_last_vowel, vf_mood),))
               return (vf_person, vf_voice, vf_last_vowel, vf_mood)
             newsubsecs = sorted(subsecs, key=keyfunc)
             if newsubsecs != subsecs:
@@ -1683,33 +1683,35 @@ def create_elatives(save, elfile, startFrom, upTo):
     for arpositive in arpositives:
       def add_elative_param(page, index, text):
         pagetitle = page.title()
+        def pagemsg(text):
+          msg("Page %s %s: %s" % (index, pagetitle, text))
         if not page.exists:
-          msg("Page %s %s: WARNING, positive %s not found for elative %s (page nonexistent)" % (
-            index, pagetitle, arpositive, elative))
+          pagemsg("WARNING, positive %s not found for elative %s (page nonexistent)" % (
+            arpositive, elative))
           return None, "skipped positive %s elative %s" % (arpositive, elative)
         found_positive = False
         for template in text.filter_templates():
           if template.name in ["ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an"]:
             if reorder_shadda(getparam(template, "1")) != reorder_shadda(arpositive):
-              msg("Page %s %s: Skipping, found adjective template with wrong positive, expecting %s: %s" % (
-                  index, pagetitle, arpositive, template))
+              pagemsg("Skipping, found adjective template with wrong positive, expecting %s: %s" % (
+                  arpositive, template))
               continue
             found_positive = True
             existingel = getparam(template, "el")
             if existingel:
               if reorder_shadda(existingel) == reorder_shadda(elative):
-                msg("Page %s %s: Skipping template with elative already in it: %s" % (
-                    index, pagetitle, template))
+                pagemsg("Skipping template with elative already in it: %s" % (
+                    template))
               else:
-                msg("Page %s %s: Strange, template has elative already in it but not expected %s: %s" % (
-                    index, pagetitle, elative, template))
+                pagemsg("Strange, template has elative already in it but not expected %s: %s" % (
+                    elative, template))
             else:
-              msg("Page %s %s: Adding elative %s to template: %s" % (
-                index, pagetitle, elative, template))
+              pagemsg("Adding elative %s to template: %s" % (
+                elative, template))
               template.add("el", elative)
         if not found_positive:
-          msg("Page %s %s: WARNING, positive %s not found for elative %s (page exists but couldn't find appropriate template)" % (
-            index, pagetitle, arpositive, elative))
+          pagemsg("WARNING, positive %s not found for elative %s (page exists but couldn't find appropriate template)" % (
+            arpositive, elative))
         return text, "Add el=%s to adjective %s" % (elative, arpositive)
 
       page = pywikibot.Page(site, remove_diacritics(arpositive))
