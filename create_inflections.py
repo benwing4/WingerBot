@@ -517,37 +517,69 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 compare_param(t, "1", lemma, require_exact_match=True))]
 
             # Check the existing gender of the given headword template
-            # and attempt to make sure it matches the given gender.
-            # If the new gender is missing or plain "p" (plural), do nothing.
-            # If the existing gender is missing or plain "p", set the
-            # gender to the new one. Return False if the existing gender
-            # is not plain "p" and doesn't match the new gender, else True.
-            # If WARNING_ON_FALSE, issue a warning when we can't match
-            # the gender.
+            # (assumed to be "p" if non-existent) and attempt to make sure
+            # it matches the given gender or can be compatibly modified to
+            # the new gender. Return False if genders incompatible (and
+            # issue a warning if WARNING_ON_FALSE), else modify existing
+            # gender if needed. (E.g. existing "p" matches new "m-p" and will
+            # be modified; existing "m-p" matches new "p" and will be left
+            # alone; existing "p-pe" matches new "m-p" and will be modified
+            # to "m-p-pe". Similar checks are done for the second gender.
+            # We don't currently handle the situation where e.g. the existing
+            # gender is both "m-p" and "f-p" and the new gender is "f-p" and
+            # "m-p" in reverse order. To handle that, we would need to
+            # sort both sets of genders by some criterion.)
             def check_fix_gender(headword_template, gender, warning_on_false):
-              if not gender or gender == ["p"]:
-                return True
+              def gender_compatible(existing, new):
+                if not re.match(r"\bp\b", existing):
+                  pagemsg("WARNING: Something wrong, existing gender %s does not have 'p' in it" % existing)
+                  return False
+                if not re.match(r"\bp\b", new):
+                  pagemsg("WARNING: Something wrong, new gender %s does not have 'p' in it" % new)
+                  return False
+                m = re.match(r"\b([mf])\b", existing)
+                existing_mf = m and m.group(1)
+                m = re.match(r"\b([mf])\b", new)
+                new_mf = m and m.group(1)
+                if existing_mf and new_mf and existing_mf != new_mf:
+                  if warning_on_false:
+                    pagemsg("WARNING: Can't modify mf gender from %s to %s" % (
+                        existing, new))
+                    return False
+                new_mf = new_mf or existing_mf
+                m = re.match(r"\b(pe|np)\b", existing)
+                existing_pe = m and m.group(1)
+                m = re.match(r"\b(pe|np)\b", new)
+                new_pe = m and m.group(1)
+                if existing_pe and new_pe and existing_pe != new_pe:
+                  if warning_on_false:
+                    pagemsg("WARNING: Can't modify personalness from %s to %s" % (
+                        existing, new))
+                    return False
+                new_pe = new_pe or existing_pe
+                return '-'.join([x for x in [new_mf, "p", new_pe]])
               existing_gender = getparam(headword_template, "2")
               existing_gender2 = getparam(headword_template, "g2")
-              if not existing_gender:
-                existing_gender = ["p"]
-              elif not existing_gender2:
-                existing_gender = [existing_gender]
-              else:
-                existing_gender = [existing_gender, existing_gender2]
-              if existing_gender == ["p"]:
-                pagemsg("Modifying gender from [p] to %s" % gender)
-                headword_template.add("2", gender[0])
-                if len(gender) > 1:
-                  headword_template.add("g2", gender[1])
-                return True
-              elif existing_gender == gender:
-                return True
-              else:
-                if warning_on_false:
-                  pagemsg("WARNING: Can't modify gender from %s to %s" % (
-                      existing_gender, gender))
+              assert(len(gender) == 1 or len(gender) == 2)
+              new_gender = gender_compatible(existing_gender or "p", gender[0])
+              if not new_gender:
                 return False
+              new_gender2 = len(gender) == 2 and gender[1] or ""
+              if existing_gender2 or new_gender2:
+                new_gender2 = gender_compatible(existing_gender2 or "p",
+                    new_gender2 or "p")
+                if not new_gender2:
+                  return False
+              if new_gender != existing_gender:
+                pagemsg("Modifying first gender from '%s' to '%s'" % (
+                  existing_gender, new_gender))
+                headword_template.add("2", new_gender)
+              if (new_gender2 != existing_gender2 and new_gender2 and
+                  new_gender2 != "p"):
+                pagemsg("Modifying second gender from '%s' to '%s'" % (
+                  existing_gender2, new_gender2))
+                headword_template.add("g2", new_gender2)
+              return True
 
             if (infl_headword_templates and len(approx_defn_templates) == 1
                 and not must_match_exactly):
@@ -1045,24 +1077,51 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
 def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
+  pagename = remove_diacritics(inflection)
+  def pagemsg(text, simple = False):
+    if simple:
+      msg("Page %s %s: %s" % (index, pagename, text))
+    else:
+      msg("Page %s %s: %s: plural %s%s, singular %s%s" % (index, pagename, text,
+        inflection, " (%s)" % infltr if infltr else "",
+        lemma, " (%s)" % lemmatr if lemmatr else ""))
+  def pluralize_gender(g):
+    plural_gender = {
+        "m":"m-p", "m-pe":"m-p-pe", "m-np":"m-p-np",
+        "f":"f-p", "f-pe":"f-p-pe", "f-np":"f-p-np",
+        "pe":"p-pe", "np":"p-np"
+    }
+    if re.match(g, r"\bp\b"):
+      pagemsg("WARNING: Trying to pluralize already plural gender %s" % g)
+      return g
+    if g in plural_gender:
+      return plural_gender[g]
+    pagemsg("WARNING: Trying to pluralize unrecognizable gender %s" % g)
+    return g
   # Figure out plural gender
   if template.name == "ar-noun-nisba":
-    gender = ["m-p"]
+    gender = ["m-p-pe"]
   else:
+    # If plural ends in -ūn we are almost certainly dealing with a masculine
+    # personal noun, unless it's a short plural like قُرُون plural
+    # of وَرْن "horn" or سِنُون plural of سَنَة "hour".
     singgender = getparam(template, "2")
-    if not singgender:
-      gender = None
-    else:
-      if singgender in ["m", "f"]:
-        gender = ["%s-p" % singgender]
+    inflection = reorder_shadda(inflection)
+    if inflection.endswith(UUN) and len(inflection) <= 6:
+      pagemsg(u"Short -ūn plural, not treating as personal plural")
+    elif inflection.endswith(UUN) or inflection.endswith(UUNA):
+      pagemsg(u"Long -ūn plural, treating as personal")
+      if singgender in ["", "m", "m-pe"]:
+        singgender = "m-pe"
       else:
-        gender = [singgender]
+        pagemsg(u"WARNING: Long -ūn plural but strange gender %s" % singgender)
+    if not singgender:
+      gender = ["p"]
+    else:
+      gender = [pluralize_gender(singgender)]
       singgender2 = getparam(template, "g2")
       if singgender2:
-        if singgender2 in ["m", "f"]:
-          gender.append("%s-p" % singgender2)
-        else:
-          gender.append(singgender2)
+          gender.append(pluralize_gender(singgender2))
   if not gender:
     genderparam = ""
   elif len(gender) == 1:
