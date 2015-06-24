@@ -1755,15 +1755,15 @@ params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
 if params.plural:
-  #create_plurals(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
-  #    startFrom, upTo)
+  create_plurals(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
+      startFrom, upTo)
   create_plurals(params.save, "Adjective",
       ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
       startFrom, upTo)
 
 if params.feminine:
   #create_feminines(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
-  #    startFrom, upTo, fem_inflection)
+  #    startFrom, upTo)
   create_feminines(params.save, "Adjective",
       ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
       startFrom, upTo)
