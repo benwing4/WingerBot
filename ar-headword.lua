@@ -301,7 +301,22 @@ local function handle_noun_plural(args, data)
 end
 
 local valid_genders = list_to_set(
-	{"m", "f", "m-s", "f-s", "m-d", "f-d", "p", "m-p", "f-p"})
+	{"m", "m-pe", "m-np",
+	 "f", "f-pe", "f-np",
+	 "m-d", "m-d-pe", "m-d-np",
+	 "f-d", "f-d-pe", "f-d-np",
+	 "m-p", "m-p-pe", "m-p-np",
+	 "f-p", "f-p-pe", "f-p-np",
+	 "p", "p-pe", "p-np",
+	 "pe", "np"
+	})
+
+local function is_masc_sg(g)
+	return g == "m" or g == "m-pe" or g == "m-np"
+end
+local function is_fem_sg(g)
+	return g == "f" or g == "f-pe" or g == "f-np"
+end
 
 -- Handle gender in unnamed param 2 and a second gender in param g2,
 -- inserting into the list of genders in GENDER. Also insert categories
@@ -329,15 +344,15 @@ local function handle_gender(args, data, default)
 
 	if g and g2 then
 		append_cat(data, "terms with multiple genders")
-	elseif g == "m" or g == "f" then
+	elseif is_masc_sg(g) or is_fem_sg(g) then
 		local head = ine(args["head"]) or ine(args[1])
 		if head then
 			head = rsub(reorder_shadda(remove_links(head)), UNU .. "?$", "")
 			local ends_with_tam = rfind(head, "^[^ ]*" .. TAM .. "$") or
 				rfind(head, "^[^ ]*" .. TAM .. " ")
-			if g == "m" and ends_with_tam then
+			if is_masc_sg(g) and ends_with_tam then
 				append_cat(data, "masculine terms with feminine ending")
-			elseif g == "f" and not ends_with_tam then
+			elseif is_fem_sg(g) and not ends_with_tam then
 				append_cat(data, "feminine terms lacking feminine ending")
 			end
 		end
@@ -382,7 +397,7 @@ function track_coll_sing(args, collsing, other, defgender)
 	if otherg then
 		track(other .. "g")
 
-		if otherg == "m" or otherg == "f" then
+		if is_masc_sg(otherg) or is_fem_sg(otherg) then
 			track(other .. "g/" .. otherg)
 		else
 			track(other .. "g/-")
