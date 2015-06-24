@@ -26,17 +26,21 @@ ALIF_ANY = "[" + ALIF + ALIF_WASLA + "]"
 AMAQ = u"ى"
 AMAD = u"آ"
 TAM = u"ة"
-L = u"ل"
 Y = u"ي"
+W = u"و"
+L = u"ل"
+N = u"ن"
+T = u"ت"
 
 # combinations
-UUN = U + u"ون"
-AWN = A + u"وْن"
+UUN = U + W + N
+AWN = A + W + SK + N
 UUNA = UUN + A
 UNU = "[" + UN + U + "]"
 UNUOPT = UNU + "?"
 AH = A + TAM
 AAH = A + ALIF + TAM
+AAT = A + ALIF + T
 IYAH = I + Y + AH
 
 def remove_diacritics(word):

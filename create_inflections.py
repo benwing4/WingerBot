@@ -620,7 +620,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               infl_headword_template, infl_headword_matching_param = \
                   infl_headword_templates[0]
               defn_template = approx_defn_templates[0]
-                
+
               # Check for i3rab in existing infl and remove it if so.
               existing_infl = \
                   check_maybe_remove_i3rab(infl_headword_template,
@@ -1144,9 +1144,54 @@ def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr,
 
 def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
+
+  # Output a message include page name and inflection/lemma
+  def pagemsg(text):
+    msg("Page %s %s: %s: feminine %s%s, masculine %s%s" % (
+      index, remove_diacritics(inflection), text,
+      inflection, infltr and " (%s)" % infltr,
+      lemma, lemmatr and " (%s)" % lemmatr))
+
+  # Set plural, based on either explicitly specified feminine plural(s) in
+  # lemma template, or inferred from the inflection by substituting -a with
+  # -āt.
+  if getparam(template, "fpl"):
+    plparams += "|pl=%s" % getparam(template, "fpl")
+    fpltr = getparam(template, "fpltr")
+    if fpltr:
+      plparams += "|pltr=%s" % fpltr
+    i = 2
+    while True:
+      fplparam = "fpl%s" % i
+      plparam = "pl%s" % i
+      fpl = getparam(template, fplparam)
+      if not fpl:
+        break
+      plparams += "|%s=%s" % (plparam, fpl)
+      fpltr = getparam(template, fplparam + "tr")
+      if fpltr:
+        plparams += "|%s=%s" % (plparam + "tr", fpltr)
+      i += 1
+  else:
+    inflection = reorder_shadda(inflection)
+    if reorder_shadda(lemma) + AH != inflection:
+      pagemsg("WARNING: Feminine is not simply masculine plus -a, auto-plural may be wrong")
+    if not inflection.endswith(AH):
+      pagemsg("WARNING: Arabic feminine does not end in -a")
+    elif infltr and not infltr.endswith("a"):
+      pagemsg("WARNING: Translit feminine does not end in -a")
+    else:
+      fpl = re.sub(AH + "$", AAT, inflection)
+      plparams += "|pl=%s" % fpl
+      if infltr:
+        fpltr = re.sub("a$", u"āt", infltr)
+        plparams += "|pltr=%s" % fpltr
+
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "feminine", "masculine", None, # FIXME
-      "", "feminine of", "|lang=ar")
+      "feminine", "masculine", "ar-noun",
+      "|f-pe|m=%s%s%s" % (lemma, lemmatr and "|mtr=%s" % lemmatr or "",
+        plparams),
+      "feminine of", "|lang=ar", gender="f-pe")
 
 def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
@@ -1769,8 +1814,9 @@ if params.plural:
       startFrom, upTo)
 
 if params.feminine:
-  #create_feminines(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
-  #    startFrom, upTo)
+  # FIXME: Feminine noun creation not tested yet
+  create_feminines(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],
+      startFrom, upTo)
   create_feminines(params.save, "Adjective",
       ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in", "ar-adj-an"],
       startFrom, upTo)
