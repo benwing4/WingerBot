@@ -532,8 +532,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # gender if needed, and return "changed" if anything modified,
             # otherwise "nochange". (E.g. existing "p" matches new "m-p" and
             # will be modified; existing "m-p" matches new "p" and will be
-            # left alone; existing "p-pe" matches new "m-p" and will be
-            # modified to "m-p-pe". Similar checks are done for the second
+            # left alone; existing "p-pr" matches new "m-p" and will be
+            # modified to "m-p-pr". Similar checks are done for the second
             # gender. We don't currently handle the situation where e.g. the
             # existing gender is both "m-p" and "f-p" and the new gender is
             # "f-p" and "m-p" in reverse order. To handle that, we would
@@ -567,9 +567,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                       existing_mf, new_mf))
                   return False
                 new_mf = new_mf or existing_mf
-                m = re.match(r"\b(pe|np)\b", existing)
+                m = re.match(r"\b(pr|np)\b", existing)
                 existing_pe = m and m.group(1)
-                m = re.match(r"\b(pe|np)\b", new)
+                m = re.match(r"\b(pr|np)\b", new)
                 new_pe = m and m.group(1)
                 if existing_pe and new_pe and existing_pe != new_pe:
                   pagemsg("%sCan't modify personalness from %s to %s" % (
@@ -1090,9 +1090,9 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
         lemma, " (%s)" % lemmatr if lemmatr else ""))
   def pluralize_gender(g):
     plural_gender = {
-        "m":"m-p", "m-pe":"m-p-pe", "m-np":"m-p-np",
-        "f":"f-p", "f-pe":"f-p-pe", "f-np":"f-p-np",
-        "pe":"p-pe", "np":"p-np"
+        "m":"m-p", "m-pr":"m-p-pr", "m-np":"m-p-np",
+        "f":"f-p", "f-pr":"f-p-pr", "f-np":"f-p-np",
+        "pr":"p-pr", "np":"p-np"
     }
     if re.match(g, r"\bp\b"):
       pagemsg("WARNING: Trying to pluralize already plural gender %s" % g)
@@ -1103,7 +1103,7 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
     return g
   # Figure out plural gender
   if template.name == "ar-noun-nisba":
-    gender = ["m-p-pe"]
+    gender = ["m-p-pr"]
   else:
     # If plural ends in -ūn we are almost certainly dealing with a masculine
     # personal noun, unless it's a short plural like قُرُون plural
@@ -1114,8 +1114,8 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
       pagemsg(u"Short -ūn plural, not treating as personal plural")
     elif inflection.endswith(UUN) or inflection.endswith(UUNA):
       pagemsg(u"Long -ūn plural, treating as personal")
-      if singgender in ["", "m", "m-pe"]:
-        singgender = "m-pe"
+      if singgender in ["", "m", "m-pr"]:
+        singgender = "m-pr"
       else:
         pagemsg(u"WARNING: Long -ūn plural but strange gender %s" % singgender)
     if not singgender:
@@ -1189,9 +1189,9 @@ def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
 
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-noun",
-      "|f-pe|m=%s%s%s" % (lemma, lemmatr and "|mtr=%s" % lemmatr or "",
+      "|f-pr|m=%s%s%s" % (lemma, lemmatr and "|mtr=%s" % lemmatr or "",
         plparams),
-      "feminine of", "|lang=ar", gender="f-pe")
+      "feminine of", "|lang=ar", gender="f-pr")
 
 def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
