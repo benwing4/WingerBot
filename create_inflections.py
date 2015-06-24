@@ -24,6 +24,7 @@ from arabiclib import *
 site = pywikibot.Site()
 
 verbose = True
+personal = False
 
 def get_vn_gender(word, form):
   # Remove -un or -u i3rab
@@ -49,6 +50,31 @@ def get_vn_gender(word, form):
 # Make sure there are two trailing newlines
 def ensure_two_trailing_nl(text):
   return re.sub(r"\n*$", r"\n\n", text)
+
+# Remove trailing -un/-u i3rab from inflected form and lemma
+def remove_i3rab(wordtype, word, nowarn=False, noremove=False,
+    pagemsg=msg):
+  if noremove:
+    return word
+  def mymsg(text):
+    if not nowarn:
+      pagemsg(text)
+  word = reorder_shadda(word)
+  if word.endswith(UN):
+    mymsg("Removing i3rab (UN) from %s" % wordtype)
+    return re.sub(UN + "$", "", word)
+  if word.endswith(U):
+    mymsg("Removing i3rab (U) from %s" % wordtype)
+    return re.sub(U + "$", "", word)
+  if word.endswith(UUNA):
+    mymsg("Removing i3rab (UUNA -> UUN) from %s" % wordtype)
+    return re.sub(UUNA + "$", UUN, word)
+  if word and word[-1] in [A, I, U, AN]:
+    mymsg("WARNING: Strange diacritic at end of %s %s" % (wordtype, word))
+  if word and word[0] == ALIF_WASLA:
+    mymsg("Changing alif wasla to plain alif for %s %s" % (wordtype, word))
+    word = ALIF + word[1:]
+  return word
 
 lemma_inflection_counts = {}
 
@@ -104,29 +130,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         infltype, inflection, " (%s)" % infltr if infltr else "",
         lemmatype, lemma, " (%s)" % lemmatr if lemmatr else ""))
 
-  # Remove trailing -un/-u i3rab from inflected form and lemma
   def maybe_remove_i3rab(wordtype, word, nowarn=False, noremove=False):
-    if noremove:
-      return word
-    def mymsg(text):
-      if not nowarn:
-        pagemsg(text)
-    word = reorder_shadda(word)
-    if word.endswith(UN):
-      mymsg("Removing i3rab (UN) from %s" % wordtype)
-      return re.sub(UN + "$", "", word)
-    if word.endswith(U):
-      mymsg("Removing i3rab (U) from %s" % wordtype)
-      return re.sub(U + "$", "", word)
-    if word.endswith(UUNA):
-      mymsg("Removing i3rab (UUNA -> UUN) from %s" % wordtype)
-      return re.sub(UUNA + "$", UUN, word)
-    if word and word[-1] in [A, I, U, AN]:
-      mymsg("WARNING: Strange diacritic at end of %s %s" % (wordtype, word))
-    if word and word[0] == ALIF_WASLA:
-      mymsg("Changing alif wasla to plain alif for %s %s" % (wordtype, word))
-      word = ALIF + word[1:]
-    return word
+    return remove_i3rab(wordtype, word, nowarn=nowarn, noremove=noremove,
+        pagemsg=pagemsg)
 
   is_participle = infltype.endswith("participle")
   is_vn = infltype == "verbal noun"
@@ -578,6 +584,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 new_pr = new_pr or existing_pr
                 return '-'.join([x for x in [new_mf, defgender, new_pr] if x])
 
+              if len(gender) == 0:
+                return "nochange"
               existing_gender = getparam(headword_template, "2")
               existing_gender2 = getparam(headword_template, "g2")
               assert(len(gender) == 1 or len(gender) == 2)
@@ -1087,6 +1095,10 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
       msg("Page %s %s: %s: plural %s%s, singular %s%s" % (index, pagename, text,
         inflection, " (%s)" % infltr if infltr else "",
         lemma, " (%s)" % lemmatr if lemmatr else ""))
+
+  def do_remove_i3rab(wordtype, word):
+    return remove_i3rab(wordtype, word, pagemsg=pagemsg)
+
   def pluralize_gender(g):
     plural_gender = {
         "m":"m-p", "m-pr":"m-p-pr", "m-np":"m-p-np",
@@ -1100,23 +1112,52 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
       return plural_gender[g]
     pagemsg("WARNING: Trying to pluralize unrecognizable gender %s" % g)
     return g
+
+  def fem_pl_noun(noun):
+    if noun.endswith(AAH):
+      return re.sub(AAH + "$", AYAAT, noun)
+    if noun.endswith(AH):
+      return re.sub(AH + "$", AAT, noun)
+    if noun.endswith(IN):
+      return re.sub(IN + "$", IYAAT, noun)
+    regex = "((" + AN + "|" + A + ")(" + ALIF + "|" + AMAQ + ")|" + A + "?(" + ALIF + "|" + AMAQ + ")" + AN + ")$"
+    if re.search(regex, noun):
+      return re.sub(regex, AYAAT, noun)
+    return noun + AAT
+
   # Figure out plural gender
   if template.name == "ar-noun-nisba":
-    gender = ["m-p-pr"]
+    if personal:
+      gender = ["m-p-pr"]
+    else:
+      gender = ["m-p"]
   else:
     # If plural ends in -ūn we are almost certainly dealing with a masculine
     # personal noun, unless it's a short plural like قُرُون plural
     # of وَرْن "horn" or سِنُون plural of سَنَة "hour".
     singgender = getparam(template, "2")
-    inflection = reorder_shadda(inflection)
+    lemma = do_remove_i3rab(reorder_shadda(lemma))
+    inflection = do_remove_i3rab(reorder_shadda(inflection))
     if inflection.endswith(UUN) and len(inflection) <= 6:
       pagemsg(u"Short -ūn plural, not treating as personal plural")
     elif inflection.endswith(UUN) or inflection.endswith(UUNA):
-      pagemsg(u"Long -ūn plural, treating as personal")
-      if singgender in ["", "m", "m-pr"]:
-        singgender = "m-pr"
+      if personal:
+        pagemsg(u"Long -ūn plural, treating as personal")
+      else:
+        pagemsg(u"Long -ūn plural, would treat as personal")
+      if singgender == "m-pr":
+        pass
+      elif singgender in ["", "m"]:
+        singgender = "m-pr" if personal else "m"
       else:
         pagemsg(u"WARNING: Long -ūn plural but strange gender %s" % singgender)
+    elif (singgender == "m" and not lemma.endswith(TAM) and
+        fem_pl_noun(lemma) == inflection):
+      if personal:
+        pagemsg(u"Masculine noun with -āt plural, treating as non-personal")
+        singgender = "m-np"
+      else:
+        pagemsg(u"Masculine noun with -āt plural, would treat as non-personal")
     if not singgender:
       gender = ["p"]
     else:
@@ -1186,10 +1227,11 @@ def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
         fpltr = re.sub("a$", u"āt", infltr)
         plparams += "|pltr=%s" % fpltr
 
+
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-noun",
-      "|f-pr|m=%s%s%s" % (lemma, lemmatr and "|mtr=%s" % lemmatr or "",
-        plparams),
+      "|f%s|m=%s%s%s" % ("-pr" if personal else "",
+        lemma, lemmatr and "|mtr=%s" % lemmatr or "", plparams),
       "feminine of", "|lang=ar", gender="f-pr")
 
 def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
@@ -1428,15 +1470,18 @@ def create_verbal_noun(save, index, vn, form, page, template, uncertain):
     if gender == "?":
       msg("Page %s %s: WARNING: Unable to determine gender: verbal noun %s, dictionary form %s"
           % (index, remove_diacritics(vn), vn, dicform))
-      gender = "np"
-    else:
+      if personal:
+        gender = "np"
+      else:
+        gender = ""
+    elif personal:
       gender += "-np"
-    genderparam = "|%s" % gender
+    genderparam = "|%s" % gender if gender else ""
 
     defparam = "|form=%s%s" % (form, uncertain and "|uncertain=yes" or "")
     create_inflection_entry(save, index, vn, None, dicform, None, "Noun",
       "verbal noun", "dictionary form", "ar-noun", genderparam,
-      "ar-verbal noun of", defparam, gender=gender)
+      "ar-verbal noun of", defparam, gender=gender and [gender] or [])
 
 def create_verbal_nouns(save, startFrom, upTo):
   for page, index in blib.cat_articles("Arabic verbs", startFrom, upTo):
@@ -1838,9 +1883,12 @@ pa.add_argument("--elative-list",
     help="File containing elative directives")
 pa.add_argument("--elative", action='store_true',
     help="Do elatives")
+pa.add_argument("--personal", action='store_true',
+    help="Predict and store personal/non-personalness when possible")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
+personal = params.personal
 
 if params.plural:
   create_plurals(params.save, "Noun", ["ar-noun", "ar-noun-nisba"],

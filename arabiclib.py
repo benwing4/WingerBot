@@ -33,15 +33,26 @@ N = u"ن"
 T = u"ت"
 
 # combinations
-UUN = U + W + N
-AWN = A + W + SK + N
+AW = A + W
+AY = A + Y
+IY = I + Y
+UW = U + W
+AA = A + ALIF
+II = IY
+UU = UW
+UUN = UU + N
 UUNA = UUN + A
+AWN = AW + SK + N
+AWN = AWN + A
 UNU = "[" + UN + U + "]"
 UNUOPT = UNU + "?"
 AH = A + TAM
-AAH = A + ALIF + TAM
-AAT = A + ALIF + T
+AAH = AA + TAM
+AAT = AA + T
+AATUN = AAT + UN
 IYAH = I + Y + AH
+AYAAT = AY + AAT
+IYAAT = IY + AAT
 
 def remove_diacritics(word):
   return re.sub(DIACRITIC_ANY, "", word)
