@@ -140,6 +140,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   is_plural = infltype == "plural"
   is_feminine = infltype == "feminine"
   is_plural_noun = infltype == "plural" and pos == "Noun"
+  is_plural_or_fem = is_plural or is_feminine
   vn_or_participle = is_vn or is_participle
   lemma_is_verb = is_verb_part or vn_or_participle
 
@@ -161,7 +162,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   pagemsg("Creating entry")
   page = pywikibot.Page(site, pagename)
 
-  must_match_exactly = not is_feminine and not is_plural
+  must_match_exactly = not is_plural_or_fem
 
   # Detect cases where multiple lemmas that are the same when unvocalized
   # have inflections that are the same when unvocalized. For example, for
@@ -844,6 +845,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         else:
           if not need_new_entry:
             break
+
           # At this point we couldn't find an existing subsection with
           # matching POS and appropriate headword template whose head matches
           # the the inflected form.
@@ -856,20 +858,36 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           # e.g. matching non-past yasurr (from sarra) with yasara, but
           # we do match up forms from faʿala and faʿila.
           # Insert after the last such one.
-          if is_verb_part:
+          #
+          # Similarly, if plural or feminine, try to find an existing noun or
+          # adjective form with the same headword to insert after.
+          # Insert after the last such one.
+
+          def is_section_to_insert_after(j):
+            if is_verb_part:
+              return (t.name == deftemp and compare_param(t, "1", lemma) or
+                  t.name == infltemp and (not t.has("2") or compare_param(t, "2", verb_part_form)) or
+                  t.name == "ar-verb" and re.sub("-.*$", "", getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)])
+            else:
+              assert is_plural_or_fem
+              return (t.name in ["ar-noun-pl", "ar-adj-pl", "ar-noun-fem",
+                  "ar-adj-fem", "ar-coll-noun"] and
+                  template_head_matches(t, inflection,
+                    require_exact_match=True))
+
+          if is_verb_part or is_plural_or_fem:
             insert_at = None
             for j in xrange(len(subsections)):
               if j > 0 and (j % 2) == 0:
-                if re.match("^===+Verb===+", subsections[j - 1]):
+                if re.match("^===+Verb===+" if is_verb_part else
+                    "^===+(Noun|Adjective)===+", subsections[j - 1]):
                   parsed = blib.parse_text(subsections[j])
                   for t in parsed.filter_templates():
-                    if (t.name == deftemp and compare_param(t, "1", lemma) or
-                        t.name == infltemp and (not t.has("2") or compare_param(t, "2", verb_part_form)) or
-                        t.name == "ar-verb" and re.sub("-.*$", "", getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)]):
+                    if section_to_insert_after(t):
                       insert_at = j + 1
             if insert_at:
-              pagemsg("Found section to insert verb part after: [[%s]]" %
-                  subsections[insert_at - 1])
+              pagemsg("Found section to insert %s after: [[%s]]" % (
+                  infltype, subsections[insert_at - 1]))
 
               # Determine indent level and skip past sections at higher indent
               m = re.match("^(==+)", subsections[insert_at - 2])
@@ -886,9 +904,15 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     subsections[insert_at])
                 insert_at += 1
 
-              pagemsg("Inserting after verb section for same lemma")
-              comment = "Insert entry for %s %s of %s after verb section for same lemma" % (
-                infltype, inflection, lemma)
+              if is_verb_part:
+                secmsg = "verb section for same lemma"
+              else:
+                assert is_plural_or_fem
+                secmsg = "noun/adjective section for same inflection"
+
+              pagemsg("Inserting after %s" % secmsg)
+              comment = "Insert entry for %s %s of %s after %s" % (
+                infltype, inflection, lemma, secmsg)
               subsections[insert_at - 1] = ensure_two_trailing_nl(
                   subsections[insert_at - 1])
               if indentlevel == 3:
@@ -897,7 +921,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 assert(indentlevel == 4)
                 subsections[insert_at:insert_at] = [newposl4 + "\n"]
               sections[i] = ''.join(subsections)
-              sort_verb_part_sections()
+
+              if is_verb_part:
+                sort_verb_part_sections()
               break
 
           # If participle, try to find an existing noun or adjective with the
@@ -926,53 +952,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               # Determine indent level
               m = re.match("^(==+)", subsections[insert_at])
               indentlevel = len(m.group(1))
-              if indentlevel == 3:
-                subsections[insert_at:insert_at] = [newpos + "\n"]
-              else:
-                assert(indentlevel == 4)
-                subsections[insert_at:insert_at] = [newposl4 + "\n"]
-              sections[i] = ''.join(subsections)
-              break
-
-          # If plural or feminine, try to find an existing noun or adjective
-          # form with the same headword to insert after. Insert after the
-          # last such one.
-          if is_plural or is_feminine:
-            insert_at = None
-            for j in xrange(len(subsections)):
-              if j > 0 and (j % 2) == 0:
-                if re.match("^===+(Noun|Adjective)===+", subsections[j - 1]):
-                  parsed = blib.parse_text(subsections[j])
-                  for t in parsed.filter_templates():
-                    if (t.name in ["ar-noun-pl", "ar-adj-pl", "ar-noun-fem",
-                        "ar-adj-fem", "ar-coll-noun"] and
-                        template_head_matches(t, inflection,
-                          require_exact_match=True)):
-                      insert_at = j + 1
-            if insert_at:
-              pagemsg("Found section to insert %s after: [[%s]]" %
-                  (infltype, subsections[insert_at - 1]))
-
-              # Determine indent level and skip past sections at higher indent
-              m = re.match("^(==+)", subsections[insert_at - 2])
-              indentlevel = len(m.group(1))
-              while insert_at < len(subsections):
-                if (insert_at % 2) == 0:
-                  insert_at += 1
-                  continue
-                m = re.match("^(==+)", subsections[insert_at])
-                newindent = len(m.group(1))
-                if newindent <= indentlevel:
-                  break
-                pagemsg("Skipped past higher-indented subsection: [[%s]]" %
-                    subsections[insert_at])
-                insert_at += 1
-
-              pagemsg("Inserting after noun/adjective section for same inflection")
-              comment = "Insert entry for %s %s of %s after noun/adjective section for same inflection" % (
-                infltype, inflection, lemma)
-              subsections[insert_at - 1] = ensure_two_trailing_nl(
-                  subsections[insert_at - 1])
               if indentlevel == 3:
                 subsections[insert_at:insert_at] = [newpos + "\n"]
               else:
