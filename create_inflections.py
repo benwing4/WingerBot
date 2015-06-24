@@ -539,27 +539,26 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # "f-p" and "m-p" in reverse order. To handle that, we would
             # need to sort both sets of genders by some criterion.)
             def check_fix_gender(headword_template, gender, warning_on_false):
+              defgender = is_plural and "p" or ""
               def gender_compatible(existing, new):
                 if is_plural:
-                  if not re.match(r"\bp\b", existing):
+                  if not re.search(r"\bp\b", existing):
                     pagemsg("WARNING: Something wrong, existing plural gender %s does not have 'p' in it" % existing)
                     return False
-                  if not re.match(r"\bp\b", new):
+                  if not re.search(r"\bp\b", new):
                     pagemsg("WARNING: Something wrong, new plural gender %s does not have 'p' in it" % new)
                     return False
-                  defgender = "p"
                 else:
                   assert is_vn
-                  if re.match(r"\bp\b", existing):
+                  if re.search(r"\bp\b", existing):
                     pagemsg("WARNING: Something wrong, existing vn gender %s has 'p' in it" % existing)
                     return False
-                  if re.match(r"\bp\b", new):
+                  if re.search(r"\bp\b", new):
                     pagemsg("WARNING: Something wrong, new vn gender %s has 'p' in it" % new)
                     return False
-                  defgender = ""
-                m = re.match(r"\b([mf])\b", existing)
+                m = re.search(r"\b([mf])\b", existing)
                 existing_mf = m and m.group(1)
-                m = re.match(r"\b([mf])\b", new)
+                m = re.search(r"\b([mf])\b", new)
                 new_mf = m and m.group(1)
                 if existing_mf and new_mf and existing_mf != new_mf:
                   pagemsg("%sCan't modify mf gender from %s to %s" % (
@@ -567,17 +566,17 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                       existing_mf, new_mf))
                   return False
                 new_mf = new_mf or existing_mf
-                m = re.match(r"\b(pr|np)\b", existing)
-                existing_pe = m and m.group(1)
-                m = re.match(r"\b(pr|np)\b", new)
-                new_pe = m and m.group(1)
-                if existing_pe and new_pe and existing_pe != new_pe:
+                m = re.search(r"\b(pr|np)\b", existing)
+                existing_pr = m and m.group(1)
+                m = re.search(r"\b(pr|np)\b", new)
+                new_pr = m and m.group(1)
+                if existing_pr and new_pr and existing_pr != new_pr:
                   pagemsg("%sCan't modify personalness from %s to %s" % (
                       "WARNING: " if warning_on_false else "",
-                      existing_pe, new_pe))
+                      existing_pr, new_pr))
                   return False
-                new_pe = new_pe or existing_pe
-                return '-'.join([x for x in [new_mf, defgender, new_pe]])
+                new_pr = new_pr or existing_pr
+                return '-'.join([x for x in [new_mf, defgender, new_pr] if x])
 
               existing_gender = getparam(headword_template, "2")
               existing_gender2 = getparam(headword_template, "g2")
@@ -1094,7 +1093,7 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
         "f":"f-p", "f-pr":"f-p-pr", "f-np":"f-p-np",
         "pr":"p-pr", "np":"p-np"
     }
-    if re.match(g, r"\bp\b"):
+    if re.search(g, r"\bp\b"):
       pagemsg("WARNING: Trying to pluralize already plural gender %s" % g)
       return g
     if g in plural_gender:
