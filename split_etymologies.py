@@ -75,6 +75,7 @@ def split_one_page_etymologies(page, index, pagetext):
       etymsections = []
       sechead = subsections[0]
       if "\n===Etymology 1=" in sections[i]:
+        etyms_were_separate = True
         for j in xrange(1, len(subsections), 2):
           if not re.match("^===Etymology [0-9]+=", subsections[j]):
             pagemsg("WARNING: Non-etymology level-3 header when split etymologies: %s" % subsections[j][0:-1])
@@ -84,6 +85,7 @@ def split_one_page_etymologies(page, index, pagetext):
         for j in xrange(len(etymsections)):
           etymsections[j] = re.sub("^==", "=", etymsections[j], 0, re.M)
       else:
+        etyms_were_separate = False
         etymsections = ''.join(subsections[1:])
 
       for etymsection in etymsections:
@@ -139,15 +141,46 @@ def split_one_page_etymologies(page, index, pagetext):
               append_section(j)
         etymologies += split_sections
 
+      # Combine adjacent etymologies with same verb form class I.
+      # FIXME: We might not want to do this; the etymologies might be
+      # legitimately split. Need to check each case.
+      j = 0
+      while j < len(etymologies) - 1:
+        def get_form_class(k):
+          formclass = None
+          parsed = blib.parse_text(etymologies[j])
+          for t in parsed.filter_templates():
+            if t.name in ["ar-verb", "ar-verb-form"]:
+              newformclass = getparam(t, "1")
+              if formclass and newformclass and formclass != newformclass:
+                pagemsg("WARNING: Something wrong: Two different verb form classes in same etymology: %s != %s" % (formclass, newformclass))
+              formclass = newformclass
+          return formclass
+
+        formclassj = get_form_class(j)
+        formclassj1 = get_form_class(j + 1)
+        if formclassj == "I" and formclassj1 == "I":
+          if not etymologies[j + 1].startswith("="):
+            pagemsg("WARNING: Can't combine etymologies with same verb form class because second has etymology text")
+          else:
+            pagemsg("Combining etymologies with same verb form class I")
+            etymologies[j] = etymologies[j].rstrip() + "\n\n" + etymologies[j + 1]
+            # Cancel out effect of incrementing j below since we combined
+            # the following etymology into this one
+            j -= 1
+        j += 1
+
       if len(etymologies) > 1:
         for j in xrange(len(etymologies)):
           # Stuff like "===Alternative forms===" that goes before the
           # etymology section should be moved after.
-          etymologies[j] = re.sub(r"^(.*\n)(===Etymology===\n([^=\n]*\n)*)",
+          newetymj = re.sub(r"^(.*?\n)(===Etymology===\n(\n|[^=\n].*?\n)*)",
               r"\2\1", etymologies[j], 0, re.S)
+          if newetymj != etymologies[j]:
+            pagemsg("Moved ===Alternative forms=== and such after Etymology")
+            etymologies[j] = newetymj
           # Remove ===Etymology=== from beginning
-          etymologies[j] = re.sub("^===Etymology===\n", "",
-              etymologies[j])
+          etymologies[j] = re.sub("^===Etymology===\n", "", etymologies[j])
           # Fix up newlines around etymology section
           etymologies[j] = etyomologies[j].strip() + "\n\n"
           if etymologies[j].startswith("="):
@@ -156,6 +189,20 @@ def split_one_page_etymologies(page, index, pagetext):
             ''.join(["===Etymology %s===\n" % (j + 1) + etymologies[j]
               for j in xrange(len(etymologies))]))
       elif len(etymologies) == 1:
+        if etyms_were_separate:
+          # We might need to add an Etymology header at the beginning.
+          pagemsg("Combined formerly separate etymologies")
+          if not re.match(r"^(=|\{\{wikipedia|\[\[File:)",
+              etymologies[0].strip()):
+            etymologies[0] = "===Etymology===\n" + etymologies[0]
+            pagemsg("Added Etymology header when previously separate etymologies combined")
+          # Put Alternative forms section before Etymology.
+          newetym0 = re.sub(r"^((?:\n|[^=\n].*?\n)*)(===Etymology===\n(?:\n|[^=\n].*?\n)*)(===(Alternative.*?)===\n(?:\n|[^=\n].*?\n)*)",
+              r"\1\3\2", etymologies[0], 0, re.S)
+          if newetym0 != etymologies[0]:
+            pagemsg("Moved ===Alternative forms=== and such before Etymology")
+            etymologies[0] = newetym0
+
         sections[i] = sechead + etymologies[0]
       else:
         sections[i] = sechead
