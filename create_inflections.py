@@ -1006,8 +1006,11 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     mmm.group(1))
             # Stuff like "===Alternative forms===" that goes before the
             # etymology section should be moved after.
-            sections[i] = re.sub(r"^(.*\n)(===Etymology===\n([^=\n]*\n)*)",
+            newsectionsi = re.sub(r"^(.*?\n)(===Etymology===\n(\n|[^=\n].*?\n)*)",
                 r"\2\1", sections[i], 0, re.S)
+            if newsectionsi != sections[i]:
+              pagemsg("Moved ===Alternative forms=== and such after Etymology")
+              sections[i] = newsectionsi
             sections[i] = re.sub("^===Etymology===\n", "", sections[i])
             sections[i] = ("==Arabic==\n" + wikilink + "\n===Etymology 1===\n" +
                 ("\n" if sections[i].startswith("==") else "") +
