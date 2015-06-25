@@ -150,10 +150,18 @@ def vocalize_one_page_headwords(page, index, text):
   actions_taken = []
   for template in text.filter_templates():
     paramschanged = []
-    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun",
-        "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-particle",
-        "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
-        "ar-adj-pl", "ar-noun-dual", "ar-adj-dual", "ar-nisba"]: # ar-adj-color
+    if template.name in [
+        # Adjectives
+        "ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an", "ar-nisba",
+        "ar-adj-fem", "ar-adj-pl", "ar-adj-dual", # ar-adj-color
+        # Nouns/numerals/pronouns
+        "ar-noun", "ar-coll-noun", "ar-sing-noun", "ar-noun-nisba",
+        "ar-proper noun", "ar-numeral", "ar-pron",
+        "ar-noun-pl", "ar-noun-dual",
+        # Participles
+        "ar-act-participle", "ar-pass-participle",
+        # Other
+        "ar-adv", "ar-con", "ar-interj", "ar-particle", "ar-prep"]:
       paramschanged += vocalize_head(page, template)
       for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
           "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
