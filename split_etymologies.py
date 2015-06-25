@@ -100,7 +100,8 @@ def split_one_page_etymologies(page, index, pagetext):
           split_sections[next_split_section] += \
               subsections[k] + subsections[k + 1]
 
-        last_lemma = ""
+        last_lemma = None
+        last_inflection_of_lemma = None
         for j in xrange(1, len(subsections), 2):
           if re.match("^===+(References|Related|See)", subsections[j]):
             pagemsg("Found level-3 section that should maybe be at higher level: %s" % subsections[j][0:-1])
@@ -110,6 +111,7 @@ def split_one_page_etymologies(page, index, pagetext):
           else:
             parsed = blib.parse_text(subsections[j + 1])
             lemma = None
+            inflection_of_lemma = None
             for t in parsed.filter_templates():
               if t.name in [
                   # Adjectives
@@ -128,16 +130,27 @@ def split_one_page_etymologies(page, index, pagetext):
                 if lemma:
                   if t.name not in ["ar-nisba", "ar-noun-nisba", "ar-verb",
                       "ar-verb-form"]:
-                    pagemsg("Found multiple inflection templates in section %s: %s" % (j, subsections[j][0:-1]))
+                    pagemsg("Found multiple headword templates in section %s: %s" % (j, subsections[j][0:-1]))
                 # Note: For verbs this is the form class, which we match on
                 lemma = reorder_shadda(remove_links(getparam(t, "1")))
+              if t.name == "inflection of":
+                if inflection_of_lemma:
+                  pagemsg("Found multiple 'inflection of' templates in section %s: %s" % (j, subsections[j][0:-1]))
+                inflection_of_lemma = remove_diacritics(
+                    remove_links(getparam(t, "1")))
             if not lemma:
-              pagemsg("Warning: No inflection template in section %s: %s" % (j, subsections[j][0:-1]))
+              pagemsg("Warning: No headword template in section %s: %s" % (j, subsections[j][0:-1]))
               append_section(j)
             else:
               if lemma != last_lemma:
                 next_split_section += 1
+              elif (inflection_of_lemma and last_inflection_of_lemma and
+                  inflection_of_lemma != last_inflection_of_lemma):
+                pagemsg("Verb forms have different inflection-of lemmas %s and %s, splitting etym" % (
+                  last_inflection_of_lemma, inflection_of_lemma))
+                next_split_section += 1
               last_lemma = lemma
+              last_inflection_of_lemma = inflection_of_lemma
               append_section(j)
         etymologies += split_sections
 
