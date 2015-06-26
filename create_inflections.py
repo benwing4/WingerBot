@@ -92,16 +92,18 @@ lemma_inflection_counts = {}
 # "singular", "masculine" or "dictionary form" and is used in messages.
 # INFLTEMP is the headword template for the inflected-word entry (e.g.
 # "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). INFLTEMP_PARAM is a parameter
-# or parameters to add to the created INFLTEMP template, and should be either
-# empty or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat" for more than
-# one parameter). DEFTEMP is the definitional template that points to the
-# base form (e.g. "plural of", "masculine plural of" or "feminine of").
-# DEFTEMP_PARAM is a parameter or parameters to add to the created DEFTEMP
-# template, similar to INFLTEMP_PARAM. If ENTRYTEXT is given, this is the
-# text to use for the entry, starting directly after the "==Etymology==" line,
-# which is assumed to be necessary. If not given, this text is synthesized
-# from the other parameters. GENDER is used for noun plurals and verbal nouns.
-# (When GENDER is specified, the gender parameters should also be present in
+# or parameters to add to the created INFLTEMP template, and should be a list
+# of (PARAM, VALUE) tuples, e.g. '[("2", "f"), ("pl", "sfp")]', in the order
+# they should appear in the newly created inflection template. DEFTEMP is
+# the definitional template that points to the base form (e.g. "plural of",
+# "masculine plural of" or "feminine of"). DEFTEMP_PARAM is a parameter or
+# parameters to add to the created DEFTEMP template, and is currently a
+# string, either empty of or of the form "|foo=bar" (or e.g. "|foo=bar|baz=bat"
+# for more than one parameter). If ENTRYTEXT is given, this is the text to
+# use for the entry, starting directly after the "==Etymology==" line, which
+# is assumed to be necessary. If not given, this text is synthesized from the
+# other parameters. GENDER is used for noun plurals and verbal nouns. (When
+# GENDER is specified, the gender parameters should also be present in
 # ِINFLTEMP_PARAM. GENDER is used to update the gender in existing entries.)
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
@@ -148,14 +150,17 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   is_plural_noun = is_plural and pos == "Noun"
   is_feminine_noun = is_feminine and pos == "Noun"
   is_plural_or_fem = is_plural or is_feminine
-  vn_or_participle = is_vn or is_participle
-  lemma_is_verb = is_verb_part or vn_or_participle
+  lemma_is_verb = is_verb_part or is_vn or is_participle
+
+  infltemp_param_str = ''.join([
+    "|%s" % value if re.match("^[0-9]+$", param) else "|%s=%s" % (param, value)
+    for param, value in infltemp_param])
 
   if is_verb_part:
-    # Make sure infltemp_param is '|' + FORM, as we expect
-    assert(len(infltemp_param) >= 2 and infltemp_param[0] == '|'
-        and infltemp_param[1] in ["I", "V", "X"])
-    verb_part_form = infltemp_param[1:]
+    # assert infltemp_param is as we expect, 2=FORM
+    assert(len(infltemp_param) == 1 and infltemp_param[0][0] == "2")
+    verb_part_form = infltemp_param[0][1]
+    assert(len(verb_part_form) > 0 and verb_part_form[0] in ["I", "V", "X"])
     verb_part_inserted_defn = False
 
   lemma = maybe_remove_i3rab(lemmatype, lemma, noremove=lemma_is_verb)
@@ -239,7 +244,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     # when creating verb parts or participles.
     new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
     new_headword_template = "{{%s%s%s}}" % (new_headword_template_prefix,
-        infltemp_param, "|tr=%s" % infltr if infltr else "")
+        infltemp_param_str, "|tr=%s" % infltr if infltr else "")
     new_defn_template = "{{%s|%s%s%s}}" % (
       deftemp, lemma,
       "|tr=%s" % lemmatr if lemmatr else "",
@@ -549,15 +554,14 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # it matches the given gender or can be compatibly modified to
             # the new gender. Return False if genders incompatible (and
             # issue a warning if WARNING_ON_FALSE), else modify existing
-            # gender if needed, and return "changed" if anything modified,
-            # otherwise "nochange". (E.g. existing "p" matches new "m-p" and
-            # will be modified; existing "m-p" matches new "p" and will be
-            # left alone; existing "p-pr" matches new "m-p" and will be
-            # modified to "m-p-pr". Similar checks are done for the second
-            # gender. We don't currently handle the situation where e.g. the
-            # existing gender is both "m-p" and "f-p" and the new gender is
-            # "f-p" and "m-p" in reverse order. To handle that, we would
-            # need to sort both sets of genders by some criterion.)
+            # gender if needed, and return True. (E.g. existing "p" matches
+            # new "m-p" and will be modified; existing "m-p" matches new "p"
+            # and will be left alone; existing "p-pr" matches new "m-p" and
+            # will be modified to "m-p-pr". Similar checks are done for the
+            # second gender. We don't currently handle the situation where
+            # e.g. the existing gender is both "m-p" and "f-p" and the new
+            # gender is "f-p" and "m-p" in reverse order. To handle that,
+            # we would need to sort both sets of genders by some criterion.)
             def check_fix_gender(headword_template, gender, warning_on_false):
               defgender = is_plural and "p" or ""
               def gender_compatible(existing, new):
@@ -599,7 +603,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 return '-'.join([x for x in [new_mf, defgender, new_pr] if x])
 
               if len(gender) == 0:
-                return "nochange"
+                return True # "nochange"
               existing_gender = getparam(headword_template, "2")
               existing_gender2 = getparam(headword_template, "g2")
               assert(len(gender) == 1 or len(gender) == 2)
@@ -630,7 +634,55 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 subsections[j] = unicode(parsed)
                 sections[i] = ''.join(subsections)
                 notes.append("updated gender")
-              return changed and "changed" or "nochange"
+              return True # changed and "changed" or "nochange"
+
+            # Update the gender in HEADWORD_TEMPLATE according to GENDER
+            # (which might be empty, meaning no updating) using
+            # check_fix_gender(). Also update any other parameters in
+            # HEADWORD_TEMPLATE according to PARAMS. Return False and issue
+            # a warning if we're unable to update (meaning a parameter
+            # we wanted to set already existed in HEADWORD_TEMPLATE with a
+            # different value); else return True. If changes were made,
+            # an appropriate note will be added to 'notes' and the
+            # section and subsection text updated.
+            def check_fix_infl_params(headword_template, params, gender,
+                warning_on_false):
+              if gender:
+                if not check_fix_gender(headword_template, params,
+                    warning_on_false):
+                  return False
+                # Don't try to further process the gender params that we
+                # already processed.
+                params = [(param, value) for param, value in params
+                    if param not in ["2", "g2"]]
+              # First check that we can update params before changing anything
+              for param, value in params:
+                existing = reorder_shadda(getparam(headword_template, param))
+                value = reorder_shadda(value)
+                assert(value)
+                if existing == value:
+                  pass
+                elif existing:
+                  pagemsg("%sCan't modify %s from %s to %s" % (
+                      "WARNING: " if warning_on_false else "",
+                      param, existing, value))
+                  return False
+              # Now update params
+              changed = False
+              for param, value in params:
+                existing = reorder_shadda(getparam(headword_template, param))
+                value = reorder_shadda(value)
+                assert(value)
+                if existing:
+                  assert(existing == value)
+                else:
+                  headword_template.add(param, value)
+                  changed = True
+                  notes.append("updated %s=%s" % (param, value))
+              if changed:
+                subsections[j] = unicode(parsed)
+                sections[i] = ''.join(subsections)
+              return True
 
             if (infl_headword_templates and len(approx_defn_templates) == 1
                 and not must_match_exactly):
@@ -666,10 +718,9 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   pagemsg("Exists and has Arabic section and found %s already in it"
                       % (infltype))
 
-                # First, if we have gender, update gender and make sure
-                # we can do it
-                if not gender or check_fix_gender(infl_headword_template,
-                    gender, True):
+                # First, make sure we can update infl params as needed.
+                if check_fix_infl_params(infl_headword_template,
+                    infltemp_params, gender, True):
                   # Replace existing infl with new one
                   if len(inflection) > len(existing_infl):
                     pagemsg("Updating existing %s %s with %s" %
@@ -774,12 +825,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
               # Else, not verb form.
               else:
-                # If gender present, set appropriately. Even if we can't
-                # set the gender, do nothing since we already have found
-                # an entry with same inflection and definition; but we will
-                # output a warning.
-                if gender:
-                  check_fix_gender(infl_headword_template, gender, True)
+                # Fix gender and other inflection params. Even if we can't
+                # set them appropriately, do nothing since we already have
+                # found an entry with same inflection and definition; but we
+                # will output a warning.
+                check_fix_infl_params(infl_headword_template,
+                    infltemp_params, gender, True)
                 # "Do nothing", but set a comment, in case we made a template
                 # change like updating i3rab or changing gender.
                 comment = "Already found entry: %s %s, %s %s" % (
@@ -819,11 +870,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                       )).endswith(IYYAH):
                     pagemsg("Not inserting %s defn into noun ending in -iyya, probably an abstract noun" % infltype)
                   else:
-                    # If we have gender, also make sure we can set the
-                    # gender appropriately. If not, we will end up checking
-                    # for more entries and maybe adding an entirely new entry.
-                    if not gender or check_fix_gender(infl_headword_template,
-                        gender, False):
+                    # Make sure we can set the gender and other inflection
+                    # parameters appropriately. If not, we will end up
+                    # checking for more entries and maybe adding an entirely
+                    # new entry.
+                    if check_fix_infl_params(infl_headword_template,
+                        infltemp_params, gender, False):
                       subsections[j] = unicode(parsed)
                       # If there's already a defn line present, insert after
                       # any such defn lines. Else, insert at beginning.
@@ -1165,12 +1217,12 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
       if singgender2:
           gender.append(pluralize_gender(singgender2))
   if not gender:
-    genderparam = ""
+    genderparam = []
   elif len(gender) == 1:
-    genderparam = "|%s" % gender[0]
+    genderparam = [("2", gender[0])]
   else:
     assert(len(gender) == 2)
-    genderparam = "|%s|g2=%s" % (gender[0], gender[1])
+    genderparam = [("2", gender[0]), ("g2", gender[1])]
 
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "plural", "singular", "ar-noun-pl", genderparam, "plural of", "|lang=ar",
@@ -1179,12 +1231,12 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
 def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "plural", "singular", "ar-adj-pl", "", "masculine plural of", "|lang=ar")
+      "plural", "singular", "ar-adj-pl", [], "masculine plural of", "|lang=ar")
 
 def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
 
-  plparams = ""
+  plparams = []
 
   # Output a message include page name and inflection/lemma
   def pagemsg(text):
@@ -1197,10 +1249,10 @@ def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
   # lemma template, or inferred from the inflection by substituting -a with
   # -āt.
   if getparam(template, "fpl"):
-    plparams += "|pl=%s" % getparam(template, "fpl")
+    plparams.append(("pl", getparam(template, "fpl")))
     fpltr = getparam(template, "fpltr")
     if fpltr:
-      plparams += "|pltr=%s" % fpltr
+      plparams.append(("pltr", fpltr))
     i = 2
     while True:
       fplparam = "fpl%s" % i
@@ -1208,10 +1260,10 @@ def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
       fpl = getparam(template, fplparam)
       if not fpl:
         break
-      plparams += "|%s=%s" % (plparam, fpl)
+      plparams.append((plparam, fpl))
       fpltr = getparam(template, fplparam + "tr")
       if fpltr:
-        plparams += "|%s=%s" % (plparam + "tr", fpltr)
+        plparams.append((plparam + "tr", fpltr))
       i += 1
   else:
     inflection = reorder_shadda(inflection)
@@ -1223,21 +1275,27 @@ def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
       pagemsg("WARNING: Translit feminine does not end in -a")
     else:
       fpl = re.sub(AH + "$", AAT, inflection)
-      plparams += "|pl=%s" % fpl
+      plparams.append(("pl", fpl))
       if infltr:
         fpltr = re.sub("a$", u"āt", infltr)
-        plparams += "|pltr=%s" % fpltr
+        plparams.append(("pltr", fpltr))
+
+  # Now construct gender and inflection params
+  gender = ["f-pr" if personal else "f"]
+  inflparams = [("2", gender[0])]
+  inflparams.append(("m", lemma))
+  if lemmatr:
+    inflparams.append(("mtr", lemmatr))
+  inflparams += plparams
 
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "feminine", "masculine", "ar-noun",
-      "|f%s|m=%s%s%s" % ("-pr" if personal else "",
-        lemma, lemmatr and "|mtr=%s" % lemmatr or "", plparams),
-      "feminine of", "|lang=ar", gender=["f-pr" if personal else "f"])
+      "feminine", "masculine", "ar-noun", inflparams,
+      "feminine of", "|lang=ar", gender=gender)
 
 def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
-      "feminine", "masculine", "ar-adj-fem", "", "feminine of", "|lang=ar")
+      "feminine", "masculine", "ar-adj-fem", [], "feminine of", "|lang=ar")
 
 # Create inflection entries for POS (the part of speech, which should be
 # capitalized, e.g "Noun") by looking for inflections in the parameter
@@ -1476,7 +1534,7 @@ def create_verbal_noun(save, index, vn, form, page, template, uncertain):
         gender = ""
     elif personal:
       gender += "-np"
-    genderparam = "|%s" % gender if gender else ""
+    genderparam = [("2", gender)] if gender else []
 
     defparam = "|form=%s%s" % (form, uncertain and "|uncertain=yes" or "")
     create_inflection_entry(save, index, vn, None, dicform, None, "Noun",
@@ -1510,7 +1568,7 @@ def create_participle(save, index, part, page, template, actpass, apshort):
     form = re.sub("-.*$", "", getparam(template, "1"))
     create_inflection_entry(save, index, part, None, dicform, None, "Participle",
       "%s participle" % actpass, "dictionary form",
-      "ar-%s-participle" % apshort, "|" + form,
+      "ar-%s-participle" % apshort, [("2", form)],
       "%s participle of" % actpass, "|lang=ar")
 
 def create_participles(save, startFrom, upTo):
@@ -1595,7 +1653,7 @@ def create_verb_part(save, index, page, template, dicform, passive,
     for part in parts:
       create_inflection_entry(save, index, part, None, dicform, None, "Verb",
         "verb part %s" % partid, "dictionary form",
-        "ar-verb-form", "|" + form,
+        "ar-verb-form", [("2", form)],
         "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
 # Parse a part spec, one or more parts separated by commas. Each part spec
@@ -1811,7 +1869,7 @@ def create_elatives(save, elfile, startFrom, upTo):
       key = lambda x: x[1]):
     defn_text, elative, arpositives = current
     create_inflection_entry(save, index, elative, None, arpositives[0], None,
-      "Adjective", "elative", "positive", "ar-adj", "", "elative of",
+      "Adjective", "elative", "positive", "ar-adj", [], "elative of",
       "|lang=ar", entrytext=defn_text)
     for arpositive in arpositives:
       def add_elative_param(page, index, text):
