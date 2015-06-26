@@ -556,12 +556,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     pagemsg("WARNING: Something wrong, new plural gender %s does not have 'p' in it" % new)
                     return False
                 else:
-                  assert is_vn
+                  assert is_vn or is_feminine
                   if re.search(r"\bp\b", existing):
-                    pagemsg("WARNING: Something wrong, existing vn gender %s has 'p' in it" % existing)
+                    pagemsg("WARNING: Something wrong, existing vn/fem gender %s has 'p' in it" % existing)
                     return False
                   if re.search(r"\bp\b", new):
-                    pagemsg("WARNING: Something wrong, new vn gender %s has 'p' in it" % new)
+                    pagemsg("WARNING: Something wrong, new vn/fem gender %s has 'p' in it" % new)
                     return False
                 m = re.search(r"\b([mf])\b", existing)
                 existing_mf = m and m.group(1)
@@ -883,7 +883,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     "^===+(Noun|Adjective)===+", subsections[j - 1]):
                   parsed = blib.parse_text(subsections[j])
                   for t in parsed.filter_templates():
-                    if section_to_insert_after(t):
+                    if is_section_to_insert_after(t):
                       insert_at = j + 1
             if insert_at:
               pagemsg("Found section to insert %s after: [[%s]]" % (
@@ -1118,8 +1118,8 @@ def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
     # personal noun, unless it's a short plural like قُرُون plural
     # of وَرْن "horn" or سِنُون plural of سَنَة "hour".
     singgender = getparam(template, "2")
-    lemma = do_remove_i3rab(reorder_shadda(lemma))
-    inflection = do_remove_i3rab(reorder_shadda(inflection))
+    lemma = do_remove_i3rab("singular", reorder_shadda(lemma))
+    inflection = do_remove_i3rab("plural", reorder_shadda(inflection))
     if inflection.endswith(UUN) and len(inflection) <= 6:
       pagemsg(u"Short -ūn plural, not treating as personal plural")
     elif inflection.endswith(UUN) or inflection.endswith(UUNA):
@@ -1167,6 +1167,8 @@ def create_adj_plural(save, index, inflection, infltr, lemma, lemmatr,
 def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
 
+  plparams = ""
+
   # Output a message include page name and inflection/lemma
   def pagemsg(text):
     msg("Page %s %s: %s: feminine %s%s, masculine %s%s" % (
@@ -1209,12 +1211,11 @@ def create_noun_feminine(save, index, inflection, infltr, lemma, lemmatr,
         fpltr = re.sub("a$", u"āt", infltr)
         plparams += "|pltr=%s" % fpltr
 
-
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-noun",
       "|f%s|m=%s%s%s" % ("-pr" if personal else "",
         lemma, lemmatr and "|mtr=%s" % lemmatr or "", plparams),
-      "feminine of", "|lang=ar", gender="f-pr")
+      "feminine of", "|lang=ar", gender=["f-pr" if personal else "f"])
 
 def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
