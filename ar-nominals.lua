@@ -280,6 +280,7 @@ end
 -- restrict modifiers to a particular state, case or number.
 function parse_state_etc_spec(data, args)
 	data.omitarticle = args["omitarticle"]
+	data.noirreg = args["noirreg"]
 
 	local function check(arg, allvalues)
 		if args[arg] and not contains(allvalues, args[arg]) then
@@ -401,7 +402,7 @@ function handle_lemma_and_overrides(data, args)
 				for _, case in ipairs(data.allcases) do
 					local arg = mod .. case .. "_" .. numgen .. "_" .. state
 					handle_override(arg)
-					if args[arg] then
+					if args[arg] and not data.noirreg then
 						insert_cat(data, mod, numgen,
 							"Arabic NOUNs with irregular SINGULAR",
 							"SINGULAR of irregular NOUN")
