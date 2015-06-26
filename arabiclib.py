@@ -53,6 +53,7 @@ AATUN = AAT + UN
 IYAH = I + Y + AH
 AYAAT = AY + AAT
 IYAAT = IY + AAT
+IYYAH = IY + SH + AH
 
 def remove_diacritics(word):
   return re.sub(DIACRITIC_ANY, "", word)

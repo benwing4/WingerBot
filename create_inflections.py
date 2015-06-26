@@ -145,7 +145,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   is_verb_part = infltype.startswith("verb part")
   is_plural = infltype == "plural"
   is_feminine = infltype == "feminine"
-  is_plural_noun = infltype == "plural" and pos == "Noun"
+  is_plural_noun = is_plural and pos == "Noun"
+  is_feminine_noun = is_feminine and pos == "Noun"
   is_plural_or_fem = is_plural or is_feminine
   vn_or_participle = is_vn or is_participle
   lemma_is_verb = is_verb_part or vn_or_participle
@@ -807,6 +808,10 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   # (or participle) alternants.
                   if getparam(infl_headword_template, "head2"):
                     pagemsg("Inflection template has multiple heads, not inserting %s defn into it" % (infltype))
+                  elif is_feminine_noun and reorder_shadda(getparam(
+                      infl_headword_template, infl_headword_matching_param
+                      )).endswith(IYYAH):
+                    pagemsg("Not inserting %s defn into noun ending in -iyya, probably an abstract noun" % infltype)
                   else:
                     # If we have gender, also make sure we can set the
                     # gender appropriately. If not, we will end up checking
