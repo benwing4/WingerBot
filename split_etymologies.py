@@ -20,12 +20,13 @@ import blib, pywikibot
 from blib import msg, getparam
 from arabiclib import *
 
-def split_one_page_etymologies(page, index, pagetext):
+def split_one_page_etymologies(page, index, pagetext, verbose):
 
   # Fetch pagename, create pagemsg() fn to output msg with page name included
   pagename = page.title()
+  pagetext = unicode(pagetext)
   def pagemsg(text):
-    msg("Page %s %s: %s" % (index, pagename, pagetext))
+    msg("Page %s %s: %s" % (index, pagename, text))
 
   comment = None
   notes = []
@@ -91,7 +92,7 @@ def split_one_page_etymologies(page, index, pagetext):
       for etymsection in etymsections:
         subsections = re.split("(^===[^=\n]+=+\n)", etymsection, 0, re.M)
         if len(subsections) < 2:
-          pagemsg("WARNING: Page missing any entries")
+          pagemsg("WARNING: Section missing any entries")
         split_sections = []
         next_split_section = 0
         def append_section(k):
@@ -220,6 +221,8 @@ def split_one_page_etymologies(page, index, pagetext):
       else:
         sections[i] = sechead
 
+      break
+
   # End of loop over sections in existing page; rejoin sections
   newtext = pagehead + ''.join(sections) + pagetail
 
@@ -247,8 +250,10 @@ def split_one_page_etymologies(page, index, pagetext):
   return pagetext, comment
 
 def split_etymologies(save, verbose, startFrom, upTo):
+  def split_page_etymologies(page, index, pagetext):
+    return split_one_page_etymologies(page, index, pagetext, verbose)
   for page, index in blib.cat_articles("Arabic lemmas", startFrom, upTo):
-    blib.do_edit(page, index, split_one_page_etymologies, save=save,
+    blib.do_edit(page, index, split_page_etymologies, save=save,
         verbose=verbose)
 
 pa = blib.init_argparser("Split etymology sections")
