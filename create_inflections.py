@@ -91,7 +91,7 @@ lemma_inflection_counts = {}
 # appropriate to only certain inflectional types. LEMMATYPE is e.g.
 # "singular", "masculine" or "dictionary form" and is used in messages.
 # INFLTEMP is the headword template for the inflected-word entry (e.g.
-# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). INFLTEMP_PARAM is a parameter
+# "ar-noun-pl", "ar-adj-pl" or "ar-adj-fem"). INFLTEMP_PARAMS is a parameter
 # or parameters to add to the created INFLTEMP template, and should be a list
 # of (PARAM, VALUE) tuples, e.g. '[("2", "f"), ("pl", "sfp")]', in the order
 # they should appear in the newly created inflection template. DEFTEMP is
@@ -106,8 +106,8 @@ lemma_inflection_counts = {}
 # GENDER is specified, the gender parameters should also be present in
 # ِINFLTEMP_PARAM. GENDER is used to update the gender in existing entries.)
 def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
-    pos, infltype, lemmatype, infltemp, infltemp_param, deftemp,
-    deftemp_param, entrytext=None, gender=None):
+    pos, infltype, lemmatype, infltemp, infltemp_params, deftemp,
+    deftemp_params, entrytext=None, gender=None):
 
   # Did we insert an entry or find an existing one? If not, we need to
   # add a new one. If we break out of the loop through subsections of the
@@ -121,12 +121,6 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   # template often has links in it when the form is multiword.
   lemma = remove_links(lemma)
   inflection = remove_links(inflection)
-
-  # This can happen e.g. with words like جَرِيح "wounded" where the feminine
-  # is the same as the masculine.
-  if reorder_shadda(lemma) == reorder_shadda(inflection):
-    pagemsg("WARNING: Inflection same as lemma, not creating entry")
-    return
 
   # Fetch pagename, create pagemsg() fn to output msg with page name included
   pagename = remove_diacritics(inflection)
@@ -152,14 +146,14 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   is_plural_or_fem = is_plural or is_feminine
   lemma_is_verb = is_verb_part or is_vn or is_participle
 
-  infltemp_param_str = ''.join([
+  infltemp_params_str = ''.join([
     "|%s" % value if re.match("^[0-9]+$", param) else "|%s=%s" % (param, value)
-    for param, value in infltemp_param])
+    for param, value in infltemp_params])
 
   if is_verb_part:
-    # assert infltemp_param is as we expect, 2=FORM
-    assert(len(infltemp_param) == 1 and infltemp_param[0][0] == "2")
-    verb_part_form = infltemp_param[0][1]
+    # assert infltemp_params is as we expect, 2=FORM
+    assert(len(infltemp_params) == 1 and infltemp_params[0][0] == "2")
+    verb_part_form = infltemp_params[0][1]
     assert(len(verb_part_form) > 0 and verb_part_form[0] in ["I", "V", "X"])
     verb_part_inserted_defn = False
 
@@ -168,6 +162,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
   if inflection == "-":
     pagemsg("Not creating entry '-'")
+    return
+
+  # This can happen e.g. with words like جَرِيح "wounded" where the feminine
+  # is the same as the masculine.
+  if reorder_shadda(lemma) == reorder_shadda(inflection):
+    pagemsg("WARNING: Inflection same as lemma, not creating entry")
     return
 
   # Prepare to create page
@@ -232,6 +232,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     return template_head_match_info(template, form,
         require_exact_match)[2]
 
+  custom_entrytext = entrytext
+
   # Prepare parts of new entry to insert
   if entrytext:
     entrytextl4 = re.sub("^==(.*?)==$", r"===\1===", entrytext, 0, re.M)
@@ -244,11 +246,11 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     # when creating verb parts or participles.
     new_headword_template_prefix = "%s|%s" % (infltemp, inflection)
     new_headword_template = "{{%s%s%s}}" % (new_headword_template_prefix,
-        infltemp_param_str, "|tr=%s" % infltr if infltr else "")
+        infltemp_params_str, "|tr=%s" % infltr if infltr else "")
     new_defn_template = "{{%s|%s%s%s}}" % (
       deftemp, lemma,
       "|tr=%s" % lemmatr if lemmatr else "",
-      deftemp_param)
+      deftemp_params)
     newposbody = """%s
 
 # %s
@@ -648,7 +650,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             def check_fix_infl_params(headword_template, params, gender,
                 warning_on_false):
               if gender:
-                if not check_fix_gender(headword_template, params,
+                if not check_fix_gender(headword_template, gender,
                     warning_on_false):
                   return False
                 # Don't try to further process the gender params that we
@@ -865,10 +867,18 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   # (or participle) alternants.
                   if getparam(infl_headword_template, "head2"):
                     pagemsg("Inflection template has multiple heads, not inserting %s defn into it" % (infltype))
+                  # Don't insert defn in feminine nouns that end in -iyya,
+                  # because they're probably abstract nouns with different
+                  # etymology.
                   elif is_feminine_noun and reorder_shadda(getparam(
                       infl_headword_template, infl_headword_matching_param
                       )).endswith(IYYAH):
                     pagemsg("Not inserting %s defn into noun ending in -iyya, probably an abstract noun" % infltype)
+                  # If there's custom entry text (for elatives), we can't
+                  # just insert a definition because the entry is more
+                  # complicated.
+                  elif custom_entrytext:
+                    pagemsg("Custom entry supplied, not inserting %s defn into existing entry" % infltype)
                   else:
                     # Make sure we can set the gender and other inflection
                     # parameters appropriately. If not, we will end up
@@ -1885,20 +1895,20 @@ def create_elatives(save, elfile, startFrom, upTo):
           if template.name in ["ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an"]:
             if reorder_shadda(getparam(template, "1")) != reorder_shadda(arpositive):
               pagemsg("Skipping, found adjective template with wrong positive, expecting %s: %s" % (
-                  arpositive, template))
+                  arpositive, unicode(template)))
               continue
             found_positive = True
             existingel = getparam(template, "el")
             if existingel:
               if reorder_shadda(existingel) == reorder_shadda(elative):
                 pagemsg("Skipping template with elative already in it: %s" % (
-                    template))
+                    unicode(template)))
               else:
                 pagemsg("Strange, template has elative already in it but not expected %s: %s" % (
-                    elative, template))
+                    elative, unicode(template)))
             else:
               pagemsg("Adding elative %s to template: %s" % (
-                elative, template))
+                elative, unicode(template)))
               template.add("el", elative)
         if not found_positive:
           pagemsg("WARNING, positive %s not found for elative %s (page exists but couldn't find appropriate template)" % (
