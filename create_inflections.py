@@ -876,8 +876,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   t.name == "ar-verb" and re.sub("-.*$", "", getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)])
             else:
               assert is_plural_or_fem
-              return (t.name in ["ar-noun-pl", "ar-adj-pl", "ar-noun-fem",
-                  "ar-adj-fem", "ar-coll-noun"] and
+              return (t.name in ["ar-noun", "ar-noun-pl", "ar-adj-pl",
+                  "ar-noun-fem", "ar-adj-fem", "ar-coll-noun"] and
                   template_head_matches(t, inflection,
                     require_exact_match=True))
 
