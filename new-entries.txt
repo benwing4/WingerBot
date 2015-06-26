@@ -512,7 +512,856 @@ From {{etyl|ar|fa}}.
 ====References====
 * {{R:ar:Wehr-4|وحد}}
 
+أزرق
 
+==Arabic==
+
+===Etymology===
+{{ar-color/defect adjective}} from the root {{ar-root|ز|ر|ق}}.
+
+===Pronunciation===
+* {{audio|Ar-أزرق.ogg|Audio|lang=ar}}
+
+===Adjective===
+{{ar-adj|أَزْرَق|f=زَرْقَاء|cpl=زُرْق}}
+
+# {{l|en|blue|gloss=blue-colored}}
+
+====Declension====
+{{ar-decl-adj|أَزْرَق:cd}}
+
+[[Category:ar:Colors]]
+
+أخضر
+
+==Arabic==
+
+===Etymology===
+{{ar-color/defect adjective}} from root {{ar-root|خ|ض|ر}}.
+
+===Pronunciation===
+* {{audio|Ar-أخضر.ogg|Audio|lang=ar}}
+
+===Adjective===
+{{ar-adj|أَخْضَر|f=خَضْرَاء|cpl=خُضْر}}
+
+# {{l|en|green|gloss=having green as its color}}
+
+====Declension====
+{{ar-decl-adj|أَخْضَر:cd}}
+
+[[Category:ar:Colors]]
+
+أحمر
+
+==Arabic==
+
+===Etymology===
+{{ar-color/defect adjective}} from the root {{ar-root|ح|م|ر}}.
+
+===Pronunciation===
+* {{audio|Ar-أحمر.ogg|Audio|lang=ar}}
+
+===Adjective===
+{{ar-adj|أَحْمَر|f=حَمْرَاء|cpl=حُمْر|cpl2=أَحَامِر}}
+
+# [[red]]
+# non-[[Arab]]s, white-skinned people, [[Persians]] and [[Romans]]
+#: {{lang|ar|"بعثت إلى الأسود والأحمر"}}
+#:: "buʿiṯtu ʾilā al-ʾAswad wal-ʾAḥmar"
+
+====Declension====
+{{ar-decl-adj|أَحْمَر:cd|pl=حُمْر|pl2=أَحَامِر|fpl=حُمْر|fpl2=أَحَامِر}}
+
+====Antonyms====
+* {{sense|non-Arab, white-skinned}} {{l|ar|أَسْوَد}}
+
+[[Category:ar:Colors]]
+
+أصفر
+
+==Arabic==
+
+===Etymology 1===
+{{ar-color/defect adjective}} from the root {{ar-root|ص|ف|ر}}.
+
+====Pronunciation====
+* {{audio|Ar-أصفر.ogg|Audio|lang=ar}}
+
+====Adjective====
+{{ar-adj|أَصْفَر|f=صَفْرَاء|cpl=صُفْر}}
+
+# {{l|en|yellow|gloss=having yellow as its color}}
+
+=====Declension=====
+{{ar-decl-adj|أَصْفَر:cd}}
+
+[[Category:ar:Colors]]
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb|IV}}
+
+# to [[empty]], to [[void]], to [[vacate]], to [[evacuate]], to [[free]]
+
+=====Conjugation=====
+{{ar-conj|IV}}
+
+
+
+
+Template:ar-adj-color
+
+Remove remaining refs to it and delete.
+
+Template:ar-color/defect adjective
+
+Do null save.
+
+اقتصادي
+
+{{also|اقتصادی}}
+
+==Arabic==
+
+===Etymology===
+From {{suffix|اِقْتِصَاد|t1=[[economy]]|ِيّ|tr2=-iyy|lang=ar}}.
+
+===Adjective===
+{{ar-nisba|اِقْتِصَادِيّ}}
+
+# [[economic]]
+
+====Declension====
+{{ar-decl-adj|اِقْتِصَادِيّ|pl=smp}}
+
+[[fa:اقتصادي]]
+[[ps:اقتصادي]]
+[[pl:اقتصادي]]
+
+
+نقطتان
+
+==Arabic==
+
+===Noun===
+{{ar-noun-dual|نُقْطَتَان}}
+
+# {{dual of|نُقْطَة|lang=ar|gloss=[[point]]}}
+
+===Noun===
+{{ar-noun|نُقْطَتَان|f-d}}
+
+# {{context|punctuation mark|lang=ar}} [[colon]], " {{lang|ar|:}} "
+
+====Declension====
+{{ar-decl-noun|-|d=نُقْطَتَان}}
+
+====Synonyms====
+* {{l|ar|شارحة}}
+
+[[Category:ar:Punctuation marks]]
+
+[[mg:نقطتان]]
+[[pl:نقطتان]]
+
+
+غشاء البكارة
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Etymology===
+Literally, "membrane of virginity".
+
+===Noun===
+{{ar-noun|[[غِشَاء]] [[بكارَة|اَلْبَكَارَة]]|m|pl=أَغْشِيَة اَلْبَكَارَة|pltr=ʾaḡšiyat al-bakāra}}
+
+# {{context|anatomy|lang=ar}} [[hymen]]
+
+====Declension====
+{{ar-decl-noun|غِشَاء|pl=أَغْشِيَة|mod=بَكَارَة|state=con|modstate=def|modcase=gen|modnumber=sg}}
+
+[[Category:Arabic definite nouns]]
+
+[[mg:غشاء البكارة]]
+[[ja:غشاء البكارة]]
+
+واجهة برمجة التطبيقات
+
+==Arabic==
+
+===Etymology===
+Literally "application programming front" (even more literally, "front of the programming of the applications"). {{m|ar|وَاجِهَة||[[front]], [[exposure]]}} has the meaning "interface" in conjunction with {{m|ar|بَرْمَجَة||[[programming]]}.
+
+===Noun===
+{{ar-noun|[[وَاجِهَة]] [[بَرْمَجَة]] [[تَطْبِيق|التَطْبِيقَات]]|f|tr=wājihat barmajat at-taṭbīqāt|pl=وَاجِهَات بَرْمَجَة التَطْبِيقَات|pltr=wājihāt barmajat at-taṭbīqāt}}
+
+# [[application programming interface]]
+
+====Declension====
+In fully declined Arabic, {{m|ar||وَاجِهَهَةُ بَرْمَجَةِ التَطْبِيقَاتِ}}. Both {{m|ar|بَرْمَجَة}} and {{m|ar|التَطْبِيقَات}} are genitival modifiers in ''ʾiḍāfa'' constructions, and both {{m|ar|وَاجِهَة}} and {{m|ar|بَرْمَجَة}} are in the construct state. Hence, only the first word varies with the case of the expression.
+
+[[Category:Arabic definite nouns]]
+[[Category:ar:Computing]] 
+[[Category:ar:Programming]]
+
+صنف
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ص|ن|ف}}, related to sorting.
+
+===Verb===
+{{ar-verb|II}}
+
+# to [[sort]], [[classify]], or [[categorize]] something
+# to [[compile]] or [[compose]]
+
+====Conjugation====
+{{ar-conj|II}}
+
+===Noun===
+{{ar-noun|صِنْف|m|pl=صُنُوف}} ''or'' 
+{{ar-noun|صَنْف|m|pl=أَصْنَاف}}
+
+# [[kind]], [[sort]], [[specimen]]
+# [[class]], [[genus]], [[species]], [[category]]
+
+====Declension====
+{{ar-decl-noun|صِنْف|pl=صُنُوف}}
+{{ar-decl-noun|صَنْف|pl=أَصْنَاف}}
+
+----
+
+==Persian==
+
+===Etymology===
+From {{etyl|ar|fa}} {{term|صنف|tr=ṣinf|lang=ar}}.
+
+===Noun===
+{{fa-noun|tr=senf}}
+
+# {{context|Dari|lang=fa}} [[class]]
+
+
+غدة بصلية إحليلية
+
+==Arabic==
+
+===Etymology===
+Literally "bulbous urethral gland", composed of {{m|ar|غُدَّة||[[gland]]}}, {{m|ar|بَصَلِيّ||[[bulbous]]}} ([[nisba]] of {{m|ar|بَصَل||[[onions]]}}) and {{m|ar|إِحْلِيلِيّ||[[urethral]]}} ([[nisba]] of {{m|ar|إِحْلِيل||[[urethra]]}}.
+
+===Noun===
+{{ar-noun|[[غُدّة]] [[بَصَلِيّ|بَصَلِيّة]] [[إحْلِيلِيّ|إحْلِيلِيّة]]|f|tr=ḡudda baṣaliyya ʾiḥlīliyya|pl=غُدَد بَصَلِيَّة إِحْلِيلِيَة|pltr=ḡudad baṣaliyya ʾiḥlīliyya}}
+
+# {{context|anatomy|lang=ar}} [[bulbourethral gland]]
+
+====Declension====
+In fully declined Arabic, {{m|ar||غُدَّةُ بَصَلِيّةُ إِحْلِيلِيَّةُ}}. Both modifiers are adjectival and all three words vary according to the case of the phrase.
+
+حسبان
+
+==Arabic==
+
+===Etymology 1===
+
+====Noun====
+{{ar-noun|حِسْبَان|m|pl=حِسْبَانَات}}
+
+# {{ar-verbal noun of|حَسِبَ|form=I}}
+# {{ar-verbal noun of|حَسَبَ|form=I}}
+# [[numbering]], [[counting]], [[reckoning]]
+# [[calculation]], [[computation]]
+# [[supposition]], [[surmise]]
+# [[esteem]], [[estimation]]
+
+=====Declension=====
+{{ar-decl-noun|حِسْبَان|pl=حِسْبَانَات}}
+
+=====References=====
+* {{R:ar:Lane|حسب}}
+* {{R:ar:Steingass}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|حُسْبَان|m|pl=حُسْبَانَات}}
+
+# {{ar-verbal noun of|حَسَبَ|form=I}}
+# [[numbering]], [[counting]], [[reckoning]]
+# [[calculation]], [[computation]]
+# [[supposition]], [[surmise]]
+# [[esteem]], [[estimation]]
+
+=====Declension=====
+{{ar-decl-noun|حُسْبَان|pl=حُسْبَانَات}}
+
+=====References=====
+* {{R:ar:Lane|حسب}}
+* {{R:ar:Steingass}}
+
+===Etymology 3===
+
+====Noun====
+{{ar-noun-pl|حُسْبَان}}
+
+# {{plural of|حِسَاب|lang=ar}}
+
+رئاسة
+
+==Arabic==
+
+===Noun===
+{{ar-noun|رِئَاسَة|f}}
+
+# {{ar-verbal noun of|رَأَسَ|form=I}}
+# [[ruling]], [[governing]]
+# [[leadership]], [[chairmanship]]
+# [[presidency]]
+# [[dominion]], [[command]]
+# [[princeliness]]
+# [[ecclesiastical]] [[government]] {{i|opposed to {{m|ar|سِيَاسَة||[[political]] [[government]]}}}}
+
+====Declension====
+{{ar-decl-noun|رِئَاسَة}}
+
+====References====
+* {{R:ar:Haywood}} <!-- defs "leadership, chairmanship" -->
+* {{R:ar:Steingass}}
+
+ملاحظة
+
+==Arabic==
+
+===Pronunciation===
+* {{audio|Ar-ملاحظة.ogg|Audio|lang=ar}}
+
+===Noun===
+{{ar-noun|مُلَاحَظَة|f|pl=مُلَاحَظَات}}
+
+# {{ar-verbal noun of|لَاحَظَ|form=III}}
+# [[noticing]]
+# [[observation]]
+
+====Declension====
+{{ar-decl-noun|مُلَاحَظَة|pl=مُلَاحَظَات}}
+
+====References====
+* {{R:ar:Wehr-4}}
+
+سلطة
+
+==Arabic==
+
+===Etymology 1===
+
+====Noun====
+{{ar-noun|سُلْطَة|f|pl=سُلُطَات|pl2=سُلَط}}
+
+# [[power]], [[strength]]
+# [[authority]]
+# [[influence]], [[jurisdiction]]
+# {{lb|ar|plural}} the [[authorities]]
+
+=====Declension=====
+{{ar-decl-noun|سُلْطَة|pl=سُلُطَات|pl2=سُلَط}}
+
+=====References=====
+* {{R:ar:Haywood}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|سَلَطَة|f}}
+
+# [[salad]]
+
+=====Declension=====
+{{ar-decl-noun|سَلَطَة}}
+
+صناعة
+جد
+
+change "Noun" into Declension and check header level
+
+نفط
+
+==Arabic==
+
+===Noun===
+{{ar-noun|نَفْط|m}}
+
+# [[oil]], [[petroleum]], [[naphtha]]
+
+====Declension====
+{{ar-decl-noun|نَفْط}}
+
+====References====
+* {{R:ar:Wehr-4|نفط}}
+
+شرطي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|شُرْطَة|[[police]]}}.
+
+===Noun===
+{{ar-noun-nisba|شُرْطِيّ}} <br />
+{{ar-noun-nisba|شُرَطِيّ}}
+
+# [[policeman]], [[police officer]]
+
+====Declension====
+{{ar-decl-gendered-noun|شُرْطِيّ|head2=شُرَطِيّ|pl=smp}}
+
+====References====
+* {{R:ar:Lane}}
+* {{R:ar:Wehr-4}}
+
+أيسر
+
+==Arabic==
+
+===Etymology===
+{{ar-elative}} of {{m|ar|يَسِير||[[easy]], [[small]], [[wealthy]]}}, from the root {{ar-root|ي س ر}}.
+
+===Adjective===
+{{ar-adj|أَيْسَر|f=يُسْرَى}}
+
+# {{elative of|يَسِير|lang=ar}}:
+## [[easier]]; [[easiest]]
+## [[smaller]]; [[smaller]]
+## [[lesser]]
+## [[wealthier]]; [[wealthiest]]
+# [[left]], [[left-handed]], [[left]]-[[sided]]
+
+====Declension====
+{{ar-decl-adj|أَيْسَر|f=يُسْرَى}}
+
+المار ذكره
+
+==Arabic==
+
+===Etymology===
+Literally "the (thing) passing by, its mention", composed of {{term|مارّ|lang=ar||[[passing]], [[going]] [[past]]}} + {{m|ar|ذِكْر||[[mention]]}} + {{m|ar||ـهُ|its}}.
+
+===Adjective===
+{{ar-adj|ٱلْمَارّ ذِكْرُهُ}}
+
+# the [[above-mentioned]], what has already been discussed
+
+====Declension====
+{{ar-decl-adj|المَارّ ذِجْرُهُ|noirreg=1|state=def|m_nom_sg_def=المَارُّ ذِجْرُهُ|m_acc_sg_def=المَارَّ ذِجْرَهُ|m_gen_sg_def=المَارّ ذِجْرِهِ|f_nom_sg_def=المَارَّةُ ذِجْرُهَا|m_acc_sg_def=المَارَّةَ ذِجْرَهَا|m_gen_sg_def=المَارَّةِ ذِجْرِهَا}}
+
+
+Module:ar-nominals
+
+Copy code into module, check use of cpl= and tr=, check noirreg= in above declension, document cpl=, tr= and noirreg= in Module:ar-nominals/documentation.
+
+أقرب
+
+==Arabic==
+
+===Etymology===
+{{ar-elative}} of {{m|ar|قَرِيب||[[near]]}}, from the root {{ar-root|ق ر ب}}.
+
+===Adjective===
+{{ar-adj|أَقْرَب|f=قُرْبَى|pl=أَقْرَبُون|pl2=أَقَارِب}}
+
+# {{elative of|قَرِيب|lang=ar}}:
+## [[nearer]]; [[nearest]]
+##: {{ux|ar|أَقْرَبُون|[[near]] [[relations]]|inline=t}}
+##: {{ux|ar|أَقَارِب|[[near]] [[relations]]|inline=t}}
+<!-- ## more [[probable]]; most [[probable]] -- not in Wehr or Lane
+## [[lovelier]]; [[loveliest]]
+-->
+====Declension====
+{{ar-decl-adj|أَقْرَب|f=قُرْبَى|pl=أَقْرَبُون|pl2=أَقَارِب}}
+
+====References====
+* {{R:ar:Steingass}}
+
+بلهاء
+
+==Arabic==
+
+===Noun===
+{{ar-noun|بَلْهَاء|f|m=أَبْلَه|pl=بُلْه}}
+
+# {{feminine of|أَبْلَه|lang=ar}}
+
+حمقاء
+
+==Arabic==
+
+===Noun===
+{{ar-noun|حَمْقَاء|f|m=أَحْمَق|pl=حُمْق}}
+
+# {{feminine of|أَحْمَق|lang=ar}}
+
+حسن
+
+...
+
+===Etymology 3===
+From the root {{ar-root|ح|س|ن}}.
+
+====Noun====
+{{ar-noun|حُسْن|m}}
+
+# {{ar-verbal noun of|حَسُنَ|form=I}}
+# [[goodness]]
+# [[prettiness]], [[beauty]], [[loveliness]], [[shapeliness]], [[comeliness]], [[gorgeousness]], [[pulchritude]]
+# [[handsomeness]]
+# [[charm]], [[charms]], [[glamor]]
+# [[glory]]
+# [[nicety]], [[fineness]], [[grace]], [[gracefulness]], [[foppery]]
+# [[fineness]], [[efficiency]], [[efficacy]]
+
+=====Declension=====
+{{ar-decl-noun|حُسْن}}
+
+...
+
+زوج
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ز|و|ج}}.
+
+====Pronunciation====
+* {{audio|Ar-زوج.ogg|Audio|lang=ar}}
+
+====Noun====
+{{ar-noun|زَوْج|m|f=زَوْجَة|pl=أَزْوَاج}}
+
+# one of a pair
+# [[husband]], [[wife]], [[mate]], [[partner]]
+# [[couple]], [[pair]]
+
+=====Declension=====
+{{ar-decl-noun|زَوْج|pl=أَزْوَاج}}
+
+=====Synonyms=====
+* {{l|ar|اِثْنَان}}
+
+[[Category:ar:Family]]
+
+...
+
+
+زوجة
+
+==Arabic==
+
+===Pronunciation===
+* {{IPA|[zɛ̈ʊd͡ʒæ]|lang=ar}}
+* {{audio|Ar-زوجة.ogg|Audio|lang=ar}}
+
+===Etymology===
+From the root {{ar-root|ز|و|ج}}.
+
+===Noun===
+{{ar-noun|زَوْجَة|f|pl=زَوْجَات}}
+
+# {{feminine of|lang=ar|زَوْج||[[husband]], one of a [[pair]]}}:
+## [[wife]]
+
+====Declension====
+{{ar-decl-noun|زَوْجَة|pl=زَوْجَات}}
+
+====Related terms====
+{{rel-top}}
+* {{l|ar|اِزْدِوَاج||[[doubleness]]}}
+* {{l|ar|تَزَاوَجَ||to [[intermarry]]}}
+* {{l|ar|تَزَاوُج||[[intermarriage]]}}
+* {{l|ar|تَزَوَّجَ||to get [[married]]}}
+* {{l|ar|تَزَوُّج||[[marriage]]}}
+* {{l|ar|زَوَّجَ||to [[couple]], to [[double]], to [[marry off]]}}
+* {{l|ar|تَزْوِيج||[[marrying]] off}}
+* {{l|ar|زَوَاج||[[marriage]], [[wedding]]}}
+* {{l|ar|زِوَاج||[[duplication]]}}
+* {{l|ar|زَوْج||[[husband]], [[partner]], [[pair]]}}
+* {{l|ar|زَوْجِيّ||[[paired]], [[double]], [[marital]]}}
+* {{l|ar|زَوْجِيَّة||[[marriage]]}}
+* {{l|ar|زِيجَة||[[marriage]], [[wedding]]}}
+* {{l|ar|زِيجِيّ||[[marital]]}}
+* {{l|ar|مُتَزَوِّج||[[married]]}}
+* {{l|ar|مُزَاوَجَة||[[coupling]], [[pairing]]}}
+* {{l|ar|مُزْدَوِج||[[double]]}}
+* {{l|ar|مِزْوَاج||[[frequently]] [[marrying]]}}
+{{rel-bottom}}
+
+[[Category:ar:Family]]
+
+إنسانية
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba-a|إِنْسَانِيّ|[[human]], [[humane]]}}.
+
+====Noun====
+{{ar-noun|إِنْسَانِيَّة|f}}
+
+# [[humanity]]
+# [[humanism]]
+# [[politeness]]
+# [[mankind]]
+
+=====Declension=====
+{{ar-decl-noun|إِنْسَانِيَّة}}
+
+=====References=====
+* {{R:ar:Wehr-4|انس}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|إِنْسَانِيَّة|f|m=إِنْسَانِيّ|pl=إِنْسَانِيَّات}}
+
+# {{feminine of|إِنْسَانِيّ|lang=ar||[[humanist]], [[humanitarian]], [[philanthropist]]}}
+
+=====Declension=====
+{{ar-decl-noun|إِنْسَانِيَّة|pl=sfp}}
+
+أخت
+
+==Arabic==
+
+===Etymology===
+From {{etyl|sem-pro|ar}} {{m|sem-pro|*ʾaḫwat-}}; feminine of {{m|ar|أَخ|gloss=[[brother]]}}.
+
+===Pronunciation===
+* {{audio|Ar-أخت.ogg|Audio|lang=ar}}
+
+===Noun===
+{{ar-noun|أُخْت|f|m=أَخ|pl=أَخَوَات}}
+
+# {{feminine of|أَخ|lang=ar||[[brother]]}}:
+## [[sister]]
+# [[sibling]]
+
+====Declension====
+{{ar-decl-noun|أُخْت|f|pl=أَخَوَات}}
+
+====Related terms====
+* {{l|ar|أَخ}}
+
+[[Category:ar:Family]]
+
+
+أرضية
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-iyya|أَرْض|[[earth]], [[ground]]}}.
+
+====Pronunciation====
+* {{audio|Ar-أرضية.ogg|Audio|lang=ar}}
+
+====Noun====
+{{ar-noun|أَرْضِيَّة|f|pl=أَرْضِيَّات}}
+
+# {{l|en|floor|gloss=lower part of a room}}
+
+=====Declension=====
+{{ar-decl-noun|أَرْضِيَّة|pl=أَرْضِيَّات}}
+
+===Etymology 2===
+
+====Pronunciation====
+* {{audio|Ar-أرضية.ogg|Audio|lang=ar}}
+
+====Noun====
+{{ar-noun|أَرْضِيَّة|f|m=أَرْضِيّ|pl=أَرْضِيَّات}}
+
+# {{feminine of|أَرْضِيّ|lang=ar||[[Terran]], [[Earthling]]}}
+
+=====Declension=====
+{{ar-decl-noun|أَرْضِيَّة|pl=sfp}}
+
+اجتماعية
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba-a|اِجْتِمَاعِيّ|[[socialist]]}}.
+
+====Noun====
+{{ar-noun|اِجْتِمَاعِيَّة|f}}
+
+# [[socialism]]
+
+=====Declension=====
+{{ar-decl-noun|اِجْتِمَاعِيَّة}}
+
+=====Synonyms=====
+* {{l|ar|اِشْتِرَاكِيَّة}}
+
+=====References=====
+* {{R:ar:Wehr-4|جمع}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|اِجْتِمَاعِيَّة|f|m=اِجْتِمَاعِيّ|pl=اِجْتِمَاعِيَّات}}
+
+# {{feminine of|اِجْتِمَاعِيّ|lang=ar||[[socialist]]}}
+
+=====Declension=====
+{{ar-decl-noun|اِجْتِمَاعِيَّة|pl=sfp}}
+
+اشتراكية
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Etymology 1===
+{{ar-etym-nisba-a|اِشْتِرَاكِيّ|[[socialist]]}}.
+
+====Noun====
+{{ar-noun|اِشْتِرَاكِيَّة|f}}
+
+# [[socialism]]
+
+=====Declension=====
+{{ar-decl-noun|اِشْتِرَاكِيَّة}}
+
+===Etymology 2===
+Feminine of {{m|ar|اِشْتِرَاكِيّ||[[socialist]]}}.
+
+====Adjective====
+{{ar-adj-fem|اِشْتِرَاكِيَّة}}
+
+# {{feminine of|اِشْتِرَاكِيّ|lang=ar||[[socialist]]}}
+
+====Noun====
+{{ar-noun|اِشْتِرَاكِيَّة|f|m=اِشْتِرَاكِيّ|pl=اِشْتِرَاكِيَّات}}
+
+# {{feminine of|اِشْتِرَاكِيّ|lang=ar||[[socialist]]}}
+
+=====Declension=====
+{{ar-decl-noun|اِشْتِرَاكِيَّة|pl=sfp}}
+
+[[Category:ar:Socialism]]
+
+إيطالية
+
+==Arabic==
+
+===Etymology 1===
+From {{m|it|Italia}}.
+
+===Noun===
+{{ar-noun|إِيطَالِيَّة|f}}
+
+# {{lbl|ar|obsolete}} {{alternative form of|إِيطَالِيَا|lang=ar||[[Italy]]}}
+
+====Declension====
+{{ar-decl-noun|إِيطَالِيَّة}}
+
+===Etymology 2===
+Feminine inflected form.
+
+====Adjective====
+{{ar-adj-fem|إِيطَالِيَّة}}
+
+# {{feminine of|إِيطَالِيّ|lang=ar||[[Italian]]}}
+
+====Noun====
+{{ar-noun|إِيطَالِيَّة|f|m=إِيطَالِيّ|pl=إِيطَالِيَّات}}
+
+# {{feminine of|إِيطَالِيّ|lang=ar||[[Italian]]}}
+
+====Declension====
+{{ar-decl-noun|إِيطَالِيَّة|pl=sfp}}
+
+روسية
+
+==Arabic==
+
+===Adjective===
+{{ar-adj-fem|رُوسِيّة}}
+
+# {{feminine of|رُوسِيّ|lang=ar||[[Russian]]}}
+#:* {{l|ar|الرُوسِيّة}} — ''the Russian language''
+
+===See also===
+* {{l|ar|الرُوس}}
+* {{l|ar|رُوسِيَا}}
+
+===Noun===
+{{ar-noun|رُوسِيَّة|f|m=رُوسِيّ|pl=رُوسِيَّات}}
+
+# {{feminine of|رُوسِيّ|lang=ar||[[Russian]]}}
+
+====Declension====
+{{ar-decl-noun|رُوسِيَّة|pl=sfp}}
+
+جعزية
+
+==Arabic==
+
+===Adjective===
+{{ar-adj-fem|جَعْزِيَّة}}
+
+# {{feminine of|جَعْزِيّ|lang=ar||[[Ge'ez]]}}
+
+جعزي
+
+==Arabic==
+
+===Adjective===
+{{ar-nisba|جَعْزِيّ}}
+
+# [[Ge'ez]]
+
+====Declension====
+{{ar-decl-adj|جَعْزِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|جَعْزِيّ}}
+
+# [[Ge'ez]]
+
+====Declension====
+{{ar-decl-gendered-noun|جَعْزِيّ|pl=smp}}
+
+مارونية
+
+==Arabic==
+
+===Adjective===
+{{ar-adj-fem|مَارُونِيَّة}}
+
+# {{feminine of|مَارُونِيّ|lang=ar||[[Maronite]]}}
+
+ماروني
+
+==Arabic==
+
+===Adjective===
+{{ar-nisba|مَارُونِيّ}}
+
+# [[Maronite]]
+
+====Declension====
+{{ar-decl-adj|مَارُونِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|مَارُونِيّ}}
+
+# [[Maronite]]
+
+====Declension====
+{{ar-decl-gendered-noun|مَارُونِيّ|pl=smp}}
 
 
 EXISTS, CLEANUP ETYM, ADD FEM/DECL cheap رَخِيص from ر خ ص
