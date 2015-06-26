@@ -311,29 +311,35 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
         subsections = re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M)
 
-        # If verbal noun, convert existing ===Verbal noun=== headers into
-        # ===Noun===.
-        if is_vn:
-          for j in xrange(len(subsections)):
-            if j > 0 and (j % 2) == 0:
-              if re.match("^===+Verbal noun===+", subsections[j - 1]):
-                subsections[j - 1] = re.sub("(===+)Verbal noun(===+)",
-                    r"\1Noun\2", subsections[j - 1])
-                pagemsg("Converting 'Verbal noun' section header to 'Noun'")
-                notes.append("converted 'Verbal noun' section header to 'Noun'")
-              sections[i] = ''.join(subsections)
+        # Convert existing ===Verbal noun=== headers into ===Noun===,
+        # ===Adjective form=== into ===Adjective=== and
+        # ===Noun form=== into ===Noun===.
+        for j in xrange(1, len(subsections), 2):
+          for frompos, topos in [("Verbal noun", "Noun"),
+              ("Adjective form", "Adjective"), ("Noun form", "Noun")]:
+            if re.match("^===+%s===+" % frompos, subsections[j]):
+              subsections[j] = re.sub("(===+)%s(===+)" % frompos,
+                  r"\1%s\2" % topos, subsections[j])
+              pagemsg("Converting '%s' section header to '%s'" %
+                  (frompos, topos))
+              notes.append("converted '%s' section header to '%s'" %
+                  (frompos, topos))
+            sections[i] = ''.join(subsections)
 
-        # If verbal noun or participle, check for an existing entry matching
-        # the headword and defn. If so, don't do anything. We need to do this
-        # because otherwise we might have a situation with two entries for a
-        # given noun (or participle) and the second one having an appropriate
-        # defn, and when we encounter the first one we see it doesn't have a
-        # defn and go ahead and insert it, which we don't want to do.
+        # If verbal noun or participle or feminine noun, check for an existing
+        # entry matching the headword and defn. If so, don't do anything. We
+        # need to do this because otherwise we might have a situation with two
+        # entries for a given noun (or participle) and the second one having
+        # an appropriate defn, and when we encounter the first one we see it
+        # doesn't have a defn and go ahead and insert it, which we don't want
+        # to do.
         #
         # Also count number of entries for given noun (or participle). If
         # none have a defn and there's more than one, we don't know which one
         # to insert the defn into, so issue a warning and punt.
-        if vn_or_participle:
+        #
+        # FIXME: Should we do this check for all lemma/inflection types?
+        if is_vn or is_participle or is_feminine_noun:
           num_matching_headword_templates = 0
           found_matching_headword_and_defn_templates = False
           for j in xrange(len(subsections)):
