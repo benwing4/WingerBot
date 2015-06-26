@@ -81,10 +81,13 @@ plural_genders = ["p", "m-p", "f-p"]
 # when creating the declension template. Parameters that are all alphabetic
 # are expanded so that e.g. "f" will also remove parameters named
 # "f2", "f3", "f4", etc. and "ftr", "f2tr", "f3tr", etc.
-def create_declension(page, save, pos, tempname, decltempname, sgnum,
+def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
     removeparams):
   pagename = page.title()
   comments = []
+
+  def pgmsg(text):
+    msg("Page %s %s: %s" % (index, pagename, text))
 
   # Starts with definite article al-
   def starts_with_al(text):
@@ -133,7 +136,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
   for seci in xrange(len(sections)):
     m = re.match("^==([^=\n]+)==$", sections[seci], re.M)
     if not m:
-      msg("Page %s: Can't find language name in text: [[%s]]" % (pagename, sections[seci]))
+      pgmsg("Can't find language name in text: [[%s]]" % (sections[seci]))
     elif m.group(1) == "Arabic":
       # Extract off trailing separator
       mm = re.match(r"^(.*?\n+)(--+\n*)$", sections[seci], re.S)
@@ -163,7 +166,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
           parsed = blib.parse_text(reorder_shadda(subsections[j]))
 
           def pagemsg(text):
-            msg("Page %s: %s: [[%s]]" % (pagename, text, subsections[j]))
+            pgmsg("%s: [[%s]]" % (text, subsections[j]))
 
           # Check for various conditions causing us to skip this entry and
           # not try to add a declension table
@@ -188,7 +191,9 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
           # Retrieve headword_template, make sure exactly one and it is the right type
           headword_templates = [temp for temp in parsed.filter_templates() if temp.name in
               ["ar-noun", "ar-proper noun", "ar-coll-noun", "ar-sing-noun",
-                "ar-verbal noun", "ar-adj", "ar-nisba", "ar-noun-nisba",
+                "ar-noun-pl", "ar-noun-dual", "ar-adj-fem", "ar-adj-pl",
+                "ar-noun-inf-cons", "ar-adj-inf-def",
+                "ar-adj-dual", "ar-adj", "ar-nisba", "ar-noun-nisba",
                 "ar-adj-sound", "ar-adj-in", "ar-adj-an"]]
           if len(headword_templates) == 0:
             pagemsg("WARNING: Can't find headword template in text, skipping")
@@ -198,7 +203,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             continue
           headword_template = headword_templates[0]
           if headword_template.name != tempname:
-            pagemsg("WARNING: Headword template should be '%s' but is '%s', skipping" % (tempname, headword_template.name))
+            pagemsg("Headword template should be '%s' but is '%s', skipping" % (tempname, headword_template.name))
             continue
           def getp(param):
             return getparam(headword_template, param)
@@ -497,7 +502,7 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
           def remove_i3rab(param):
             text = unicode(param)
             if text.endswith(UN):
-              msg("Page %s: Removing i3rab from %s: %s" % (pagename, text,
+              pgmsg("Removing i3rab from %s: %s" % (text,
                 unicode(headword_template)))
               add_note("removing i3rab")
             return re.sub(UN + "$", "", text)
@@ -516,14 +521,14 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
             # to signal the strong masculine plural.
             if arabic.endswith("=+"):
               newarabic = re.sub(r"=\+$", "=smp", arabic)
-              msg("Page %s: Converting %s to %s: %s" % (pagename, arabic,
+              pgmsg("Converting %s to %s: %s" % (arabic,
                 newarabic, unicode(headword_template)))
               arabic = newarabic
             # Value of - is used in ar-adj-in to signal an unknown
             # feminine plural.
             if arabic.endswith("=-"):
               newarabic = re.sub(r"=-$", "=?", arabic)
-              msg("Page %s: Converting %s to %s: %s" % (pagename, arabic,
+              pgmsg("Converting %s to %s: %s" % (arabic,
                 newarabic, unicode(headword_template)))
               arabic = newarabic
             # Don't process translit in modifier constructions, where the
@@ -581,8 +586,8 @@ def create_declension(page, save, pos, tempname, decltempname, sgnum,
 
 def create_declensions(save, pos, tempname, decltempname, sgnum,
     startFrom, upTo, removeparams):
-  for page in blib.references("Template:%s" % tempname, startFrom, upTo):
-    create_declension(page, save, pos, tempname, decltempname, sgnum,
+  for page, index in blib.references("Template:%s" % tempname, startFrom, upTo):
+    create_declension(page, index, save, pos, tempname, decltempname, sgnum,
         removeparams)
 
 pa = blib.init_argparser("Create Arabic declensions")
@@ -625,8 +630,6 @@ non_gendered_params_to_remove = params_to_remove + [
 ]
 
 create_declensions(params.save, "Noun", "ar-noun", "ar-decl-noun",
-    "sg", startFrom, upTo, non_gendered_params_to_remove)
-create_declensions(params.save, "Verbal noun", "ar-verbal noun", "ar-decl-noun",
     "sg", startFrom, upTo, non_gendered_params_to_remove)
 create_declensions(params.save, "Noun", "ar-coll-noun", "ar-decl-coll-noun",
     "coll", startFrom, upTo, non_gendered_params_to_remove)
