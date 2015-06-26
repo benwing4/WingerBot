@@ -120,6 +120,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
   lemma = remove_links(lemma)
   inflection = remove_links(inflection)
 
+  # This can happen e.g. with words like جَرِيح "wounded" where the feminine
+  # is the same as the masculine.
+  if reorder_shadda(lemma) == reorder_shadda(inflection):
+    pagemsg("WARNING: Inflection same as lemma, not creating entry")
+    return
+
   # Fetch pagename, create pagemsg() fn to output msg with page name included
   pagename = remove_diacritics(inflection)
   def pagemsg(text, simple = False):
