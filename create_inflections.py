@@ -931,39 +931,73 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
           # If verb part, try to find an existing verb section corresponding
           # to the same verb or another verb of the same conjugation form
-          # (either the lemma of the verb or another non-lemma form).
-          # When looking at the lemma of the verb, make sure both the
-          # conjugation form and the consonants match so we don't end up
-          # e.g. matching non-past yasurr (from sarra) with yasara, but
-          # we do match up forms from faʿala and faʿila.
-          # Insert after the last such one.
+          # (either the lemma of the verb or another non-lemma form) whose
+          # lemma has the same consonants as the lemma of the verb part in
+          # question. That way we do match up e.g. passive kutiba with active
+          # kataba (or kutiba passive of kataba with katiba, if necessary),
+          # but we don't match up non-past yasurru (from form I sarra) with
+          # lemma verb entry (ar-verb) form I yasara, or match up non-past
+          # yaruddu (from form I radda) with non-past verb part (ar-verb-form)
+          # yaridu (from form I warada).) When looking at ar-verb, do a
+          # template call to fetch the dictionary forms (lemma forms). When
+          # looking at ar-verb-form, only the conjugation class is in the
+          # template; the lemma is contained in a definition template, which
+          # we check for.
           #
-          # Similarly, if plural or feminine, try to find an existing noun or
-          # adjective form with the same headword to insert after.
-          # Insert after the last such one.
-
-          def is_section_to_insert_after(j):
-            if is_verb_part:
-              return (t.name == deftemp and compare_param(t, "1", lemma) or
-                  t.name == infltemp and (not t.has("2") or compare_param(t, "2", verb_part_form)) or
-                  t.name == "ar-verb" and re.sub("-.*$", "", getparam(t, "1")) == verb_part_form and remove_diacritics(lemma) in [remove_diacritics(dicform) for dicform in get_dicform_all(page, t)])
-            else:
-              assert is_plural_or_fem
-              return (t.name in ["ar-noun", "ar-noun-pl", "ar-adj-pl",
-                  "ar-noun-fem", "ar-adj-fem", "ar-coll-noun"] and
-                  template_head_matches(t, inflection,
-                    require_exact_match=True))
+          # Insert after the last such verb section.
+          #
+          # Similarly, if plural or feminine, try to find a section with an
+          # existing noun or noun form or adjective form with the same
+          # headword to insert after. Insert after the last such one.
 
           if is_verb_part or is_plural_or_fem:
-            insert_at = None
-            for j in xrange(len(subsections)):
-              if j > 0 and (j % 2) == 0:
+            def is_section_to_insert_after(t, defn_templates):
+              if is_verb_part:
+                # Check for ar-verb whose dictionary form matches the
+                # verb part's lemma in its consonants. See above.
+                if (t.name == "ar-verb" and
+                    re.sub("-.*$", "", getparam(t, "1")) == verb_part_form and
+                    remove_diacritics(lemma) in [remove_diacritics(dicform)
+                      for dicform in get_dicform_all(page, t)]):
+                  return True
+                # Similar check for ar-verb-form; in this case we need to
+                # look at the associated defn templates.
+                return (t.name == infltemp and
+                    compare_param(t, "2", verb_part_form) and
+                    [d for d in defn_templates if
+                      remove_diacritics(lemma) == remove_diacritics(getparam(d,
+                        "1"))])
+              else:
+                assert is_plural_or_fem
+                # For feminine nouns and adjectives, don't insert after section
+                # for nouns that ends in -iyya, because they're probably
+                # abstract nouns with different etymology -- unless there's
+                # a defn, in which case it's probably a feminine inflection.
+                if (is_feminine and t.name == "ar-noun" and
+                    reorder_shadda(getparam(t, "1")).endswith(IYYAH) and
+                    not [d for d in defn_templates
+                      # Unclear if we need this comparison.
+                      if compare_param(d, "1", lemma)]):
+                  return False
+                return (t.name in ["ar-noun", "ar-noun-pl", "ar-adj-pl",
+                    "ar-noun-fem", "ar-adj-fem", "ar-coll-noun"] and
+                    template_head_matches(t, inflection,
+                      require_exact_match=True))
+
+            def section_to_insert_after():
+              insert_at = None
+              for j in xrange(2, len(subsections), 2):
                 if re.match("^===+Verb===+" if is_verb_part else
                     "^===+(Noun|Adjective)===+", subsections[j - 1]):
                   parsed = blib.parse_text(subsections[j])
+                  defn_templates = [t for t in parsed.filter_templates()
+                      if t.name == deftemp]
                   for t in parsed.filter_templates():
-                    if is_section_to_insert_after(t):
+                    if is_section_to_insert_after(t, defn_templates):
                       insert_at = j + 1
+              return insert_at
+
+            insert_at = section_to_insert_after()
             if insert_at:
               pagemsg("Found section to insert %s after: [[%s]]" % (
                   infltype, subsections[insert_at - 1]))
