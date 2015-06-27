@@ -1209,6 +1209,12 @@ From {{etyl|sem-pro|ar}} {{m|sem-pro|*ʾaḫwat-}}; feminine of {{m|ar|أَخ|gl
 * {{R:ar:Wehr-4|جمع}}
 
 ===Etymology 2===
+Feminine inflected form.
+
+====Adjective====
+{{ar-adj-fem|اِجْتِمَاعِيَّة}}
+
+# {{feminine of|اِجْتِمَاعِيّ|lang=ar||[[socialist]]}}
 
 ====Noun====
 {{ar-noun|اِجْتِمَاعِيَّة|f|m=اِجْتِمَاعِيّ|pl=اِجْتِمَاعِيَّات}}
@@ -1235,7 +1241,7 @@ From {{etyl|sem-pro|ar}} {{m|sem-pro|*ʾaḫwat-}}; feminine of {{m|ar|أَخ|gl
 {{ar-decl-noun|اِشْتِرَاكِيَّة}}
 
 ===Etymology 2===
-Feminine of {{m|ar|اِشْتِرَاكِيّ||[[socialist]]}}.
+Feminine inflected form.
 
 ====Adjective====
 {{ar-adj-fem|اِشْتِرَاكِيَّة}}
@@ -1278,32 +1284,61 @@ Feminine inflected form.
 ====Noun====
 {{ar-noun|إِيطَالِيَّة|f|m=إِيطَالِيّ|pl=إِيطَالِيَّات}}
 
-# {{feminine of|إِيطَالِيّ|lang=ar||[[Italian]]}}
+# {{feminine of|إِيطَالِيّ|lang=ar||[[Italian]]}}:
+## [[Italian]] [[woman]]
 
 ====Declension====
 {{ar-decl-noun|إِيطَالِيَّة|pl=sfp}}
+
+===Etymology 3===
+Short for {{m|ar||لُغَة إِيطَالِيَّة||[Italian]] [[language]]}}.
+
+====Noun====
+{{ar-noun|إِيطَالِيَّة|f}}
+
+# {{lb|usually definite}} [[Italian]] [[language]]
+
+[[Category:ar:Languages]]
+
+روسية
+
+
+First, check why this page (page 2376) has new ar-noun entry in new Etymology instead of adding next to same one.
+
 
 روسية
 
 ==Arabic==
 
-===Adjective===
+===Etymology 1===
+
+====Adjective====
 {{ar-adj-fem|رُوسِيّة}}
 
 # {{feminine of|رُوسِيّ|lang=ar||[[Russian]]}}
-#:* {{l|ar|الرُوسِيّة}} — ''the Russian language''
 
-===See also===
-* {{l|ar|الرُوس}}
-* {{l|ar|رُوسِيَا}}
-
-===Noun===
+====Noun====
 {{ar-noun|رُوسِيَّة|f|m=رُوسِيّ|pl=رُوسِيَّات}}
 
-# {{feminine of|رُوسِيّ|lang=ar||[[Russian]]}}
+# {{feminine of|رُوسِيّ|lang=ar||[[Russian]]}}:
+## [[Russian woman]]
 
-====Declension====
+=====Declension=====
 {{ar-decl-noun|رُوسِيَّة|pl=sfp}}
+
+=====See also=====
+* {{l|ar|الرُوس||the [[Russians]]}}
+* {{l|ar|رُوسِيَا||[[Russia]]}}
+
+===Etymology 2===
+Short for {{m|ar||لُغَة رُوسِيَّة||[[Russian]] [[language]]}}.
+
+====Noun====
+{{ar-noun|رُوسِيَّة|f}}
+
+# {{lb|usually definite}} [[Russian]] [[language]]
+
+[[Category:ar:Languages]]
 
 جعزية
 
@@ -1362,6 +1397,769 @@ Feminine inflected form.
 
 ====Declension====
 {{ar-decl-gendered-noun|مَارُونِيّ|pl=smp}}
+
+
+بنت
+
+==Arabic==
+
+===Etymology===
+From {{etyl|sem-pro|ar}} {{m|sem-pro|*bint-}}. Has the Semitic feminine suffix {{m|sem-pro||*-t}} added to the root {{m|sem-pro||*b-n}} of {{m|ar|إبْن||[[son]]}}.
+
+===Noun===
+{{ar-noun|بِنْت|f|pl=بَنَات|m=اِبْن}}
+
+# {{feminine of|اِبْن|lang=ar||[[son]], [[descendant]]}}:
+## [[daughter]]
+## female [[descendant]]
+# [[girl]]
+# [[queen]]
+
+====Declension====
+{{ar-decl-noun|بِنْت|pl=بَنَات}}
+
+====Synonyms====
+* {{l|ar|اِبْنَة}}
+
+====Derived terms====
+* {{l|ar|بِنْت لَا قسم}}
+
+خالة
+
+{{also|خاله}}
+
+==Arabic==
+
+===Noun===
+{{ar-noun|خَالَة|f|pl=خَالَات|m=خَال}}
+
+# {{feminine of|خَال|lang=ar||[[maternal]] [[uncle]]}}:
+## {{l|en|maternal aunt|gloss=sister of one's mother}}
+
+====Declension====
+{{ar-decl-noun|خَالَة|pl=sfp}}
+
+[[Category:ar:Family]]
+
+سيدة
+
+==Arabic==
+
+===Etymology===
+Feminine of {{m|ar|سَيِّد||[[master]], [[sir]], [[generous]]}}.
+
+===Noun===
+{{ar-noun|سَيِّدَة|f|pl=سَيِّدَات|m=سَيِّد}}
+
+# {{feminine of|سَيِّد|lang=ar||[[master]], [[sir]]}}:
+## [[mistress]], [[princess]]
+## [[madam]], [[lady]] {{i|lang=ar|title of address}}
+## [[Mrs.]]
+## [[Syeda]] {{i|lang=ar|[[title]] of a [[female]] [[descendant]] of [[Mohammed]]}}
+
+====Declension====
+{{ar-decl-noun|سَيِّدَة|f|pl=سَيِّدَات}}
+
+====References====
+* {{R:ar:Steingass}}
+
+===Adjective===
+{{ar-adj-fem|سَيِّدَة}}
+
+# {{feminine of|سَيِّد|lang=ar||[[generous]], [[noble]]}}
+
+صبية
+
+==Arabic==
+
+===Etymology 1===
+
+====Noun====
+{{ar-noun|صَبِيَّة|f|m=صَبِيّ|pl=صَبَايَا}}
+
+# {{feminine of|صَبِيّ|lang=ar||[[boy]], [[servant]]}}:
+## [[girl]], [[young]] [[woman]]
+
+=====Declension=====
+{{ar-decl-noun|صَبِيَّة|pl=صَبَايَا}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun-pl|صَبْيَة|head2=صِبْيَة}}
+
+# {{plural of|صَبِيّ|lang=ar}}
+
+ضائن
+
+==Arabic==
+
+===Noun===
+{{ar-noun|ضَائِنَة|f|pl=ضَوَائِن|m=ضَائِن}}
+
+# {{feminine of|ضَائِن|lang=ar||[[male]] [[sheep]]}}:
+## a female [[sheep]], a [[ewe]]
+
+====Declension====
+{{ar-decl-noun|ضَائِنَة|pl=ضَوَائِن}}
+
+====Synonyms====
+* {{l|ar|شَاة}}
+
+====References====
+* {{R:ar:Lane|ضأن}}
+
+فرنسية
+
+==Arabic==
+
+===Etymology 1===
+
+====Adjective====
+{{ar-adj-fem|فَرَنْسِيَّة}}
+
+# {{feminine of|فَرَنْسِيّ|lang=ar||[[French]]}}
+
+====Noun====
+{{ar-noun|فَرَنْسِيَّة|f|m=فَرَنْسِيّ|pl=فَرَنْسِيَّات}}
+
+# {{feminine of|فَرَنْسِيّ|lang=ar||[[Frenchman]]}}:
+## [[French]] [[woman]], [[French]] [[girl]]
+
+=====Related terms=====
+*{{l|ar|فرنس}}
+*{{l|ar|فَرَنْسَا||[[France]]}}
+*{{l|ar|فَرَنْسَاوِيّ||[[French]]}}
+*{{l|ar|فرنسي}}
+*{{l|ar|فرنسيس}}
+
+===Etymology 2===
+Short for {{m|ar||لُغَة فَرَنْسِيَّة||[[French]] [[language]]}}.
+
+====Noun====
+{{ar-noun|فَرَنْسِيَّة|f}}
+
+# {{lb|usually definite}} [[French]] [[language]]
+
+=====Declension=====
+{{ar-decl-noun|فَرَنْسِيَّة}}
+
+[[Category:ar:Languages]]
+
+
+عبرية
+
+===Etymology 1===
+
+====Adjective====
+{{ar-adj-fem|عِبْرِيَّة}}
+
+# {{feminine of|عِبْرِيّ|lang=ar||[[Hebrew]]}}
+
+====Noun====
+{{ar-noun|عِبْرِيَّة|f|m=عِبْرِيّ|pl=عِبْرِيَّات}}
+
+# {{feminine of|عِبْرِيّ|lang=ar||[[Hebrew]] man}}:
+## [[Hebrew]] [[woman]]
+
+===Etymology 2===
+Short for {{m|ar||لُغَة عِبْرِيَّة||[[Hebrew]] [[language]]}}.
+
+====Noun====
+{{ar-noun|عِبْرِيَّة|f}}
+
+# {{lb|usually definite}} [[Hebrew]] [[language]]
+
+=====Declension=====
+{{ar-decl-noun|عِبْرِيَّة}}
+
+[[Category:ar:Languages]]
+
+ماعزة
+
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|م ع ز}}.
+
+===Noun===
+{{ar-noun|مَاعِزَة|f|m=مَاعِز|pl=مَوَاعِز}}
+
+# {{feminine of|مَاعِز|lang=ar||[[male]] [[goat]], [[billy goat]]}}:
+## [[female]] [[goat]], [[nanny goat]]
+
+====Declension====
+{{ar-decl-noun|مَاعِزَة|pl=مَوَاعِز}}
+
+====References====
+* {{R:ar:Lane}}
+
+[[Category:ar:Mammals]]
+
+والد
+
+==Arabic==
+
+===Etymology===
+From {{ar-root|و|ل|د}}.
+
+===Noun===
+{{ar-noun|وَالِدَة|f|pl=وَالِدَات|m=وَالِد}}
+
+# {{feminine of|وَالِد|lang=ar||[[father]]}}:
+## [[mother]]
+
+====Declension====
+{{ar-decl-noun|وَالِدَة|pl=وَالِدَات}}
+
+====Synonyms====
+* {{l|ar|أُمّ}}
+
+====Antonyms====
+* {{l|ar|وَالِد}}, {{l|ar|أَب}}
+
+[[Category:ar:Family]]
+
+
+دنيا
+
+{{also|دۇنيا|دنیا}}
+==Arabic==
+
+===Etymology===
+Feminine elative of {{m|ar|أَدْنَى||[[lower]]}}. {{m|ar|دُنيَا||[[world]]}} was originally the "lower place" (as opposed to heaven, the "higher place").
+
+===Adjective===
+{{ar-adj-fem|دُنْيَا}}
+
+# {{feminine of|أَدْنَى|lang=ar||[[lower]]}}
+
+===Noun===
+{{ar-noun|دُنْيَا|f|pl=دُنًى}}
+
+# [[world]]
+# [[kingdom]]
+# [[universe]]
+
+====Declension====
+{{ar-decl-noun|دُنْيَا|pl=دُنًى}}
+
+====Descendants====
+{{top2}}
+* Albanian: {{l|sq|dynja}}
+* Azeri: {{l|az|dünya}}
+* Bashkir: {{l|ba|донъя}}
+* Bengali: {{l|bn|দুনিয়া|tr=duniya}}
+* Dhivehi: {{l|dv|ދުނިޔެ|tr=duniye}}
+* French: {{l|fr|dunya}}
+* Greek: {{l|grc|Δούνιας|tr=Dounias}}
+* Gujarati: {{l|gu|દુનિયા|tr=duniyā}}
+* Hausa: {{l|ha|duniya}}
+* Hindustani:
+** Fiji Hindi: {{l|hif|dunia}}
+** Hindi: {{l|hi|दुनिया|tr=duniyā}}
+** Urdu: {{l|ur|دنیا|tr=duniyā}}
+* Kabyle: {{l|kab|ddunit}}
+* Kazakh: {{l|kk|дүние|tr=dünïye}}
+* Kurdish:
+*: Kurmanji: {{l|ku|dinya}}
+*: Sorani: {{l|ckb|دنیا|tr=dinya}}
+*: Laki: {{l|lki|دنیا|tr=dinya}}
+* Kyrgyz: {{l|ky|дүйнө|tr=düynö}}
+* Macedonian: {{l|mk|дуња}}
+{{mid2}}
+* Malayan (Old Malay):
+** Karo Batak: {{l|btx|doni}}
+** Javanese: {{l|jv|donya}}
+** Indonesian: {{l|id|dunia}}
+** Malay: {{l|ms|dunia}}
+** Minangkabau: {{l|min|dunia}}
+** Sasak: {{l|sas|dunie}}
+** Sundanese: {{l|su|dunya}}
+* Maltese: {{l|mt|dinja}}
+* Marathi: {{l|mr|दुनिया|tr=duniyā}}
+* Nepali: {{l|ne|दुनिया|tr=duniyā}}
+* Ottoman Turkish: {{l|ota|دنیا}}
+* Pashto: {{l|ps|دنيا|tr=dunyā}}
+* Persian: {{l|fa|دنیا|tr=donyâ}}
+** Tajik: {{l|tg|дунё|tr=dunyo}}
+* Punjabi: {{l|pa|ਦੁਨੀਆ|tr=dunīā}}, {{l|pa|دنیا|tr=dunīā|sc=pa-Arab}}
+* Rajasthani: {{l|raj|दुनियांण|tr=duniyā̃}}}
+* Serbo-Croatian: {{l|sh|дуња}} / {{l|sh|dunja}}
+* Somali: {{l|so|dunida}}
+* Swahili: {{l|sw|dunia}}
+* Tashelhit: {{l|shi|ddunit}}
+* Turkish: {{l|tr|dünya}}
+* Tatar: {{l|tt|дөнья|tr=dönya}}
+* Turkmen: {{l|tk|dünýä}}
+* Uyghur: {{l|ug|دۇنيا|tr=dunya}}
+{{bottom2}}
+
+أنانية
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba-a|أَنَانِيّ|[[egotistical]]}}.
+
+===Noun===
+{{ar-noun|أَنَانِيَّة|f}}
+
+# [[egotism]]
+
+====Declension====
+{{ar-decl-noun|أَنَانِيَّة}}
+
+====References====
+* {{R:ar:Wehr-4|أنا}}
+
+[[pl:أنانية]]
+
+إسبانية
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Etymology 1===
+From {{etyl|es|ar}} {{m|es|España||[[Spain]]}}.
+
+====Alternative forms====
+* {{l|ar|إِسْبَانِيَا}}
+
+====Proper noun====
+{{ar-proper noun|إِسْبَانِيَة|f}}
+
+# [[Spain]]
+
+[[Category:ar:Countries]]
+
+=====Declension=====
+{{ar-decl-noun|إِسْبَانِيَة:di|state=ind}}
+
+===Etymology 2===
+Inflected form.
+
+====Adjective====
+{{ar-adj-fem|إِسْبَانِيَّة}}
+
+# {{feminine of|إِسْبَانِيّ|lang=ar||[[Spanish]]}}
+
+====Noun====
+{{ar-noun|إِسْبَانِيَّة|f|m=إِسْبَانِيّ|pl=إِسْبَانِيََّات}}
+
+# {{feminine of|lang=ar|إِسْبَانِيّ||[[Spaniard]]}}:
+## [[Spanish]] [[woman]]
+
+=====Declension=====
+{{ar-decl-noun|إِسْبَانِيَّة|pl=sfp}}
+
+===Etymology 3===
+Short for {{m|ar||لُغَة إِسْبَانِيَّة||[[Spanish]] [[language]]}}.
+
+====Noun====
+{{ar-noun|إِسْبَانِيَّة|f}}
+
+# {{lb|usually definite}} [[Spanish]] [[language]]
+
+[[Category:ar:Languages]]
+
+عربية
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ع ر ب}}.
+
+====Noun====
+{{ar-noun|عَرَبِيَّة|f|m=عَرَبِيّ|pl=عَرَبِيَّات}}
+
+# {{feminine of|عَرَبِيّ|lang=ar||[[Arab]] person}}:
+## [[Arab]] woman
+# {{lb|ar|Egyptian}} [[carriage]], [[vehicle]]
+# {{lb|ar|Egyptian}} [[araba]], [[coach]]
+
+=====Declension=====
+{{ar-decl-noun|عَرَبِيَّة|pl=sfp}}
+
+====Adjective====
+{{ar-adj-fem|عَرَبِيَّة}}
+
+# {{feminine of|عَرَبِيّ|lang=ar||[[Arabic]]}}
+
+====Adjective====
+{{ar-adj-pl|عَرَبِيَّة}}
+
+# {{plural of|عَرَبِيّ|lang=ar||[[Arabic]]}}
+
+====Related terms====
+* {{l|ar|أَعْرَاب||[[Bedouins]]}}
+* {{l|ar|أَعْرَابِيّ||[[Bedouin]]}}
+* {{l|ar|تَعْرِيب||[[Arabization]]}}
+* {{l|ar|عَرَّاب||[[godfather]]}}
+* {{l|ar|عَرَّابَة||[[godmother]]}}
+* {{l|ar|عَرَبَة||[[coach]], [[car]]}}
+* {{l|ar|عَرْبَجِي||[[coachman]]}}
+* {{l|ar|عَرْبَخَانَة||[[car]] [[shed]]}}
+* {{l|ar|عُرُوبَة||[[Arabism]]}}
+* {{l|ar|مُسْتَعْرِب||[[Arabist]]}}
+* {{l|ar|مُعَرِّب||[[translator]] into [[Arabic]]}}
+* {{l|ar|مُعَرَّب||[[translated]] into [[Arabic]]}}
+
+===Etymology 2===
+Short for {{m|ar||لُغَة عَرَبِيَّة||[[Arabic]] [[language]]}}.
+
+====Noun====
+{{ar-noun|عَرَبِيَّة|f}}
+
+# {{lb|usually definite}} [[Arabic]] [[language]]
+
+[[Category:ar:Languages]]
+
+افتتاحية
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba-a|اِفْتِتَاحِيّ||[[introductory]], [[opening]]}}; original meaning is "leading article".
+
+===Noun===
+{{ar-noun|اِفْتِتَاحِيَّة|f}}
+
+# an [[editorial]]
+
+====Declension====
+{{ar-decl-noun|اِفْتِتَاحِيَّة}}
+
+تركي
+
+{{also|ترکی}}
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba|تُرْك|[[Turks]]}}.
+
+===Adjective===
+{{ar-nisba|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+# [[Turkish]]
+
+====Declension====
+{{ar-decl-adj|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+====References====
+* {{R:ar:Haywood}}
+
+===Adjective===
+{{ar-noun-nisba|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+# [[Turk]]
+
+====Declension====
+{{ar-decl-gendered-noun|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+تركية
+
+==Arabic==
+{{wikipedia|lang=ar}}
+
+===Etymology 1===
+Inflected form.
+
+====Adjective====
+{{ar-adj-fem|تُرْكِيَّة}}
+
+# {{feminine of|تُرْكِيّ|lang=ar||[[Turkish]]}}
+
+====Noun====
+{{ar-noun|تُرْكِيَّة|f|m=تُرْكِيّ|pl=تُرْكِيَّات}}
+
+# {{feminine of|lang=ar|تُرْكِيّ||[[Turk]]}}:
+## [[Turkish]] [[woman]]
+
+=====Declension=====
+{{ar-decl-noun|تُرْكِيَّة|pl=sfp}}
+
+===Etymology 2===
+Short for {{m|ar||لُغَة تُرْكِيَّة||[[Turkish]] [[language]]}}.
+
+====Noun====
+{{ar-noun|تُرْكِيَّة|f}}
+
+# {{lb|usually definite}} [[Turkish]] [[language]]
+
+[[Category:ar:Languages]]
+
+=====Related terms=====
+* {{l|ar|تُرْكِيَا||[[Turkey]]}}
+
+ثانية
+
+{{also|ثانیه|ثانیہ}}
+==Arabic==
+
+===Etymology===
+From the root {{ar-root|ف ن ي}}; compare {{m|ar|ثَنَى||to [[double]], to [[fold]], to [[bend]]}}, {{m|ar|اِثْنَان||[[two]]}}.
+
+===Pronunciation===
+* {{audio|Ar-ثانية.ogg|Audio|lang=ar}}
+
+===Noun===
+{{ar-noun|ثَانِيَة|f|pl=ثَوَانٍ}}
+
+# [[second]] {{gloss|unit of time}}
+# [[second]] {{gloss|e.g. place}}
+
+====Declension====
+{{ar-decl-noun|ثَانِيَة|pl=ثَوَانٍ}}
+
+====Descendants====
+* Bashkir: {{l|ba|Сания}}
+* Turkish: {{l|tr|saniye}}
+
+[[Category:ar:Time]]
+
+
+ثانوي
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba-linking|ثَانٍ|[[second]]|َو}}, from the root {{ar-root|ث|ن|ي}}, related to {{m|ar|اِثْنَان||[[two]]}}.
+
+===Adjective===
+{{ar-nisba|ثَانَوِيّ}}
+
+# [[secondary]], [[minor]]
+#: {{ux|ar|مَدْرَسَة ثَانَوِيَّة|secondary school|inline=y}}
+#: {{ux|ar|أَوامِر ثَانَوِيَّة|matters of secondary importance|inline=y}}
+
+====Declension====
+{{ar-decl-adj|ثَانَوِيّ|pl=smp}}
+
+
+سامية
+
+==Arabic==
+
+===Adjective===
+{{ar-adj-fem|سَامِيَّة}}
+
+# {{feminine of|سَامِيّ|lang=ar||[[Semitic]]}}
+
+سامي
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba|سَام|[[Shem]]}}.
+
+====Adjective====
+{{ar-nisba|سَامِيّ}}
+
+# [[Semitic]]
+
+=====Declension=====
+{{ar-decl-adj|سَامِيّ|pl=smp}}
+
+=====Derived terms=====
+* {{l|ar|لَاسَامِيَّة|tr=lā-sāmiyya||[[anti-Semitism]]}}
+
+====Noun====
+{{ar-noun-nisba|سَامِيّ}}
+
+# [[Semite]]
+
+=====Declension=====
+{{ar-decl-noun|سَامِيّ|pl=smp}}
+
+===Etymology 2===
+
+====Adjective====
+{{ar-adj-inf-def|سَامِي|سَامٍ|gloss=[[high]], [[exalted]]}}
+
+سوري
+
+==Arabic==
+
+===Adjective===
+{{ar-nisba|سُورِيّ}}
+
+# [[Syrian]]
+
+====Declension====
+{{ar-decl-adj|سُورِيّ|pl=smp}}
+
+===Noun===
+{{ar-noun-nisba|سُورِيّ}}
+
+# [[Syrian]]
+
+====Declension====
+{{ar-decl-noun|سُورِيّ|pl=smp}}
+
+سيطانية
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba-a|سَيْطَانِيّ|[[Satanic]]}}.
+
+====Pronunciation====
+* {{IPA|/ʃajtˁaːˈnijja/|lang=ar}}
+
+====Noun====
+{{ar-noun|شَيْطَانِيَّة}}
+
+# [[Satanism]] {{gloss|religion}}
+
+=====Declension=====
+{{ar-decl-noun|شَيْطَانِيَّة}}
+
+[[Category:ar:Religion]]
+
+===Etymology 2===
+Feminine inflected form.
+
+====Adjective====
+{{ar-adj-fem|شَيْطَانِيَّة}}
+
+# {{feminine of|شَيْطَانِي|lang=ar}}
+
+طنانة
+
+==Arabic==
+
+===Adjective===
+{{ar-adj-fem|طَنَّانَة}}
+
+# {{feminine of|طَنَّان|lang=ar||[[buzzing]], [[ringing]]}}
+
+===Noun===
+{{ar-noun|طَنَّانَة|f|pl=طَنَّانَات}}
+
+# [[bumblebee]]
+
+====Declension====
+{{ar-decl-noun|طَنَّانَة|pl=طَنَّانَات}}
+
+====Synonyms====
+* {{l|ar|نَحْلَة طَنَّانَة|tr=naḥla ṭannāna}}
+
+عامية
+
+==Arabic==
+
+===Noun===
+{{ar-noun|عَامِّيَّة|f}}
+
+# [['ammiyya]], [[vernacular]] [[Arabic]]
+# [[colloquialism]], [[slang]]
+
+====Declension====
+{{ar-decl-noun|عَامِّيَّة}}
+
+====Synonyms====
+* {{l|ar|دارجة}} {{lb|ar|refers to Western Arabic dialects}}
+
+====Antonyms====
+* {{l|ar|الفصحى}} {{lb|ar|[[Modern Standard Arabic]]}}
+
+===Adjective===
+{{ar-adj-fem|عَامِّيَّة}}
+
+# {{feminine of|عَامِّيّ|lang=ar||[[public]], [[general]], [[common]]}}
+
+محمدة
+
+==Arabic==
+
+===Noun===
+{{ar-noun|مَحْمَدَة|f|head2=مَحْمِدَة}}
+
+# {{ar-verbal noun of|حَمِدَ|form=I}}
+
+مدرسة
+
+Why did adjective feminine مُدَرِّسَة create new etymology rather than inserting directly after noun مُدَرِّسَة?
+
+مدرسة
+
+{{also|مدرسه|مدرسہ}}
+==Arabic==
+
+===Etymology 1===
+{{ar-noun of place}} from the verb {{m|ar|دَرَسَ||to [[learn]], to [[study]]}}.
+
+====Pronunciation====
+* {{audio|Ar-مدرسة.ogg|Audio|lang=ar}}
+
+====Noun====
+{{ar-noun|مَدْرَسَة|f|pl=مَدَارِس}}
+
+# [[academy]]
+# [[school]]
+# [[madrassah]]
+# [[rite]]
+# [[conviction]]
+
+=====Declension=====
+{{ar-decl-noun|مَدْرَسَة|pl=مَدَارِس}}
+
+===Etymology 2===
+Feminine active participle from the verb {{m|ar|دَرَّسَ||to [[teach]]}}.
+
+====Noun====
+{{ar-noun|مُدَرِّسَة|f|pl=مُدَرِّسَات}}
+
+# {{feminine of|مُدَرِّس|lang=ar||[[teacher]]}}
+
+=====Declension=====
+{{ar-decl-noun|مُدَرِّسَة|pl=sfp}}
+
+=====Synonyms=====
+* {{l|ar|مُعَلِّمَة}}
+
+====Adjective====
+{{ar-adj-fem|مُدَرِّسَة}}
+
+# {{feminine of|مُدَرِّس|lang=ar||[[teaching]]}}
+
+مظلمة
+
+==Arabic==
+
+===Noun===
+{{ar-noun|مَظْلِمَة|f|head2=مَظْلَمَة}}
+
+# {{ar-verbal noun of|ظَلَمَ|form=I}}
+
+معدلة
+
+==Arabic==
+
+===Noun===
+{{ar-noun|مَعْدِلَة|f|head2=مَعْدَلَة}}
+
+# {{ar-verbal noun of|عَدَلَ|form=I}}
+
+وصفية
+
+==Arabic==
+
+===Etymology===
+{{ar-etym-nisba-a|وَصْفِيّ|[[descriptive]]}}.
+
+===Noun===
+{{ar-noun|وَصْفِيَّة|f}}
+
+# [[descriptive]] [[quality]], [[qualification]]
+
+====Declension====
+{{ar-decl-noun|وَصْفِيَّة}}
+
+====References====
+* {{R:ar:Steingass}}
 
 
 EXISTS, CLEANUP ETYM, ADD FEM/DECL cheap رَخِيص from ر خ ص
