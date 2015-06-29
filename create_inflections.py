@@ -1344,6 +1344,36 @@ def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
   create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr, pos,
       "feminine", "masculine", "ar-adj-fem", [], "feminine of", "|lang=ar")
 
+# Should we match a single head to a given inflection? If so,
+# return a number indicating which head. If not, return None and
+# we iterate over all heads.
+def should_match_head(heads, inflindex, originfl, originfltr):
+  headnv = remove_diacritics(heads[0])
+  # Special cases
+  if headnv == u"مدية":
+    if inflindex < len(heads):
+      return inflindex
+    else:
+      return 0
+  if headnv in [u"بنية"]:
+    assert inflindex < len(heads)
+    return inflindex
+  if headnv in [u"عرس"]:
+    return None
+  for i in xrange(len(heads)):
+    head, headtr = heads[i]
+    head = reorder_shadda(head)
+    originfl = reorder_shadda(originfl)
+    for suffix in [UUN, UUNA, AAT, AATUN, AWN, AWNA]:
+      if head + suffix == originfl:
+        return i
+      if re.sub(AH + "$", "", head) + suffix == originfl:
+        return i
+      # E.g. بَبَغَاء plural بَبَغَاوَات
+      if re.sub(HAMZA + "$", W, head) + suffix == originfl:
+        return i
+  return None
+
 # Create inflection entries for POS (the part of speech, which should be
 # capitalized, e.g "Noun") by looking for inflections in the parameter
 # PARAM (e.g. "pl") of templates named TEMPNAME (e.g. "ar-noun"). Entries
@@ -1403,46 +1433,39 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
                 template, param + str(i))
             i += 1
 
-          # Should we match heads to inflections (first head to first
-          # inflection, second head to second inflection, etc.)? If not,
-          # we iterate over all pairs of heads and inflections.
-          def should_match_heads_infls():
-            if len(heads) > 1 and numinfls > 1:
-              msg("Page %s %s(lemma): WARNING: More than one head and inflection: %s" % (
-                index, remove_diacritics(heads[0][0]), unicode(template)))
-            return len(heads) == numinfls
+          if len(heads) > 1 and numinfls > 1:
+            msg("Page %s %s(lemma): WARNING: More than one head and inflection: %s" % (
+              index, remove_diacritics(heads[0][0]), unicode(template)))
 
-          if should_match_heads_infls():
-            for i in xrange(numinfls):
-              head, headtr = heads[i]
-              if i == 0:
-                inflparam = param
-              else:
-                inflparam = param + str(i + 1)
-              infl = getparam(template, inflparam)
-              infltr = getparam(template, inflparam + "tr")
-              infl, infltr = inflectfn(infl, infltr, head, headtr, template,
-                  inflparam)
-              if infl:
-                if i > 0:
-                  msg("Page %s %s: Using head%s %s (tr=%s) as lemma for %s (tr=%s)" % (
-                    index, remove_diacritics(infl), i + 1, head, headtr,
-                    infl, infltr))
-                createfn(save, index, infl, infltr, head, headtr, template, pos)
-          else:
-            for head, headtr in heads:
-              infl = getparam(template, param)
-              infltr = getparam(template, param + "tr")
-              infl, infltr = inflectfn(infl, infltr, head, headtr,
+          for i in xrange(numinfls):
+            if i == 0:
+              originfl = getparam(template, param)
+              originfltr = getparam(template, param + "tr")
+            else:
+              originfl = getparam(template, param + str(i + 1))
+              originfltr = getparam(template, param + str(i + 1) + "tr")
+            headind = should_match_head(heads, i, originfl, originfltr)
+            if headind is not None:
+              head, headtr = heads[headind]
+              infl, infltr = inflectfn(originfl, originfltr, head, headtr,
                   template, param)
-              i = 2
-              while infl:
-                createfn(save, index, infl, infltr, head, headtr, template, pos)
-                infl = getparam(template, param + str(i))
-                infltr = getparam(template, param + str(i) + "tr")
-                infl, infltr = inflectfn(infl, infltr, head, headtr,
-                    template, param + str(i))
-                i += 1
+              if infl:
+                msg("Page %s %s: Using head#%s %s%s as lemma for inflection %s%s" % (
+                    index, remove_diacritics(infl), headind + 1, head,
+                    headtr and " (tr=%s)" % headtr or "", infl,
+                    infltr and " (tr=%s)" % infltr or ""))
+                createfn(save, index, infl, infltr, head, headtr, template,
+                    pos)
+            else:
+              msg("Page %s %s: Looping over all heads for inflection %s%s" % (
+                  index, remove_diacritics(infl), originfl or "(empty)",
+                  originfltr and " (tr=%s)" % originfltr or ""))
+              for head, headtr in heads:
+                infl, infltr = inflectfn(originfl, originfltr, head, headtr,
+                    template, param)
+                if infl:
+                  createfn(save, index, infl, infltr, head, headtr, template,
+                      pos)
 
 # Inflection function when we default pl= to the sound masculine plural.
 # A value of + also indicates the sound masculine plural in any inflection
