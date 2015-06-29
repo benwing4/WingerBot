@@ -155,14 +155,17 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
     yield pageind
 
 def cat_articles(page, startsort = None, endsort = None):
+  if type(page) is str:
+    page = page.decode("utf-8")
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
   pageiter = page.articles(startsort = startsort if not isinstance(startsort, int) else None)
   for pageind in iter_pages(pageiter, startsort, endsort):
     yield pageind
 
-
 def cat_subcats(page, startsort = None, endsort = None):
+  if type(page) is str:
+    page = page.decode("utf-8")
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
   pageiter = page.subcategories(startsort = startsort if not isinstance(startsort, int) else None)
@@ -185,7 +188,7 @@ def stream(st, startsort = None, endsort = None):
     if endsort != None and i > endsort:
       break
 
-    if type(name) == str:
+    if type(name) is str:
       name = str.decode(name, "utf-8")
 
     name = re.sub(ur"^[#*] *\[\[(.+)]]$", ur"\1", name, flags=re.UNICODE)
