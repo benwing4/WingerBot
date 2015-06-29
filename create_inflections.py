@@ -69,6 +69,9 @@ def remove_i3rab(wordtype, word, nowarn=False, noremove=False,
   if word.endswith(UUNA):
     mymsg("Removing i3rab (UUNA -> UUN) from %s" % wordtype)
     return re.sub(UUNA + "$", UUN, word)
+  if word.endswith(AWNA):
+    mymsg("Removing i3rab (AWNA -> AWN) from %s" % wordtype)
+    return re.sub(AWNA + "$", AWN, word)
   if word and word[-1] in [A, I, U, AN]:
     mymsg("WARNING: Strange diacritic at end of %s %s" % (wordtype, word))
   if word and word[0] == ALIF_WASLA:
