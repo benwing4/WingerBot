@@ -46,7 +46,7 @@ humid, damp [damper], moist [moister] / wet [wetter] أَرْطَب from رَط�
 high [higher] / exalted / thin [thinner] / refined أَرْفَع from رَفِيع from ر ف ع ref Steingass
 abstinent, self-denying أَزْهَد from زَاهِد from ز ه د ref GT
 fake, counterfeit, bogus / false [falser] أَزْيَف from زَائِف from ز ي ف ref Wehr-4
-hot [hotter] أَسْخَن from سَاخِن َand سُخْن from س خ ن ref GT
+hot [hotter] أَسْخَن from سَاخِن and سُخْن from س خ ن ref GT
 fast [faster] أَسْرَع from سَرِيع from س ر ع ref Wehr-4
 obedient / flexible / smooth [smoother] أَسْلَس from سَلِس from س ل س ref Wehr-4
 magnanimous, kind [kinder], liberal, generous أَسْمَح from سَمْح from س م ح ref Lane
@@ -106,10 +106,10 @@ effective / efficient أَفْعَل from فَاعِل from ف ع ل ref Wehr-4
 few [fewer] / little [less; least] / sparse [sparser] / rare [rarer] أَقَلّ from قَلِيل from ق ل ل ref Wehr-4
 ugly [uglier] / infamous / vile [viler] أَقْبَح from قَبِيح from ق ب ح ref Wehr-4
 deadly [deadlier], lethal, fatal أَقْتَل from قَاتِل from ق ت ل ref Wehr-4
-holy [holier], saintly أَقْدَس from قَدِيس from ق د س ref Wehr-4
+holy [holier], saintly أَقْدَس from قِدِّيس from ق د س ref Wehr-4
 complete / perfect أَكْمَل from كَامِل from ك م ل ref Wehr-4
 tasty [tastier] / delicious أَلَذّ from لَذِيذ from ل ذ ذ ref Lane
-necessary أَلْزَم from لاَزِم from ل ز م ref Wehr-4
+necessary أَلْزَم from لَازِم from ل ز م ref Wehr-4
 fine [finer] / delicate / kind [kinder], nice [nicer] / elegant أَلْطَف from لَطِيف from ل ط ف ref Wehr-4
 appropriate / fit [fitter] أَلْيَق from لَائِق from ل ي ق ref Wehr-4
 soft [softer] / gentle [gentler] أَلْيَن from لَيِّن and لَيْن from ل ي ن ref Steingass
