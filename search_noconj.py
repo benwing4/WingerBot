@@ -18,7 +18,7 @@ import blib
 from blib import msg
 
 def search_noconj(startFrom, upTo):
-  for page in blib.cat_articles(u"Arabic verbs", startFrom, upTo):
+  for page, index in blib.cat_articles(u"Arabic verbs", startFrom, upTo):
     text = unicode(blib.parse(page))
     pagetitle = page.title()
     if "{{ar-verb" not in text:
