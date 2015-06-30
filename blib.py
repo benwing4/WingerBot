@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pywikibot, mwparserfromhell, re, sys, urllib2, datetime, json, argparse
+from arabiclib import reorder_shadda
 
 site = pywikibot.Site()
 
@@ -70,7 +71,9 @@ def do_edit(page, index, func=None, null=False, save=False, verbose=False):
         if new:
           new = unicode(new)
 
-          if page.text != new:
+          # Canonicalize shaddas when comparing pages so we don't do saves
+          # that only involve different shadda orders.
+          if reorder_shadda(page.text) != reorder_shadda(new):
             if verbose:
               pagemsg('Replacing [[%s]] with [[%s]]' % (page.text, new))
             page.text = new
