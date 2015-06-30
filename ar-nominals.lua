@@ -512,7 +512,7 @@ end
 -- declension of the stem, either manually specified, e.g. 'بَبَّغَاء:di' for
 -- manually-specified diptote, or auto-detected (see stem_and_type() and
 -- detect_type()).
--- 
+--
 -- DATA and ARGS are as in init(). ARGPREFS is an array of the prefixes for
 -- the argument(s) specifying the stem (and optional translit and declension
 -- type). For a given ARGPREF, we check ARGPREF, ARGPREF2, ARGPREF3, ... in
@@ -1427,7 +1427,7 @@ end
 -- the POS to something else, like "numeral". We don't use this POS for
 -- modifiers, where we determine whether they are noun-like or adjective-like
 -- according to whether modstate= or modcase= is set.
--- 
+--
 -- Some unexpectedly diptote nouns/adjectives:
 --
 -- jiʿrān in ʾabū jiʿrān "dung beetle"
@@ -1472,14 +1472,18 @@ function export.detect_type(stem, isfem, num, pos)
 		error("Malformed stem, fatḥatan should be over second-to-last letter: " .. origstem)
 	elseif num == 'pl' and rfind(stem, AW .. SKOPT .. N .. AOPT .. "$") then
 		return 'awnp'
-	elseif num == 'pl' and rfind(stem, ALIF .. T .. UNOPT .. "$") then
-		-- WARNING: We will get tripped up by plurals like ʾawqāt "times",
-		-- ʾamwāt "dead (pl.)" (although not singulars like mawāt "wasteland")
+	elseif num == 'pl' and rfind(stem, ALIF .. T .. UNOPT .. "$") and
+		-- Avoid getting tripped up by plurals like ʾawqāt "times",
+		-- ʾaḥwāt "fishes", ʾabyāt "verses", ʾazyāt "oils", ʾaṣwāt "voices",
+		-- ʾamwāt "dead (pl.)".
+		not rfind(stem, HAMZA_ON_ALIF .. A .. CONS .. SK .. CONS .. AAT .. UNOPT .. "$") then
 		return 'sfp'
-	elseif num == 'pl' and rfind(stem, W .. N .. AOPT .. "$") then
-		-- WARNING: We will get tripped up by plurals like ʿuyūn "eyes",
-		-- qurūn "horns" (although not by singulars like manūn "fate",
-		-- mamnūn "indebted", manṣūn "monsoon")
+	elseif num == 'pl' and rfind(stem, W .. N .. AOPT .. "$") and
+		-- Avoid getting tripped up by plurals like ʿuyūn "eyes",
+		-- qurūn "horns" (note we check for U between first two consonants
+		-- so we correctly ignore cases like سِنُون "hours" (from سَنَة),
+		-- and رِئُون "lungs" (from رِئَة) and بَنُون "sons" (from اِبْن).
+		not rfind(stem, "^" .. CONS .. U .. CONS .. UUN .. AOPT .. "$") then
 		return 'smp'
 	elseif rfind(stem, UN .. "$") then -- explicitly specified triptotes (we catch sound feminine plurals above)
 		return 'tri'
