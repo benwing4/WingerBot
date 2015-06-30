@@ -119,9 +119,9 @@ params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
 if params.noun:
-  do_nouns(["noun", "verbal noun", "adjective"],
-    ["ar-noun", "ar-verbal noun", "ar-coll-noun", "ar-sing-noun",
-      "ar-nisba", "ar-noun-nisba", "ar-adj", "ar-numeral"],
+  do_nouns(["noun", "adjective"],
+    ["ar-noun", "ar-coll-noun", "ar-sing-noun", "ar-nisba", "ar-noun-nisba",
+      "ar-adj", "ar-numeral"],
     params.save, startFrom, upTo)
 if params.verb:
   do_verbs(params.save, startFrom, upTo)
