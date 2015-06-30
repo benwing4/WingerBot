@@ -1,0 +1,4 @@
+#!/bin/sh
+
+python rewrite.py --comment 'fix up {{ar-root}} calls in Etymology sections' --from '(\n===+Etymology[^=]*===+\n)(?:From )?(?:the )?(?: root )?(\{\{ar-root\|[^}]*\}\})\.?\n' --to '\1From the root \2.\n' --refs 'Template:ar-root' "$@"
+python rewrite.py --comment 'fix up {{ar-root}} calls in Etymology sections' --from '(\n===+Etymology[^=]*===+\n)(?:From )?(?:the )?(?: root )?(\{\{ar-root\|[^}]*\}\}),' --to '\1From the root \2,' --refs 'Template:ar-root' "$@"
