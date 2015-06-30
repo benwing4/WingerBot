@@ -278,7 +278,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       pagemsg("New text is [[%s]]" % page.text)
   else: # Page does exist
     # Split off interwiki links at end
-    m = re.match(r"^(.*?\n)(\n*(\[\[[a-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
+    m = re.match(r"^(.*?\n)((\[\[[a-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
         page.text, re.S)
     if m:
       pagebody = m.group(1)
@@ -304,7 +304,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         pagemsg("WARNING: Can't find language name in text: [[%s]]" % (sections[i]))
       elif m.group(1) == "Arabic":
         # Extract off trailing separator
-        mm = re.match(r"^(.*?\n)(\n*--+\n*)$", sections[i], re.S)
+        mm = re.match(r"^(.*?\n)(--+\n*)$", sections[i], re.S)
         if mm:
           sections[i:i+1] = [mm.group(1), mm.group(2)]
         elif i < len(sections) - 1:
@@ -1121,7 +1121,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             comment = "Append entry (Etymology %s) for %s %s of %s, pos=%s in existing Arabic section" % (
               j, infltype, inflection, lemma, pos)
             sections[i] = ensure_two_trailing_nl(sections[i])
-            sections[i] += "===Etymology %s===\n" % j + entrytextl4
+            sections[i] += "===Etymology %s===\n" % j + entrytextl4 + "\n"
           else:
             pagemsg("Wrapping existing text in \"Etymology 1\" and adding \"Etymology 2\"")
             comment = "Wrap existing Arabic section in Etymology 1, append entry (Etymology 2) for %s %s of %s, pos=%s" % (
@@ -1157,7 +1157,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 ("\n" if sections[i].startswith("==") else "") +
                 ensure_two_trailing_nl(re.sub("^==(.*?)==$", r"===\1===",
                   sections[i], 0, re.M)) +
-                "===Etymology 2===\n" + entrytextl4)
+                "===Etymology 2===\n" + entrytextl4 + "\n")
         break
       elif m.group(1) > "Arabic":
         pagemsg("Exists; inserting before %s section" % (m.group(1)))
@@ -1175,7 +1175,11 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       sections += ["----\n\n", newsection]
 
     # End of loop over sections in existing page; rejoin sections
-    newtext = pagehead + ''.join(sections) + pagetail
+    newtext = pagehead + ''.join(sections)
+    if pagetail:
+      newtext = ensure_two_trailing_nl(newtext) + pagetail
+      if not comment and not notes:
+        notes.append("fixed up spacing")
 
     # If participle, remove [[Category:Arabic participles]]
     if is_participle:
