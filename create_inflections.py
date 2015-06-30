@@ -522,11 +522,14 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             # ar-noun but if we encounter an ar-coll-noun with the plural as
             # the (collective) head and the singular as the singulative, we
             # output a message and skip so we don't end up creating a
-            # duplicate entry.
+            # duplicate entry. Require exact match because there are cases like
+            # collective noun صَدَف (singulative صَدَفَة) and plural صُدَف
+            # (singular صُدْفَة) where we don't want this special case to trigger.
             if is_plural_noun:
               headword_collective_templates = [t for t in parsed.filter_templates()
-                  if t.name == "ar-coll-noun" and template_head_matches(t, inflection)
-                  and compare_param(t, "sing", lemma)]
+                  if t.name == "ar-coll-noun" and
+                  template_head_matches(t, inflection, require_exact_match=True)
+                  and compare_param(t, "sing", lemma, require_exact_match=True)]
               if headword_collective_templates:
                 pagemsg("WARNING: Exists and has Arabic section and found collective noun with %s already in it; taking no action"
                     % (infltype))
@@ -975,17 +978,39 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 # For feminine nouns and adjectives, don't insert after section
                 # for nouns that ends in -iyya, because they're probably
                 # abstract nouns with different etymology -- unless there's
-                # a defn, in which case it's probably a feminine inflection.
+                # a defn, in which case it's probably a feminine noun
+                # inflection.
                 if (is_feminine and t.name == "ar-noun" and
                     reorder_shadda(getparam(t, "1")).endswith(IYYAH) and
                     not [d for d in defn_templates
                       # Unclear if we need this comparison.
                       if compare_param(d, "1", lemma)]):
                   return False
-                return (t.name in ["ar-noun", "ar-noun-pl", "ar-adj-pl",
-                    "ar-noun-fem", "ar-adj-fem", "ar-coll-noun"] and
-                    template_head_matches(t, inflection,
-                      require_exact_match=True))
+                # Require that the head exactly matches the new inflection;
+                # but that may not be enough.
+                if not template_head_matches(t, inflection,
+                    require_exact_match=True):
+                  return False
+                # FIXME: Rest of this logic is a bit questionable.
+                # If the template is for a pl or fem inflected form, OK.
+                if t.name in ["ar-noun-pl", "ar-adj-pl", "ar-noun-fem",
+                    "ar-adj-fem"]:
+                  return True
+                # For feminines, also OK if template is for any noun.
+                if is_feminine:
+                  return t.name in ["ar-noun", "ar-coll-noun", "ar-sing-noun"]
+                # For plurals, OK to go next to collective nouns, but
+                # otherwise we should only go next to nouns that are plural,
+                # so we don't end up putting plural inflections next to
+                # verbal nouns, e.g. plural صُلُوح of singular صَالِِح next to
+                # verbal noun صُلُوح of verb صَلَحَ.
+                assert is_plural
+                if t.name == "ar-coll-noun":
+                  return True
+                if (t.name == "ar-noun" and
+                    re.match(r"\bp\b", getparam(t, "2"))):
+                  return True
+                return False
 
             def section_to_insert_after():
               insert_at = None
@@ -1347,8 +1372,8 @@ def create_adj_feminine(save, index, inflection, infltr, lemma, lemmatr,
 # Should we match a single head to a given inflection? If so,
 # return a number indicating which head. If not, return None and
 # we iterate over all heads.
-def should_match_head(heads, inflindex, originfl, originfltr):
-  headnv = remove_diacritics(heads[0])
+def should_match_head(heads, inflindex, originfl, originfltr, is_plural):
+  headnv = remove_diacritics(heads[0][0])
   # Special cases
   if headnv == u"مدية":
     if inflindex < len(heads):
@@ -1364,7 +1389,7 @@ def should_match_head(heads, inflindex, originfl, originfltr):
     head, headtr = heads[i]
     head = reorder_shadda(head)
     originfl = reorder_shadda(originfl)
-    for suffix in [UUN, UUNA, AAT, AATUN, AWN, AWNA]:
+    for suffix in (is_plural and [UUN, UUNA, AAT, AATUN, AWN, AWNA] or [AH]):
       if head + suffix == originfl:
         return i
       if re.sub(AH + "$", "", head) + suffix == originfl:
@@ -1388,7 +1413,7 @@ def should_match_head(heads, inflindex, originfl, originfltr):
 # called even if no inflected form is found, and hence can be used in cases
 # where the inflection is auto-generated by the template (e.g. in 'ar-nisba').
 def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
-    createfn, inflectfn=None):
+    is_plural, createfn, inflectfn=None):
   if not inflectfn:
     inflectfn = default_inflection
   if type(tempname) is not list:
@@ -1444,22 +1469,25 @@ def create_inflection_entries(save, pos, tempname, param, startFrom, upTo,
             else:
               originfl = getparam(template, param + str(i + 1))
               originfltr = getparam(template, param + str(i + 1) + "tr")
-            headind = should_match_head(heads, i, originfl, originfltr)
+            headind = should_match_head(heads, i, originfl, originfltr,
+                is_plural)
             if headind is not None:
               head, headtr = heads[headind]
               infl, infltr = inflectfn(originfl, originfltr, head, headtr,
                   template, param)
               if infl:
-                msg("Page %s %s: Using head#%s %s%s as lemma for inflection %s%s" % (
-                    index, remove_diacritics(infl), headind + 1, head,
-                    headtr and " (tr=%s)" % headtr or "", infl,
-                    infltr and " (tr=%s)" % infltr or ""))
+                if len(heads) > 1 and numinfls > 1:
+                  msg("Page %s %s: Using head#%s %s%s as lemma for inflection %s%s" % (
+                      index, remove_diacritics(infl), headind + 1, head,
+                      headtr and " (tr=%s)" % headtr or "", infl,
+                      infltr and " (tr=%s)" % infltr or ""))
                 createfn(save, index, infl, infltr, head, headtr, template,
                     pos)
             else:
-              msg("Page %s %s: Looping over all heads for inflection %s%s" % (
-                  index, remove_diacritics(infl), originfl or "(empty)",
-                  originfltr and " (tr=%s)" % originfltr or ""))
+              if len(heads) > 1 and numinfls > 1:
+                msg("Page %s %s: Looping over all heads for inflection %s%s" % (
+                    index, remove_diacritics(infl), originfl or "(empty)",
+                    originfltr and " (tr=%s)" % originfltr or ""))
               for head, headtr in heads:
                 infl, infltr = inflectfn(originfl, originfltr, head, headtr,
                     template, param)
@@ -1532,12 +1560,12 @@ def fem_inflection(infl, infltr, lemma, lemmatr, template, param):
 
 def create_plurals(save, pos, tempname, startFrom, upTo):
   return create_inflection_entries(save, pos, tempname, "pl", startFrom, upTo,
-      create_noun_plural if pos == "Noun" else create_adj_plural,
+      True, create_noun_plural if pos == "Noun" else create_adj_plural,
       pl_inflection)
 
 def create_feminines(save, pos, tempname, startFrom, upTo):
   return create_inflection_entries(save, pos, tempname, "f", startFrom, upTo,
-      create_noun_feminine if pos == "Noun" else create_adj_feminine,
+      False, create_noun_feminine if pos == "Noun" else create_adj_feminine,
       fem_inflection)
 
 def expand_template(page, text):
