@@ -1177,8 +1177,18 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
       comment = "Create Arabic section and entry for %s %s of %s, pos=%s; append at end" % (
           infltype, inflection, lemma, pos)
 
-      sections[-1] = ensure_two_trailing_nl(sections[-1])
-      sections += ["----\n\n", newsection]
+      if sections:
+        sections[-1] = ensure_two_trailing_nl(sections[-1])
+        sections += ["----\n\n", newsection]
+      else:
+        pagemsg("WARNING: No language sections in current page")
+        notes.append("formerly empty")
+        if pagehead.lower().startswith("#redirect"):
+          pagemsg("WARNING: Page is redirect, overwriting")
+          notes.append("overwriting redirect")
+          pagehead = re.sub(r"#redirect *\[\[.*?\]\] *(<!--.*?--> *)*\n+",
+              "", pagehead, 0, re.I)
+        sections += [newsection]
 
     # End of loop over sections in existing page; rejoin sections
     newtext = pagehead + ''.join(sections)
