@@ -258,8 +258,10 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
 # %s
 """ % (new_headword_template, new_defn_template)
-    newpos = "===%s===\n" % pos + newposbody
-    newposl4 = "====%s====\n" % pos + newposbody
+    newposheader = "===%s===\n" % pos
+    newpos = newposheader + newposbody
+    newposheaderl4 = "====%s====\n" % pos
+    newposl4 = newposheaderl4 + newposbody
     entrytext = "\n" + newpos
     entrytextl4 = "\n" + newposl4
     newsection = "==Arabic==\n" + entrytext
@@ -411,7 +413,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               for t in parsed.filter_templates():
                 if t.name == "ar-verb-form":
                   vf_vowels = re.sub("[^" + A + I + U + "]", "",
-                      getparam(t, "1")[0:-1])
+                      reorder_shadda(getparam(t, "1"))[0:-1])
                   if len(vf_vowels) > 0:
                     if vf_vowels[-1] == A:
                       vf_last_vowel = "a"
@@ -438,6 +440,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               for k, j in zip(xrange(len(subsecs)), xrange(start, end + 2, 2)):
                 subsections[j] = ensure_two_trailing_nl(newsubsecs[k])
           subsections_sentinel = subsections + ["", ""]
+          #for jj in xrange(len(subsections_sentinel)):
+            #pagemsg("Subsection %s: [[%s]]" % (jj, subsections_sentinel[jj]))
           start = None
           for j in xrange(len(subsections_sentinel)):
             if j > 0 and (j % 2) == 0:
@@ -1057,10 +1061,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
               subsections[insert_at - 1] = ensure_two_trailing_nl(
                   subsections[insert_at - 1])
               if indentlevel == 3:
-                subsections[insert_at:insert_at] = [newpos + "\n"]
+                subsections[insert_at:insert_at] = [
+                    newposheader, newposbody + "\n"]
               else:
                 assert(indentlevel == 4)
-                subsections[insert_at:insert_at] = [newposl4 + "\n"]
+                subsections[insert_at:insert_at] = [
+                    newposheaderl4, newposbody + "\n"]
               sections[i] = ''.join(subsections)
 
               if is_verb_part:
