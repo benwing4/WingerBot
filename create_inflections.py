@@ -1739,26 +1739,29 @@ voices_infl_entry = {
     }
 
 # Create a single verb part. SAVE, INDEX are as in create_inflection_entry().
-# PAGE is the page of the lemma, and TEMPLATE is the {{ar-conj|...}}
-# template indicating the lemma's conjugation. DICFORM is the vocalized form
-# of the lemma, PASSIVE is the value of the 'passive' property of the lemma.
-# VOICE is either "active" or "passive", and PERSON and TENSE
+# PAGE is the page of the lemma, and TEMPLATE is the {{ar-conj|...}} template
+# indicating the lemma's conjugation. DICFORMS is an array of possible
+# vocalized forms of the lemma, PASSIVE is the value of the 'passive' property
+# of the lemma. VOICE is either "active" or "passive", and PERSON and TENSE
 # indicate the particular person/number/gender/tense/mood combination, using
 # the codes passed to {{ar-verb-part-all|...}}. We refuse to do combinations
 # not compatible with the value of PASSIVE, and we refuse to do the
 # dictionary form (3sm-perf, or 3sm-ps-perf for passive-only verbs).
 # We assume that impossible parts (passive and non-2nd-person imperatives)
 # have already been filtered.
-def create_verb_part(save, index, page, template, dicform, passive,
+def create_verb_part(save, index, page, template, dicforms, passive,
     voice, person, tense):
   if voice == "active" and not has_active_form(passive):
     return
   if voice == "passive" and not has_passive_form(passive, person):
     return
+  dicformsnv = [remove_diacritics(x) for x in dicforms]
+  distinct_dicformsnv = list(set(dicformsnv))
+  # This should be subsumed below.
   # Refuse to do the dictionary form.
-  if person == "3sm" and tense == "perf" and (voice == "active" or
-      voice == "passive" and not has_active_form(passive)):
-    return
+  #if person == "3sm" and tense == "perf" and (voice == "active" or
+  #    voice == "passive" and not has_active_form(passive)):
+  #  return
   infl_person = persons_infl_entry[person]
   infl_tense = tenses_infl_entry[tense] % voices_infl_entry[voice]
   partid = (voice == "active" and "%s-%s" % (person, tense) or
@@ -1769,10 +1772,24 @@ def create_verb_part(save, index, page, template, dicform, passive,
   if value:
     parts = re.split(",", value)
     for part in parts:
-      create_inflection_entry(save, index, part, None, dicform, None, "Verb",
-        "verb part %s" % partid, "dictionary form",
-        "ar-verb-form", [("2", form)],
-        "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
+      # Refuse to do any part that will go on any dictionary-form page.
+      # This typically includes 3sm active and passive. Checking all
+      # dictionary-form pages ensures that we don't end up with 3sm active
+      # tarādda going on the page for tarādada (alternative dictionary form
+      # of the same verb) or vice-versa.
+      if remove_diacritics(part) in distinct_dicformsnv:
+        msg("Page %s %s: Skipping form %s, would go on same page as dictionary form(s) %s" % (
+          index, remove_diacritics(part), part, ",".join(dicforms)))
+        if len(distinct_dicformsnv) > 1:
+          msg("Page %s %s: NOTE: Skipping form %s when there are multiple dictionary-form pages %s" % (
+            index, remove_diacritics(part), part, ",".join(distinct_dicformsnv)))
+
+      else:
+        for dicform in dicforms:
+          create_inflection_entry(save, index, part, None, dicform, None,
+            "Verb", "verb part %s" % partid, "dictionary form",
+            "ar-verb-form", [("2", form)],
+            "inflection of", "||lang=ar|%s|%s" % (infl_person, infl_tense))
 
 # Parse a part spec, one or more parts separated by commas. Each part spec
 # is either PERSON-TENSE (active), PERSON-ps-TENSE (passive) or
@@ -1851,10 +1868,10 @@ def create_verb_parts(save, startFrom, upTo, partspec):
     for template in blib.parse(page).filter_templates():
       if template.name == "ar-conj":
         passive = get_passive(page, template)
-        for dicform in get_dicform_all(page, template):
-          for voice, person, tense in parts_desired:
-            create_verb_part(save, index, page, template, dicform, passive,
-                voice, person, tense)
+        dicforms = get_dicform_all(page, template)
+        for voice, person, tense in parts_desired:
+          create_verb_part(save, index, page, template, dicforms, passive,
+              voice, person, tense)
 
 def add_bracketing(defn):
   return " ".join(["[[%s]]" % word for word in defn.split(" ")])
