@@ -16,9 +16,10 @@
 
 import re
 import codecs
+import time
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, errmsg, getparam
 from arabiclib import *
 
 site = pywikibot.Site()
@@ -1226,7 +1227,24 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
     assert(comment)
     pagemsg("comment = %s" % comment, simple = True)
     if save:
-      page.save(comment = comment)
+      num_tries = 0
+      while True:
+        try:
+          page.save(comment = comment)
+          break
+        except KeyboardInterrupt as e:
+          raise
+        except Exception as e:
+          #except (pywikibot.exceptions.Error, StandardError) as e:
+          pagemsg("WARNING: Error saving: %s" % unicode(e))
+          errmsg("WARNING: Error saving: %s" % unicode(e))
+          num_tries += 1
+          if num_tries >= 5:
+            pagemsg("WARNING: Can't save!!!!!!!")
+            errmsg("WARNING: Can't save!!!!!!!")
+            raise
+          errmsg("Sleeping for 5 seconds")
+          time.sleep(5)
 
 def create_noun_plural(save, index, inflection, infltr, lemma, lemmatr,
     template, pos):
