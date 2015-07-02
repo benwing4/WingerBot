@@ -316,7 +316,7 @@ def getEtymLanguageData():
 # transliteration. It should return a changelog string if changes were made,
 # and something else otherwise (e.g. False). Changelog strings for all
 # templates will be joined together, separated by a semi-colon.
-def process_links(save, verbose, startFrom, upTo, process_param,
+def process_links(save, verbose, cattype, startFrom, upTo, process_param,
     join_actions=None):
   templates_changed = {}
 
@@ -352,10 +352,19 @@ def process_links(save, verbose, startFrom, upTo, process_param,
     else:
       changelog = join_actions(actions)
     #if len(terms_processed) > 0:
-    msg("Change log for page %s %s = %s" % (index, page.title(), changelog))
+    msg("Page %s %s: Change log = %s" % (index, page.title(), changelog))
     return text, changelog
 
-  for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
+  if cattype == "arabic":
+    cats = ["Arabic lemmas", "Arabic non-lemma forms"]
+  elif cattype == "borrowed":
+    cats = ["%s terms derived form Arabic" % x for x in ["Alviri-Vidari",
+      "Andalusian Arabic", "Azeri", "Baluchi", "Central Kurdish",
+      "Egyptian Arabic", "Laki", "Libyan Arabic", "Malay", "Mazanderani",
+      "Ottoman Turkish", "Pashto", "Persian", "Urdu"]]
+  else:
+    raise ValueError("Category type '%s' should be 'arabic' or 'borrowed'")
+  for cat in cats:
     for page, index in cat_articles(cat, startFrom, upTo):
       do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
   msg("Templates processed:")

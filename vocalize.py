@@ -185,8 +185,9 @@ def vocalize_headwords(save, verbose, startFrom, upTo):
 
 # Vocalize link-like templates on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
-# Show exact changes if VERBOSE is true.
-def vocalize_links(save, verbose, startFrom, upTo):
+# Show exact changes if VERBOSE is true. CATTYPE should be 'arabic' or
+# 'borrowed', indicating which categories to examine.
+def vocalize_links(save, verbose, cattype, startFrom, upTo):
   def process_param(page, index, template, param, paramtr):
     result = vocalize_param(page, index, template, param, paramtr)
     if isinstance(result, basestring):
@@ -195,17 +196,19 @@ def vocalize_links(save, verbose, startFrom, upTo):
   def join_actions(actions):
     return "vocalize links: %s" % '; '.join(actions)
 
-  return blib.process_links(save, verbose, startFrom, upTo, process_param,
-      join_actions)
+  return blib.process_links(save, verbose, cattype, startFrom, upTo,
+      process_param, join_actions)
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Vocalize links")
+pa.add_argument("--cattype", default="borrowed",
+    help="Categories to examine ('arabic' or 'borrowed')")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
 if parms.links:
-  vocalize_links(parms.save, parms.verbose, startFrom, upTo)
+  vocalize_links(parms.save, parms.verbose, params.cattype, startFrom, upTo)
 else:
   vocalize_headwords(parms.save, parms.verbose, startFrom, upTo)
