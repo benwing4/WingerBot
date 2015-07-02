@@ -26,38 +26,41 @@ import ar_translit
 # vocalization succeeds and is different from the existing Arabic text,
 # else False. PARAM is the name of the parameter being vocalized and is
 # used only in status messages.
-def do_vocalize_param(param, arabic, latin):
+def do_vocalize_param(page, index, param, arabic, latin):
+  def pagemsg(text):
+    msg("Page %s %s: %s" % (index, page.title(), text))
   try:
     vocalized = ar_translit.tr_matching_arabic(arabic, latin, True)
   except Exception as e:
-    msg("Trying to vocalize %s (%s): %s" % (arabic, latin, e))
+    pagemsg("Trying to vocalize %s (%s): %s" % (arabic, latin, e))
     vocalized = None
   if vocalized:
     if vocalized == arabic:
-      msg("%s: No change in %s (Latin %s)" % (param, arabic, latin))
+      pagemsg("%s: No change in %s (Latin %s)" % (param, arabic, latin))
     else:
-      msg("%s: Would replace %s with vocalized %s (Latin %s)" % (
+      pagemsg("%s: Would replace %s with vocalized %s (Latin %s)" % (
           param, arabic, vocalized, latin))
       return vocalized
   else:
-    msg("%s: Unable to vocalize %s (Latin %s)" % (
+    pagemsg("%s: Unable to vocalize %s (Latin %s)" % (
         param, arabic, latin))
   return False
 
 # Attempt to vocalize parameter PARAM based on corresponding transliteration
 # parameter PARAMTR. If PARAM not found, return False. Else, return the
 # vocalized Arabic if different from unvocalized, else return True.
-def vocalize_param(template, param, paramtr):
+def vocalize_param(page, index, template, param, paramtr):
   arabic = getparam(template, param)
   latin = getparam(template, paramtr)
   if not arabic:
     return False
   if latin:
-    vocalized = do_vocalize_param(param, arabic, latin)
+    vocalized = do_vocalize_param(page, index, param, arabic, latin)
     if vocalized:
       oldtempl = "%s" % unicode(template)
       template.add(param, vocalized)
-      msg("Replaced %s with %s" % (oldtempl, unicode(template)))
+      msg("Page %s %s: Replaced %s with %s" % (index, page.title(),
+        oldtempl, unicode(template)))
       return vocalized
   return True
 
@@ -65,15 +68,15 @@ def vocalize_param(template, param, paramtr):
 # is "pl" then this will attempt to vocalize "pl", "pl2", "pl3", etc. based on
 # "pltr", "pl2tr", "pl3tr", etc., stopping when "plN" isn't found. Return
 # list of changed parameters, for use in the changelog message.
-def vocalize_param_chain(template, param):
+def vocalize_param_chain(page, index, template, param):
   paramschanged = []
-  result = vocalize_param(template, param, param + "tr")
+  result = vocalize_param(page, index, template, param, param + "tr")
   if isinstance(result, basestring):
     paramschanged.append(param)
   i = 2
   while result:
     thisparam = param + str(i)
-    result = vocalize_param(template, thisparam, thisparam + "tr")
+    result = vocalize_param(page, index, template, thisparam, thisparam + "tr")
     if isinstance(result, basestring):
       paramschanged.append(thisparam)
     i += 1
@@ -82,7 +85,7 @@ def vocalize_param_chain(template, param):
 # Vocalize the head param(s) for the given headword template on the given page.
 # Modifies the templates in place. Return list of changed parameters, for
 # use in the changelog message.
-def vocalize_head(page, template):
+def vocalize_head(page, index, template):
   paramschanged = []
   pagetitle = page.title(withNamespace=False)
 
@@ -115,7 +118,7 @@ def vocalize_head(page, template):
       paramschanged.append("split translit into multiple heads")
 
     # Try to vocalize 1=
-    result = vocalize_param(template, "1", "tr")
+    result = vocalize_param(page, index, template, "1", "tr")
     if isinstance(result, basestring):
       paramschanged.append("1")
 
@@ -124,7 +127,7 @@ def vocalize_head(page, template):
       arabic = unicode(pagetitle)
       latin = getparam(template, "tr")
       if arabic and latin:
-        vocalized = do_vocalize_param("page title", arabic, latin)
+        vocalized = do_vocalize_param(page, index, "page title", arabic, latin)
         if vocalized:
           oldtempl = "%s" % unicode(template)
           if template.has("2"):
@@ -132,14 +135,15 @@ def vocalize_head(page, template):
           else:
             template.add("1", vocalized, before="tr")
           paramschanged.append("1")
-          msg("Replaced %s with %s" % (oldtempl, unicode(template)))
+          msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
+            oldtempl, unicode(template)))
 
   # Check and try to vocalize extra heads
   i = 2
   result = True
   while result:
     thisparam = "head" + str(i)
-    result = vocalize_param(template, thisparam, "tr" + str(i))
+    result = vocalize_param(page, index, template, thisparam, "tr" + str(i))
     if isinstance(result, basestring):
       paramschanged.append(thisparam)
     i += 1
@@ -152,11 +156,11 @@ def vocalize_one_page_headwords(page, index, text):
   for template in text.filter_templates():
     paramschanged = []
     if template.name in arabiclib.arabic_non_verbal_headword_templates:
-      paramschanged += vocalize_head(page, template)
+      paramschanged += vocalize_head(page, index, template)
       for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
           "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
           "pauc", "cons"]:
-        paramschanged += vocalize_param_chain(template, param)
+        paramschanged += vocalize_param_chain(page, index, template, param)
       if len(paramschanged) > 0:
         if template.has("tr"):
           tempname = "%s %s" % (template.name, getparam(template, "tr"))
@@ -165,30 +169,34 @@ def vocalize_one_page_headwords(page, index, text):
         actions_taken.append("%s (%s)" % (', '.join(paramschanged), tempname))
   changelog = "vocalize parameters: %s" % '; '.join(actions_taken)
   #if len(actions_taken) > 0:
-  msg("Change log = %s" % changelog)
+  msg("Page %s %s: Change log = %s" % (index, page.title(), changelog))
   return text, changelog
 
 # Vocalize headword templates on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
-def vocalize_headwords(save, startFrom, upTo):
+# Show exact changes if VERBOSE is true.
+def vocalize_headwords(save, verbose, startFrom, upTo):
   #for page in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
   #for page in blib.references("Template:ar-nisba", startFrom, upTo):
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
     for page, index in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, index, vocalize_one_page_headwords, save=save)
+      blib.do_edit(page, index, vocalize_one_page_headwords, save=save,
+          verbose=verbose)
 
 # Vocalize link-like templates on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
-def vocalize_links(save, startFrom, upTo):
-  def process_param(page, template, param, paramtr):
-    result = vocalize_param(template, param, paramtr)
+# Show exact changes if VERBOSE is true.
+def vocalize_links(save, verbose, startFrom, upTo):
+  def process_param(page, index, template, param, paramtr):
+    result = vocalize_param(page, index, template, param, paramtr)
     if isinstance(result, basestring):
       result = ["%s (%s)" % (result, template.name)]
     return result
   def join_actions(actions):
     return "vocalize links: %s" % '; '.join(actions)
 
-  return blib.process_links(save, startFrom, upTo, process_param, join_actions)
+  return blib.process_links(save, verbose, startFrom, upTo, process_param,
+      join_actions)
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
@@ -198,6 +206,6 @@ parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
 if parms.links:
-  vocalize_links(parms.save, startFrom, upTo)
+  vocalize_links(parms.save, parms.verbose, startFrom, upTo)
 else:
-  vocalize_headwords(parms.save, startFrom, upTo)
+  vocalize_headwords(parms.save, parms.verbose, startFrom, upTo)
