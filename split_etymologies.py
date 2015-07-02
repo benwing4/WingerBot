@@ -114,20 +114,7 @@ def split_one_page_etymologies(page, index, pagetext, verbose):
             lemma = None
             inflection_of_lemma = None
             for t in parsed.filter_templates():
-              if t.name in [
-                  # Adjectives
-                  "ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an", "ar-nisba",
-                  "ar-adj-fem", "ar-adj-pl", "ar-adj-dual", # ar-adj-color
-                  # Nouns/numerals/pronouns
-                  "ar-noun", "ar-coll-noun", "ar-sing-noun", "ar-noun-nisba",
-                  "ar-proper noun", "ar-numeral", "ar-pron",
-                  "ar-noun-pl", "ar-noun-dual",
-                  # Participles
-                  "ar-act-participle", "ar-pass-participle",
-                  # Verbs
-                  "ar-verb", "ar-verb-form",
-                  # Other
-                  "ar-adv", "ar-con", "ar-interj", "ar-particle", "ar-prep"]:
+              if t.name in arabic_all_headword_templates:
                 if lemma:
                   if t.name not in ["ar-nisba", "ar-noun-nisba", "ar-verb",
                       "ar-verb-form"]:

@@ -70,3 +70,38 @@ def reorder_shadda(text):
   # MediaWiki does for all Unicode strings; however, it makes
   # detection and replacement processes inconvenient, so undo it.
   return re.sub("(" + DIACRITIC_ANY_BUT_SH + ")" + SH, SH + r"\1", text)
+
+arabic_adj_headword_templates = [
+  "ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an", "ar-nisba",
+  "ar-adj-fem", "ar-adj-pl", "ar-adj-dual"]
+
+arabic_noun_headword_templates = [
+  # Nouns/numerals/pronouns
+  "ar-noun", "ar-coll-noun", "ar-sing-noun", "ar-noun-nisba",
+  "ar-proper noun", "ar-numeral", "ar-pron",
+  "ar-noun-pl", "ar-noun-dual"]
+
+arabic_participle_headword_templates = [
+  "ar-act-participle", "ar-pass-participle"]
+
+arabic_verb_headword_templates = [
+  "ar-verb", "ar-verb-form"]
+
+arabic_other_headword_templates = [
+  "ar-adv", "ar-con", "ar-interj", "ar-particle", "ar-prep"]
+
+arabic_nominal_headword_templates = (
+    arabic_adj_headword_templates +
+    arabic_noun_headword_templates +
+    arabic_participle_headword_templates)
+
+arabic_non_verbal_headword_templates = (
+    arabic_nominal_headword_templates +
+    arabic_other_headword_templates)
+
+arabic_all_headword_templates = (
+    arabic_adj_headword_templates +
+    arabic_noun_headword_templates +
+    arabic_participle_headword_templates +
+    arabic_verb_headword_templates +
+    arabic_other_headword_templates)

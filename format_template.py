@@ -178,17 +178,15 @@ def correct_headword_formatting(save, startFrom, upTo):
   search_category_for_missing_form("plural", "noun", "ar-plural", save, startFrom, upTo)
   search_category_for_missing_template("noun", ["ar-noun", "ar-coll-noun", "ar-sing-noun"], save, startFrom, upTo)
   search_category_for_missing_template("proper noun", "ar-proper noun", save, startFrom, upTo)
-  search_category_for_missing_template("adjective", ["ar-adj", "ar-nisba", "ar-adj-color"], save, startFrom, upTo)
+  search_category_for_missing_template("adjective", ["ar-adj", "ar-nisba"], save, startFrom, upTo)
   search_category_for_missing_template("collective noun", "ar-coll-noun", save, startFrom, upTo)
   search_category_for_missing_template("singulative noun", "ar-sing-noun", save, startFrom, upTo)
-  search_category_for_missing_template("verbal noun", "ar-verbal noun", save, startFrom, upTo)
   search_category_for_missing_template("adverb", "ar-adv", save, startFrom, upTo)
   search_category_for_missing_template("conjunction", "ar-con", save, startFrom, upTo)
   search_category_for_missing_template("interjection", "ar-interj", save, startFrom, upTo)
   search_category_for_missing_template("particle", "ar-particle", save, startFrom, upTo)
   search_category_for_missing_template("preposition", "ar-prep", save, startFrom, upTo)
   search_category_for_missing_template("pronoun", "ar-pron", save, startFrom, upTo)
-  # ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun", "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-part", "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun"]: # ar-adj-color, # ar-nisba
 
 def correct_one_page_link_formatting(page, index, text):
   text = unicode(text)

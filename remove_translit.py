@@ -19,6 +19,7 @@ import re
 import blib, pywikibot
 from blib import msg, getparam
 
+import arabiclib
 import ar_translit
 
 # Compare the auto-translit of PARAM with the corresponding transliteration
@@ -158,10 +159,7 @@ def process_head(page, template):
 def process_one_page_headwords(page, index, text):
   actions = []
   for template in text.filter_templates():
-    if template.name in ["ar-adj", "ar-adv", "ar-coll-noun", "ar-sing-noun",
-        "ar-con", "ar-interj", "ar-noun", "ar-numeral", "ar-particle",
-        "ar-prep", "ar-pron", "ar-proper noun", "ar-verbal noun", "ar-noun-pl",
-        "ar-adj-pl", "ar-noun-dual", "ar-adj-dual", "ar-nisba"]: # ar-adj-color
+    if template.name in arabiclib.arabic_non_verbal_headword_templates:
       thisactions = []
       tr = getparam(template, "tr")
       thisactions += process_head(page, template)

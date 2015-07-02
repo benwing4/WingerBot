@@ -19,6 +19,7 @@ import re
 import blib, pywikibot
 from blib import msg, getparam
 
+import arabiclib
 import ar_translit
 
 # Vocalize ARABIC based on LATIN. Return vocalized Arabic text if
@@ -150,18 +151,7 @@ def vocalize_one_page_headwords(page, index, text):
   actions_taken = []
   for template in text.filter_templates():
     paramschanged = []
-    if template.name in [
-        # Adjectives
-        "ar-adj", "ar-adj-sound", "ar-adj-in", "ar-adj-an", "ar-nisba",
-        "ar-adj-fem", "ar-adj-pl", "ar-adj-dual", # ar-adj-color
-        # Nouns/numerals/pronouns
-        "ar-noun", "ar-coll-noun", "ar-sing-noun", "ar-noun-nisba",
-        "ar-proper noun", "ar-numeral", "ar-pron",
-        "ar-noun-pl", "ar-noun-dual",
-        # Participles
-        "ar-act-participle", "ar-pass-participle",
-        # Other
-        "ar-adv", "ar-con", "ar-interj", "ar-particle", "ar-prep"]:
+    if template.name in arabiclib.arabic_non_verbal_headword_templates:
       paramschanged += vocalize_head(page, template)
       for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
           "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
