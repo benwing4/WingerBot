@@ -1187,8 +1187,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         if pagehead.lower().startswith("#redirect"):
           pagemsg("WARNING: Page is redirect, overwriting")
           notes.append("overwriting redirect")
-          pagehead = re.sub(r"#redirect *\[\[.*?\]\] *(<!--.*?--> *)*\n+",
-              "", pagehead, 0, re.I)
+          pagehead = re.sub(r"#redirect *\[\[(.*?)\]\] *(<!--.*?--> *)*\n*",
+              r"{{also|\1}}\n", pagehead, 0, re.I)
         sections += [newsection]
 
     # End of loop over sections in existing page; rejoin sections
