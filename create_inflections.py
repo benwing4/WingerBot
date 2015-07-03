@@ -387,59 +387,108 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             pagemsg("WARNING: Found multiple matching subsections, don't know which one to insert %s defn into" % infltype)
             break
 
-        def sort_verb_part_sections():
-          def sort_one_section(start, end):
-            #pagemsg("sort_one_section called with [%s,%s]" % (start, end))
-            if end == start:
-              return
-            assert(start > 0 and (start % 2) == 0)
-            assert((end % 2) == 0 and end > start)
-            assert(end < len(subsections))
-            header1 = subsections[start - 1]
-            for j in xrange(start + 1, end + 1, 2):
-              if subsections[j] != header1:
-                pagemsg("Header [[%s]] doesn't match prior header [[%s]], not sorting"
-                    % (subsections[j], header1))
-                return
-            subsecs = []
-            for j in xrange(start, end + 2, 2):
-              subsecs.append(subsections[j])
-            def keyfunc(subsec):
-              parsed = blib.parse_text(subsec)
-              vf_person = 13
-              vf_last_vowel = "u"
-              vf_voice = "pasv"
-              vf_mood = "c"
+        # Derive a sort key from the text of an inflection-of template.
+        def inflection_of_sort_key(tstr):
+          vf_person = 13
+          vf_voice = "pasv"
+          vf_mood = "c"
+          if "|actv" in tstr:
+            vf_voice = "actv"
+          if "|indc" in tstr:
+            vf_mood = "a"
+          if "|subj" in tstr:
+            vf_mood = "b"
+          persons = persons_infl_entry.values()
+          for k in xrange(len(persons)):
+            if "|" + persons[k] in tstr:
+              vf_person = k
+          return (vf_person, vf_voice, vf_mood)
 
-              for t in parsed.filter_templates():
-                if t.name == "ar-verb-form":
-                  vf_vowels = re.sub("[^" + A + I + U + "]", "",
-                      reorder_shadda(getparam(t, "1"))[0:-1])
-                  if len(vf_vowels) > 0:
-                    if vf_vowels[-1] == A:
-                      vf_last_vowel = "a"
-                    elif vf_vowels[-1] == I:
-                      vf_last_vowel = "i"
-                    else:
-                      vf_last_vowel = "u"
-                if t.name == "inflection of":
-                  tstr = unicode(t)
-                  if "|actv" in tstr:
-                    vf_voice = "actv"
-                  if "|indc" in tstr:
-                    vf_mood = "a"
-                  if "|subj" in tstr:
-                    vf_mood = "b"
-                  persons = persons_infl_entry.values()
-                  for k in xrange(len(persons)):
-                    if "|" + persons[k] in tstr:
-                      vf_person = k
-              #pagemsg("Sort key: %s" % ((vf_person, vf_voice, vf_last_vowel, vf_mood),))
-              return (vf_person, vf_voice, vf_last_vowel, vf_mood)
-            newsubsecs = sorted(subsecs, key=keyfunc)
-            if newsubsecs != subsecs:
-              for k, j in zip(xrange(len(subsecs)), xrange(start, end + 2, 2)):
-                subsections[j] = ensure_two_trailing_nl(newsubsecs[k])
+        # Sort the definition templates in the verb part subsection indexed
+        # by INDEX. Return True if anything changed.
+        def sort_defns_in_one_verb_part_subsection(index):
+          assert index > 0 and (index % 2) == 0
+          subsec = subsections[index]
+          if not subsec.endswith("\n"):
+            subsec += "\n"
+          mm = re.match(r"^(.*?\n)((?:# \{\{inflection of\|[^\n}]*\}\}\n)+)(.*)$",
+              subsec, re.S)
+          if not mm:
+            pagemsg("WARNING: Strange subsection without inflection-of template: [[%s]]" %
+                subsec)
+          else:
+            before, defntext, after = mm.groups()
+            if defntext:
+              assert defntext.endswith("\n")
+              # Ignore last split defn, which will be empty
+              defns = re.split("\n", defntext)[0:-1]
+              new_defns = sorted(defns, key=inflection_of_sort_key)
+              if defns != new_defns:
+                subsections[index] = (before + "\n".join(new_defns) + "\n" +
+                    after)
+                return True
+          return False
+
+        # Sort the definitions in an individual verb-part subsection.
+        # Return True if text was changed.
+        def sort_defns_in_verb_part_subsections():
+          sorted_any = False
+          for j in xrange(2, len(subsections), 2):
+            is_verb_form = "{{ar-verb-form|" in subsections[j]
+            if is_verb_form:
+              sorted_this = sort_defns_in_one_verb_part_subsection(j)
+              sorted_any = sorted_any or sorted_this
+          if sorted_any:
+            sections[i] = ''.join(subsections)
+          return sorted_any
+
+        # Sort the run of individual verb-part subsections from START to
+        # END, inclusive on both sides.
+        def sort_verb_part_subsection_run(start, end):
+          #pagemsg("sort_one_section called with [%s,%s]" % (start, end))
+          if end == start:
+            return
+          assert(start > 0 and (start % 2) == 0)
+          assert((end % 2) == 0 and end > start)
+          assert(end < len(subsections))
+          header1 = subsections[start - 1]
+          for j in xrange(start + 1, end + 1, 2):
+            if subsections[j] != header1:
+              pagemsg("WARNING: Header [[%s]] doesn't match prior header [[%s]], not sorting"
+                  % (subsections[j], header1))
+              return
+          subsecs = []
+          for j in xrange(start, end + 2, 2):
+            subsecs.append(subsections[j])
+          def keyfunc(subsec):
+            parsed = blib.parse_text(subsec)
+            vf_last_vowel = "u"
+
+            for t in parsed.filter_templates():
+              if t.name == "ar-verb-form":
+                vf_vowels = re.sub("[^" + A + I + U + "]", "",
+                    reorder_shadda(getparam(t, "1"))[0:-1])
+                if len(vf_vowels) > 0:
+                  if vf_vowels[-1] == A:
+                    vf_last_vowel = "a"
+                  elif vf_vowels[-1] == I:
+                    vf_last_vowel = "i"
+                  else:
+                    vf_last_vowel = "u"
+              if t.name == "inflection of":
+                vf_person, vf_voice, vf_mood = (
+                    inflection_of_sort_key(unicode(t)))
+            sort_key = (vf_person, vf_voice, vf_last_vowel, vf_mood)
+            #pagemsg("Sort key: %s" % (sort_key,))
+            return sort_key
+          newsubsecs = sorted(subsecs, key=keyfunc)
+          if newsubsecs != subsecs:
+            for k, j in zip(xrange(len(subsecs)), xrange(start, end + 2, 2)):
+              subsections[j] = ensure_two_trailing_nl(newsubsecs[k])
+
+        # Sort the order of individual verb-part subsections. Return True
+        # if text was changed.
+        def sort_verb_part_subsections():
           subsections_sentinel = subsections + ["", ""]
           #for jj in xrange(len(subsections_sentinel)):
             #pagemsg("Subsection %s: [[%s]]" % (jj, subsections_sentinel[jj]))
@@ -451,15 +500,116 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 start = j
               if start != None and not is_verb_form:
                 end = j - 2
-                sort_one_section(start, end)
+                sort_verb_part_subsection_run(start, end)
                 start = None
           newtext = ''.join(subsections)
+
           if newtext != sections[i]:
             sections[i] = newtext
-            pagemsg("Sorted verb part sections")
-            notes.append("sorted verb part sections")
+            return True
+          else:
+            return False
 
-        # If verb part, go through and sort adjoining verb form sections
+        # Return False is ===Etymology N=== section doesn't contain only
+        # verb parts. Else, return a key of (FORM, LEMMA) where LEMMA
+        # doesn't contain diacritics.
+        def verb_part_etym_group_key(text):
+          subsecs = re.split("(^===+[^=\n]+===+\n)", text, 0, re.M)
+          if len(subsecs) < 2:
+            pagemsg("WARNING: Etym section has no subsections: [[%s]]" % text)
+            return False
+          form = None
+          lemma = None
+          for j in xrange(1, len(subsecs), 2):
+            if not re.match("^=+Verb=+\n", subsecs[j]):
+              return False
+            parsed = blib.parse_text(subsecs[j + 1])
+            for t in parsed.filter_templates():
+              if t.name == "ar-verb-form":
+                newform = getparam(t, "2")
+                if not form:
+                  form = newform
+                elif form != newform:
+                  pagemsg("WARNING: Same etym section, two different forms, %s and %s" % (
+                    form, newform))
+              elif t.name == "inflection of":
+                newlemma = remove_diacritics(getparam(t, "1"))
+                if not lemma:
+                  lemma = newlemma
+                elif lemma != newlemma:
+                  pagemsg("WARNING: Same etym section, two different vowelless lemmas, %s and %s" % (
+                    lemma, newlemma))
+              else:
+                return False
+          if not form or not lemma:
+            pagemsg("WARNING: Verb etym section has missing templates: [[%s]]" % text)
+          if not form:
+            form = 100
+          elif form not in form_classes_to_number:
+            pagemsg("WARNING: Strange verb form class %s" % form)
+            form = 100
+          else:
+            form = form_classes_to_number[form]
+          if not lemma:
+            lemma = u"يييييييييييييييي"
+          return (form, lemma)
+
+        # Sort the groups of subsections under ===Etymology N=== headers.
+        # Return True if text was changed.
+        def sort_verb_part_etym_groups():
+          etym_groups = re.split("(^===Etymology [0-9]+===\n)", sections[i],
+              0, re.M)
+          if len(etym_groups) > 1:
+            # Save the header
+            etym_header = etym_groups[0]
+            # Separate verb-part and non-verb-part etyms
+            non_verb_part_etyms = []
+            verb_part_etyms = []
+            for j in xrange(2, len(etym_groups), 2):
+              is_verb_part_etym = verb_part_etym_group_key(etym_groups[j])
+              if is_verb_part_etym:
+                verb_part_etyms.append(etym_groups[j])
+              else:
+                non_verb_part_etyms.append(etym_groups[j])
+            # Sort verb-part etyms
+            new_vpes = sorted(verb_part_etyms, key=verb_part_etym_group_key)
+            # Put non-verb-part etyms before sorted verb-part etyms
+            new_etym_groups = [etym_header]
+            sorted_etyms = non_verb_part_etyms + new_vpes
+            for index, etym_group in zip(
+                xrange(len(sorted_etyms)), sorted_etyms):
+              new_etym_groups.append("===Etymology %s===\n" % (index + 1))
+              new_etym_groups.append(etym_group)
+            if new_etym_groups != etym_groups:
+              for j in xrange(2, len(new_etym_groups), 2):
+                new_etym_groups[j] = ensure_two_trailing_nl(
+                    new_etym_groups[j])
+              sections[i] = ''.join(new_etym_groups)
+              return True
+          return False
+
+        # Sort adjoining verb form subsections, as well as defns in the
+        # subsections and etym groups of subsections. However, if
+        # ETYM_GROUPS_ONLY, only sort the etym groups; we do this when
+        # we have added a new etym group, because this invalidates
+        # subsections[], which we rely on in the other two kinds of sorting.
+        def sort_verb_part_sections(etym_groups_only=False):
+          sorted1 = not etym_groups_only and sort_defns_in_verb_part_subsections()
+          sorted2 = not etym_groups_only and sort_verb_part_subsections()
+          sorted3 = sort_verb_part_etym_groups()
+          sortmsgs = []
+          if sorted1:
+            sortmsgs.append("defns")
+          if sorted2:
+            sortmsgs.append("subsecs")
+          if sorted3:
+            sortmsgs.append("etym groups")
+          if sortmsgs:
+            pagemsg("Sorted verb part sections (%s)" % ",".join(sortmsgs))
+            notes.append("sorted verb part sections (%s)" % ",".join(sortmsgs))
+
+        # If verb part, go through and sort adjoining verb form subsections,
+        # as well as defns in the subsections and etym groups of subsections
         if is_verb_part:
           sort_verb_part_sections()
 
@@ -914,6 +1064,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                           deftemp))
                       comment = "Insert existing defn with {{%s}} at beginning after any existing such defns: %s %s, %s %s" % (
                           deftemp, infltype, inflection, lemmatype, lemma)
+                      if is_verb_part:
+                        sort_verb_part_sections()
                       break
 
             elif is_participle:
@@ -1165,6 +1317,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 ensure_two_trailing_nl(re.sub("^==(.*?)==$", r"===\1===",
                   sections[i], 0, re.M)) +
                 "===Etymology 2===\n" + entrytextl4 + "\n")
+          if is_verb_part:
+            sort_verb_part_sections(etym_groups_only=True)
         break
       elif m.group(1) > "Arabic":
         pagemsg("Exists; inserting before %s section" % (m.group(1)))
@@ -1726,6 +1880,12 @@ def create_participles(save, startFrom, upTo):
             for pp in pps:
               create_participle(save, index, pp, page, template, "passive",
                   "pass")
+
+# List of all verb form classes
+all_form_classes = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX",
+    "X", "XI", "XII", "XIII", "XIV", "XV", "Iq", "IIq", "IIIq", "IVq"]
+form_classes_to_number = dict(
+    zip(all_form_classes, xrange(1, len(all_form_classes) + 1)))
 
 # List of all person/number/gender combinations, using the ID's in
 # {{ar-verb-part-all|...}}
