@@ -174,6 +174,365 @@ ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 
 CREATE; ALSO ADD AS USEX IN وزير and خارجية Noun: وَزِير الخاارِجِيَّة foreign secretary
 
+Mace entries:
+
+verb صَوَّرَ to depict, to photograph
+noun صُورَة pl صُوَر picture, form, photograph
+vn تَصْوِير depiction, photography
+ap مُصَوِّر photographer
+noun مُصَوِّرَة camera
+vn تَصَوُّر imagination
+nisba تَصَوُّرِيّ imaginary
+pp مُصَوَّر illustrated
+nisba صُورِيّ formal, artificial
+
+
+صورة
+
+Add the following as derived terms:
+
+* {{l|ar|صُورَةً||[[formally]]}}
+* {{l|ar|صُورَة شَمْسِيَّة|ṣūra šamsiyya||[[photograph]]}}
+* {{l|ar|بِصُورَة رَسْمِيَّة|tr=bi-ṣūra rasmiyya||[[officially]]}}
+* {{l|ar|بِصُورَة غَيْر رَسْمِيَّة|tr=bi-ṣūra ḡayr rasmiyya||[[unofficially]]}}
+* {{l|ar|بِسُورَة عَامَّة|tr=bi-ṣūra ʿāmma||[[generally]]}}
+* {{l|ar|بِصُورَة خَاصَّة|tr=bi-ṣūra xāṣṣa||[[especially]]}}
+* {{l|ar|بِصُورَة أَوْضَح|tr=bi-ṣūra ʾawḍaḥ||more [[clearly]]}}
+
+
+
+صور
+
+...
+
+===Etymology 2===
+
+====Proper noun====
+{{ar-proper noun|صُور}}
+
+# [[Tyre]] {{gloss|[[city]] in [[Lebanon]]}}
+
+=====Declension=====
+{{ar-decl-noun|صُورُ|state=ind}}
+
+=====References=====
+* {{R:ar:Wehr-4|صور}}
+
+...
+
+
+تصور
+
+==Arabic==
+
+===Etymology 1===
+Mediopassive of {{m|ar|صَوَّرَ||to [[form]], [[depict]], to [[photograph]]}}, from the root {{ar-root|ص|و|ر}}.
+
+====Verb====
+{{ar-verb|V}}
+
+# to be or become [[formed]], [[fashioned]], [[figured]], [[shaped]], [[sculptured]], [[pictured]], [[portrayed]], [[photographed]]
+# to [[imagine]], to [[conceive]] {{i|something}}
+# {{lb|ar|ditransitive}} to [[think]] {{i|something, someone}} to be {{i|something, someone}}
+# to [[appear]] in one's [[mind]] as an [[image]]
+# to [[seem]] {{i|{{m|ar|لِ}} someone}}
+# to [[fall]] {{i|as a result of being [[struck]]}}
+
+=====Conjugation=====
+{{ar-conj|V|passive=y}}
+
+=====References=====
+* {{R:ar:Lane|صور}}
+* {{R:ar:Mace}}
+* {{R:ar:Wehr-4|صور}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|تَصَوُّر|m|pl=تَصَوُّرَات}}
+
+# {{ar-verbal noun of|تَصَوَّرَ|form=V}}
+# [[imagination]]
+# [[idea]], [[concept]]
+# [[conception]]
+
+=====Declension=====
+{{ar-decl-noun|تَصَوُّر|pl=sfp}}
+
+=====Derived terms=====
+* {{l|ar|قَابِل لِلتَصَوُّر||[[imaginable]]}}
+* {{l|ar|غَيْر قَابِل لِلتَصَوُّر||[[unimaginable]]}}
+* {{l|ar|ضَعِيف التَصَوُّر||[[unimaginative]]}}
+
+=====References=====
+* {{R:ar:Mace}}
+* {{R:ar:Wehr-4|صور}}
+
+...
+
+تصوري
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba|تَصَوُّر|[[imagination]]}}.
+
+====Adjective====
+{{ar-nisba|تَصَوُّرِيّ}}
+
+# [[imaginary]]
+
+=====Declension=====
+{{ar-decl-adj|تَصَوُّرِيّ|pl=sp}}
+
+=====References=====
+* {{R:ar:Mace|تصور}}
+* {{R:ar:Wehr-4|صور}}
+
+...
+
+صوري
+
+==Arabic==
+
+===Etymology 1===
+{{ar-etym-nisba|صُورَة|[[form]], [[picture]], [[appearance]]}}.
+
+====Adjective====
+{{ar-nisba|صُورِيّ}}
+
+# [[formal]]
+# [[artificial]]
+# [[imaginary]], [[fictitious]]
+# [[false]]
+# [[superficial]]
+
+=====Declension=====
+{{ar-decl-adj|صُورِيّ|pl=sp}}
+
+=====References=====
+* {{R:ar:Mace|تصور}}
+* {{R:ar:Wehr-4|صور}}
+
+===Etymology 2===
+
+====Verb====
+{{ar-verb-form|صَوِّرِي|II}}
+
+# {{inflection of|صَوَّرَ||lang=ar|2|f|s|actv|impr}}
+
+تصوير
+
+==Arabic==
+
+===Noun===
+{{ar-noun|تَصْوِير|m}}
+
+# {{ar-verbal noun of|صَوَّرَ|form=II}}
+# [[depiction]]
+# [[photography]]
+# [[drawing]]
+# [[painting]]
+
+====Declension====
+{{ar-decl-noun|تَصْوِير}}
+
+====References====
+* {{R:ar:Mace|تصور}}
+* {{R:ar:Wehr-4|صور}}
+
+====Synonyms====
+* {{sense|photography}} {{m|ar|التَصْوِير الشَمْسِيّ}}
+
+تصويرة
+
+==Arabic==
+
+===Etymology===
+{{ar-instance noun}} from the {{ar-verbal noun|lc=1|nocat=1}} {{m|ar|تَصْوِير||[[depiction]], [[photography]]}}, from the root {{ar-root|ص و ر}}.
+
+===Noun===
+{{ar-noun|تَصْوِيرَة|f|pl=تَصَاوِير}}
+
+# {{ar-verbal noun of|صَوَّرَ|form=II}}
+# [[picture]], [[image]]
+
+====Declension====
+{{ar-decl-noun|تَصْوِيرَة|pl=تَصَاوِير}}
+
+====References====
+* {{R:ar:Wehr-4|صور}}
+
+====Synonyms====
+* {{l|ar|صُورَة}}
+
+مصور
+
+==Arabic==
+
+===Etymology 1===
+{{ar-active participle}} of {{m|ar|صَوَّرَ||to [[photograph]], to [[depict]]}}, from the root {{ar-root|ص و ر}}.
+
+====Noun====
+{{ar-noun|مُصَوِّر|m|pl=مُصَوِّرُون}}
+
+# [[photographer]]
+# [[cameraman]]
+# [[creator]], [[shaper]]
+# [[illustrator]]
+# [[painter]]
+
+=====Declension=====
+{{ar-decl-noun|تَصْوِيرَة|pl=تَصَاوِير}}
+
+=====References=====
+* {{R:ar:Mace|تصور}}
+* {{R:ar:Wehr-4|صور}}
+
+===Etymology 2===
+{{ar-passive participle}} of {{m|ar|صَوَّرَ||to [[photograph]], to [[depict]]}}, from the root {{ar-root|ص و ر}}.
+
+====Noun====
+{{ar-adj-sound|مُصَوَّر}}
+
+# [[illustrated]]
+
+=====Declension=====
+{{ar-decl-adj|مُصَوَّر|pl=sp}}
+
+=====References=====
+* {{R:ar:Mace|تصور}}
+* {{R:ar:Wehr-4|صور}}
+
+===Etymology 3===
+{{ar-noun of place}} in the form of the {{ar-passive participle|lc=1|nocat=1}} of {{m|ar|صَوَّرَ||to [[photograph]], to [[depict]]}}, from the root {{ar-root|ص و ر}}.
+
+====Noun====
+{{ar-noun|مُصَوَّر|pl=مُصَوَّرَات}}
+
+# [[photography]] [[studio]]
+
+=====Declension=====
+{{ar-decl-noun|مُصَوَّر|pl=sfp}}
+
+=====References=====
+* {{R:ar:Wehr-4|صور}}
+
+مصورة
+
+==Arabic==
+
+===Etymology===
+{{ar-tool noun}} formed from the {{ar-active participle|lc=1|nocat=1}} of {{m|ar|صَوَّرَ||to [[photograph]], to [[depict]]}}, composed of {{suffix|lang=ar|مُصَوِّر|t1=[[photographer]]|َة|tr2=-a}}, from the root {{ar-root|ص و ر}}.
+
+===Noun===
+{{ar-noun|مُصَوِّرَة|f}}
+
+# [[camera]]
+
+====Declension====
+{{ar-decl-noun|مُصَوِّرَة}}
+
+====Synonyms====
+* {{l|ar|كَامِيرَا|tr=kāmērā}}
+* {{l|ar|كَامِيرَة|tr=kāmēra}}
+
+====References====
+* {{R:ar:Mace|تصور}}
+* {{R:ar:Wehr-4|صور}}
+
+  كاميرا كاميرة
+
+Add مُسَوِّرَة as synonym.
+
+
+تدخل
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|د|خ|ل}}.
+
+====Verb====
+{{ar-verb|V}}
+
+# to [[interfere]] {{i|{{m|ar|فِي}} in}}
+# to [[intervene]] {{i|{{m|ar|فِي}} in}}
+# to [[invade]], to [[disturb]] {{i|{{m|ar|فِي}} something}}
+# to [[interlock]], to [[mesh]]
+
+=====Conjugation=====
+{{ar-conj|V|passive=impers?}}
+
+=====References=====
+* {{R:ar:Wehr-4}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|تَدَخُّل|m}}
+
+# {{ar-verbal noun of|تَدَخَّلَ|form=V}}
+# [[interference]]
+# [[intervention]]
+# [[invasion]], [[disturbance]]
+# [[interlocking]], [[meshing]]
+
+=====Declension=====
+{{ar-decl-noun|تَدَخُّل}}
+
+=====Derived terms=====
+* {{l|ar|عَدَم التَدَخُّل||[[nonintervention]]}}
+
+
+
+تدخل
+
+Delete passive verb forms other than 3sm
+
+
+
+تداخل
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|د|خ|ل}}.
+
+====Verb====
+{{ar-verb|VI}}
+
+# to [[meddle]], to [[butt in]]
+# to [[interfere]], to [[intervene]], to [[interpose]] {{i|{{m|ar|فِي||[[in]]}}}}
+# to [[interlock]], to [[mesh]]
+# to be [[superimposed]]
+# to [[shade]], to [[blend]]
+# to [[befall]], to [[strike]], to [[seize]], to [[come]] over
+
+=====Conjugation=====
+{{ar-conj|VI|passive=y}}
+
+=====References=====
+* {{R:ar:Lane}}
+* {{R:ar:Wehr-4}}
+
+===Etymology 2===
+
+====Noun====
+{{ar-noun|تَدَاخُل|m}}
+
+# {{ar-verbal noun of|تَدَاخَلَ|form=VI}}
+# [[interference]], [[intervention]]
+# [[interlocking]], [[meshing]]
+# [[superimposition]]
+# [[shading]], [[blending]]
+
+=====Declension=====
+{{ar-decl-noun|تَدَاخُل}}
+
+...
+
+
 
 EXISTS, CLEANUP ETYM, ADD FEM/DECL cheap رَخِيص from ر خ ص
 EXISTS, CLEANUP ETYM clean نَظِيف from ن ظ ف
