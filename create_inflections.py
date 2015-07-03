@@ -513,13 +513,22 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         # Return False is ===Etymology N=== section doesn't contain only
         # verb parts. Else, return a key of (FORM, LEMMA) where LEMMA
         # doesn't contain diacritics.
-        def verb_part_etym_group_key(text):
+        def verb_part_etym_group_key(text, warn=False):
+          # Issue a warning only if WARN is True. We do this first time
+          # around, but not when functioning as a sort key to avoid getting
+          # a zillion warnings.
+          def warning(txt):
+            if warn:
+              pagemsg("WARNING: %s" % txt)
+
           subsecs = re.split("(^===+[^=\n]+===+\n)", text, 0, re.M)
           if len(subsecs) < 2:
-            pagemsg("WARNING: Etym section has no subsections: [[%s]]" % text)
+            warning("Etym section has no subsections: [[%s]]" % text)
             return False
           form = None
           lemma = None
+          # Keep track of lemmas seen to reduce warnings
+          lemmas_seen = []
           for j in xrange(1, len(subsecs), 2):
             if not re.match("^=+Verb=+\n", subsecs[j]):
               return False
@@ -530,23 +539,26 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 if not form:
                   form = newform
                 elif form != newform:
-                  pagemsg("WARNING: Same etym section, two different forms, %s and %s" % (
+                  warning("Same etym section, two different forms, %s and %s" % (
                     form, newform))
               elif t.name == "inflection of":
                 newlemma = remove_diacritics(getparam(t, "1"))
                 if not lemma:
                   lemma = newlemma
+                  lemmas_seen.append(lemma)
                 elif lemma != newlemma:
-                  pagemsg("WARNING: Same etym section, two different vowelless lemmas, %s and %s" % (
-                    lemma, newlemma))
+                  if newlemma not in lemmas_seen:
+                    warning("Same etym section, two different vowelless lemmas, %s and %s" % (
+                      lemma, newlemma))
+                    lemmas_seen.append(newlemma)
               else:
                 return False
           if not form or not lemma:
-            pagemsg("WARNING: Verb etym section has missing templates: [[%s]]" % text)
+            warning("Verb etym section has missing templates: [[%s]]" % text)
           if not form:
             form = 100
           elif form not in form_classes_to_number:
-            pagemsg("WARNING: Strange verb form class %s" % form)
+            warning("Strange verb form class %s" % form)
             form = 100
           else:
             form = form_classes_to_number[form]
@@ -566,7 +578,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
             non_verb_part_etyms = []
             verb_part_etyms = []
             for j in xrange(2, len(etym_groups), 2):
-              is_verb_part_etym = verb_part_etym_group_key(etym_groups[j])
+              is_verb_part_etym = verb_part_etym_group_key(
+                  etym_groups[j], warn=True)
               if is_verb_part_etym:
                 verb_part_etyms.append(etym_groups[j])
               else:
