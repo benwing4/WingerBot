@@ -24,11 +24,13 @@ import ar_translit
 
 # Vocalize ARABIC based on LATIN. Return vocalized Arabic text if
 # vocalization succeeds and is different from the existing Arabic text,
-# else False. PARAM is the name of the parameter being vocalized and is
-# used only in status messages.
-def do_vocalize_param(page, index, param, arabic, latin):
+# else False. TEMPLATE is the template being processed and PARAM is the
+# name of the parameter in this template being vocalized; both are used
+# only in status messages.
+def do_vocalize_param(page, index, template, param, arabic, latin):
   def pagemsg(text):
-    msg("Page %s %s: %s" % (index, page.title(), text))
+    msg("Page %s %s: %s.%s: %s" % (index, page.title(), template.name, param,
+      text))
   try:
     vocalized = ar_translit.tr_matching_arabic(arabic, latin, True)
   except Exception as e:
@@ -36,14 +38,13 @@ def do_vocalize_param(page, index, param, arabic, latin):
     vocalized = None
   if vocalized:
     if vocalized == arabic:
-      pagemsg("%s: No change in %s (Latin %s)" % (param, arabic, latin))
+      pagemsg("No change in %s (Latin %s)" % (arabic, latin))
     else:
-      pagemsg("%s: Would replace %s with vocalized %s (Latin %s)" % (
-          param, arabic, vocalized, latin))
+      pagemsg("Would replace %s with vocalized %s (Latin %s)" % (
+          arabic, vocalized, latin))
       return vocalized
   else:
-    pagemsg("%s: Unable to vocalize %s (Latin %s)" % (
-        param, arabic, latin))
+    pagemsg("Unable to vocalize %s (Latin %s)" % (arabic, latin))
   return False
 
 # Attempt to vocalize parameter PARAM based on corresponding transliteration
@@ -55,7 +56,7 @@ def vocalize_param(page, index, template, param, paramtr):
   if not arabic:
     return False
   if latin:
-    vocalized = do_vocalize_param(page, index, param, arabic, latin)
+    vocalized = do_vocalize_param(page, index, template, param, arabic, latin)
     if vocalized:
       oldtempl = "%s" % unicode(template)
       template.add(param, vocalized)
@@ -127,7 +128,8 @@ def vocalize_head(page, index, template):
       arabic = unicode(pagetitle)
       latin = getparam(template, "tr")
       if arabic and latin:
-        vocalized = do_vocalize_param(page, index, "page title", arabic, latin)
+        vocalized = do_vocalize_param(page, index, template, "page title",
+            arabic, latin)
         if vocalized:
           oldtempl = "%s" % unicode(template)
           if template.has("2"):
@@ -209,6 +211,6 @@ parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
 if parms.links:
-  vocalize_links(parms.save, parms.verbose, params.cattype, startFrom, upTo)
+  vocalize_links(parms.save, parms.verbose, parms.cattype, startFrom, upTo)
 else:
   vocalize_headwords(parms.save, parms.verbose, startFrom, upTo)
