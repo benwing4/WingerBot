@@ -302,8 +302,8 @@ silent_alif_maqsuura_subst = u"\ufff2"
 multi_single_quote_subst = u"\ufff3"
 assimilating_l_subst = u"\ufff4"
 double_l_subst = u"\ufff5"
-hamza_match=[u"ʾ",u"’",u"'",u"`"]
-hamza_match_or_empty=[u"ʾ",u"’",u"'",u"`",u""]
+hamza_match=[u"ʾ",u"’",u"'",u"`",u"ʔ"]
+hamza_match_or_empty=[u"ʾ",u"’",u"'",u"`",u"ʔ",u""]
 
 # Special-case matching at beginning of word. Plain alif normally corresponds
 # to nothing, and hamza seats might correspond to nothing (omitted hamza
