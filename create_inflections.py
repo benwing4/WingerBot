@@ -505,6 +505,8 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           newtext = ''.join(subsections)
 
           if newtext != sections[i]:
+            #pagemsg("old sections[i]: [[%s]]\nnew sections[i]: [[%s]]\n" % (
+            #  sections[i], newtext))
             sections[i] = newtext
             return True
           else:
@@ -598,6 +600,11 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 new_etym_groups[j] = ensure_two_trailing_nl(
                     new_etym_groups[j])
               sections[i] = ''.join(new_etym_groups)
+              # Recompute subsections[] based on new ordering; use
+              # subsections[:] to overwrite existing subsections list (can't
+              # just assign to subsections because variable will be local)
+              subsections[:] = (
+                  re.split("(^===+[^=\n]+===+\n)", sections[i], 0, re.M))
               return True
           return False
 
@@ -1098,7 +1105,12 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
 
         # else of for loop over subsections, i.e. no break out of loop
         else:
+          # Under certain circumstances with verb parts, we inserted a
+          # new defn in an existing section but didn't break. We break now,
+          # but first sort verb part sections if necessary.
           if not need_new_entry:
+            if is_verb_part:
+              sort_verb_part_sections()
             break
 
           # At this point we couldn't find an existing subsection with
