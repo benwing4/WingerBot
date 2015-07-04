@@ -223,6 +223,6 @@ parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
 if parms.links:
-  process_links(parms.save, parms.verbose, params.cattype, startFrom, upTo)
+  process_links(parms.save, parms.verbose, parms.cattype, startFrom, upTo)
 else:
   process_headwords(parms.save, parms.verbose, startFrom, upTo)
