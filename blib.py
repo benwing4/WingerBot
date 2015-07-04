@@ -358,7 +358,7 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
   if cattype == "arabic":
     cats = ["Arabic lemmas", "Arabic non-lemma forms"]
   elif cattype == "borrowed":
-    cats = ["%s terms derived form Arabic" % x for x in ["Alviri-Vidari",
+    cats = ["%s terms derived from Arabic" % x for x in ["Alviri-Vidari",
       "Andalusian Arabic", "Azeri", "Baluchi", "Central Kurdish",
       "Egyptian Arabic", "Laki", "Libyan Arabic", "Malay", "Mazanderani",
       "Ottoman Turkish", "Pashto", "Persian", "Urdu"]]
