@@ -307,6 +307,162 @@ def getEtymLanguageData():
     etym_languages_byCode[etyl["code"]] = etyl
     etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
 
+langs_with_terms_derived_from_arabic = [
+  "Abkhaz",
+  "Acehnese",
+  "Adyghe",
+  "Afrikaans",
+  "Albanian",
+  "Ancient Greek",
+  "Andalusian Arabic",
+  "Aragonese",
+  "Aramaic",
+  "Armenian",
+  "Asturian",
+  "Avar",
+  "Azeri",
+  "Baluchi",
+  "Bambara",
+  "Bashkir",
+  "Basque",
+  "Bengali",
+  "Brahui",
+  "Bulgarian",
+  "Burmese",
+  "Burushaski",
+  "Catalan",
+  "Central Kurdish",
+  "Central Melanau",
+  "Chechen",
+  "Chinese",
+  "Classical Syriac",
+  "Crimean Tatar",
+  "Czech",
+  "Danish",
+  "Dhivehi",
+  "Dutch",
+  "Egyptian Arabic",
+  "English",
+  "Esperanto",
+  "Faroese",
+  "Fiji Hindi",
+  "Fijian",
+  "Finnish",
+  "French",
+  "Fula",
+  "Gagauz",
+  "Galician",
+  "Georgian",
+  "German",
+  "Greek",
+  "Gujarati",
+  "Hassaniya",
+  "Hausa",
+  "Hebrew",
+  "Hijazi Arabic",
+  "Hiligaynon",
+  "Hindi",
+  "Hungarian",
+  "Iban",
+  "Icelandic",
+  "Ido",
+  "Indonesian",
+  "Irish",
+  "Istriot",
+  "Italian",
+  "Japanese",
+  "Javanese",
+  "Judeo-Arabic",
+  "Kabardian",
+  "Kabyle",
+  "Kaingang",
+  "Karachay-Balkar",
+  "Karo Batak",
+  "Kashmiri",
+  "Kazakh",
+  "Khakas",
+  "Khmer",
+  "Korean",
+  "Kumyk",
+  "Kurdish",
+  "Kyrgyz",
+  "Ladino",
+  "Laki",
+  "Latin",
+  "Latvian",
+  "Lezgi",
+  "Ligurian",
+  "Lower Sorbian",
+  "Macedonian",
+  "Maithili",
+  "Malagasy",
+  "Malay",
+  "Maltese",
+  "Mandarin",
+  "Marathi",
+  "Marshallese",
+  "Mauritian Creole",
+  "Middle Armenian",
+  "Middle French",
+  "Middle Persian",
+  "Mirandese",
+  "Moroccan Arabic",
+  "Neapolitan",
+  "Nepali",
+  "Newari",
+  "Norman",
+  "North Levantine Arabic",
+  "Norwegian Bokmål",
+  "Norwegian Nynorsk",
+  "Old Armenian",
+  "Old French",
+  "Old Georgian",
+  "Old Norse",
+  "Old Portuguese",
+  "Old Spanish",
+  "Ottoman Turkish",
+  "Pashto",
+  "Persian",
+  "Polish",
+  "Portuguese",
+  "Punjabi",
+  "Rajasthani",
+  "Rohingya",
+  "Romani",
+  "Romanian",
+  "Russian",
+  "Sanskrit",
+  "Sardinian",
+  "Serbo-Croatian",
+  "Shor",
+  "Sicilian",
+  "Sindhi",
+  "Slovak",
+  "Slovene",
+  "Somali",
+  "Spanish",
+  "Swahili",
+  "Swedish",
+  "Tagalog",
+  "Tajik",
+  "Tashelhit",
+  "Tatar",
+  "Telugu",
+  "Thai",
+  "Translingual",
+  "Turkish",
+  "Turkmen",
+  "Ukrainian",
+  "Urdu",
+  "Uyghur",
+  "Uzbek",
+  "Venetian",
+  "Vietnamese",
+  "Wolof",
+  "Yoruba",
+  "Zazaki"
+]
+
 # Process link-like templates, on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
 # VERBOSE is passed to blib.do_edit and will (e.g.) show exact changes.
@@ -319,34 +475,95 @@ def getEtymLanguageData():
 def process_links(save, verbose, cattype, startFrom, upTo, process_param,
     join_actions=None):
   templates_changed = {}
+  templates_seen = {}
 
   # Process the link-like templates on the given page with the given text.
   # Returns the changed text along with a changelog message.
   def process_one_page_links(page, index, text):
     actions = []
     for template in text.filter_templates():
-      result = None
+      def doparam(param, trparam="tr", noadd=False):
+        if not noadd:
+          templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
+        result = process_param(page, index, template, param, trparam)
+        if isinstance(result, list):
+          actions.extend(result)
+          if not noadd:
+            templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
+          return True
+        return False
+      def getp(param):
+        return getparam(template, param)
       tempname = unicode(template.name)
-      if tempname == "head" and getparam(template, "1") == "ar":
-        result = process_param(page, index, template, "head", "tr")
-      elif (tempname == "m" and getparam(template, "1") == "ar" and
-          getparam(template, "3")):
-        result = process_param(page, index, template, "3", "tr")
-      elif (tempname == "term" and getparam(template, "lang") == "ar" and
-          getparam(template, "2")):
-        result = process_param(page, index, template, "2", "tr")
-      elif (#tempname in ["l", "m"] and
-          getparam(template, "1") == "ar"):
-        # Try to process 2=
-        result = process_param(page, index, template, "2", "tr")
+      # Look for {{head|ar|...|head=<ARABIC>}}
+      if tempname == "head":
+        if getp("1") == "ar":
+          doparam("head")
+      # Look for {{t|ar|<PAGENAME>|alt=<ARABICTEXT>}}
+      elif tempname in ["t", "t+", "t-", "t+check", "t-check"]:
+        if getp("1") == "ar":
+          if getp("alt"):
+            doparam("alt")
+          else:
+            doparam("2")
+      # Look for {{suffix|ar|<PAGENAME>|alt1=<ARABICTEXT>|<PAGENAME>|alt2=...}}
+      # or  {{suffix|ar|<ARABICTEXT>|<ARABICTEXT>|...}}
+      elif tempname in ["suffix", "prefix", "confix", "affix", "compound"]:
+        if getp("lang") == "ar":
+          templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
+          i = 1
+          anychanged = False
+          while getp(str(i)):
+            if getp("alt" + str(i)):
+              changed = doparam("alt" + str(i), "tr" + str(i), noadd=True)
+            else:
+              changed = doparam(str(i), "tr" + str(i), noadd=True)
+            anychanged = anychanged or changed
+            i += 1
+          if anychanged:
+            templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
+      elif tempname == "form of":
+        if getp("lang") == "ar":
+          if getp("3"):
+            doparam("3")
+          else:
+            doparam("2")
+      # Templates where we don't check for alternative text because
+      # the following parameter is used for the translation.
+      elif tempname in ["ux", "lang"]:
+        if getp("1") == "ar":
+          doparam("2")
+      elif tempname == "usex":
+        if getp("lang") == "ar":
+          doparam("1")
+      # Look for any other template with "ar" as first argument
+      elif (#tempname in ["l", "link", "m", "mention"] and
+          getp("1") == "ar"):
+        # Look for:
+        #   {{m|ar|<PAGENAME>|<ARABICTEXT>}}
+        #   {{m|ar|<PAGENAME>|alt=<ARABICTEXT>}}
+        #   {{m|ar|<ARABICTEXT>}}
+        if getp("alt"):
+          doparam("alt")
+        elif getp("3"):
+          doparam("3")
+        else:
+          doparam("2")
+      # Look for any other template with "lang=ar" in it. But beware of
+      # {{borrowing|en|<ENGLISHTEXT>|lang=ar}}.
       elif (#tempname in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
           tempname != "borrowing" and
-          getparam(template, "lang") == "ar"):
-        # Try to process 1=
-        result = process_param(page, index, template, "1", "tr")
-      if isinstance(result, list):
-        actions.extend(result)
-        templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
+          getp("lang") == "ar"):
+        # Look for:
+        #   {{term|lang=ar|<PAGENAME>|<ARABICTEXT>}}
+        #   {{term|lang=ar|<PAGENAME>|alt=<ARABICTEXT>}}
+        #   {{term|lang=ar|<ARABICTEXT>}}
+        if getp("alt"):
+          doparam("alt")
+        elif getp("2"):
+          doparam("2")
+        else:
+          doparam("1")
     if not join_actions:
       changelog = '; '.join(actions)
     else:
@@ -358,15 +575,16 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
   if cattype == "arabic":
     cats = ["Arabic lemmas", "Arabic non-lemma forms"]
   elif cattype == "borrowed":
-    cats = ["%s terms derived from Arabic" % x for x in ["Alviri-Vidari",
-      "Andalusian Arabic", "Azeri", "Baluchi", "Central Kurdish",
-      "Egyptian Arabic", "Laki", "Libyan Arabic", "Malay", "Mazanderani",
-      "Ottoman Turkish", "Pashto", "Persian", "Urdu"]]
+    cats = ["%s terms derived from Arabic" % x for x in
+        langs_with_terms_derived_from_arabic]
   else:
     raise ValueError("Category type '%s' should be 'arabic' or 'borrowed'")
   for cat in cats:
     for page, index in cat_articles(cat, startFrom, upTo):
       do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
+  msg("Templates seen:")
+  for template, count in sorted(templates_seen.items(), key=lambda x:-x[1]):
+    msg("  %s = %s" % (template, count))
   msg("Templates processed:")
   for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
     msg("  %s = %s" % (template, count))
