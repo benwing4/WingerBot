@@ -302,8 +302,8 @@ silent_alif_maqsuura_subst = u"\ufff2"
 multi_single_quote_subst = u"\ufff3"
 assimilating_l_subst = u"\ufff4"
 double_l_subst = u"\ufff5"
-hamza_match=[u"ʾ",u"’",u"'",u"`",u"ʔ"]
-hamza_match_or_empty=[u"ʾ",u"’",u"'",u"`",u"ʔ",u""]
+hamza_match=[u"ʾ",u"’",u"'",u"`",u"ʔ",u"’",u"‘",u"ˀ"]
+hamza_match_or_empty=hamza_match + [u""]
 
 # Special-case matching at beginning of word. Plain alif normally corresponds
 # to nothing, and hamza seats might correspond to nothing (omitted hamza
@@ -341,18 +341,24 @@ tt_to_arabic_matching_eow = { # end of word
 # like خ=kh and ث=th.
 tt_to_arabic_matching = {
     # consonants
-    u"ب":u"b", u"ت":u"t", u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],    u"ج":[u"j",u"ǧ"],
+    u"ب":u"b", u"ت":u"t", u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],
+    u"ج":[u"j",u"ǧ",u"ğ",u"ǰ"],
     # allow what would normally be capital H, but we lowercase all text
     # before processing
-    u"ح":[u"ḥ",u"ħ",u"h"], u"خ":[u"ḵ",u"x",u"kh"],
-    u"د":u"d", u"ذ":[u"ḏ",u"đ",u"ð",u"dh"], u"ر":u"r", u"ز":u"z",
-    u"س":u"s", u"ش":[u"š",u"sh"],
+    u"ح":[u"ḥ",u"ħ",u"h",u"ẖ"],
+    u"خ":[u"ḵ",u"x",u"kh",u"ḫ",u"ḳ",u"ẖ",u"χ"],
+    u"د":u"d", u"ذ":[u"ḏ",u"đ",u"ð",u"dh",u"ḍ",u"d",u"ẕ"],
+    u"ر":u"r", u"ز":u"z",
+    u"س":u"s", u"ش":[u"š",u"sh",u"ʃ"],
     # allow non-emphatic to match so we can handle uppercase S, D, T, Z;
     # we lowercase the text before processing to handle proper names and such
-    u"ص":[u"ṣ",u"sʿ",u"s", u"ʂ"], u"ض":[u"ḍ",u"dʿ",u"d"],
-    u"ط":[u"ṭ",u"tʿ",u"ṫ",u"t"], u"ظ":[u"ẓ",u"ðʿ",u"đ̣",u"z"],
-    u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3",u"ˁ"], u"غ":[u"ḡ",u"ġ",u"ğ",u"gh"],
-    u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m",    u"ن":u"n",
+    u"ص":[u"ṣ",u"sʿ",u"sˁ",u"s",u"ʂ"], u"ض":[u"ḍ",u"dʿ",u"dˁ",u"d"],
+    u"ط":[u"ṭ",u"tʿ",u"tˁ",u"ṫ",u"ţ",u"ŧ",u"ʈ",u"ʈ",u"t",u"t̤"],
+    u"ظ":[u"ẓ",u"ðʿ",u"ðˁ",u"đ̣",u"z",u"ż"],
+    u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3",u"ˁ",u"'",u"ʾ",u"῾",u"’"],
+    u"غ":[u"ḡ",u"ġ",u"ğ",u"gh",u"g"],
+    u"ف":u"f", u"ق":[u"q",u"ḳ"],
+    u"ك":u"k", u"ل":u"l", u"م":u"m", u"ن":u"n",
     u"ه":u"h",
     # We have special handling for the following in the canonicalized Latin,
     # so that we have -a but -āh and -at-.
@@ -412,9 +418,23 @@ tt_to_arabic_matching = {
 word_interrupting_chars = u"ـ[]"
 
 build_canonicalize_latin = {}
-for ch in "abcdefghijklmnopqrstuvwyz3":
+for ch in u"abcdefghijklmnopqrstuvwyz3":
     build_canonicalize_latin[ch] = "multiple"
-    build_canonicalize_latin[""] = "multiple"
+build_canonicalize_latin[""] = "multiple"
+
+# Make sure we don't canonicalize any canonical letter to any other one;
+# e.g. could happen with ʾ, an alternative for ʿ.
+for arabic in tt_to_arabic_matching:
+    alts = tt_to_arabic_matching[arabic]
+    if isinstance(alts, basestring):
+        build_canonicalize_latin[alts] = "multiple"
+    else:
+        canon = alts[0]
+        if isinstance(canon, list):
+            build_canonicalize_latin[canon[0]] = "multiple"
+        else:
+            build_canonicalize_latin[canon] = "multiple"
+
 for arabic in tt_to_arabic_matching:
     alts = tt_to_arabic_matching[arabic]
     if isinstance(alts, basestring):
@@ -446,11 +466,14 @@ tt_to_arabic_unmatching = {
 }
 
 def pre_canonicalize_latin(text):
-    text = text.lower()
+    text = text.lower().strip()
+    # remove L2R, R2L markers
+    text = rsub(text, u"[\u200E\u200F]", "")
     # eliminate accents
     text = rsub(text, u".",
         {u"á":u"a", u"é":u"e", u"í":u"i", u"ó":u"o", u"ú":u"u",
-         u"ā́":u"ā", u"ḗ":u"ē", u"ī́":u"ī", u"ṓ":u"ō", u"ū́":u"ū"})
+         u"ā́":u"ā", u"ḗ":u"ē", u"ī́":u"ī", u"ṓ":u"ō", u"ū́":u"ū",
+         u"ä":u"a", u"ë":u"e", u"ï":u"i", u"ö":u"o", u"ü":u"u"})
     # some accented macron letters have the accent as a separate Unicode char
     text = rsub(text, u".́",
         {u"ā́":u"ā", u"ḗ":u"ē", u"ī́":u"ī", u"ṓ":u"ō", u"ū́":u"ū"})
@@ -458,12 +481,22 @@ def pre_canonicalize_latin(text):
     text = rsub(text, u"([aeiou])\\1", {u"a":u"ā", u"e":u"ē", u"i":u"ī", u"o":u"ō", u"u":u"ū"})
     # eliminate vowels followed by colon = long vowels
     text = rsub(text, u"([aeiou])[:ː]", {u"a":u"ā", u"e":u"ē", u"i":u"ī", u"o":u"ō", u"u":u"ū"})
+    # convert circumflexed vowels to long vowels
+    text = rsub(text, u".",
+        {u"â":u"ā", u"ê":u"ē", u"î":u"ī", u"ô":u"ō", u"û":u"ū"})
     # eliminate - or ' separating t-h, t'h, etc. in transliteration style
     # that uses th to indicate ث
     text = rsub(text, u"([dtgkcs])[-']h", u"\\1h")
+    # misc substitutions
+    text = rsub(text, u"ẗ$", "")
+    text = rsub(text, r"\(u\)", "")
+    text = rsub(text, r"\(tun\)$", "")
+    text = rsub(text, r"\(un\)$", "")
+    text = rsub(text, u"ɪ", "i")
+    # vowel/diphthong canonicalizations
     text = rsub(text, u"ūw", u"uww")
     text = rsub(text, u"īy", u"iyy")
-    text = rsub(text, u"ai", u"ay")
+    text = rsub(text, u"[ae][iy]", u"ay")
     text = rsub(text, u"au", u"aw")
     text = rsub(text, u"āi", u"āy")
     text = rsub(text, u"āu", u"āw")
@@ -508,6 +541,11 @@ def canonicalize_latin(text):
     return text
 
 def pre_canonicalize_arabic(unvoc):
+    unvoc = unvoc.strip()
+    # remove L2R, R2L markers
+    unvoc = rsub(unvoc, u"[\u200E\u200F]", "")
+    # replace FARSI YEH with regular YEH
+    unvoc = unvoc.replace(u"ی", u"ي")
     # convert llh for allāh into ll+shadda+dagger-alif+h
     unvoc = rsub(unvoc, u"لله", u"للّٰه")
     # uniprint("unvoc enter: %s" % unvoc)
@@ -524,6 +562,8 @@ def pre_canonicalize_arabic(unvoc):
     # e.g. اة = ā and still correctly allow e.g. رة = ra but disallow رة = r.
     unvoc = rsub(unvoc, u"([^\u064E\u0627\u0622\u0670])\u0629",
         u"\\1\u064E\u0629")
+    # Remove final -un i3rab
+    unvoc = rsub(unvoc, u"\u064C$", "")
     # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
     # accusative singular or words like عَصًا "stick" or هُذًى "guidance"; this is
     # called tanwin nasb). So substitute special silent versions of these
