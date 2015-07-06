@@ -20,6 +20,7 @@ import blib, pywikibot
 from blib import msg, getparam
 
 templates_changed = {}
+template_params_removed = {}
 remove_tr_langs = ["hy", "xcl", "ka"]
 remove_tr_long_langs = ["Armenian", "Old Armenian", "Georgian"]
 
@@ -30,19 +31,26 @@ def remove_translit(save, verbose, startFrom, upTo):
     params_removed = []
     for t in text.filter_templates():
       tname = unicode(t.name)
-      def do_param(param):
-        val = getparam(t, param)
+      def getp(param):
+        return getparam(t, param)
+      def doparam(param):
+        val = getp(param)
         if val:
-          params_removed.append("%s.%s" % (tname, param))
-          t.remove(param)
-          msg("Removed %s=%s from %s" % (param, val, tname))
           if re.search(u"[\u0370-\u1CFF\u1F00-\u1FFF\u2C00-\u2C5F\u2C80-\uA6FF\uA800-\uAB2F\uAB70-\uFEFF]", val):
-            msg("WARNING: Removed value %s has non-Western chars in it" % val)
-          templates_changed[tname] = templates_changed.get(tname, 0) + 1
+            msg("WARNING: Value %s=%s of template %s has non-Western chars in it, not removing" %
+                (param, val, tname))
+          else:
+            tempparam = "%s.%s" % (tname, param)
+            params_removed.append(tempparam)
+            t.remove(param)
+            msg("Removed %s=%s from %s" % (param, val, tname))
+            templates_changed[tname] = templates_changed.get(tname, 0) + 1
+            templates_params_removed[tempparam] = (
+                templates_params_removed.get(tempparam, 0) + 1)
       # Declension templates
       for start_template in ["hy-noun-", "xcl-noun-"]:
         if tname.startswith(start_template):
-          do_param("1")
+          doparam("1")
       # (Old) Armenian headword templates
       # 
       # Note: The following still use the tr= parameter, but pass it to
@@ -70,53 +78,54 @@ def remove_translit(save, verbose, startFrom, upTo):
           "xcl-postp", "xcl-prefix", "xcl-prep", "xcl-pron", "xcl-pron-form",
           "xcl-proper_noun", "xcl-proper-noun-form", "xcl-root", "xcl-suffix",
           "xcl-verb", "xcl-verb-form"]:
-        do_param("1")
-        do_param("tr")
+        doparam("1")
+        doparam("tr")
       # Georgian headword templates
       # NOTE: ka-adj, ka-adv, ka-pron, ka-proper noun, ka-verb still use the
       # tr= parameter, but pass it to {{head}}, which presumably ignores it.
       if tname in ["ka-adj", "ka-adv", "ka-con", "ka-noun", "ka-pron",
           "ka-proper noun", "ka-verb", "ka-verbal noun"]:
-        do_param("tr")
+        doparam("tr")
       # FIXME: ka-decl-noun. All even-numbered templates (up through at least
       # 36) are translits, but are still used in the template.
+      #if tname == "ka-decl-noun":
+      #  for i in xrange(2, 38, 2):
+      #    doparam(str(i))
       #
       # Armenian conjugation templates
       if t.startswith("hy-conj"):
-        do_param("2")
-        do_param("4")
-        do_param("6")
+        doparam("2")
+        doparam("4")
+        doparam("6")
       if t.startswith("xcl-conj"):
-        do_param("1")
-        do_param("3")
-        do_param("5")
+        doparam("1")
+        doparam("3")
+        doparam("5")
       # Suffix/prefix/affix
       if (tname in ["suffix", "prefix", "confix", "affix", "compound"] and
-          getparam(t, "lang") in remove_tr_langs):
+          getp("lang") in remove_tr_langs):
           i = 1
           while getp(str(i)):
             doparam("tr" + str(i))
             i += 1
       if (#tname in ["t", "t+", "t-", "t+check", "t-check", "l", "m",
           #"link", "mention", "head", "ux"] and
-          getparam(t, "1") in remove_tr_langs):
-        do_param("tr")
+          getp("1") in remove_tr_langs):
+        doparam("tr")
       if (#tname in ["term", "usex"] and
-          getparam(t, "lang") in remove_tr_langs
+          getp("lang") in remove_tr_langs
           and tname != "borrowing"):
-        do_param("tr")
-      if (getparam(t, "1") in ["hy", "xcl"] or
-          getparam(t, "lang") in ["hy", "xcl"]):
-        if getparam(t, "sc") == "Armn":
-          t.remove("sc")
-          params_removed.append("%s.sc=Armn" % tname)
-          templates_changed[tname] = templates_changed.get(tname, 0) + 1
-      if (getparam(t, "1") in ["ka"] or
-          getparam(t, "lang") in ["ka"]):
-        if getparam(t, "sc") == "Geor":
-          t.remove("sc")
-          params_removed.append("%s.sc=Geor" % tname)
-          templates_changed[tname] = templates_changed.get(tname, 0) + 1
+        doparam("tr")
+      # Remove sc=Armn from (Old) Armenian, sc=Geor from Georgian
+      for langs, script in [(["hy", "xcl"], "Armn"), (["ka"], "Geor")]:
+        if getp("1") in langs or getp("lang") in langs and tname != "borrowing":
+          if getp("sc") == script:
+            t.remove("sc")
+            tempparam = "%s.sc=%s" % (tname, script)
+            params_removed.append(tempparam)
+            templates_changed[tname] = templates_changed.get(tname, 0) + 1
+            templates_params_removed[tempparam] = (
+                templates_params_removed.get(tempparam, 0) + 1)
 
     changelog = "Remove translit (%s)" % ", ".join(params_removed)
     msg("Page %s %s: Change log = %s" % (index, pagetitle, changelog))
@@ -147,3 +156,6 @@ remove_translit(parms.save, parms.verbose, startFrom, upTo)
 msg("Templates processed:")
 for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
   msg("  %s = %s" % (template, count))
+msg("Template params removed:")
+for tpar, count in sorted(template_params_removed.items(), key=lambda x:-x[1]):
+  msg("  %s = %s" % (tpar, count))
