@@ -391,14 +391,18 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
         def inflection_of_sort_key(tstr):
           vf_person = 13
           vf_voice = "pasv"
-          vf_mood = "c"
+          vf_mood = "e"
           if "|actv" in tstr:
             vf_voice = "actv"
-          if "|indc" in tstr:
+          if "|past" in tstr:
             vf_mood = "a"
-          if "|subj" in tstr:
+          if "|indc" in tstr:
             vf_mood = "b"
-          persons = persons_infl_entry.values()
+          if "|subj" in tstr:
+            vf_mood = "c"
+          if "|juss" in tstr:
+            vf_mood = "d"
+          persons = all_person_infls
           for k in xrange(len(persons)):
             if "|" + persons[k] in tstr:
               vf_person = k
@@ -463,6 +467,10 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
           def keyfunc(subsec):
             parsed = blib.parse_text(subsec)
             vf_last_vowel = "u"
+            vf_person = 13
+            vf_voice = "pasv"
+            vf_mood = "e"
+            seen_inflection_of = False
 
             for t in parsed.filter_templates():
               if t.name == "ar-verb-form":
@@ -475,9 +483,11 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                     vf_last_vowel = "i"
                   else:
                     vf_last_vowel = "u"
-              if t.name == "inflection of":
+              # Only use first inflection-of template
+              if t.name == "inflection of" and not seen_inflection_of:
                 vf_person, vf_voice, vf_mood = (
                     inflection_of_sort_key(unicode(t)))
+                seen_inflection_of = True
             sort_key = (vf_person, vf_voice, vf_last_vowel, vf_mood)
             #pagemsg("Sort key: %s" % (sort_key,))
             return sort_key
@@ -1920,9 +1930,10 @@ all_persons = [
     "1p", "2pm", "2pf", "3pm", "3pf"
     ]
 # Corresponding part of {{inflection of|...}} template, e.g. 3|m|s for 3sm
-persons_infl_entry = dict([x,
-  re.sub("([sdpmf])", r"|\1", re.sub("([sdp])([mf])", r"\2\1", x))]
-  for x in all_persons)
+all_person_infls = [re.sub("([sdpmf])", r"|\1",
+  re.sub("([sdp])([mf])", r"\2\1", x))
+  for x in all_persons]
+persons_infl_entry = dict(zip(all_persons, all_person_infls))
 # List of all tense/mood combinations, using the ID's in
 # {{ar-verb-part-all|...}}
 all_tenses = ["perf", "impf", "subj", "juss", "impr"]
