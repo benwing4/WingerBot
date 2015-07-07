@@ -17,13 +17,14 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, errmsg, getparam
 
 templates_changed = {}
 template_params_removed = {}
 langs_with_override_translit = [
   ("hy", "Armenian"),
   ("xcl", "Old Armenian"),
+  ("axm", "Middle Armenian"),
   ("ka", "Georgian"),
   ("el", "Greek"),
   ("grc", "Ancient Greek"),
@@ -31,7 +32,6 @@ langs_with_override_translit = [
 #  ("abq", "Abaza"),
 #  ("ady", "Adyghe"),
 #  ("av", "Avar"),
-#  ("axm", "Middle Armenian"),
 #  ("ba", "Bashkir"),
 #  ("bo", "Tibetan"),
 #  ("bua", "Buryat"),
@@ -78,39 +78,94 @@ langs_with_override_translit = [
 #  ("xal", "Kalmyk"),
 #  ("xmf", "Mingrelian"),
 ]
+langs_with_override_translit_map = dict(langs_with_override_translit)
 
 remove_tr_langs = [x for x, y in langs_with_override_translit]
 remove_tr_long_langs = [y for x, y in langs_with_override_translit]
 
-def remove_translit(save, verbose, startFrom, upTo):
+def has_non_western_chars(val):
+  # Some Greek translits contain the following chars mixed in with
+  # the Latin chars, so ignore them. Note that these are all
+  # consonants and pretty much all real Greek words will have vowels
+  # in them, so this is unlikely to lead to missing actual Greek
+  # text.
+  checkval = re.sub(u"[χφθβγδ]", "", val)
+  return re.search(u"[\u0370-\u1CFF\u1F00-\u1FFF\u2C00-\u2C5F\u2C80-\uA6FF\uA800-\uAB2F\uAB70-\uFEFF]", checkval)
+
+ignore_prefixes = ["User:", "Talk:",
+    "Wiktionary:Beer parlour", "Wiktionary:Translation requests",
+    "Wiktionary:Grease pit", "Wiktionary:Etymology scriptorium",
+    "Wiktionary:Information desk"]
+
+def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
   # Remove redundant translits on one page.
   def remove_translit_one_page(page, index, text):
     pagetitle = page.title()
     def pagemsg(text):
-      msg("Page %s %s: %s" % (index, page, text))
+      msg("Page %s %s: %s" % (index, pagetitle, text))
     params_removed = []
     for t in text.filter_templates():
       tname = unicode(t.name)
       def getp(param):
         return getparam(t, param)
-      def doparam(param):
+      def doparam(param, value=None):
         val = getp(param)
-        if val:
-          if re.search(u"[\u0370-\u1CFF\u1F00-\u1FFF\u2C00-\u2C5F\u2C80-\uA6FF\uA800-\uAB2F\uAB70-\uFEFF]", val):
-            pagemsg("WARNING: Value %s=%s of template %s has non-Western chars in it, not removing" %
-                (param, val, tname))
+        if value is None:
+          matches_value = not not val
+        else:
+          matches_value = val == value
+        if matches_value:
+          is_ignore_prefix = False
+          for ip in ignore_prefixes:
+            if pagetitle.startswith(ip):
+              is_ignore_prefix = True
+          if " talk:" in pagetitle:
+            is_ignore_prefix = True
+          has_nwc = has_non_western_chars(val)
+          if val == "-":
+            pagemsg("Not removing %s=-: %s" % (param, unicode(t)))
+          elif has_nwc and not param.startswith("tr"):
+            pagemsg("WARNING: Value %s=%s has non-Western chars in it, not removing: %s" %
+                (param, val, unicode(t)))
+          elif is_ignore_prefix:
+            pagemsg("Not removing %s=%s from page in to-ignore category: %s" % (
+              param, val, unicode(t)))
           else:
-            tempparam = "%s.%s" % (tname, param)
+            if has_nwc:
+              pagemsg("NOTE: Value %s=%s has non-Western chars but removing anyway because starts with 'tr': %s" %
+                  (param, val, unicode(t)))
+            pagemsg("Removed %s=%s: %s" % (param, val, unicode(t)))
+            if value is None:
+              tempparam = "%s.%s" % (tname, param)
+            else:
+              tempparam = "%s.%s=%s" % (tname, param, value)
             params_removed.append(tempparam)
             t.remove(param)
-            pagemsg("Removed %s=%s from %s" % (param, val, tname))
             templates_changed[tname] = templates_changed.get(tname, 0) + 1
-            templates_params_removed[tempparam] = (
-                templates_params_removed.get(tempparam, 0) + 1)
+            template_params_removed[tempparam] = (
+                template_params_removed.get(tempparam, 0) + 1)
+      def remove_even(upto=10):
+        for i in xrange(2, upto, 2):
+          doparam(str(i))
+      def remove_odd(upto=9):
+        for i in xrange(1, upto, 2):
+          doparam(str(i))
       # (Old) Armenian declension templates
-      for start_template in ["hy-noun-", "xcl-noun-"]:
-        if tname.startswith(start_template):
-          doparam("1")
+      if re.match("^xcl-noun-.*pl", tname) and tname not in [
+          u"xcl-noun-ն-pl", u"xcl-noun-ն-2-pl", u"xcl-noun-ն-3-pl",
+          u"xcl-noun-ո-ա-pl"]:
+        remove_even()
+      elif tname.startswith("xcl-noun-collnum"):
+        remove_even()
+      elif tname in [u"xcl-noun-հայր", u"xcl-noun-տէր", u"xcl-noun-այր",
+          u"xcl-noun-կին"]:
+        remove_even()
+      else:
+        for start_template in ["hy-noun-", "xcl-noun-"]:
+          if tname.startswith(start_template):
+            remove_odd()
+      if tname in ["xcl-noun", "xcl-adj"]:
+        doparam("1")
       # (Old) Armenian headword templates
       # 
       # Note: The following still use the tr= parameter, but pass it to
@@ -133,21 +188,19 @@ def remove_translit(save, verbose, startFrom, upTo):
           # Declension templates; no xcl-decl-verb
           "hy-decl-verb",
           # Old Armenian
-          "xcl-adj", "xcl-adj-form", "xcl-adv", "xcl-con", "xcl-interj",
-          "xcl-noun", "xcl-noun-form", "xcl-numeral", "xcl-particle",
+          # "xcl-adj" uses param 3 and 4
+          "xcl-adj-form", "xcl-adv", "xcl-con", "xcl-interj",
+          # xcl-noun uses param 3 and 4
+          "xcl-noun-form", "xcl-numeral", "xcl-particle",
           "xcl-postp", "xcl-prefix", "xcl-prep", "xcl-pron", "xcl-pron-form",
           "xcl-proper_noun", "xcl-proper-noun-form", "xcl-root", "xcl-suffix",
           "xcl-verb", "xcl-verb-form"]:
-        doparam("1")
+        remove_odd()
       # Armenian conjugation templates
       if t.startswith("hy-conj"):
-        doparam("2")
-        doparam("4")
-        doparam("6")
+        remove_even()
       if t.startswith("xcl-conj"):
-        doparam("1")
-        doparam("3")
-        doparam("5")
+        remove_odd()
       # Middle Armenian headword templates handled further below.
       # NOTE: axm-adj, axm-adv, axm-interj, axm-noun, axm-prefix, axm-suffix,
       # axm-verb still use the tr= parameter, but pass it to {{head}}, which
@@ -161,22 +214,15 @@ def remove_translit(save, verbose, startFrom, upTo):
       # NOTE: oge-noun and perhaps others still use the tr= parameter, but
       # pass it to {{head}}, which presumably ignores it.
       #
-      # FIXME: ka-decl-noun. All even-numbered templates (up through at least
+      # FIXME: ka-decl-noun. All even-numbered parameters (up through at least
       # 36) are translits, but are still used in the template.
       #if tname == "ka-decl-noun":
-      #  for i in xrange(2, 38, 2):
-      #    doparam(str(i))
+      #  remove_even(upto=38)
       #
       # Handle any template beginning with hy-, xcl-, ka-, el-, grc-, etc.
-      # that has a tr parameter. But do grc-alt specially.
+      # that has a tr parameter. But don't do el-p, which uses the tr param.
       for lang in remove_tr_langs:
-        if tname.startswith(lang + "-") and tname not in ["grc-alt"]:
-          doparam("tr")
-      if tname in ["grc-alt"]:
-        if getp("dial") == "muk":
-          if getp("tr"):
-            pagemsg("Not doing grc-alt with dial=muk and tr: %s" % unicode(t))
-        else:
+        if tname.startswith(lang + "-") and tname not in ["el-p"]:
           doparam("tr")
       # Suffix/prefix/affix
       if (tname in ["suffix", "prefix", "confix", "affix", "compound"] and
@@ -195,44 +241,78 @@ def remove_translit(save, verbose, startFrom, upTo):
         doparam("tr")
       # Remove sc=Armn from (Old) Armenian, sc=Grek from Greek
       for langs, script in [
-          (["hy", "xcl"], "Armn"),
-          #(["ka"], "Geor"), also has another script listed
-          (["el", "grc"], "Grek")
+          (["hy", "xcl", "axm"], "Armn"),
+          (["ka"], "Geor"),
+          (["el"], "Grek"),
+          (["grc"], "polytonic"),
           ]:
         if getp("1") in langs or getp("lang") in langs and tname != "borrowing":
-          if getp("sc") == script:
-            t.remove("sc")
-            tempparam = "%s.sc=%s" % (tname, script)
-            params_removed.append(tempparam)
-            templates_changed[tname] = templates_changed.get(tname, 0) + 1
-            templates_params_removed[tempparam] = (
-                templates_params_removed.get(tempparam, 0) + 1)
+          doparam("sc", script)
 
-    changelog = "Remove translit (%s)" % ", ".join(params_removed)
-    pagemsg("Change log = %s" % changelog)
+    reduced_pr = []
+    for pr in params_removed:
+      if reduced_pr:
+        last_pr, num = reduced_pr[-1]
+        if pr == last_pr:
+          reduced_pr[-1] = (pr, num + 1)
+          continue
+      reduced_pr.append((pr, 1))
+    pr_msg = ", ".join("%s(x%s)" % (pr, num) if num > 1 else pr
+        for pr, num in reduced_pr)
+
+    changelog = ""
+    if pr_msg:
+      changelog = "Remove translit/sc (%s)" % pr_msg
+      pagemsg("Change log = %s" % changelog)
     return text, changelog
 
   def yield_cats():
-    for lang in remove_tr_langs:
-      for category in ["Terms with redundant transliterations/" + lang,
-          "Terms with manual transliterations different from the automated ones/"
-          + lang]:
-        yield category
-    for lang in remove_tr_long_langs:
-      for category in ["%s lemmas" % lang, "%s non-lemma forms" % lang]:
-        yield category
+    if cattype == "all":
+      cats = ["translit", "lemma", "non-lemma"]
+    else:
+      cats = cattype.split(",")
+    if langs_to_do == "all":
+      langs2do = remove_tr_langs
+    else:
+      langs2do = langs_to_do.split(",")
+      for lang in langs2do:
+        assert lang in remove_tr_langs
+    long_langs2do = [langs_with_override_translit_map[x] for x in
+        langs2do]
+
+    if "translit" in cats:
+      for lang in langs2do:
+        for category in ["Terms with redundant transliterations/" + lang,
+            "Terms with manual transliterations different from the automated ones/"
+            + lang]:
+          yield category
+    if "lemma" in cats:
+      for lang in long_langs2do:
+        for category in ["%s lemmas" % lang]:
+          yield category
+    if "non-lemma" in cats:
+      for lang in long_langs2do:
+        for category in ["%s non-lemma forms" % lang]:
+          yield category
 
   for category in yield_cats():
     msg("Processing category %s ..." % category)
+    errmsg("Processing category %s ..." % category)
     for page, index in blib.cat_articles(category, startFrom, upTo):
       blib.do_edit(page, index, remove_translit_one_page, save=save,
           verbose=verbose)
 
 pa = blib.init_argparser("Remove translit, sc= from hy, xcl, ka, el, grc templates")
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+pa.add_argument("--langs", default="all",
+    help="Languages to do, a comma-separated list or 'all'")
+pa.add_argument("--cattype", default="all",
+    help="""Categories to examine ('all' or comma-separated list of
+'translit', 'lemma', 'non-lemma'; default 'all')""")
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-remove_translit(parms.save, parms.verbose, startFrom, upTo)
+remove_translit(params.save, params.verbose, params.cattype, params.langs,
+    startFrom, upTo)
 
 msg("Templates processed:")
 for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
