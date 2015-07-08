@@ -72,9 +72,9 @@ tt = {
     u"ٱ":u"", # hamzatu l-waṣl = \u0671
     u"\u0670":u"ā", # ʾalif xanjariyya = dagger ʾalif (Koranic diacritic)
     # short vowels, šádda and sukūn
-    u"\u064B":u"an", # fatḥatan
-    u"\u064C":u"un", # ḍammatan
-    u"\u064D":u"in", # kasratan
+    u"\u064B":u"an", # fatḥatān
+    u"\u064C":u"un", # ḍammatān
+    u"\u064D":u"in", # kasratān
     u"\u064E":u"a", # fatḥa
     u"\u064F":u"u", # ḍamma
     u"\u0650":u"i", # kasra
@@ -345,16 +345,16 @@ tt_to_arabic_matching = {
     u"ج":[u"j",u"ǧ",u"ğ",u"ǰ"],
     # allow what would normally be capital H, but we lowercase all text
     # before processing
-    u"ح":[u"ḥ",u"ħ",u"h",u"ẖ"],
-    u"خ":[u"ḵ",u"x",u"kh",u"ḫ",u"ḳ",u"ẖ",u"χ"],
-    u"د":u"d", u"ذ":[u"ḏ",u"đ",u"ð",u"dh",u"ḍ",u"d",u"ẕ"],
+    u"ح":[u"ḥ",u"ħ",u"ẖ",u"h"],
+    u"خ":[u"ḵ",u"kh",u"ḫ",u"ḳ",u"ẖ",u"χ",u"x"],
+    u"د":u"d", u"ذ":[u"ḏ",u"đ",u"ð",u"dh",u"ḍ",u"ẕ",u"d"],
     u"ر":u"r", u"ز":u"z",
     u"س":u"s", u"ش":[u"š",u"sh",u"ʃ"],
     # allow non-emphatic to match so we can handle uppercase S, D, T, Z;
     # we lowercase the text before processing to handle proper names and such
-    u"ص":[u"ṣ",u"sʿ",u"sˁ",u"s",u"ʂ"], u"ض":[u"ḍ",u"dʿ",u"dˁ",u"d"],
-    u"ط":[u"ṭ",u"tʿ",u"tˁ",u"ṫ",u"ţ",u"ŧ",u"ʈ",u"ʈ",u"t",u"t̤"],
-    u"ظ":[u"ẓ",u"ðʿ",u"ðˁ",u"đ̣",u"z",u"ż"],
+    u"ص":[u"ṣ",u"sʿ",u"sˁ",u"s",u"ʂ"], u"ض":[u"ḍ",u"dʿ",u"dˁ",u"ẓ",u"ɖ",u"d"],
+    u"ط":[u"ṭ",u"tʿ",u"tˁ",u"ṫ",u"ţ",u"ŧ",u"ʈ",u"t̤",u"t"],
+    u"ظ":[u"ẓ",u"ðʿ",u"ðˁ",u"đ̣",u"ż"u"dh",u"z"],
     u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3",u"ˁ",u"'",u"ʾ",u"῾",u"’"],
     u"غ":[u"ḡ",u"ġ",u"ğ",u"gh",u"g"],
     u"ف":u"f", u"ق":[u"q",u"ḳ"],
@@ -377,7 +377,7 @@ tt_to_arabic_matching = {
     # hamzated letters
     u"أ":hamza_match, u"إ":hamza_match, u"ؤ":hamza_match,
     u"ئ":hamza_match, u"ء":hamza_match,
-    u"و":[[u"w"],[u"ū"],[u"ō"]],
+    u"و":[[u"w"],[u"ū"],[u"ō"], u"v"],
     u"ي":[[u"y"],[u"ī"],[u"ē"]],
     u"ى":u"ā", # ʾalif maqṣūra = \u0649
     u"آ":[u"ʾaā",u"’aā",u"'aā",u"`aā"], # ʾalif madda = \u0622
@@ -465,10 +465,14 @@ tt_to_arabic_unmatching = {
     u"-":u""
 }
 
-def pre_canonicalize_latin(text):
-    text = text.lower().strip()
+# Pre-canonicalize Latin. If ARABIC is supplied, it should be the
+# corresponding Arabic (after pre-pre-canonicalization), which is used
+# to do extra canonicalizations.
+def pre_canonicalize_latin(text, arabic=None):
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
+    # lowercase and remove leading/trailing spaces
+    text = text.lower().strip()
     # eliminate accents
     text = rsub(text, u".",
         {u"á":u"a", u"é":u"e", u"í":u"i", u"ó":u"o", u"ú":u"u",
@@ -492,6 +496,27 @@ def pre_canonicalize_latin(text):
     text = rsub(text, r"\(u\)", "")
     text = rsub(text, r"\(tun\)$", "")
     text = rsub(text, r"\(un\)$", "")
+    if arabic:
+        # If Arabic ends with -un, remove it from the Latin (it will be
+        # removed from Arabic in pre-canonicalization).
+        if arabic.endswith(u"\u064C"):
+            text = rsub(text, "un$", "")
+        # Now remove -un from the Arabic.
+        arabic = rsub(arabic, u"\u064C$", "")
+        # If Arabic ends with tāʾ marbūṭa, canonicalize some Latin endings
+        # right now.
+        if arabic.endswith(u"اة"):
+            text = rsub(text, ur"ā(\(t\)|t)$", u"āh")
+        elif arabic.endswith(u"ة"):
+            text = rsub(text, r"[ae](\(t\)|t)$", "a")
+        # If Arabic ends with long alif or alif maqṣūra, not preceded by
+        # fatḥatān, convert short -a to long -ā.
+        elif (re.match(u".*[اى]$", arabic) and not
+                re.match(u".*\u064B[اى]$", arabic)):
+            text = rsub(text, r"a$", u"ā")
+        # We could do the same for final ي and final short -i but we
+        # choose not to because many of these cases need to be converted to
+        # end in يّ and -iyy, and are best done by hand.
     text = rsub(text, u"ɪ", "i")
     # vowel/diphthong canonicalizations
     text = rsub(text, u"ūw", u"uww")
@@ -518,6 +543,8 @@ def post_canonicalize_latin(text):
     # in tr().
     text = rsub(text, u"([aiuāīū](?:</span>)?) a([" + sun_letters_tr + "]-)",
         u"\\1 \\2")
+    text = rsub(text, u"iy([bcdfghjklmnpqrstvwxzčḍḏḡḥḵṣšṭṯẓžʿʾ])", ur"ī\1")
+    text = text.lower().strip()
     return text
 
 # Canonicalize a Latin transliteration to standard form, as much as is
@@ -540,10 +567,14 @@ def canonicalize_latin(text):
     text = post_canonicalize_latin(text)
     return text
 
-def pre_canonicalize_arabic(unvoc):
-    unvoc = unvoc.strip()
+# Early pre-canonicalization of Arabic, doing stuff that's safe. We split
+# this from pre-canonicalization proper so we can do Latin pre-canonicalization
+# between the two steps.
+def pre_pre_canonicalize_arabic(unvoc):
     # remove L2R, R2L markers
     unvoc = rsub(unvoc, u"[\u200E\u200F]", "")
+    # remove leading/trailing spaces
+    unvoc = unvoc.strip()
     # replace FARSI YEH with regular YEH
     unvoc = unvoc.replace(u"ی", u"ي")
     # convert llh for allāh into ll+shadda+dagger-alif+h
@@ -562,6 +593,9 @@ def pre_canonicalize_arabic(unvoc):
     # e.g. اة = ā and still correctly allow e.g. رة = ra but disallow رة = r.
     unvoc = rsub(unvoc, u"([^\u064E\u0627\u0622\u0670])\u0629",
         u"\\1\u064E\u0629")
+    return unvoc
+
+def pre_canonicalize_arabic(unvoc):
     # Remove final -un i3rab
     unvoc = rsub(unvoc, u"\u064C$", "")
     # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
@@ -630,7 +664,7 @@ def post_canonicalize_arabic(text):
     # same for hamzat al-waṣl + l + consonant + sukūn + sun letters anywhere
     text = rsub(text, u"(\u0671\u064E?\u0644)\u0652([" + sun_letters + "])",
          u"\\1\\2\u0651")
-    # Undo shadda+short-vowel reversal at beginning of pre_canonicalize_arabic.
+    # Undo shadda+short-vowel reversal in pre_pre_canonicalize_arabic.
     # Not strictly necessary as MediaWiki will automatically do this
     # reversal but ensures that e.g. we don't keep trying to revocalize and
     # save a page with a shadda in it. Don't undo shadda+dagger-alif because
@@ -651,10 +685,11 @@ def tr_matching(arabic, latin, err=False):
     def debprint(x):
         if debug_tr_matching:
             uniprint(x)
-    latin = pre_canonicalize_latin(latin)
+    arabic = pre_pre_canonicalize_arabic(arabic)
+    latin = pre_canonicalize_latin(latin, arabic)
+    arabic = pre_canonicalize_arabic(arabic)
     # convert double consonant to consonant + shadda, but not multiple quotes
     latin = rsub(latin, u"([^'])\\1", u"\\1\u0651")
-    arabic = pre_canonicalize_arabic(arabic)
 
     ar = [] # exploded Arabic characters
     la = [] # exploded Latin characters
@@ -1059,6 +1094,12 @@ def run_tests():
     test("ghurfatu l-kuuba", u"غرفة ٱلكوبة", "matched")
     test("ghurfa l-kuuba", u"غرفة ٱلكوبة", "unmatched")
     test("ghurfa", u"غرفةٌ", "matched")
+
+    # Test handling of tāʾ marbūṭa when final
+    test("ghurfat", u"غرفةٌ", "matched")
+    test("ghurfa(t)", u"غرفةٌ", "matched")
+    test("ghurfa(tun)", u"غرفةٌ", "matched")
+    test("ghurfat(un)", u"غرفةٌ", "matched")
 
     # Test handling of embedded links
     test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]", "matched")
