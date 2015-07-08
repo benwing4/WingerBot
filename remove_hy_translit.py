@@ -197,9 +197,9 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
           "xcl-verb", "xcl-verb-form"]:
         remove_odd()
       # Armenian conjugation templates
-      if t.startswith("hy-conj"):
+      if tname.startswith("hy-conj"):
         remove_even()
-      if t.startswith("xcl-conj"):
+      if tname.startswith("xcl-conj"):
         remove_odd()
       # Middle Armenian headword templates handled further below.
       # NOTE: axm-adj, axm-adv, axm-interj, axm-noun, axm-prefix, axm-suffix,
@@ -218,6 +218,18 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
       # 36) are translits, but are still used in the template.
       #if tname == "ka-decl-noun":
       #  remove_even(upto=38)
+      #
+      # Ancient Greek templates with numbered translit params
+      if tname in ["grc-noun-con"]:
+        doparam("5")
+      if tname in ["grc-proper noun", "grc-noun"]:
+        doparam("4")
+      if tname in ["grc-adj-1&2", "grc-adj-1&3", "grc-part-1&3"]:
+        doparam("3")
+      if tname in ["grc-adj-2nd", "grc-adj-3rd", "grc-adj-2&3"]:
+        doparam("2")
+      if tname in ["grc-num"]:
+        doparam("1")
       #
       # Handle any template beginning with hy-, xcl-, ka-, el-, grc-, etc.
       # that has a tr parameter. But don't do el-p, which uses the tr param.
