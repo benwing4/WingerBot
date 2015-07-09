@@ -97,7 +97,7 @@ ignore_prefixes = ["User:", "Talk:",
     "Wiktionary:Grease pit", "Wiktionary:Etymology scriptorium",
     "Wiktionary:Information desk"]
 
-def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
+def remove_translit(params, startFrom, upTo):
   # Remove redundant translits on one page.
   def remove_translit_one_page(page, index, text):
     pagetitle = page.title()
@@ -121,6 +121,8 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
               is_ignore_prefix = True
           if " talk:" in pagetitle:
             is_ignore_prefix = True
+          is_grc = (tname.startswith("grc-") or getp("lang") == "grc" or
+              getp("1") == "grc")
           has_nwc = has_non_western_chars(val)
           if val == "-":
             pagemsg("Not removing %s=-: %s" % (param, unicode(t)))
@@ -130,6 +132,12 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
           elif is_ignore_prefix:
             pagemsg("Not removing %s=%s from page in to-ignore category: %s" % (
               param, val, unicode(t)))
+          # We don't need to do accented chars because they are normalized into
+          # char with macron + combining accent; the only combined macro/accent
+          # single chars are ḗ and ṓ
+          elif is_grc and re.search(ur"[āīūĀĪŪ]", val):
+            pagemsg("WARNING: grc and value %s=%s has long a/i/u in it, not removing: %s" %
+                (param, val, unicode(t)))
           else:
             if has_nwc:
               pagemsg("NOTE: Value %s=%s has non-Western chars but removing anyway because starts with 'tr': %s" %
@@ -237,16 +245,20 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
         if tname.startswith(lang + "-") and tname not in ["el-p"]:
           doparam("tr")
       # Suffix/prefix/affix
-      if (tname in ["suffix", "prefix", "confix", "affix", "compound"] and
+      if (tname in ["suffix", "suffix2", "prefix", "confix", "affix",
+          "circumfix", "infix", "compound"] and
           getp("lang") in remove_tr_langs):
-          i = 1
-          while getp(str(i)):
-            doparam("tr" + str(i))
-            i += 1
+        # Don't just do cases up through where there's a numbered param
+        # because there may be holes.
+        for i in xrange(1, 11):
+          doparam("tr" + str(i))
       if (#tname in ["t", "t+", "t-", "t+check", "t-check", "l", "m",
           #"link", "mention", "head", "ux"] and
           getp("1") in remove_tr_langs):
-        doparam("tr")
+        if tname == "head" and not params.do_head:
+          pagemsg("Not removing tr= from {{head|...}}: %s" % unicode(t))
+        else:
+          doparam("tr")
       if (#tname in ["term", "usex"] and
           getp("lang") in remove_tr_langs
           and tname != "borrowing"):
@@ -278,19 +290,24 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
       pagemsg("Change log = %s" % changelog)
     return text, changelog
 
-  def yield_cats():
-    if cattype == "all":
-      cats = ["translit", "lemma", "non-lemma"]
-    else:
-      cats = cattype.split(",")
-    if langs_to_do == "all":
+  def get_langs_to_do():
+    if params.langs == "all":
       langs2do = remove_tr_langs
     else:
-      langs2do = langs_to_do.split(",")
+      langs2do = params.langs.split(",")
       for lang in langs2do:
         assert lang in remove_tr_langs
     long_langs2do = [langs_with_override_translit_map[x] for x in
         langs2do]
+    return (langs2do, long_langs2do)
+
+  def yield_cats(cattype=params.cattype):
+    if cattype == "all":
+      cats = ["translit", "lemma", "non-lemma"]
+    else:
+      cats = cattype.split(",")
+
+    langs2do, long_langs2do = get_langs_to_do()
 
     if "translit" in cats:
       for lang in langs2do:
@@ -307,12 +324,25 @@ def remove_translit(save, verbose, cattype, langs_to_do, startFrom, upTo):
         for category in ["%s non-lemma forms" % lang]:
           yield category
 
+  def yield_lemma_non_lemma_page_titles():
+    for cat in yield_cats("lemma,non-lemma"):
+      msg("Retrieving pages from %s ..." % cat)
+      errmsg("Retrieving pages from %s ..." % cat)
+      for page, index in blib.cat_articles(cat, None, None):
+        yield page.title()
+
+  if params.ignore_lemma_non_lemma:
+    pages_to_ignore = set(yield_lemma_non_lemma_page_titles())
+  else:
+    pages_to_ignore = set()
+
   for category in yield_cats():
     msg("Processing category %s ..." % category)
     errmsg("Processing category %s ..." % category)
     for page, index in blib.cat_articles(category, startFrom, upTo):
-      blib.do_edit(page, index, remove_translit_one_page, save=save,
-          verbose=verbose)
+      if page.title() not in pages_to_ignore:
+        blib.do_edit(page, index, remove_translit_one_page, save=params.save,
+            verbose=params.verbose)
 
 pa = blib.init_argparser("Remove translit, sc= from hy, xcl, ka, el, grc templates")
 pa.add_argument("--langs", default="all",
@@ -320,11 +350,14 @@ pa.add_argument("--langs", default="all",
 pa.add_argument("--cattype", default="all",
     help="""Categories to examine ('all' or comma-separated list of
 'translit', 'lemma', 'non-lemma'; default 'all')""")
+pa.add_argument("--ignore-lemma-non-lemma", action="store_true",
+    help="""Ignore lemma and non-lemma pages (useful with '--cattype translit').""")
+pa.add_argument("--do-head", action="store_true",
+    help="""Remove tr= in {{head|..}}""")
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-remove_translit(params.save, params.verbose, params.cattype, params.langs,
-    startFrom, upTo)
+remove_translit(params, startFrom, upTo)
 
 msg("Templates processed:")
 for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
