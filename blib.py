@@ -412,7 +412,7 @@ langs_with_terms_derived_from_arabic = [
   "Newari",
   "Norman",
   "North Levantine Arabic",
-  "Norwegian Bokmål",
+  u"Norwegian Bokmål",
   "Norwegian Nynorsk",
   "Old Armenian",
   "Old French",
@@ -572,20 +572,28 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
     msg("Page %s %s: Change log = %s" % (index, page.title(), changelog))
     return text, changelog
 
-  if cattype == "arabic":
-    cats = ["Arabic lemmas", "Arabic non-lemma forms"]
-  elif cattype == "borrowed":
-    cats = ["%s terms derived from Arabic" % x for x in
-        langs_with_terms_derived_from_arabic]
+  if cattype == "translit":
+    for template in ["t", "t+", "t-", "t+check", "t-check"]:
+      msg("Processing template %s" % template)
+      errmsg("Processing template %s" % template)
+      for page, index in references("Template:%s" % template, startFrom, upTo):
+        do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
   else:
-    raise ValueError("Category type '%s' should be 'arabic' or 'borrowed'")
-  for cat in cats:
-    for page, index in cat_articles(cat, startFrom, upTo):
-      do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
+    if cattype == "arabic":
+      cats = ["Arabic lemmas", "Arabic non-lemma forms"]
+    elif cattype == "borrowed":
+      cats = ["%s terms derived from Arabic" % x for x in
+          langs_with_terms_derived_from_arabic]
+    else:
+      raise ValueError("Category type '%s' should be 'arabic', 'borrowed' or 'translit'")
+    for cat in cats:
+      msg("Processing category %s" % cat)
+      errmsg("Processing category %s" % cat)
+      for page, index in cat_articles(cat, startFrom, upTo):
+        do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
   msg("Templates seen:")
   for template, count in sorted(templates_seen.items(), key=lambda x:-x[1]):
     msg("  %s = %s" % (template, count))
   msg("Templates processed:")
   for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
     msg("  %s = %s" % (template, count))
-
