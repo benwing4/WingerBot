@@ -205,7 +205,7 @@ pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Vocalize links")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('arabic' or 'borrowed')")
+    help="Categories to examine ('arabic', 'borrowed', 'translit')")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
