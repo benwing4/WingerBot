@@ -16,6 +16,30 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from arabiclib import remove_links
+
+# FIXME!! To do:
+#
+# 1. Allow short-vowel Latin matching against long-vowel Arabic. (DONE)
+# 2. Match final Latin -an against Arabic alif (maqṣūra) and add fatḥatān.
+# 3. When a comma occurs in the Latin, split the whole template into two.
+#    This may need to be done in vocalize.py or remove_translit.py.
+# 4. Merge vocalize.py and remove_translit.py so both steps are done at once.
+# 5. If an Arabic word begins with plain alif and the Latin word begins with
+#    some variant of an apostrophe, convert the plain alif into hamza-over-alif
+#    or hamza-under-alif. Similarly, vice-versa, including after al-.
+# 6. Recognize a Latin dash corresponding to Arabic space and canonicalize
+#    to a space.
+# 7. Recognize a Latin k corresponding to Arabic q and canonicalize. (NOT DONE;
+#    might actually be a mistake in the Arabic)
+# 8. There appears to be some bug in recognizing aC-C (assimilated al) with
+#    first C corresponding to Arabic l.
+# 9. Convert Latin dhdh to ḏḏ or similar. Similar for shsh, thth, khkh, ghgh.
+#    (DONE)
+# 10. Convert non-Arabic ک to Arabic k. (DONE)
+# 11. Convert non-Arabic ﻗ to Arabic q. (DONE)
+# 11. Handle final ! in the Arabic somehow; pass it through, and add it to
+#     Latin if not present. (DONE)
 
 def uniprint(x):
   print x.encode('utf-8')
@@ -329,36 +353,48 @@ tt_to_arabic_matching_eow = { # end of word
     u"\u0650":[u"i",u""], # kasra (in duals)
 }
 
-# This dict maps Arabic characters to all the Latin characters that might
-# correspond to them. The entries can be a string (equivalent to a one-entry
-# list) or a list of strings or one-element lists containing strings (the latter is
-# equivalent to a string but suppresses canonicalization during transliteration;
-# see below). The ordering of elements in the list is important insofar as which
-# element is first, because the default behavior when canonicalizing a transliteration
-# is to substitute any string in the list with the first element of the list (this can
-# be suppressed by making an element a one-entry list containing a string, as
-# mentioned above). Each string might have multiple characters, to handle things
+# This dict maps Arabic characters to all the Latin characters that
+# might correspond to them. The entries can be a string (equivalent
+# to a one-entry list) or a list of strings or one-element lists
+# containing strings (the latter is equivalent to a string but
+# suppresses canonicalization during transliteration; see below). The
+# ordering of elements in the list is important insofar as which
+# element is first, because the default behavior when canonicalizing
+# a transliteration is to substitute any string in the list with the
+# first element of the list (this can be suppressed by making an
+# element a one-entry list containing a string, as mentioned above).
+# Each string might have multiple characters, to handle things
 # like خ=kh and ث=th.
+
 tt_to_arabic_matching = {
     # consonants
-    u"ب":u"b", u"ت":u"t", u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],
-    u"ج":[u"j",u"ǧ",u"ğ",u"ǰ"],
+    u"ب":u"b", u"ت":u"t",
+    u"ث":[u"ṯ",u"ŧ",u"θ",u"th"],
+    u"ج":[u"j",u"ǧ",u"ğ",u"ǰ",[u"ž"],[u"g"]],
     # allow what would normally be capital H, but we lowercase all text
     # before processing
     u"ح":[u"ḥ",u"ħ",u"ẖ",u"h"],
     u"خ":[u"ḵ",u"kh",u"ḫ",u"ḳ",u"ẖ",u"χ",u"x"],
-    u"د":u"d", u"ذ":[u"ḏ",u"đ",u"ð",u"dh",u"ḍ",u"ẕ",u"d"],
-    u"ر":u"r", u"ز":u"z",
-    u"س":u"s", u"ش":[u"š",u"sh",u"ʃ"],
+    u"د":u"d",
+    u"ذ":[u"ḏ",u"đ",u"ð",u"dh",u"ḍ",u"ẕ",u"d"],
+    u"ر":u"r",
+    u"ز":u"z",
+    u"س":u"s",
+    u"ش":[u"š",u"sh",u"ʃ"],
     # allow non-emphatic to match so we can handle uppercase S, D, T, Z;
     # we lowercase the text before processing to handle proper names and such
-    u"ص":[u"ṣ",u"sʿ",u"sˁ",u"s",u"ʂ"], u"ض":[u"ḍ",u"dʿ",u"dˁ",u"ẓ",u"ɖ",u"d"],
+    u"ص":[u"ṣ",u"sʿ",u"sˁ",u"s",u"ʂ"],
+    u"ض":[u"ḍ",u"dʿ",u"dˁ",u"ẓ",u"ɖ",u"d"],
     u"ط":[u"ṭ",u"tʿ",u"tˁ",u"ṫ",u"ţ",u"ŧ",u"ʈ",u"t̤",u"t"],
     u"ظ":[u"ẓ",u"ðʿ",u"ðˁ",u"đ̣",u"ż"u"dh",u"z"],
     u"ع":[u"ʿ",u"ʕ",u"`",u"‘",u"ʻ",u"3",u"ˁ",u"'",u"ʾ",u"῾",u"’"],
-    u"غ":[u"ḡ",u"ġ",u"ğ",u"gh",u"g"],
-    u"ف":u"f", u"ق":[u"q",u"ḳ"],
-    u"ك":u"k", u"ل":u"l", u"م":u"m", u"ن":u"n",
+    u"غ":[u"ḡ",u"ġ",u"ğ",u"gh",[u"g"]],
+    u"ف":u"f",
+    u"ق":[u"q",u"ḳ",[u"g"]],
+    u"ك":[u"k",[u"g"]],
+    u"ل":u"l",
+    u"م":u"m",
+    u"ن":u"n",
     u"ه":u"h",
     # We have special handling for the following in the canonicalized Latin,
     # so that we have -a but -āh and -at-.
@@ -367,7 +403,12 @@ tt_to_arabic_matching = {
     zwnj:[u"-"],#,u""], # ZWNJ (zero-width non-joiner)
     zwj:[u"-"],#,u""], # ZWJ (zero-width joiner)
     # rare letters
-    u"پ":u"p", u"چ":[u"č",u"ch"], u"ڤ":u"v", u"گ":u"g", u"ڨ":u"g", u"ڧ":u"q",
+    u"پ":u"p",
+    u"چ":[u"č",u"ch"],
+    u"ڤ":u"v",
+    u"گ":u"g",
+    u"ڨ":u"g",
+    u"ڧ":u"q",
     # semivowels or long vowels, alif, hamza, special letters
     u"ا":u"ā", # ʾalif = \u0627
     # put empty string in list so not considered logically false, which can
@@ -375,8 +416,11 @@ tt_to_arabic_matching = {
     silent_alif_subst:[u""],
     silent_alif_maqsuura_subst:[u""],
     # hamzated letters
-    u"أ":hamza_match, u"إ":hamza_match, u"ؤ":hamza_match,
-    u"ئ":hamza_match, u"ء":hamza_match,
+    u"أ":hamza_match,
+    u"إ":hamza_match,
+    u"ؤ":hamza_match,
+    u"ئ":hamza_match,
+    u"ء":hamza_match,
     u"و":[[u"w"],[u"ū"],[u"ō"], u"v"],
     u"ي":[[u"y"],[u"ī"],[u"ē"]],
     u"ى":u"ā", # ʾalif maqṣūra = \u0649
@@ -409,6 +453,7 @@ tt_to_arabic_matching = {
     u"،":u",", # comma
     u"؛":u";", # semicolon
     u".":u".", # period
+    u"!":u"!", # exclamation point
     u"'":u"'", # single quote, for bold/italic
     u" ":u" ",
     u"[":u"",
@@ -455,6 +500,20 @@ for alt in build_canonicalize_latin:
     if canon != "multiple":
         tt_canonicalize_latin[alt] = canon
 
+# A list of Latin characters that are allowed to have particular unmatched
+# Arabic characters following. This is used to allow short Latin vowels
+# to correspond to long Arabic vowels. The value is the list of possible
+# unmatching Arabic characters.
+tt_skip_unmatching = {
+    u"a":[u"ا"],
+    u"u":[u"و"],
+    u"o":[u"و"],
+    u"i":[u"ي"],
+    u"e":[u"ي"],
+}
+
+# A list of Latin characters that are allowed to be unmatched in the
+# Arabic. The value is the corresponding Arabic character to insert.
 tt_to_arabic_unmatching = {
     u"a":u"\u064E",
     u"u":u"\u064F",
@@ -462,7 +521,7 @@ tt_to_arabic_unmatching = {
     u"i":u"\u0650",
     u"e":u"\u0650",
     u"\u0651":u"\u0651",
-    u"-":u""
+    u"-":u"",
 }
 
 # Pre-canonicalize Latin. If ARABIC is supplied, it should be the
@@ -471,8 +530,14 @@ tt_to_arabic_unmatching = {
 def pre_canonicalize_latin(text, arabic=None):
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
+    # remove embedded IPAchar templates
+    text = rsub(text, r"\{\{IPAchar\|(.*?)\}\}", r"\1")
     # lowercase and remove leading/trailing spaces
     text = text.lower().strip()
+    # canonicalize interior whitespace
+    text = rsub(text, r"\s+", " ")
+    # eliminate 'l indicating elided /a/
+    text = rsub(text, r"([ -])'l", r"\1l")
     # eliminate accents
     text = rsub(text, u".",
         {u"á":u"a", u"é":u"e", u"í":u"i", u"ó":u"o", u"ú":u"u",
@@ -491,12 +556,27 @@ def pre_canonicalize_latin(text, arabic=None):
     # eliminate - or ' separating t-h, t'h, etc. in transliteration style
     # that uses th to indicate ث
     text = rsub(text, u"([dtgkcs])[-']h", u"\\1h")
+    # substitute geminated digraphs
+    text = rsub(text, u"dhdh", u"ḏḏ")
+    text = rsub(text, u"shsh", u"šš")
+    text = rsub(text, u"thth", u"ṯṯ")
+    text = rsub(text, u"khkh", u"ḵḵ")
+    text = rsub(text, u"ghgh", u"ḡḡ")
     # misc substitutions
     text = rsub(text, u"ẗ$", "")
     text = rsub(text, r"\(u\)", "")
     text = rsub(text, r"\(tun\)$", "")
     text = rsub(text, r"\(un\)$", "")
+    text = rsub(text, u"ɪ", "i")
+    #### vowel/diphthong canonicalizations
+    text = rsub(text, u"[ae][iy]", u"ay")
+    text = rsub(text, u"([aeiouāēīōū])u", r"\1w")
+    text = rsub(text, u"([aeiouāēīōū])i", r"\1y")
+    text = rsub(text, u"īy", u"iyy")
+    text = rsub(text, u"ūw", u"uww")
     if arabic:
+        # Remove links from Arabic to simplify the following code
+        arabic = remove_links(arabic)
         # If Arabic ends with -un, remove it from the Latin (it will be
         # removed from Arabic in pre-canonicalization).
         if arabic.endswith(u"\u064C"):
@@ -504,27 +584,55 @@ def pre_canonicalize_latin(text, arabic=None):
         # Now remove -un from the Arabic.
         arabic = rsub(arabic, u"\u064C$", "")
         # If Arabic ends with tāʾ marbūṭa, canonicalize some Latin endings
-        # right now.
+        # right now. Only do this at the end of the text, not at the end
+        # of each word, since an Arabic word in the middle might be in the
+        # construct state.
         if arabic.endswith(u"اة"):
             text = rsub(text, ur"ā(\(t\)|t)$", u"āh")
         elif arabic.endswith(u"ة"):
             text = rsub(text, r"[ae](\(t\)|t)$", "a")
-        # If Arabic ends with long alif or alif maqṣūra, not preceded by
-        # fatḥatān, convert short -a to long -ā.
-        elif (re.match(u".*[اى]$", arabic) and not
-                re.match(u".*\u064B[اى]$", arabic)):
-            text = rsub(text, r"a$", u"ā")
-        # We could do the same for final ي and final short -i but we
-        # choose not to because many of these cases need to be converted to
-        # end in يّ and -iyy, and are best done by hand.
-    text = rsub(text, u"ɪ", "i")
-    # vowel/diphthong canonicalizations
-    text = rsub(text, u"ūw", u"uww")
-    text = rsub(text, u"īy", u"iyy")
-    text = rsub(text, u"[ae][iy]", u"ay")
-    text = rsub(text, u"au", u"aw")
-    text = rsub(text, u"āi", u"āy")
-    text = rsub(text, u"āu", u"āw")
+        # Do certain end-of-word changes on each word, comparing corresponding
+        # Latin and Arabic words ...
+        arabicwords = re.split(u" +", arabic)
+        latinwords = re.split(u" +", text)
+        # ... but only if the number of words in both is the same.
+        if len(arabicwords) == len(latinwords):
+            for i in xrange(len(latinwords)):
+                aword = arabicwords[i]
+                lword = latinwords[i]
+                # If Arabic word ends with long alif or alif maqṣūra, not
+                # preceded by fatḥatān, convert short -a to long -ā.
+                if (re.match(u".*[اى]$", aword) and not
+                        re.match(u".*\u064B[اى]$", aword)):
+                    lword = rsub(lword, r"a$", u"ā")
+                # If Arabic word ends in -yy, convert Latin -i/-ī to -iyy
+                # If the Arabic actually ends in -ayy or similar, this should
+                # have no effect because in any vowel+i combination, we
+                # changed i->y
+                if re.match(u".*يّ$", aword):
+                    lword = rsub(lword, u"[iī]$", "iyy")
+                # If Arabic word ends in -y preceded by sukūn, assume
+                # correct and convert final Latin -i/ī to -y.
+                if re.match(u".*\u0652ي$", aword):
+                    lword = rsub(lword, u"[iī]$", "y")
+                # Otherwise, if Arabic word ends in -y, convert Latin -i to -ī
+                # WARNING: Many of these should legitimately be converted
+                # to -iyy or perhaps (sukūn+)-y both in Arabic and Latin, but
+                # it's impossible for us to know this.
+                elif re.match(u".*ي$", aword):
+                    lword = rsub(lword, "i$", u"ī")
+                # Except same logic, but for u/w vs. i/y
+                if re.match(u".*وّ$", aword):
+                    lword = rsub(lword, u"[uū]$", "uww")
+                if re.match(u".*\u0652و$", aword):
+                    lword = rsub(lword, u"[uū]$", "w")
+                elif re.match(u".*و$", aword):
+                    lword = rsub(lword, "u$", u"ū")
+                # Echo a final exclamation point in the Latin
+                if re.match("!$", aword) and not re.match("!$", lword):
+                    lword += "!"
+                latinwords[i] = lword
+            text = " ".join(latinwords)
     #text = rsub(text, u"[-]", u"") # eliminate stray hyphens (e.g. in al-)
     # add short vowel before long vowel since corresponding Arabic has it
     text = rsub(text, u".",
@@ -543,7 +651,12 @@ def post_canonicalize_latin(text):
     # in tr().
     text = rsub(text, u"([aiuāīū](?:</span>)?) a([" + sun_letters_tr + "]-)",
         u"\\1 \\2")
+    # Convert -iy- not followed by a vowel to long -ī-
     text = rsub(text, u"iy([bcdfghjklmnpqrstvwxzčḍḏḡḥḵṣšṭṯẓžʿʾ])", ur"ī\1")
+    text = rsub(text, u"iy( |$)", ur"ī\1")
+    # Same for -uw- -> -ū-
+    text = rsub(text, u"uw([bcdfghjklmnpqrstvwxzčḍḏḡḥḵṣšṭṯẓžʿʾ])", ur"ū\1")
+    text = rsub(text, u"uw( |$)", ur"ū\1")
     text = text.lower().strip()
     return text
 
@@ -575,8 +688,12 @@ def pre_pre_canonicalize_arabic(unvoc):
     unvoc = rsub(unvoc, u"[\u200E\u200F]", "")
     # remove leading/trailing spaces
     unvoc = unvoc.strip()
-    # replace FARSI YEH with regular YEH
-    unvoc = unvoc.replace(u"ی", u"ي")
+    # canonicalize interior whitespace
+    unvoc = rsub(unvoc, r"\s+", " ")
+    # replace Farsi, etc. characters with corresponding Arabic characters
+    unvoc = unvoc.replace(u"ی", u"ي") # FARSI YEH
+    unvoc = unvoc.replace(u"ک", u"ك") # ARABIC LETTER KEHEH (06A9)
+    unvoc = unvoc.replace(u"ﻗ", u"ق") # ARABIC LETTER QAF INITIAL FORM (FED7)
     # convert llh for allāh into ll+shadda+dagger-alif+h
     unvoc = rsub(unvoc, u"لله", u"للّٰه")
     # uniprint("unvoc enter: %s" % unvoc)
@@ -813,13 +930,31 @@ def tr_matching(arabic, latin, err=False):
             error("Unable to match trailing Latin character %s at index %s" %
                 (la[lind[0]], lind[0]))
 
+    # Check for an unmatched Latin short vowel or similar; if so, insert
+    # corresponding Arabic diacritic.
     def check_unmatching():
+        if not (lind[0] < llen):
+            return False
         debprint("Unmatched Latin: %s at %s" % (la[lind[0]], lind[0]))
         unmatched = tt_to_arabic_unmatching.get(la[lind[0]])
         if unmatched != None:
             res.append(unmatched)
             lres.append(la[lind[0]])
             lind[0] = lind[0] + 1
+            return True
+        return False
+
+    # Check for an Arabic long vowel that is unmatched but following a Latin
+    # short vowel.
+    def check_skip_unmatching():
+        if not (lind[0] > 0 and aind[0] < alen):
+            return False
+        skip_chars = tt_skip_unmatching.get(la[lind[0] - 1])
+        if skip_chars != None and ar[aind[0]] in skip_chars:
+            debprint("Skip-unmatching matched %s at %s following %s at %s" % (
+                ar[aind[0]], aind[0], la[lind[0] - 1], lind[0] - 1))
+            res.append(ar[aind[0]])
+            aind[0] = aind[0] + 1
             return True
         return False
 
@@ -868,14 +1003,17 @@ def tr_matching(arabic, latin, err=False):
         # ghurfatun al-kuuba example, among others.
         elif (not is_bow() and aind[0] < alen and
                 ar[aind[0]] in word_interrupting_chars and
-                lind[0] < llen and check_unmatching()):
+                check_unmatching()):
             debprint("Matched: Clause 1")
             matched = True
         elif aind[0] < alen and match():
             debprint("Matched: Clause 2")
             matched = True
-        elif lind[0] < llen and check_unmatching():
+        elif check_unmatching():
             debprint("Matched: Clause 3")
+            matched = True
+        elif check_skip_unmatching():
+            debprint("Matched: Clause 4")
             matched = True
         if not matched:
             if err:
@@ -1031,14 +1169,10 @@ def run_tests():
     test("wa-dakhala", u"و‍دخل", "matched")
     test("wadakhala", u"و‍دخل", "failed") # should fail, ZWJ must match hyphen
     test("wadakhala", u"ودخل", "matched")
-    # Six different ways of spelling a long ū. uw should be preserved, others
-    # mapped to ū. (We could avoid preserving uw if we were more sophisticated in
-    # distinguishing uw+vowel (to be left alone), uww (currently to be left alone,
-    # but could reasonably be argued to be normalized to ūw), uw+consonant
-    # (to be normalized) and final uw (to be normalized).
+    # Six different ways of spelling a long ū.
     test("duuba", u"دوبة", "matched")
     test(u"dúuba", u"دوبة", "matched")
-    test("duwba", u"دوبة", "unmatched")
+    test("duwba", u"دوبة", "matched")
     test("du:ba", u"دوبة", "matched")
     test(u"dūba", u"دوبة", "matched")
     test(u"dū́ba", u"دوبة", "matched")
@@ -1048,7 +1182,7 @@ def run_tests():
     # Similar but for ī and y
     test("diiba", u"ديبة", "matched")
     test(u"díiba", u"ديبة", "matched")
-    test("diyba", u"ديبة", "unmatched")
+    test("diyba", u"ديبة", "matched")
     test("di:ba", u"ديبة", "matched")
     test(u"dība", u"ديبة", "matched")
     test(u"dī́ba", u"ديبة", "matched")
@@ -1117,10 +1251,17 @@ def run_tests():
     test("hudan", u"هُدًى", "matched")
     # Test opposite with fatḥatan after alif otiose alif maqṣūra
     test(u"zinan", u"زنىً", "matched")
-    # Check that final short Latin letter doesn't match to final
-    # long vowel (this check is already present) and that an error doesn't
-    # occur
-    test("'animi", u"أنمي", "failed") # should fail and return None
+
+    # Check that final short vowel is canonicalized to a long vowel in the
+    # presence of a corresponding Latin long vowel.
+    test("'animi", u"أنمي", "matched")
+    # Also check for 'l indicating assimilation.
+    test("fi 'l-marra", u"في المرة", "matched")
+
+    # Test cases where short Latin vowel corresponds to Long Arabic vowel
+    test("diba", u"ديبة", "unmatched")
+    test("tamariid", u"تماريد", "unmatched")
+    test("tamuriid", u"تماريد", "failed")
 
     # Single quotes in Arabic
     test("man '''huwa'''", u"من '''هو'''", "matched")
@@ -1142,7 +1283,7 @@ def run_tests():
     # shadda first.
     test(u"qiṭṭ", u"قِطٌ", "matched")
     # Bugs: Should be handled?
-    test(u"al-infitaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
+    test(u"al-intifaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
 
     # 3 consonants in a row
     test(u"Kūlūmbīyā", u"كولومبيا", "matched")
