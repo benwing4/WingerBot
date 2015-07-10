@@ -557,12 +557,12 @@ def pre_canonicalize_latin(text, arabic=None):
     # eliminate - or ' separating t-h, t'h, etc. in transliteration style
     # that uses th to indicate ث
     text = rsub(text, u"([dtgkcs])[-']h", u"\\1h")
-    # substitute geminated digraphs
-    text = rsub(text, u"dhdh", u"ḏḏ")
-    text = rsub(text, u"shsh", u"šš")
-    text = rsub(text, u"thth", u"ṯṯ")
-    text = rsub(text, u"khkh", u"ḵḵ")
-    text = rsub(text, u"ghgh", u"ḡḡ")
+    # substitute geminated digraphs, possibly with a hyphen in the middle
+    text = rsub(text, u"dh(-?)dh", ur"ḏ\1ḏ")
+    text = rsub(text, u"sh(-?)sh", ur"š\1š")
+    text = rsub(text, u"th(-?)th", ur"ṯ\1ṯ")
+    text = rsub(text, u"kh(-?)kh", ur"ḵ\1ḵ")
+    text = rsub(text, u"gh(-?)gh", ur"ḡ\1ḡ")
     # misc substitutions
     text = rsub(text, u"ẗ$", "")
     text = rsub(text, r"\(u\)", "")
