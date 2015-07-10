@@ -473,13 +473,14 @@ langs_with_terms_derived_from_arabic = [
 # and something else otherwise (e.g. False). Changelog strings for all
 # templates will be joined together, separated by a semi-colon.
 def process_links(save, verbose, cattype, startFrom, upTo, process_param,
-    join_actions=None):
+    join_actions=None, split_translit_templates=False):
   templates_changed = {}
   templates_seen = {}
 
-  # Process the link-like templates on the given page with the given text.
-  # Returns the changed text along with a changelog message.
-  def process_one_page_links(page, index, text):
+  # Process the link-like templates on the given page with the given text,
+  # calling PROCESSFN for each pair of Arabic/Latin. Return a list of
+  # changelog actions.
+  def do_process_one_page_links(page, index, text, processfn):
     actions = []
     for template in text.filter_templates():
       def doparam(param, trparam="tr", noadd=False):
@@ -565,12 +566,52 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
           doparam("2")
         else:
           doparam("1")
+    return actions
+
+  # Process the link-like templates on the given page with the given text.
+  # Returns the changed text along with a changelog message.
+  def process_one_page_links(page, index, text):
+    actions = []
+    newtext = [unicode(text)]
+
+    def pagemsg(text):
+      msg("Page %s %s: %s" % (index, page.title(), text))
+
+    # First split up any translit templates with commas
+    if split_translit_templates:
+      def process_param_for_splitting(page, index, template, param, paramtr):
+        latin = getparam(template, "tr")
+        if "," in latin:
+          trs = re.split(",\\s*", latin)
+          oldtemp = unicode(template)
+          newtemps = []
+          for tr in trs:
+            template.replace(paramtr, tr)
+            newtemps.append(unicode(template))
+          newtemp = ", ".join(newtemps)
+          old_newtext = newtext[0]
+          new_newtext = old_newtext.replace(oldtemp, newtemp)
+          if old_newtext == new_newtext:
+            pagemsg("WARNING: Unable to locate old template when splitting trs on commas: %s"
+                % oldtemp)
+          elif len(new_newtext) - len(old_newtext) != len(newtemp) - len(oldtemp):
+            pagemsg("WARNING: Length mismatch when splitting template on tr commas, may have matched multiple templates: old=%s, new=%s" % (
+              oldtemp, newtemp))
+          newtext[0] = new_newtext
+          return ["split tr=%s" % trs]
+        return []
+
+      actions += do_process_one_page_links(page, index, text,
+          process_param_for_splitting)
+      text = blib.parse_text(newtext[0])
+
+    actions += do_process_one_page_links(page, index, text, process_param)
     if not join_actions:
       changelog = '; '.join(actions)
     else:
       changelog = join_actions(actions)
     #if len(terms_processed) > 0:
-    msg("Page %s %s: Change log = %s" % (index, page.title(), changelog))
+    pagemsg("Change log = %s" % changelog)
     return text, changelog
 
   if cattype == "translit":
