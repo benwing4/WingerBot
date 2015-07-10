@@ -326,8 +326,9 @@ silent_alif_maqsuura_subst = u"\ufff2"
 multi_single_quote_subst = u"\ufff3"
 assimilating_l_subst = u"\ufff4"
 double_l_subst = u"\ufff5"
-hamza_match=[u"ʾ",u"’",u"'",u"`",u"ʔ",u"’",u"‘",u"ˀ"]
-hamza_match_or_empty=hamza_match + [u""]
+hamza_match = [u"ʾ",u"’",u"'",u"`",u"ʔ",u"’",u"‘",u"ˀ"]
+hamza_match_or_empty = hamza_match + [u""]
+hamza_match_chars = [x[0] if isinstance(x, list) else x for x in hamza_match]
 
 # Special-case matching at beginning of word. Plain alif normally corresponds
 # to nothing, and hamza seats might correspond to nothing (omitted hamza
@@ -524,9 +525,9 @@ tt_to_arabic_unmatching = {
     u"-":u"",
 }
 
-# Pre-canonicalize Latin. If ARABIC is supplied, it should be the
-# corresponding Arabic (after pre-pre-canonicalization), which is used
-# to do extra canonicalizations.
+# Pre-canonicalize Latin, and Arabic if supplied. If Arabic is supplied,
+# it should be the corresponding Arabic (after pre-pre-canonicalization),
+# and is used to do extra canonicalizations.
 def pre_canonicalize_latin(text, arabic=None):
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
@@ -817,7 +818,7 @@ debug_tr_matching = False
 # the right places, so that ambiguities of Latin transliteration can be
 # correctly handled. Returns a tuple of Arabic, Latin. If unable to match,
 # throw an error if ERR, else return None.
-def tr_matching(arabic, latin, err=False):
+def tr_matching(arabic, latin, err=False, msgfun=None):
     def debprint(x):
         if debug_tr_matching:
             uniprint(x)
@@ -977,6 +978,28 @@ def tr_matching(arabic, latin, err=False):
             return True
         return False
 
+    # Check for plain alif matching hamza and canonicalize.
+    def check_bow_alif():
+        if not (is_bow() and aind[0] < alen and ar[aind[0]] == u"ا"
+                and lind[0] < llen - 1 and la[lind[0]] in hamza_match_chars
+                and la[lind[0] + 1] in u"aiuāīū"):
+            return False
+        # long vowels should have been pre-canonicalized to have the
+        # corresponding short vowel before them.
+        assert la[lind[0] + 1] not in u"āīū"
+        if la[lind[0] + 1] in u"i":
+            canonalif = u"إ"
+        else:
+            canonalif = u"أ"
+        if msgfun:
+            msgfun("Canonicalized alif to %s in %s (%s)" % (
+                canonalif, arabic, latin))
+        res.append(canonalif)
+        aind[0] += 1
+        lres.append(u"ʾ")
+        lind[0] += 1
+        return True
+
     # Here we go through the unvocalized Arabic letter for letter, matching
     # up the consonants we encounter with the corresponding Latin consonants
     # using the dict in tt_to_arabic_matching and copying the Arabic
@@ -1025,6 +1048,9 @@ def tr_matching(arabic, latin, err=False):
                 check_unmatching()):
             debprint("Matched: Clause 1")
             matched = True
+        elif check_bow_alif():
+            debprint("Matched: Clause 1.1")
+            matched = True
         elif aind[0] < alen and match():
             debprint("Matched: Clause 2")
             matched = True
@@ -1045,14 +1071,6 @@ def tr_matching(arabic, latin, err=False):
     arabic = post_canonicalize_arabic(arabic)
     latin = post_canonicalize_latin(latin)
     return arabic, latin
-
-def tr_matching_arabic(arabic, latin, err=False):
-    arabic, latin = tr_matching(arabic, latin, err)
-    return arabic
-
-def tr_matching_latin(arabic, latin, err=False):
-    arabic, latin = tr_matching(arabic, latin, err)
-    return latin
 
 ######### Transliterate directly, without unvocalized Arabic to guide #########
 #########                         (NEEDS WORK)                        #########
@@ -1137,9 +1155,11 @@ num_failed = 0
 num_succeeded = 0
 
 def test(latin, arabic, should_outcome):
+    def msg(text):
+      print text.encode('utf-8')
     global num_succeeded, num_failed
     try:
-        result = tr_matching(arabic, latin, True)
+        result = tr_matching(arabic, latin, True, msg)
     except RuntimeError as e:
         uniprint(u"%s" % e)
         result = False
@@ -1258,6 +1278,8 @@ def run_tests():
     # Test handling of embedded links
     test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]", "matched")
     test(u"arqām hindiyya", u"[[أرقام]] [[هندية]]", "matched")
+    test(u"arqām hindiyya", u"[[رقم|أرقام]] [[هندية]]", "matched")
+    test(u"arqām hindiyya", u"[[رقم|أرقام]] [[هندي|هندية]]", "matched")
     test(u"ʾufuq al-ħadaŧ", u"[[أفق]] [[حادثة|الحدث]]", "matched")
 
     # Test transliteration that omits initial hamza (should be inferrable)
@@ -1299,11 +1321,17 @@ def run_tests():
     # an unmatched vowel or shadda needs to be before it.
     test(u"wa-'uxt", u"و[[أخت]]", "unmatched")
 
+    # Test hamza against non-hamza
+    test(u"'uxt", u"اخت", "matched")
+    test(u"uxt", u"أخت", "matched")
+    test(u"'ixt", u"اخت", "matched")
+    test(u"ixt", u"أخت", "matched") # FIXME: Should be "failed" or should correct hamza
+
     # Case where shadda and -un are opposite each other; need to handle
     # shadda first.
     test(u"qiṭṭ", u"قِطٌ", "matched")
     # Bugs: Should be handled?
-    test(u"al-intifaaḍa", u"[[الانتفاضة]]", "failed") # Should be "matched"
+    test(u"al-intifaaḍa", u"[[الانتفاضة]]", "failed") # FIXME: Should be "matched"
 
     # 3 consonants in a row
     test(u"Kūlūmbīyā", u"كولومبيا", "matched")

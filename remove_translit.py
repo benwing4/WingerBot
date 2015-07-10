@@ -29,7 +29,7 @@ import ar_translit
 # return False.
 def process_param(page, index, template, param, paramtr,
     include_tempname_in_changelog=False):
-  def prn(text):
+  def pagemsg(text):
     msg("Page %s %s: %s.%s: %s" % (index, page.title(), template.name, param,
       text))
   arabic = getparam(template, param)
@@ -41,22 +41,22 @@ def process_param(page, index, template, param, paramtr,
   if not arabic:
     return False
   if latin == "-":
-    prn("Translit is '-', skipping")
+    pagemsg("Translit is '-', skipping")
     return True
   if latin:
     try:
-      canonlatin = ar_translit.tr_matching_latin(arabic, latin, True)
+      _, canonlatin = tr_matching(arabic, latin, True, pagemsg)
       if not canonlatin:
-        prn("Unable to match-canonicalize %s (%s)" % (arabic, latin))
+        pagemsg("Unable to match-canonicalize %s (%s)" % (arabic, latin))
     except Exception as e:
-      prn("Trying to match-canonicalize %s (%s): %s" % (arabic, latin, e))
+      pagemsg("Trying to match-canonicalize %s (%s): %s" % (arabic, latin, e))
       canonlatin = None
     try:
       translit = ar_translit.tr(arabic)
       if not translit:
-        prn("Unable to auto-translit %s" % arabic)
+        pagemsg("Unable to auto-translit %s" % arabic)
     except Exception as e:
-      prn("Trying to transliterate %s: %s" % (arabic, e))
+      pagemsg("Trying to transliterate %s: %s" % (arabic, e))
       translit = None
     if translit and canonlatin:
       if translit == canonlatin:
@@ -64,27 +64,27 @@ def process_param(page, index, template, param, paramtr,
       #    translit == canonlatin + "un" or
       #    translit == u"ʾ" + canonlatin or
       #    translit == u"ʾ" + canonlatin + "un"):
-        prn("Removing redundant translit for %s (%s)" % (arabic, latin))
+        pagemsg("Removing redundant translit for %s (%s)" % (arabic, latin))
         oldtempl = "%s" % unicode(template)
         template.remove(paramtr)
         msg("Page %s %s: Replaced %s with %s" %
             (index, page.title(), oldtempl, unicode(template)))
         return ["remove redundant %s=%s" % (paramtrname, latin)]
       else:
-        prn("Auto-translit for %s (%s) not same as manual translit %s (canonicalized %s)" %
+        pagemsg("Auto-translit for %s (%s) not same as manual translit %s (canonicalized %s)" %
             (arabic, translit, latin, canonlatin))
     if canonlatin:
       if latin != canonlatin:
-        prn("Match-canonicalizing Latin %s to %s" % (latin, canonlatin))
+        pagemsg("Match-canonicalizing Latin %s to %s" % (latin, canonlatin))
         oldtempl = "%s" % unicode(template)
         template.add(paramtr, canonlatin)
         msg("Page %s %s: Replaced %s with %s" %
             (index, page.title(), oldtempl, unicode(template)))
         return ["match-canon %s=%s -> %s" % (paramtrname, latin, canonlatin)]
       return True
-    canonlatin = ar_translit.canonicalize_latin(latin)
+    canonlatin, _ = ar_translit.canonicalize_latin_arabic(latin, None)
     if latin != canonlatin:
-      prn("Self-canonicalizing Latin %s to %s" % (latin, canonlatin))
+      pagemsg("Self-canonicalizing Latin %s to %s" % (latin, canonlatin))
       oldtempl = "%s" % unicode(template)
       template.add(paramtr, canonlatin)
       msg("Page %s %s: Replaced %s with %s" %

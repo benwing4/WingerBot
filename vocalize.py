@@ -32,7 +32,7 @@ def do_vocalize_param(page, index, template, param, arabic, latin):
     msg("Page %s %s: %s.%s: %s" % (index, page.title(), template.name, param,
       text))
   try:
-    vocalized = ar_translit.tr_matching_arabic(arabic, latin, True)
+    vocalized, _ = ar_translit.tr_matching(arabic, latin, True, pagemsg)
   except Exception as e:
     pagemsg("Trying to vocalize %s (%s): %s" % (arabic, latin, e))
     vocalized = None
