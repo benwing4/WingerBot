@@ -569,6 +569,7 @@ def pre_canonicalize_latin(text, arabic=None):
     text = rsub(text, r"\(tun\)$", "")
     text = rsub(text, r"\(un\)$", "")
     text = rsub(text, u"ɪ", "i")
+    text = rsub(text, u"ɑ", "a")
     #### vowel/diphthong canonicalizations
     text = rsub(text, u"[ae][iy]", u"ay")
     text = rsub(text, u"([aeiouāēīōū])u", r"\1w")
