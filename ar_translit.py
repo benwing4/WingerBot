@@ -839,6 +839,8 @@ debug_tr_matching = False
 # correctly handled. Returns a tuple of Arabic, Latin. If unable to match,
 # throw an error if ERR, else return None.
 def tr_matching(arabic, latin, err=False, msgfun=None):
+    origarabic = arabic
+    origlatin = latin
     def debprint(x):
         if debug_tr_matching:
             uniprint(x)
@@ -1048,7 +1050,7 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
             canonalif = u"أ"
         if msgfun:
             msgfun("Canonicalized alif to %s in %s (%s)" % (
-                canonalif, arabic, latin))
+                canonalif, origarabic, origlatin))
         res.append(canonalif)
         aind[0] += 1
         lres.append(u"ʾ")
