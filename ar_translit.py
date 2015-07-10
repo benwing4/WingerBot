@@ -753,7 +753,7 @@ def pre_canonicalize_arabic(unvoc, safe=False):
         # tr_matching(), will be converted back during post-canonicalization
         unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644)\u0644(\u0670?ه)",
             u"\\1\\2" + double_l_subst + u"\\3")
-        # same for hamzat al-waṣl + l + dagger-alif + h occurring anywhere.
+        # same for hamzat al-waṣl + l + l + dagger-alif + h occurring anywhere.
         unvoc = rsub(unvoc, u"(\u0671\u064E?\u0644)\u0644(\u0670?ه)",
             u"\\1" + double_l_subst + u"\\2")
         # word-initial al + sun letter: convert l to assimilating_l_subst; will
@@ -842,8 +842,23 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
     lind = [0] # index of next Latin character
     llen = len(la)
 
-    def is_bow():
-        return aind[0] == 0 or ar[aind[0] - 1] in [u" ", u"[", u"|"]
+    # Find occurrences of al- in Arabic text and note characte pos's after.
+    # We treat these as beginning-of-word positions so we correctly handle
+    # varieties of alif in this position, treating them the same as at the
+    # beginning of a word. We don't need to match assimilating_l_subst
+    # here because the only things that we care about after Arabic al-
+    # are alif variations, which don't occur with assimilating_l_subst.
+    after_al_pos = []
+    for m in re.finditer(r"((^|\s|\[\[|\|)" + ALIF + "|" + ALIF_WASLA + ")" +
+            A + "?" + L + SK + "?", arabic):
+        after_al_pos.append(m.end(0))
+
+    def is_bow(pos=None):
+        if pos is None:
+            pos = aind[0]
+        return (pos == 0 or ar[pos - 1] in [u" ", u"[", u"|"] or
+                pos in after_al_pos)
+
     # True if we are at the last character in a word.
     def is_eow(pos=None):
         if pos is None:
@@ -984,10 +999,21 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
 
     # Check for plain alif matching hamza and canonicalize.
     def check_bow_alif():
-        if not (is_bow() and aind[0] < alen and ar[aind[0]] == u"ا"
-                and lind[0] < llen - 1 and la[lind[0]] in hamza_match_chars
-                and la[lind[0] + 1] in u"aiuāīū"):
+        if not (is_bow() and aind[0] < alen and ar[aind[0]] == u"ا"):
             return False
+        # Check for hamza + aiuāīū.
+        # HACK! Also check for hyphen + hamza + aiuāīū, so things work
+        # correctly after Latin al-. Not sure how better to handle this.
+        if not ((lind[0] < llen - 1 and la[lind[0]] in hamza_match_chars and
+                la[lind[0] + 1] in u"aiuāīū") or
+                (lind[0] < llen - 2 and la[lind[0]] == "-" and
+                la[lind[0] + 1] in hamza_match_chars and
+                la[lind[0] + 2] in u"aiuāīū")):
+            return False
+        # Copy and skip over a hyphen
+        if la[lind[0]] == "-":
+            lres.append("-")
+            lind[0] += 1
         # long vowels should have been pre-canonicalized to have the
         # corresponding short vowel before them.
         assert la[lind[0] + 1] not in u"āīū"
@@ -1358,6 +1384,10 @@ def run_tests():
     test(u"'ixt", u"اخت", "matched")
     test(u"ixt", u"أخت", "matched") # FIXME: Should be "failed" or should correct hamza
 
+    # Test alif after al-
+    test(u"al-intifaaḍa", u"[[الانتفاضة]]", "matched")
+    test(u"al-'uxt", u"الاخت", "matched")
+
     # Test inferring fatḥatān
     test("hudan", u"هُدى", "matched")
     test("qafan", u"قفا", "matched")
@@ -1366,8 +1396,6 @@ def run_tests():
     # Case where shadda and -un are opposite each other; need to handle
     # shadda first.
     test(u"qiṭṭ", u"قِطٌ", "matched")
-    # Bugs: Should be handled?
-    test(u"al-intifaaḍa", u"[[الانتفاضة]]", "failed") # FIXME: Should be "matched"
 
     # 3 consonants in a row
     test(u"Kūlūmbīyā", u"كولومبيا", "matched")
