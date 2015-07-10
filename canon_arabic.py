@@ -133,6 +133,17 @@ def canon_param(page, index, template, param, paramtr,
       oldtempl, unicode(template)))
   return actions
 
+def combine_adjacent(values):
+  combined = []
+  for val in values:
+    if combined:
+      last_val, num = combined[-1]
+      if val == last_val:
+        combined[-1] = (val, num + 1)
+        continue
+    combined.append((val, 1))
+  return ["%s(x%s)" % (val, num) if num > 1 else val for val, num in combined]
+
 def sort_group_changelogs(actions):
   grouped_actions = {}
   begins = ["vocalize ", "remove redundant ", "match-canon ", "cross-canon ",
@@ -147,9 +158,11 @@ def sort_group_changelogs(actions):
         actiontag = action.replace(begin, "", 1)
         grouped_actions[begin].append(actiontag)
         break
-  grouped_action_strs = \
-    [begin + ', '.join(grouped_actions[begin]) for begin in begins
-        if len(grouped_actions[begin]) > 0]
+
+  grouped_action_strs = (
+    [begin + ', '.join(combine_adjacent(grouped_actions[begin]))
+        for begin in begins
+        if len(grouped_actions[begin]) > 0])
   all_grouped_actions = '; '.join([x for x in grouped_action_strs if x])
   return all_grouped_actions
 
