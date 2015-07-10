@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from arabiclib import remove_links
+from arabiclib import *
 
 # FIXME!! To do:
 #
@@ -76,7 +76,7 @@ tt = {
     u"ص":u"ṣ", u"ض":u"ḍ", u"ط":u"ṭ", u"ظ":u"ẓ", u"ع":u"ʿ", u"غ":u"ḡ",
     u"ف":u"f", u"ق":u"q", u"ك":u"k", u"ل":u"l", u"م":u"m", u"ن":u"n",
     u"ه":u"h",
-    # tāʾ marbūṭa (special) - always after a fátḥa (a), silent at the end of
+    # tāʾ marbūṭa (special) - always after a fatḥa (a), silent at the end of
     # an utterance, "t" in ʾiḍāfa or with pronounced tanwīn. We catch
     # most instances of tāʾ marbūṭa before we get to this stage.
     u"\u0629":"t", # tāʾ marbūṭa = ة
@@ -158,11 +158,11 @@ before_diacritic_checking_subs = [
     #     #2: handle wāw + sukūn + alif (final -w in -aw in defective verbs)
     #     this must go before the generation of w, which removes the waw here.
     [u"\u0648\u0652\u0627", u"\u0648\u0652"],
-    # ignore final alif or alif maqṣūra following fatḥatan (e.g. in accusative
+    # ignore final alif or alif maqṣūra following fatḥatān (e.g. in accusative
     # singular or words like عَصًا "stick" or هُذًى "guidance"; this is called
-    # tanwin nasb)
+    # tanwīn nasb)
     [u"\u064B[\u0627\u0649]", u"\u064B"],
-    # same but with the fatḥatan placed over the alif or alif maqṣūra
+    # same but with the fatḥatān placed over the alif or alif maqṣūra
     # instead of over the previous letter (considered a misspelling but
     # common)
     [u"[\u0627\u0649]\u064B", u"\u064B"],
@@ -299,7 +299,7 @@ has_diacritics_subs = [
     [u"\u064F\u0648", u""],
     # remove kasra + yā'
     [u"\u0650\u064A", u""],
-    # remove fatḥa/fatḥatan + alif/alif-maqṣūra
+    # remove fatḥa/fatḥatān + alif/alif-maqṣūra
     [u"[\u064B\u064E][\u0627\u0649]", u""],
     # remove diacritics
     [u"[\u064B\u064C\u064D\u064E\u064F\u0650\u0652\u0670]", u""],
@@ -348,7 +348,7 @@ tt_to_arabic_matching_bow = { #beginning of word
 # Special-case matching at end of word. Some ʾiʿrāb endings may appear in
 # the Arabic but not the transliteration; allow for that.
 tt_to_arabic_matching_eow = { # end of word
-    u"\u064C":[u"un",u""], # ḍammatan
+    u"\u064C":[u"un",u""], # ḍammatān
     u"\u064E":[u"a",u""], # fatḥa (in plurals)
     u"\u064F":[u"u",u""], # ḍamma (in diptotes)
     u"\u0650":[u"i",u""], # kasra (in duals)
@@ -431,9 +431,9 @@ tt_to_arabic_matching = {
     u"ٱ":[u""], # hamzatu l-waṣl = \u0671
     u"\u0670":u"aā", # ʾalif xanjariyya = dagger ʾalif (Koranic diacritic)
     # short vowels, šadda and sukūn
-    u"\u064B":u"an", # fatḥatan
-    u"\u064C":u"un", # ḍammatan
-    u"\u064D":u"in", # kasratan
+    u"\u064B":u"an", # fatḥatān
+    u"\u064C":u"un", # ḍammatān
+    u"\u064D":u"in", # kasratān
     u"\u064E":u"a", # fatḥa
     u"\u064F":[[u"u"],[u"o"]], # ḍamma
     u"\u0650":[[u"i"],[u"e"]], # kasra
@@ -728,7 +728,7 @@ def pre_canonicalize_arabic(unvoc, safe=False):
     # Remove final -un i3rab
     unvoc = rsub(unvoc, u"\u064C$", "")
     if not safe:
-        # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
+        # Final alif or alif maqṣūra following fatḥatān is silent (e.g. in
         # accusative singular or words like عَصًا "stick" or هُذًى "guidance";
         # this is called tanwin nasb). So substitute special silent versions
         # of these vowels. Will convert back during post-canonicalization.
@@ -843,8 +843,11 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
 
     def is_bow():
         return aind[0] == 0 or ar[aind[0] - 1] in [u" ", u"[", u"|"]
-    def is_eow():
-        return aind[0] == alen - 1 or ar[aind[0] + 1] in [u" ", u"]", u"|"]
+    # True if we are at the last character in a word.
+    def is_eow(pos=None):
+        if pos is None:
+            pos = aind[0]
+        return pos == alen - 1 or ar[pos + 1] in [u" ", u"]", u"|"]
 
     def get_matches():
         ac = ar[aind[0]]
@@ -1000,6 +1003,30 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
         lind[0] += 1
         return True
 
+    # Check for inferring tanwīn
+    def check_eow_tanwin():
+        tanwin_mapping = {"a":AN, "i":IN, "u":UN}
+        # Infer tanwīn at EOW
+        if (aind[0] > 0 and is_eow(aind[0] - 1) and lind[0] < llen - 1 and
+                la[lind[0]] in "aiu" and la[lind[0] + 1] == "n"):
+            res.append(tanwin_mapping[la[lind[0]]])
+            lres.append(la[lind[0]])
+            lres.append(la[lind[0] + 1])
+            lind[0] += 2
+            return True
+        # Infer fatḥatān before EOW alif/alif maqṣūra
+        if (aind[0] < alen and is_eow() and
+                ar[aind[0]] in u"اى" and lind[0] < llen - 1 and
+                la[lind[0]] == "a" and la[lind[0] + 1] == "n"):
+            res.append(AN)
+            res.append(ar[aind[0]])
+            lres.append("a")
+            lres.append("n")
+            aind[0] += 1
+            lind[0] += 2
+            return True
+        return False
+
     # Here we go through the unvocalized Arabic letter for letter, matching
     # up the consonants we encounter with the corresponding Latin consonants
     # using the dict in tt_to_arabic_matching and copying the Arabic
@@ -1049,16 +1076,19 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
             debprint("Matched: Clause 1")
             matched = True
         elif check_bow_alif():
-            debprint("Matched: Clause 1.1")
+            debprint("Matched: Clause check_bow_alif()")
             matched = True
         elif aind[0] < alen and match():
-            debprint("Matched: Clause 2")
+            debprint("Matched: Clause match()")
+            matched = True
+        elif check_eow_tanwin():
+            debprint("Matched: Clause check_eow_tanwin()")
             matched = True
         elif check_unmatching():
-            debprint("Matched: Clause 3")
+            debprint("Matched: Clause check_unmatching()")
             matched = True
         elif check_skip_unmatching():
-            debprint("Matched: Clause 4")
+            debprint("Matched: Clause check_skip_unmatching()")
             matched = True
         if not matched:
             if err:
@@ -1109,9 +1139,9 @@ tt_to_arabic_direct = {
     u"ū":u"\u064Fو", # u"uu":u"\u064Fو", u"u:":u"\u064Fو"
     u"ī":u"\u0650ي", # u"ii":u"\u0650ي", u"i:":u"\u0650ي"
     # u"ā":u"ى", # ʾalif maqṣūra = \u0649
-    # u"an":u"\u064B" = fatḥatan
-    # u"un":u"\u064C" = ḍammatan
-    # u"in":u"\u064D" = kasratan
+    # u"an":u"\u064B" = fatḥatān
+    # u"un":u"\u064C" = ḍammatān
+    # u"in":u"\u064D" = kasratān
     u"a":u"\u064E", # fatḥa
     u"u":u"\u064F", # ḍamma
     u"i":u"\u0650", # kasra
@@ -1196,7 +1226,7 @@ def run_tests():
     test(u"kátab", u"كتب", "matched")
     test("katab", u"كتبٌ", "matched")
     test("kat", u"كتب", "failed") # should fail
-    test("kataban", u"كتب", "failed") # should fail?
+    test("katabaq", u"كتب", "failed") # should fail
     test("dakhala", u"دخل", "matched")
     test("al-dakhala", u"الدخل", "matched")
     test("ad-dakhala", u"الدخل", "matched")
@@ -1289,9 +1319,9 @@ def run_tests():
     test(u"'aṣdiqā́'", u"أَصدقاء", "matched")
     # Test capital letters for emphatics
     test(u"aSdiqaa'", u"أَصدقاء", "matched")
-    # Test final otiose alif maqṣūra after fatḥatan
+    # Test final otiose alif maqṣūra after fatḥatān
     test("hudan", u"هُدًى", "matched")
-    # Test opposite with fatḥatan after alif otiose alif maqṣūra
+    # Test opposite with fatḥatān after alif otiose alif maqṣūra
     test(u"zinan", u"زنىً", "matched")
 
     # Check that final short vowel is canonicalized to a long vowel in the
@@ -1326,6 +1356,11 @@ def run_tests():
     test(u"uxt", u"أخت", "matched")
     test(u"'ixt", u"اخت", "matched")
     test(u"ixt", u"أخت", "matched") # FIXME: Should be "failed" or should correct hamza
+
+    # Test inferring fatḥatān
+    test("hudan", u"هُدى", "matched")
+    test("qafan", u"قفا", "matched")
+    test("qafan qafan", u"قفا قفا", "matched")
 
     # Case where shadda and -un are opposite each other; need to handle
     # shadda first.
