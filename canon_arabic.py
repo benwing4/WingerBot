@@ -40,6 +40,10 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
   def pagemsg(text):
     msg("Page %s %s: %s.%s: %s" % (index, page.title(), tname, param, text))
 
+  msgs = []
+  def notemsg(text):
+    msgs.append(text)
+
   if include_tempname_in_changelog:
     paramtrname = "%s.%s" % (template.name, paramtr)
   else:
@@ -108,6 +112,9 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
     pagemsg("Cross-canoning Latin %s -> %s: Arabic %s -> %s" % (
         latin, canonlatin, arabic, newarabic))
     actions.append("cross-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
+  for msg in msgs:
+    pagemsg("NOTE: %s: Arabic %s -> %s%s" % (msg, arabic, canonarabic,
+      latintrtext))
 
   return (canonarabic, canonlatin, actions)
 
