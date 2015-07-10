@@ -660,25 +660,34 @@ def post_canonicalize_latin(text):
     text = text.lower().strip()
     return text
 
-# Canonicalize a Latin transliteration to standard form, as much as is
-# possible without access to the Arabic (which can be done using
-# tr_matching()).
-def canonicalize_latin(text):
-    text = pre_canonicalize_latin(text)
-    # Protect instances of two or more single quotes in a row so they don't
-    # get converted to sequences of hamza half-rings.
-    def quote_subst(m):
-        return m.group(0).replace("'", multi_single_quote_subst)
-    text = re.sub(r"''+", quote_subst, text)
-    text = rsub(text, u".", tt_canonicalize_latin)
-    latin_chars = u"[a-zA-Zāēīōūčḍḏḡḥḵṣšṭṯẓžʿʾ]"
-    # Convert 3 to ʿ if next to a letter or letter symbol. This tries
-    # to avoid converting 3 in numbers.
-    text = rsub(text, u"(%s)3" % latin_chars, u"\\1ʿ")
-    text = rsub(text, u"3(%s)" % latin_chars, u"ʿ\\1")
-    text = text.replace(multi_single_quote_subst, "'")
-    text = post_canonicalize_latin(text)
-    return text
+# Canonicalize a Latin transliteration and Arabic text to standard form.
+# Can be done on only Latin or only Arabic (with the other one None), but
+# is more reliable when both aare provided. This is less reliable than
+# tr_matching() and is meant when that fails. Return value is a tuple of
+# (CANONLATIN, CANONARABIC).
+def canonicalize_latin_arabic(latin, arabic):
+    if arabic is not None:
+        arabic = pre_pre_canonicalize_arabic(arabic)
+    if latin is not None:
+        latin = pre_canonicalize_latin(latin, arabic)
+    if arabic is not None:
+        arabic = pre_canonicalize_arabic(arabic, safe=True)
+        arabic = post_canonicalize_arabic(arabic, safe=True)
+    if latin is not None:
+        # Protect instances of two or more single quotes in a row so they don't
+        # get converted to sequences of hamza half-rings.
+        def quote_subst(m):
+            return m.group(0).replace("'", multi_single_quote_subst)
+        latin = re.sub(r"''+", quote_subst, latin)
+        latin = rsub(latin, u".", tt_canonicalize_latin)
+        latin_chars = u"[a-zA-Zāēīōūčḍḏḡḥḵṣšṭṯẓžʿʾ]"
+        # Convert 3 to ʿ if next to a letter or letter symbol. This tries
+        # to avoid converting 3 in numbers.
+        latin = rsub(latin, u"(%s)3" % latin_chars, u"\\1ʿ")
+        latin = rsub(latin, u"3(%s)" % latin_chars, u"ʿ\\1")
+        latin = latin.replace(multi_single_quote_subst, "'")
+        latin = post_canonicalize_latin(latin)
+    return (latin, arabic)
 
 # Early pre-canonicalization of Arabic, doing stuff that's safe. We split
 # this from pre-canonicalization proper so we can do Latin pre-canonicalization
@@ -712,64 +721,74 @@ def pre_pre_canonicalize_arabic(unvoc):
         u"\\1\u064E\u0629")
     return unvoc
 
-def pre_canonicalize_arabic(unvoc):
+# Pre-canonicalize the Arabic. If SAFE, only do "safe" operations appropriate
+# to canonicalizing Arabic on its own, not before a tr_matching() operation.
+def pre_canonicalize_arabic(unvoc, safe=False):
     # Remove final -un i3rab
     unvoc = rsub(unvoc, u"\u064C$", "")
-    # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
-    # accusative singular or words like عَصًا "stick" or هُذًى "guidance"; this is
-    # called tanwin nasb). So substitute special silent versions of these
-    # vowels. Will convert back during post-canonicalization.
-    unvoc = rsub(unvoc, u"\u064B\u0627", u"\u064B" + silent_alif_subst)
-    unvoc = rsub(unvoc, u"\u064B\u0649", u"\u064B" + silent_alif_maqsuura_subst)
-    # same but with the fatḥatan placed over the alif or alif maqṣūra
-    # instead of over the previous letter (considered a misspelling but
-    # common)
-    unvoc = rsub(unvoc, u"\u0627\u064B", silent_alif_subst + u"\u064B")
-    unvoc = rsub(unvoc, u"\u0649\u064B", silent_alif_maqsuura_subst + u"\u064B")
-    # word-initial al + consonant + shadda: remove shadda
-    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644[" + lconsonants + u"])\u0651",
-        u"\\1\\2")
-    # same for hamzat al-waṣl + l + consonant + shadda, anywhere
-    unvoc = rsub(unvoc, u"(\u0671\u064E?\u0644[" + lconsonants + u"])\u0651",
-        u"\\1")
-    # word-initial al + l + dagger-alif + h (allāh): convert second l
-    # to double_l_subst; will match shadda in Latin allāh during tr_matching(),
-    # will be converted back during post-canonicalization
-    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644)\u0644(\u0670?ه)",
-        u"\\1\\2" + double_l_subst + u"\\3")
-    # same for hamzat al-waṣl + l + dagger-alif + h occurring anywhere.
-    unvoc = rsub(unvoc, u"(\u0671\u064E?\u0644)\u0644(\u0670?ه)",
-        u"\\1" + double_l_subst + u"\\2")
-    # word-initial al + sun letter: convert l to assimilating_l_subst; will
-    # convert back during post-canonicalization; during tr_matching(),
-    # assimilating_l_subst will match the appropriate character, or "l"
-    unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?)\u0644([" + sun_letters + "])",
-        u"\\1\\2" + assimilating_l_subst + u"\\3")
-    # same for hamzat al-waṣl + l + sun letter occurring anywhere.
-    unvoc = rsub(unvoc, u"(\u0671\u064E?)\u0644([" + sun_letters + "])",
-        u"\\1" + assimilating_l_subst + u"\\2")
+    if not safe:
+        # Final alif or alif maqṣūra following fatḥatan is silent (e.g. in
+        # accusative singular or words like عَصًا "stick" or هُذًى "guidance";
+        # this is called tanwin nasb). So substitute special silent versions
+        # of these vowels. Will convert back during post-canonicalization.
+        unvoc = rsub(unvoc, u"\u064B\u0627", u"\u064B" + silent_alif_subst)
+        unvoc = rsub(unvoc, u"\u064B\u0649", u"\u064B" +
+                silent_alif_maqsuura_subst)
+        # same but with the fatḥatan placed over the alif or alif maqṣūra
+        # instead of over the previous letter (considered a misspelling but
+        # common)
+        unvoc = rsub(unvoc, u"\u0627\u064B", silent_alif_subst + u"\u064B")
+        unvoc = rsub(unvoc, u"\u0649\u064B", silent_alif_maqsuura_subst +
+                u"\u064B")
+        # word-initial al + consonant + shadda: remove shadda
+        unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644[" +
+                lconsonants + u"])\u0651", u"\\1\\2")
+        # same for hamzat al-waṣl + l + consonant + shadda, anywhere
+        unvoc = rsub(unvoc,
+                u"(\u0671\u064E?\u0644[" + lconsonants + u"])\u0651", u"\\1")
+        # word-initial al + l + dagger-alif + h (allāh): convert second l
+        # to double_l_subst; will match shadda in Latin allāh during
+        # tr_matching(), will be converted back during post-canonicalization
+        unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?\u0644)\u0644(\u0670?ه)",
+            u"\\1\\2" + double_l_subst + u"\\3")
+        # same for hamzat al-waṣl + l + dagger-alif + h occurring anywhere.
+        unvoc = rsub(unvoc, u"(\u0671\u064E?\u0644)\u0644(\u0670?ه)",
+            u"\\1" + double_l_subst + u"\\2")
+        # word-initial al + sun letter: convert l to assimilating_l_subst; will
+        # convert back during post-canonicalization; during tr_matching(),
+        # assimilating_l_subst will match the appropriate character, or "l"
+        unvoc = rsub(unvoc, u"(^|\\s|\[\[|\|)(\u0627\u064E?)\u0644([" +
+                sun_letters + "])", u"\\1\\2" + assimilating_l_subst + u"\\3")
+        # same for hamzat al-waṣl + l + sun letter occurring anywhere.
+        unvoc = rsub(unvoc, u"(\u0671\u064E?)\u0644([" + sun_letters + "])",
+            u"\\1" + assimilating_l_subst + u"\\2")
     return unvoc
 
-def post_canonicalize_arabic(text):
-    text = rsub(text, silent_alif_subst, u"ا")
-    text = rsub(text, silent_alif_maqsuura_subst, u"ى")
-    text = rsub(text, assimilating_l_subst, u"ل")
-    text = rsub(text, double_l_subst, u"ل")
+def post_canonicalize_arabic(text, safe=False):
+    if not safe:
+        text = rsub(text, silent_alif_subst, u"ا")
+        text = rsub(text, silent_alif_maqsuura_subst, u"ى")
+        text = rsub(text, assimilating_l_subst, u"ل")
+        text = rsub(text, double_l_subst, u"ل")
 
-    # add sukūn between adjacent consonants, but not in the first part of
-    # a link of the sort [[foo|bar]], which we don't vocalize
-    splitparts = []
-    index = 0
-    for part in re.split(r'(\[\[[^]]*\|)', text):
-        if (index % 2) == 0:
-            # do this twice because a sequence of three consonants won't be
-            # matched by the initial one, since the replacement does
-            # non-overlapping subs
-            part = rsub(part, u"([" + lconsonants + u"])([" + rconsonants + u"])", u"\\1\u0652\\2")
-            part = rsub(part, u"([" + lconsonants + u"])([" + rconsonants + u"])", u"\\1\u0652\\2")
-        splitparts.append(part)
-        index += 1
-    text = ''.join(splitparts)
+        # add sukūn between adjacent consonants, but not in the first part of
+        # a link of the sort [[foo|bar]], which we don't vocalize
+        splitparts = []
+        index = 0
+        for part in re.split(r'(\[\[[^]]*\|)', text):
+            if (index % 2) == 0:
+                # do this twice because a sequence of three consonants won't be
+                # matched by the initial one, since the replacement does
+                # non-overlapping subs
+                part = rsub(part,
+                        u"([" + lconsonants + u"])([" + rconsonants + u"])",
+                        u"\\1\u0652\\2")
+                part = rsub(part,
+                        u"([" + lconsonants + u"])([" + rconsonants + u"])",
+                        u"\\1\u0652\\2")
+            splitparts.append(part)
+            index += 1
+        text = ''.join(splitparts)
 
     # remove sukūn after ḍamma + wāw
     text = rsub(text, u"\u064F\u0648\u0652", u"\u064F\u0648")
@@ -1138,8 +1157,9 @@ def test(latin, arabic, should_outcome):
         else:
             uniprint("tr() UNMATCHED (= %s)" % trlatin)
             outcome = "unmatched"
+    canonlatin, _ = canonicalize_latin_arabic(latin, None)
     uniprint("canonicalize_latin(%s) = %s" %
-            (latin, canonicalize_latin(latin)))
+            (latin, canonlatin))
     if outcome == should_outcome:
         uniprint("TEST SUCCEEDED.")
         num_succeeded += 1
