@@ -47,6 +47,7 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
 
   # Compute canonarabic and canonlatin
   match_canon = False
+  canonlatin = ""
   if latin:
     try:
       canonarabic, canonlatin = ar_translit.tr_matching(arabic, latin, True,
@@ -61,28 +62,28 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
   newlatin = canonlatin == latin and "same" or canonlatin
   newarabic = canonarabic == arabic and "same" or canonarabic
 
+  latintrtext = (latin or canonlatin) and " (%s -> %s)" % (latin, newlatin) or ""
+
   try:
-    translit = ar_translit.tr(arabic)
+    translit = ar_translit.tr(canonarabic)
     if not translit:
       pagemsg("Unable to auto-translit %s" % arabic)
   except Exception as e:
     pagemsg("Unable to transliterate %s: %s" % (arabic, e))
     translit = None
   if canonarabic == arabic:
-    pagemsg("No change in Arabic %s (%s -> %s)" % (
-        arabic, latin, newlatin))
+    pagemsg("No change in Arabic %s%s" % (arabic, latintrtext))
     canonarabic = False
   elif match_canon:
-    pagemsg("Vocalize Arabic %s -> %s (%s -> %s)" % (
-        arabic, canonarabic, latin, newlatin))
+    pagemsg("Vocalize Arabic %s -> %s%s" % (arabic, canonarabic, latintrtext))
     actions.append("vocalize %s=%s -> %s" % (param, arabic, canonarabic))
   elif latin:
-    pagemsg("Cross-canoning Arabic %s -> %s (%s -> %s)" % (
-        arabic, canonarabic, latin, newlatin))
+    pagemsg("Cross-canoning Arabic %s -> %s%s" % (arabic, canonarabic,
+      latintrtext))
     actions.append("cross-canon %s=%s -> %s" % (param, arabic, canonarabic))
   else:
-    pagemsg("Self-canoning Arabic %s -> %s (%s -> %s)" % (
-        arabic, canonarabic, latin, newlatin))
+    pagemsg("Self-canoning Arabic %s -> %s%s" % (arabic, canonarabic,
+      latintrtext))
     actions.append("self-canon %s=%s -> %s" % (param, arabic, canonarabic))
   if not latin:
     pass
@@ -91,8 +92,8 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
       #    translit == u"ʾ" + canonlatin or
       #    translit == u"ʾ" + canonlatin + "un"
       ):
-    pagemsg("Removing redundant translit for %s -> %s (%s -> %s)" % (
-        arabic, newarabic, latin, newlatin))
+    pagemsg("Removing redundant translit for %s -> %s%s" % (
+        arabic, newarabic, latintrtext))
     actions.append("remove redundant %s=%s" % (paramtrname, latin))
     canonlatin = True
   elif canonlatin == latin:
@@ -135,7 +136,7 @@ def canon_param(page, index, template, param, paramtr,
 def sort_group_changelogs(actions):
   grouped_actions = {}
   begins = ["vocalize ", "remove redundant ", "match-canon ", "cross-canon ",
-      "self-canon ", ""]
+      "self-canon ", "remove ", ""]
   for begin in begins:
     grouped_actions[begin] = []
   actiontype = None

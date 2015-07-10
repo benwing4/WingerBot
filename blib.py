@@ -486,7 +486,7 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
       def doparam(param, trparam="tr", noadd=False):
         if not noadd:
           templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
-        result = process_param(page, index, template, param, trparam)
+        result = processfn(page, index, template, param, trparam)
         if isinstance(result, list):
           actions.extend(result)
           if not noadd:
@@ -580,16 +580,17 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
     # First split up any translit templates with commas
     if split_translit_templates:
       def process_param_for_splitting(page, index, template, param, paramtr):
-        latin = getparam(template, "tr")
+        latin = getparam(template, paramtr)
         if "," in latin:
           trs = re.split(",\\s*", latin)
           oldtemp = unicode(template)
           newtemps = []
           for tr in trs:
-            template.replace(paramtr, tr)
+            template.add(paramtr, tr)
             newtemps.append(unicode(template))
           newtemp = ", ".join(newtemps)
           old_newtext = newtext[0]
+          pagemsg("Splitting template %s into %s" % (oldtemp, newtemp))
           new_newtext = old_newtext.replace(oldtemp, newtemp)
           if old_newtext == new_newtext:
             pagemsg("WARNING: Unable to locate old template when splitting trs on commas: %s"
@@ -598,12 +599,12 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
             pagemsg("WARNING: Length mismatch when splitting template on tr commas, may have matched multiple templates: old=%s, new=%s" % (
               oldtemp, newtemp))
           newtext[0] = new_newtext
-          return ["split tr=%s" % trs]
+          return ["split tr=%s" % latin]
         return []
 
       actions += do_process_one_page_links(page, index, text,
           process_param_for_splitting)
-      text = blib.parse_text(newtext[0])
+      text = parse_text(newtext[0])
 
     actions += do_process_one_page_links(page, index, text, process_param)
     if not join_actions:
