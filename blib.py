@@ -508,18 +508,19 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
             doparam("2")
       # Look for {{suffix|ar|<PAGENAME>|alt1=<ARABICTEXT>|<PAGENAME>|alt2=...}}
       # or  {{suffix|ar|<ARABICTEXT>|<ARABICTEXT>|...}}
-      elif tempname in ["suffix", "prefix", "confix", "affix", "compound"]:
+      elif (tempname in ["suffix", "suffix2", "prefix", "confix", "affix",
+          "circumfix", "infix", "compound"]):
         if getp("lang") == "ar":
           templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
-          i = 1
           anychanged = False
-          while getp(str(i)):
+          # Don't just do cases up through where there's a numbered param
+          # because there may be holes.
+          for i in xrange(1, 11):
             if getp("alt" + str(i)):
               changed = doparam("alt" + str(i), "tr" + str(i), noadd=True)
             else:
               changed = doparam(str(i), "tr" + str(i), noadd=True)
             anychanged = anychanged or changed
-            i += 1
           if anychanged:
             templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
       elif tempname == "form of":
