@@ -21,10 +21,10 @@ from arabiclib import *
 # FIXME!! To do:
 #
 # 1. Allow short-vowel Latin matching against long-vowel Arabic. (DONE)
-# 2. Match final Latin -an against Arabic alif (maqṣūra) and add fatḥatān.
+# 2. Match final Latin -an against Arabic alif (maqṣūra) and add fatḥatān. (DONE)
 # 3. When a comma occurs in the Latin, split the whole template into two.
-#    This may need to be done in vocalize.py or remove_translit.py.
-# 4. Merge vocalize.py and remove_translit.py so both steps are done at once.
+#    This may need to be done in vocalize.py or remove_translit.py. (DONE)
+# 4. Merge vocalize.py and remove_translit.py so both steps are done at once. (DONE)
 # 5. If an Arabic word begins with plain alif and the Latin word begins with
 #    some variant of an apostrophe, convert the plain alif into hamza-over-alif
 #    or hamza-under-alif. Similarly, vice-versa, including after al-. (DONE)
