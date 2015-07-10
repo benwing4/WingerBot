@@ -198,7 +198,7 @@ def vocalize_links(save, verbose, cattype, startFrom, upTo):
   def join_actions(actions):
     return "vocalize links: %s" % '; '.join(actions)
 
-  return blib.process_links(save, verbose, cattype, startFrom, upTo,
+  return blib.process_links(save, verbose, "ar", cattype, startFrom, upTo,
       process_param, join_actions)
 
 pa = blib.init_argparser("Correct vocalization and translit")

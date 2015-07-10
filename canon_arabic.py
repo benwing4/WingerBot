@@ -310,7 +310,7 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
         result = newresult
     return result
 
-  return blib.process_links(save, verbose, cattype, startFrom, upTo,
+  return blib.process_links(save, verbose, "ar", cattype, startFrom, upTo,
       process_param, sort_group_changelogs, split_translit_templates=True)
 
 pa = blib.init_argparser("Correct vocalization and translit")

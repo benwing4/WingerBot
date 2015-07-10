@@ -210,7 +210,7 @@ def process_links(save, verbose, cattype, startFrom, upTo):
       else:
         result = newresult
     return result
-  return blib.process_links(save, verbose, cattype, startFrom, upTo,
+  return blib.process_links(save, verbose, "ar", cattype, startFrom, upTo,
       do_process_param, sort_group_changelogs)
 
 pa = blib.init_argparser("Remove redundant translit")

@@ -472,7 +472,7 @@ langs_with_terms_derived_from_arabic = [
 # transliteration. It should return a changelog string if changes were made,
 # and something else otherwise (e.g. False). Changelog strings for all
 # templates will be joined together, separated by a semi-colon.
-def process_links(save, verbose, cattype, startFrom, upTo, process_param,
+def process_links(save, verbose, lang, cattype, startFrom, upTo, process_param,
     join_actions=None, split_translit_templates=False):
   templates_changed = {}
   templates_seen = {}
@@ -498,11 +498,11 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
       tempname = unicode(template.name)
       # Look for {{head|ar|...|head=<ARABIC>}}
       if tempname == "head":
-        if getp("1") == "ar":
+        if getp("1") == lang:
           doparam("head")
       # Look for {{t|ar|<PAGENAME>|alt=<ARABICTEXT>}}
       elif tempname in ["t", "t+", "t-", "t+check", "t-check"]:
-        if getp("1") == "ar":
+        if getp("1") == lang:
           if getp("alt"):
             doparam("alt")
           else:
@@ -511,7 +511,7 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
       # or  {{suffix|ar|<ARABICTEXT>|<ARABICTEXT>|...}}
       elif (tempname in ["suffix", "suffix2", "prefix", "confix", "affix",
           "circumfix", "infix", "compound"]):
-        if getp("lang") == "ar":
+        if getp("lang") == lang:
           templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
           anychanged = False
           # Don't just do cases up through where there's a numbered param
@@ -525,7 +525,7 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
           if anychanged:
             templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
       elif tempname == "form of":
-        if getp("lang") == "ar":
+        if getp("lang") == lang:
           if getp("3"):
             doparam("3")
           else:
@@ -533,14 +533,14 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
       # Templates where we don't check for alternative text because
       # the following parameter is used for the translation.
       elif tempname in ["ux", "lang"]:
-        if getp("1") == "ar":
+        if getp("1") == lang:
           doparam("2")
       elif tempname == "usex":
-        if getp("lang") == "ar":
+        if getp("lang") == lang:
           doparam("1")
-      # Look for any other template with "ar" as first argument
+      # Look for any other template with lang as first argument
       elif (#tempname in ["l", "link", "m", "mention"] and
-          getp("1") == "ar"):
+          getp("1") == lang):
         # Look for:
         #   {{m|ar|<PAGENAME>|<ARABICTEXT>}}
         #   {{m|ar|<PAGENAME>|alt=<ARABICTEXT>}}
@@ -555,7 +555,7 @@ def process_links(save, verbose, cattype, startFrom, upTo, process_param,
       # {{borrowing|en|<ENGLISHTEXT>|lang=ar}}.
       elif (#tempname in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
           tempname != "borrowing" and
-          getp("lang") == "ar"):
+          getp("lang") == lang):
         # Look for:
         #   {{term|lang=ar|<PAGENAME>|<ARABICTEXT>}}
         #   {{term|lang=ar|<PAGENAME>|alt=<ARABICTEXT>}}
