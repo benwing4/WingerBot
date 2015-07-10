@@ -27,7 +27,7 @@ from arabiclib import remove_links
 # 4. Merge vocalize.py and remove_translit.py so both steps are done at once.
 # 5. If an Arabic word begins with plain alif and the Latin word begins with
 #    some variant of an apostrophe, convert the plain alif into hamza-over-alif
-#    or hamza-under-alif. Similarly, vice-versa, including after al-.
+#    or hamza-under-alif. Similarly, vice-versa, including after al-. (DONE)
 # 6. Recognize a Latin dash corresponding to Arabic space and canonicalize
 #    to a space.
 # 7. Recognize a Latin k corresponding to Arabic q and canonicalize. (NOT DONE;
