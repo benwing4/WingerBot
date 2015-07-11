@@ -365,6 +365,7 @@ tt_to_arabic_matching_eow = { # end of word
 # a transliteration is to substitute any string in the list with the
 # first element of the list (this can be suppressed by making an
 # element a one-entry list containing a string, as mentioned above).
+#
 # If the element of a list is a one-element tuple, we canonicalize
 # during match-canonicalization but we do not trigger the check for
 # multiple possible canonicalizations during self-canonicalization;
