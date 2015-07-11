@@ -373,7 +373,7 @@ def post_canonicalize_latin(text):
     text = tr_canonicalize_latin(text)
 
     # Remove j after "hushing" consonants
-    text = rsub(text, u"(žčšŽČŠ)j(ouóú)", u"\1\2")
+    text = rsub(text, u"([žčšŽČŠ])j([ouóú])", u"\1\2")
 
     text = text.strip()
     return text
