@@ -168,6 +168,26 @@ ADD DEFN {{ar-verb|I|a|u}} صلح لِ {{ar-root|ص ل ح}} "to be suitable for"
 ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 
 
+==Arabic==
+
+===Etymology===
+Compare {{etyl|akk|-}} {{m|akk|𒄖𒍝|tr=kussû [GU.ZA]}} / {{m|akk|𒄑𒄖𒍝|tr=kussû [GIŠ.GU.ZA]}}, {{etyl|arc|-}} {{m|arc|כּוּרְסְיָא|tr=kursəyā}}, {{etyl|syc|-}} {{m|syc|ܟܘܪܣܝܐ|tr=kursyā}}, {{etyl|uga|-}} {{m|uga|𐎋𐎒𐎜|tr=ksủ}}, {{etyl|he|-}} {{m/he|כיסא|dwv=כִּסֵּא|tr=kisé, kissē}}.
+
+===Noun===
+{{ar-noun|كُرْسِيّ|m|pl=كَرَاسِيّ|pl2=كَرَاسٍ}}
+
+# [[chair]], [[seat]]
+# [[seating]]
+# [[throne]]
+# [[sofa]], [[couch]]
+
+====Declension====
+{{ar-decl-noun|كُرْسِيّ|pl=كَرَاسِيّ|pl2=كَرَاسٍ}}
+
+====Synonyms====
+* {{sense|throne}} {{l|ar|سِرِير}}
+
+[[Category:ar:Furniture]]
 
 
 
