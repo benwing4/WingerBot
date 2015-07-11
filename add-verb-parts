@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#python create_inflections.py --verb-part 3sm-all-all --save > create_verb_part_3sm.5.save.out
+#python create_inflections.py --verb-part 3sf-all-all --save > create_verb_part_3sf.3.save.out
+#python create_inflections.py --verb-part 2sm-all-all --save 373 > create_verb_part_2sm.1.save.373-.out
+#python create_inflections.py --verb-part 2sf-all-all --save 293 > create_verb_part_2sf.2.save.293-.out
+#python create_inflections.py --verb-part 1s-all-all --save > create_verb_part_1s.3.save.out
+#python create_inflections.py --verb-part 1p-all-all --save > create_verb_part_1p.2.save.out
+#python create_inflections.py --verb-part 2pm-all-all --save > create_verb_part_2pm.1.save.out
+#python create_inflections.py --verb-part 3pm-all-all --save > create_verb_part_3pm.2.save.out
+python create_inflections.py --verb-part 2pf-all-all --save > create_verb_part_2pf.1.save.out
+python create_inflections.py --verb-part 3pf-all-all --save > create_verb_part_3pf.1.save.out
