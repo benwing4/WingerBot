@@ -2225,7 +2225,7 @@ def create_elatives(save, elfile, startFrom, upTo):
         pagetitle = page.title()
         def pagemsg(text):
           msg("Page %s %s: %s" % (index, pagetitle, text))
-        if not page.exists:
+        if not page.exists():
           pagemsg("WARNING, positive %s not found for elative %s (page nonexistent)" % (
             arpositive, elative))
           return None, "skipped positive %s elative %s" % (arpositive, elative)
