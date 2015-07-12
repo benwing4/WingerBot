@@ -398,10 +398,21 @@ def tr_canonicalize_greek(text):
     # in post_canonicalize_greek().)
     # Repeat in case of diphthong, where rough/smooth breathing follows 2nd
     # vowel.
-    for i in xrange(2):
-        text = rsub(text, "(" + greek_vowels + MBOPT + ")(" + RS + ")",
-                r"\2\1")
-    # Recombine iotated vowels; iotated accent comes last in order
+
+    # Put rough/smooth breathing before diphthong; rough breathing comes first
+    # in order with multiple accents, except macron or breve. Second vowel of
+    # diphthong must be υ or ι and no following diaeresis. Only do it at
+    # beginning of word.
+    text = rsub(text, r"(^|[ \[\]|])(" + greek_vowels + MBOPT + u"[υι])(" +
+            RS + ")(?!" + GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\3\2")
+    # Put rough/smooth breathing before vowel; rough breathing comes first in
+    # order with multiple accents, except macron or breve. Only do it at
+    # beginning of word.
+    text = rsub(text, r"(^|[ \[\]|])(" + greek_vowels + MBOPT + ")(" +
+            RS + ")", r"\1\3\2")
+    # Recombine iotated vowels; iotated accent comes last in order.
+    # We do this because iotated vowels have special Latin mappings that
+    # aren't just sum-of-parts (i.e. with an extra macron in the case of αΑ).
     text = rsub(text, u"([αΑηΗωΩ])(" + GR_ACC_NO_IOBE + "*)" + IOBE,
             lambda m:iotate_vowel[m.group(1)] + m.group(2))
     return text
@@ -443,13 +454,18 @@ def post_canonicalize_greek(text):
     # in order with multiple accents, except macron or breve. Second vowel of
     # diphthong must be υ or ι and no following diaeresis. Only do it at
     # beginning of word.
-    text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels +
-            u")([υι])(?!" + GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\3\4\2")
+    text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels + MBOPT +
+            u"[υι])(?!" + GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\3\2")
     # Put rough/smooth breathing after vowel; rough breathing comes first in
     # order with multiple accents, except macron or breve. Only do it at
     # beginning of word.
     text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels +
             MBOPT + ")", r"\1\3\2")
+    # Eliminate breve over short vowel
+    text = rsub(text, u"([οεΟΕ])" + BREVE, r"\1")
+    # Eliminate macron over long vowel
+    text = rsub(text, u"([ηωΗΩᾳᾼῃῌῳῼ])" + MAC, r"\1")
+    # Finally, convert to composed form. Do at very end.
     text = nfc_form(text)
     return text
 
@@ -753,7 +769,7 @@ def run_tests():
     #test(u"pāï", u"παϊ", "matched", u"πᾱϊ")
     #test(u"pā́ï", u"πάϊ", "matched", u"πᾱ́ϊ")
     # Should add smooth breathing
-    test(u"ā̂u", u"αῦ", "matched", u"ᾱ̓ῦ") # FIXME!! Check this
+    test(u"ā̂u", u"αῦ", "matched", u"ᾱὖ") # FIXME!! Check this
 
     test(u"huiôu", u"ὑϊοῦ", "matched")
 
@@ -775,11 +791,12 @@ def run_tests():
     test(u"blā́x", u"βλάξ", "matched", u"βλᾱ́ξ")
     # FIXME: Think about this. We currently transliterate Greek breve with
     # nothing, so the translit of the Greek won't match the Latin.
-    test(u"krūŏn", u"κρύον", "unmatched", u"κρῡ́ο̆ν")
+    test(u"krūŏn", u"κρύον", "unmatched", u"κρῡ́ον")
     test(u"āthlon", u"ἆθλον", "matched")
     test(u"rhādix", u"ῥάδιξ", "matched", u"ῥᾱ́διξ")
     test(u"Murrhā", u"Μύῤῥα", "matched", u"Μύῤῥᾱ")
-
+    # Smooth breathing not at beginning of word; should not be moved
+    test(u"tautologiā", u"ταὐτολογία", "matched", u"ταὐτολογίᾱ")
     # # Things that should fail
     test(u"stúlos", u"στῦλος", "failed")
     test(u"stilos", u"στῦλος", "failed")
