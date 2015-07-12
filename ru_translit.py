@@ -269,6 +269,7 @@ tt_to_russian_matching = {
     u"]":u"",
     # accents
     AC:[AC,""],
+    GR:[GR,""],
     capital_silent_hard_sign:u"",
     small_silent_hard_sign:u"",
 }
@@ -319,6 +320,7 @@ for alt in build_canonicalize_latin:
 # Russian. The value is the corresponding Russian character to insert.
 tt_to_russian_unmatching = {
     AC:AC,
+    GR:GR,
 }
 
 # Pre-canonicalize Latin, and Russian if supplied. If Russian is supplied,
@@ -336,9 +338,11 @@ def pre_canonicalize_latin(text, russian=None):
     # canonicalize interior whitespace
     text = rsub(text, r"\s+", " ")
     # decompose accented letters
-    text = rsub(text, u"[áéíóúÁÉÍÓÚ]",
+    text = rsub(text, u"[áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙ]",
         {u"á":"a"+AC, u"é":"e"+AC, u"í":"i"+AC, u"ó":"o"+AC, u"ú":"u"+AC,
-         u"Á":"A"+AC, u"É":"E"+AC, u"Í":"I"+AC, u"Ó":"O"+AC, u"Ú":"U"+AC,})
+         u"Á":"A"+AC, u"É":"E"+AC, u"Í":"I"+AC, u"Ó":"O"+AC, u"Ú":"U"+AC,
+         u"à":"a"+GR, u"è":"e"+GR, u"ì":"i"+GR, u"ò":"o"+GR, u"ù":"u"+GR,
+         u"À":"A"+GR, u"È":"E"+GR, u"Ì":"I"+GR, u"Ò":"O"+GR, u"Ù":"U"+GR,})
     # "compose" digraphs
     text = rsub(text, u"[czskCZSK]h",
         {"ch":u"č", "zh":u"ž", "sh":u"š", "kh":"x",
@@ -351,6 +355,9 @@ def tr_canonicalize_latin(text):
     text = rsub(text, "[aeiouAEIOU]" + AC,
         {"a"+AC:u"á", "e"+AC:u"é", "i"+AC:u"í", "o"+AC:u"ó", "u"+AC:u"ú",
          "A"+AC:u"Á", "E"+AC:u"É", "I"+AC:u"Í", "O"+AC:u"Ó", "U"+AC:u"Ú",})
+    text = rsub(text, "[aeiouAEIOU]" + GR,
+        {"a"+GR:u"à", "e"+GR:u"è", "i"+GR:u"ì", "o"+GR:u"ò", "u"+GR:u"ù",
+         "A"+GR:u"À", "E"+GR:u"È", "I"+GR:u"Ì", "O"+GR:u"Ò", "U"+GR:u"Ù",})
 
     return text
 
@@ -371,7 +378,7 @@ def post_canonicalize_latin(text):
     bow_or_vowel = u"(^|[- \[aeiouěAEIOUĚʺʹ%s%s]%s)" % (
             capital_e_subst, small_e_subst, ACGROPT)
     # repeat to handle sequences of ЕЕЕЕЕ...
-    for i in [0,1]:
+    for i in xrange(2):
         text = rsub(text, u"(%s)%s" % (bow_or_vowel, capital_e_subst), r"\1Je")
         text = rsub(text, u"(%s)%s" % (bow_or_vowel, small_e_subst), r"\1je")
         text = rsub(text, u"(%s)Ě" % bow_or_vowel, r"\1Jě")
