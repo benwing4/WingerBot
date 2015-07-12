@@ -2,3 +2,4 @@
 *.out
 *.pyc
 typescript*
+.backup.orig
