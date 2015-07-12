@@ -254,6 +254,10 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
     else:
       actions.append("%s %s=%s -> %s=%s" % (actionop, fromparam, foreign,
         toparam, canonforeign))
+    if (ar_translit.remove_diacritics(canonarabic) !=
+        ar_translit.remove_diacritics(arabic)):
+      pagemsg("NOTE: Without diacritics, old Arabic %s different from canon %s"
+          % (arabic, canonarabic))
 
   if not latin:
     pass
