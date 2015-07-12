@@ -244,8 +244,8 @@ def split_etymologies(save, verbose, startFrom, upTo):
         verbose=verbose)
 
 pa = blib.init_argparser("Split etymology sections")
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-split_etymologies(parms.save, True, # parms.verbose
+split_etymologies(params.save, True, # params.verbose
     startFrom, upTo)

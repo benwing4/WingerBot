@@ -77,7 +77,7 @@ def clean_verb_headword(save, startFrom, upTo):
       blib.do_edit(page, index, clean_one_page_verb_headword, save=save)
 
 pa = blib.init_argparser("Clean up verb headword templates")
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-clean_verb_headword(parms.save, startFrom, upTo)
+clean_verb_headword(params.save, startFrom, upTo)

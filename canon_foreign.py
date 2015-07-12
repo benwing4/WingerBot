@@ -30,12 +30,12 @@ from blib import msg, getparam
 # parameter in this template containing the foreign text; PARAMTR is the
 # name of the parameter in this template containing the Latin text. All
 # three are used only in status messages and ACTIONS.
-def do_canon_param(page, index, template, param, paramtr, foreign, latin,
+def do_canon_param(pagetitle, index, template, param, paramtr, foreign, latin,
     translit_module, include_tempname_in_changelog=False):
   actions = []
   tname = unicode(template.name)
   def pagemsg(text):
-    msg("Page %s %s: %s.%s: %s" % (index, page.title(), tname, param, text))
+    msg("Page %s %s: %s.%s: %s" % (index, pagetitle, tname, param, text))
 
   if include_tempname_in_changelog:
     paramtrname = "%s.%s" % (template.name, paramtr)
@@ -114,21 +114,18 @@ def do_canon_param(page, index, template, param, paramtr, foreign, latin,
 # [FROMPARAM, TOPARAM], where FROMPARAM may be "page title") and Latin
 # parameter PARAMTR. Return False if PARAM has no value, else list of
 # changelog actions.
-def canon_param(page, index, template, param, paramtr, translit_module,
+def canon_param(pagetitle, index, template, param, paramtr, translit_module,
     include_tempname_in_changelog=False):
-  # FIXME! If this fails, we need to wrap calls to page.title() with
-  # unicode() just below.
-  assert(isinstance(page.title(), basestring))
   if isinstance(param, list):
     fromparam, toparam = param
   else:
     fromparam, toparam = (param, param)
-  foreign = (page.title() if fromparam == "page title" else
+  foreign = (pagetitle if fromparam == "page title" else
     getparam(template, fromparam))
   latin = getparam(template, paramtr)
   if not foreign:
     return False
-  canonforeign, canonlatin, actions = do_canon_param(page, index, template,
+  canonforeign, canonlatin, actions = do_canon_param(pagetitle, index, template,
       fromparam, paramtr, foreign, latin, translit_module,
       include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
@@ -139,7 +136,7 @@ def canon_param(page, index, template, param, paramtr, translit_module,
   elif canonlatin:
     template.add(paramtr, canonlatin)
   if canonforeign or canonlatin:
-    msg("Page %s %s: Replaced %s with %s" % (index, page.title(),
+    msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
       oldtempl, unicode(template)))
   return actions
 
@@ -179,20 +176,21 @@ def sort_group_changelogs(actions):
 # Canonicalize foreign and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'vocab', 'borrowed' or 'translit', indicating which categories to
-# examine.
+# should be 'vocab', 'borrowed' or 'translation', indicating which categories
+# to examine.
 def canon_links(save, verbose, cattype, lang, longlang, script,
-    translit_module, langs_with_terms_derived_from, startFrom, upTo):
-  def process_param(page, index, template, param, paramtr):
-    result = canon_param(page, index, template, param, paramtr,
+    translit_module, langs_with_terms_derived_from, startFrom, upTo,
+    pages_to_do=[]):
+  def process_param(pagetitle, index, template, param, paramtr):
+    result = canon_param(pagetitle, index, template, param, paramtr,
         translit_module, include_tempname_in_changelog=True)
     if getparam(template, "sc") == script:
       msg("Page %s %s: %s.%s: Removing sc=%s" % (index,
-        unicode(page.title()), unicode(template.name), "sc", script))
+        pagetitle, unicode(template.name), "sc", script))
       oldtempl = "%s" % unicode(template)
       template.remove("sc")
       msg("Page %s %s: Replaced %s with %s" %
-          (index, unicode(page.title()), oldtempl, unicode(template)))
+          (index, pagetitle, oldtempl, unicode(template)))
       newresult = ["remove %s.sc=%s" % (template.name, script)]
       if result != False:
         result = result + newresult
@@ -202,6 +200,7 @@ def canon_links(save, verbose, cattype, lang, longlang, script,
 
   return blib.process_links(save, verbose, lang, longlang, cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
-      langs_with_terms_derived_from=langs_with_terms_derived_from
-      #,split_translit_templates=True
+      langs_with_terms_derived_from=langs_with_terms_derived_from,
+      pages_to_do=pages_to_do
+      #,split_templates=True
       )

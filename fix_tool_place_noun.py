@@ -44,7 +44,7 @@ def fix_tool_place_noun(save, verbose, startFrom, upTo):
           verbose=verbose)
 
 pa = blib.init_argparser("Fix lc vs. cap in tool/place noun etym templates")
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-fix_tool_place_noun(parms.save, parms.verbose, startFrom, upTo)
+fix_tool_place_noun(params.save, params.verbose, startFrom, upTo)

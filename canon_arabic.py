@@ -189,12 +189,12 @@ langs_with_terms_derived_from_arabic = [
 # parameter in this template containing the Arabic text; PARAMTR is the
 # name of the parameter in this template containing the Latin text. All
 # three are used only in status messages and ACTIONS.
-def do_canon_param(page, index, template, param, paramtr, arabic, latin,
+def do_canon_param(pagetitle, index, template, param, paramtr, arabic, latin,
     include_tempname_in_changelog=False):
   actions = []
   tname = unicode(template.name)
   def pagemsg(text):
-    msg("Page %s %s: %s.%s: %s" % (index, page.title(), tname, param, text))
+    msg("Page %s %s: %s.%s: %s" % (index, pagetitle, tname, param, text))
 
   msgs = []
   def notemsg(text):
@@ -278,21 +278,18 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
 # [FROMPARAM, TOPARAM], where FROMPARAM may be "page title") and Latin
 # parameter PARAMTR. Return False if PARAM has no value, else list of
 # changelog actions.
-def canon_param(page, index, template, param, paramtr,
+def canon_param(pagetitle, index, template, param, paramtr,
     include_tempname_in_changelog=False):
-  # FIXME! If this fails, we need to wrap calls to page.title() with
-  # unicode() just below.
-  assert(isinstance(page.title(), basestring))
   if isinstance(param, list):
     fromparam, toparam = param
   else:
     fromparam, toparam = (param, param)
-  arabic = (page.title() if fromparam == "page title" else
+  arabic = (pagetitle if fromparam == "page title" else
     getparam(template, fromparam))
   latin = getparam(template, paramtr)
   if not arabic:
     return False
-  canonarabic, canonlatin, actions = do_canon_param(page, index, template,
+  canonarabic, canonlatin, actions = do_canon_param(pagetitle, index, template,
       fromparam, paramtr, arabic, latin, include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
   if canonarabic:
@@ -302,7 +299,7 @@ def canon_param(page, index, template, param, paramtr,
   elif canonlatin:
     template.add(paramtr, canonlatin)
   if canonarabic or canonlatin:
-    msg("Page %s %s: Replaced %s with %s" % (index, page.title(),
+    msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
       oldtempl, unicode(template)))
   return actions
 
@@ -343,15 +340,15 @@ def sort_group_changelogs(actions):
 # is "pl" then this will attempt to vocalize "pl", "pl2", "pl3", etc. based on
 # "pltr", "pl2tr", "pl3tr", etc., stopping when "plN" isn't found. Return
 # list of changelog actions.
-def canon_param_chain(page, index, template, param):
+def canon_param_chain(pagetitle, index, template, param):
   actions = []
-  result = canon_param(page, index, template, param, param + "tr")
+  result = canon_param(pagetitle, index, template, param, param + "tr")
   if result != False:
     actions.extend(result)
   i = 2
   while result != False:
     thisparam = param + str(i)
-    result = canon_param(page, index, template, thisparam, thisparam + "tr")
+    result = canon_param(pagetitle, index, template, thisparam, thisparam + "tr")
     if result != False:
       actions.extend(result)
     i += 1
@@ -360,9 +357,9 @@ def canon_param_chain(page, index, template, param):
 # Vocalize the head param(s) for the given headword template on the given page.
 # Modifies the templates in place. Return list of changed parameters, for
 # use in the changelog message.
-def canon_head(page, index, template):
+def canon_head(pagetitle, index, template):
   actions = []
-  pagetitle = unicode(page.title(withNamespace=False))
+  #pagetitle = unicode(page.title(withNamespace=False))
 
   # Handle existing 1= and head from page title
   if template.has("tr"):
@@ -393,7 +390,7 @@ def canon_head(page, index, template):
       actions.append("split translit into multiple heads")
 
     # Try to vocalize 1=
-    result = canon_param(page, index, template, "1", "tr")
+    result = canon_param(pagetitle, index, template, "1", "tr")
     if result != False:
       actions.extend(result)
 
@@ -403,7 +400,7 @@ def canon_head(page, index, template):
       latin = getparam(template, "tr")
       if arabic and latin:
         canonarabic, canonlatin, newactions = do_canon_param(
-            page, index, template, "page title", "tr", arabic, latin)
+            pagetitle, index, template, "page title", "tr", arabic, latin)
         oldtempl = "%s" % unicode(template)
         if canonarabic:
           if template.has("2"):
@@ -424,7 +421,7 @@ def canon_head(page, index, template):
   result = True
   while result != False:
     thisparam = "head" + str(i)
-    result = canon_param(page, index, template, thisparam, "tr" + str(i))
+    result = canon_param(pagetitle, index, template, thisparam, "tr" + str(i))
     if result != False:
       actions.extend(result)
     i += 1
@@ -432,50 +429,51 @@ def canon_head(page, index, template):
 
 # Canonicalize the Arabic and Latin in the headword templates on the
 # given page. Returns the changed text along with a changelog message.
-def canon_one_page_headwords(page, index, text):
+def canon_one_page_headwords(pagetitle, index, text):
   actions = []
   for template in text.filter_templates():
     if template.name in arabiclib.arabic_non_verbal_headword_templates:
       thisactions = []
-      thisactions += canon_head(page, index, template)
+      thisactions += canon_head(pagetitle, index, template)
       for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
           "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
           "pauc", "cons"]:
-        thisactions += canon_param_chain(page, index, template, param)
+        thisactions += canon_param_chain(pagetitle, index, template, param)
       if len(thisactions) > 0:
         actions.append("%s: %s" % (template.name, ', '.join(thisactions)))
   changelog = '; '.join(actions)
   #if len(actions) > 0:
-  msg("Change log for page %s = %s" % (page.title(), changelog))
+  msg("Change log for page %s = %s" % (pagetitle, changelog))
   return text, changelog
 
 # Canonicalize Arabic and Latin in headword templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true.
 def canon_headwords(save, verbose, startFrom, upTo):
+  def process_page(page, index, text):
+    return canon_one_page_headwords(unicode(page.title()), index, text)
   #for page in blib.references(u"Template:tracking/ar-head/head", startFrom, upTo):
   #for page in blib.references("Template:ar-nisba", startFrom, upTo):
   for cat in [u"Arabic lemmas", u"Arabic non-lemma forms"]:
     for page, index in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, index, canon_one_page_headwords, save=save,
-          verbose=verbose)
+      blib.do_edit(page, index, process_page, save=save, verbose=verbose)
 
 # Canonicalize Arabic and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'vocab', 'borrowed' or 'translit', indicating which categories to
-# examine.
+# should be 'vocab', 'borrowed' or 'translation', indicating which categories
+# to examine.
 def canon_links(save, verbose, cattype, startFrom, upTo):
-  def process_param(page, index, template, param, paramtr):
-    result = canon_param(page, index, template, param, paramtr,
+  def process_param(pagetitle, index, template, param, paramtr):
+    result = canon_param(pagetitle, index, template, param, paramtr,
         include_tempname_in_changelog=True)
     if getparam(template, "sc") == "Arab":
       msg("Page %s %s: %s.%s: Removing sc=Arab" % (index,
-        unicode(page.title()), unicode(template.name), "sc"))
+        pagetitle, unicode(template.name), "sc"))
       oldtempl = "%s" % unicode(template)
       template.remove("sc")
       msg("Page %s %s: Replaced %s with %s" %
-          (index, unicode(page.title()), oldtempl, unicode(template)))
+          (index, pagetitle, oldtempl, unicode(template)))
       newresult = ["remove %s.sc=Arab" % template.name]
       if result != False:
         result = result + newresult
@@ -486,18 +484,18 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
   return blib.process_links(save, verbose, "ar", "Arabic", cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
       langs_with_terms_derived_from=langs_with_terms_derived_from_arabic,
-      split_translit_templates=True)
+      split_templates=True)
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Correct vocalization and translit of links")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('vocab', 'borrowed', 'translit')")
+    help="Categories to examine ('vocab', 'borrowed', 'translation')")
 
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-if parms.links:
-  canon_links(parms.save, parms.verbose, parms.cattype, startFrom, upTo)
+if params.links:
+  canon_links(params.save, params.verbose, params.cattype, startFrom, upTo)
 else:
-  canon_headwords(parms.save, parms.verbose, startFrom, upTo)
+  canon_headwords(params.save, params.verbose, startFrom, upTo)

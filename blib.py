@@ -106,6 +106,39 @@ def do_edit(page, index, func=None, null=False, save=False, verbose=False):
 
     break
 
+def do_process_text(pagetitle, pagetext, index, func=None, verbose=False):
+  def pagemsg(text):
+    msg("Page %s %s: %s" % (index, pagetitle, text))
+  while True:
+    try:
+      if func:
+        if verbose:
+          pagemsg("Begin processing")
+        new, comment = func(pagetitle, index, parse_text(pagetext))
+
+        if new:
+          new = unicode(new)
+
+          # Canonicalize shaddas when comparing pages so we don't do saves
+          # that only involve different shadda orders.
+          if reorder_shadda(pagetext) != reorder_shadda(new):
+            if verbose:
+              pagemsg('Replacing [[%s]] with [[%s]]' % (pagetext, new))
+            #if save:
+            #  pagemsg("Saving with comment = %s" % comment)
+            #  page.save(comment = comment)
+            #else:
+            pagemsg("Would save with comment = %s" % comment)
+          else:
+            pagemsg('Skipped, no changes')
+        else:
+          pagemsg('Skipped: %s' % comment)
+    except:
+      errmsg(u'Page %s %s: Error' % (index, pagetitle))
+      raise
+
+    break
+
 def iter_pages(pageiter, startsort = None, endsort = None, key = None):
   i = 0
   t = None
@@ -323,23 +356,37 @@ def getEtymLanguageData():
 # for a case where the param value should be fetched from the page title and
 # saved to PARAM. It should return a changelog string if changes were made,
 # and something else otherwise (e.g. False). Changelog strings for all
-# templates will be joined together, separated by a semi-colon.
+# templates will be joined together using JOIN_ACTIONS; if not supplied,
+# they will be separated by a semi-colon.
+#
+# LANG should be a short language code (e.g. 'ru', 'ar', 'grc'), and LONGLANG
+# the canonical language name (e.g. "Russian", "Arabic", "Ancient Greek").
+# CATTYPE is either 'vocab' (do lemmas and non-lemma pages for the language),
+# 'borrowed' (do pages for terms borrowed from the language), 'translation'
+# (do pages containing references to any of the 5 standard translation
+# templates), 'pagetext' (do the pages in PAGES_TO_DO, a list of (TITLE, TEXT)
+# entries); for doing off-line runs; nothing saved).
+#
+# If SPLIT_TEMPLATES, then if the transliteration contains multiple entries
+# separated by a comma, the template is split into multiple copies, each with
+# one of the entries, and the templates are comma-separated.
+#
 def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
-    process_param, join_actions=None, split_translit_templates=False,
-    langs_with_terms_derived_from=[]):
+    process_param, join_actions=None, split_templates=False,
+    langs_with_terms_derived_from=[], pages_to_do=[]):
   templates_changed = {}
   templates_seen = {}
 
-  # Process the link-like templates on the given page with the given text,
+  # Process the link-like templates on the page with the given title and text,
   # calling PROCESSFN for each pair of foreign/Latin. Return a list of
   # changelog actions.
-  def do_process_one_page_links(page, index, text, processfn):
+  def do_process_one_page_links(pagetitle, index, text, processfn):
     actions = []
     for template in text.filter_templates():
       def doparam(param, trparam="tr", noadd=False):
         if not noadd:
           templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
-        result = processfn(page, index, template, param, trparam)
+        result = processfn(pagetitle, index, template, param, trparam)
         if isinstance(result, list):
           actions.extend(result)
           if not noadd:
@@ -453,16 +500,16 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
 
   # Process the link-like templates on the given page with the given text.
   # Returns the changed text along with a changelog message.
-  def process_one_page_links(page, index, text):
+  def process_one_page_links(pagetitle, index, text):
     actions = []
     newtext = [unicode(text)]
 
     def pagemsg(text):
-      msg("Page %s %s: %s" % (index, page.title(), text))
+      msg("Page %s %s: %s" % (index, pagetitle, text))
 
-    # First split up any translit templates with commas
-    if split_translit_templates:
-      def process_param_for_splitting(page, index, template, param, paramtr):
+    # First split up any templates with commas in the Latin
+    if split_templates:
+      def process_param_for_splitting(pagetitle, index, template, param, paramtr):
         latin = getparam(template, paramtr)
         if "," in latin:
           trs = re.split(",\\s*", latin)
@@ -485,11 +532,11 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
           return ["split tr=%s" % latin]
         return []
 
-      actions += do_process_one_page_links(page, index, text,
+      actions += do_process_one_page_links(pagetitle, index, text,
           process_param_for_splitting)
       text = parse_text(newtext[0])
 
-    actions += do_process_one_page_links(page, index, text, process_param)
+    actions += do_process_one_page_links(pagetitle, index, text, process_param)
     if not join_actions:
       changelog = '; '.join(actions)
     else:
@@ -498,25 +545,38 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
     pagemsg("Change log = %s" % changelog)
     return text, changelog
 
-  if cattype == "translit":
+  def process_one_page_links_wrapper(page, index, text):
+    return process_one_page_links(unicode(page.title()), index, text)
+
+  if cattype == "translation":
     for template in ["t", "t+", "t-", "t+check", "t-check"]:
       msg("Processing template %s" % template)
       errmsg("Processing template %s" % template)
       for page, index in references("Template:%s" % template, startFrom, upTo):
-        do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
+        do_edit(page, index, process_one_page_links_wrapper, save=save,
+            verbose=verbose)
+  elif cattype == "pagetext":
+    for current, index in iter_pages(pages_to_do, startFrom, upTo,
+        key=lambda x:x[0]):
+      pagetitle, pagetext = current
+      do_process_text(pagetitle, pagetext, index, process_one_page_links,
+          verbose=verbose)
   else:
     if cattype == "vocab":
       cats = ["%s lemmas" % longlang, "%s non-lemma forms" % longlang]
     elif cattype == "borrowed":
-      cats = ["%s terms derived from %s" % (x, longlang) for x in
-          langs_with_terms_derived_from]
+      #cats = ["%s terms derived from %s" % (x, longlang) for x in
+      #    langs_with_terms_derived_from]
+      cats = [subcat for subcat, index in
+          cat_subcats("Terms derived from %s" % longlang)]
     else:
-      raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translit'")
+      raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translation'")
     for cat in cats:
       msg("Processing category %s" % cat)
       errmsg("Processing category %s" % cat)
       for page, index in cat_articles(cat, startFrom, upTo):
-        do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
+        do_edit(page, index, process_one_page_links_wrapper, save=save,
+            verbose=verbose)
   msg("Templates seen:")
   for template, count in sorted(templates_seen.items(), key=lambda x:-x[1]):
     msg("  %s = %s" % (template, count))

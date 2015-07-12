@@ -118,10 +118,10 @@ langs_with_terms_derived_from_russian = [
 
 pa = blib.init_argparser("Canonicalize Russian and translit")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('vocab', 'borrowed', 'translit')")
+    help="Categories to examine ('vocab', 'borrowed', 'translation')")
 
-parms = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-canon_links(parms.save, parms.verbose, parms.cattype, "ru", "Russian", "Cyrl",
+canon_links(params.save, params.verbose, params.cattype, "ru", "Russian", "Cyrl",
     ru_translit, langs_with_terms_derived_from_russian, startFrom, upTo)
