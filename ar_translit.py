@@ -478,7 +478,7 @@ tt_to_arabic_matching = {
 word_interrupting_chars = u"ـ[]"
 
 build_canonicalize_latin = {}
-for ch in u"abcdefghijklmnopqrstuvwyz3":
+for ch in u"abcdefghijklmnopqrstuvwyz3": # x not in this list! canoned to ḵ
     build_canonicalize_latin[ch] = "multiple"
 build_canonicalize_latin[""] = "multiple"
 
