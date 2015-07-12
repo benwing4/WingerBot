@@ -22,13 +22,11 @@ from blib import remove_links
 
 # FIXME:
 #
-# 1. Check certain things with Anatoli, e.g. always removing j + [ouóú] after
-#    hushing consonants.
-# 2. Check with Anatoli -- always safe to canonicalize sh to š etc. in
+# 1. Check with Anatoli -- always safe to canonicalize sh to š etc. in
 #    preprocessing? 'h' can stand for г in ahá; can this ever occur after š or
 #    whatever?
-# 2. BUG in existing Module:ru-translit: Code to convert ЕеѢѣ to je etc.
-#    doesn't recognize cases after space or dash or vowel + accent.
+# 2. Fix code that converts Russian е to do it after all but Russian
+#    consonants.
 
 AC = u"\u0301"
 GR = u"\u0300"
