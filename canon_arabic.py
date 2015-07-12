@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
+import re, codecs
 
 import blib, pywikibot
 from blib import msg, getparam
@@ -178,6 +178,8 @@ langs_with_terms_derived_from_arabic = [
   "Zazaki",
 ]
 
+show_template=True
+
 # Canonicalize ARABIC and LATIN. Return (CANONARABIC, CANONLATIN, ACTIONS).
 # CANONARABIC is vocalized and/or canonicalized Arabic text to
 # substitute for the existing Arabic text, or False to do nothing.
@@ -196,6 +198,9 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   tname = unicode(template.name)
   def pagemsg(text):
     msg("Page %s %s: %s.%s: %s" % (index, pagetitle, tname, param, text))
+
+  if show_template:
+    pagemsg("Processing %s" % (unicode(template)))
 
   msgs = []
   def notemsg(text):
@@ -479,9 +484,10 @@ def canon_headwords(save, verbose, startFrom, upTo):
 # Canonicalize Arabic and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'vocab', 'borrowed' or 'translation', indicating which categories
-# to examine.
-def canon_links(save, verbose, cattype, startFrom, upTo):
+# should be 'vocab', 'borrowed', 'translation' or 'pagetext', indicating
+# which categories to examine. If CATTYPE is 'pagetext', PAGES_TO_DO should
+# be a list of (PAGETITLE, PAGETEXT).
+def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
   def process_param(pagetitle, index, template, param, paramtr):
     result = canon_param(pagetitle, index, template, param, paramtr,
         include_tempname_in_changelog=True)
@@ -502,18 +508,30 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
   return blib.process_links(save, verbose, "ar", "Arabic", cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
       langs_with_terms_derived_from=langs_with_terms_derived_from_arabic,
-      split_templates=True)
+      pages_to_do=pages_to_do, split_templates=True)
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Correct vocalization and translit of links")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('vocab', 'borrowed', 'translation')")
+    help="Categories to examine ('vocab', 'borrowed', 'translation', 'pagetext')")
+pa.add_argument("--page-file",
+    help="""File containing "pages" to process when --cattype pagetext""")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
+pages_to_do = []
+if params.page_file:
+  for line in codecs.open(params.page_file, "r", encoding="utf-8"):
+    line = line.strip()
+    m = re.match(r"Page [0-9]+ (.*?): [^:]*: Processing (.*?)$", line)
+    if not m:
+      msg("WARNING: Unable to parse line: [%s]" % line)
+    else:
+      pages_to_do.append(m.groups())
 
 if params.links:
-  canon_links(params.save, params.verbose, params.cattype, startFrom, upTo)
+  canon_links(params.save, params.verbose, params.cattype, startFrom, upTo,
+      pages_to_do=pages_to_do)
 else:
   canon_headwords(params.save, params.verbose, startFrom, upTo)

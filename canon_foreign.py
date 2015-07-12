@@ -19,6 +19,8 @@ import re
 import blib, pywikibot
 from blib import msg, getparam
 
+show_template=True
+
 # Canonicalize FOREIGN and LATIN. Return (CANONFOREIGN, CANONLATIN, ACTIONS).
 # CANONFOREIGN is accented and/or canonicalized foreign text to
 # substitute for the existing foreign text, or False to do nothing.
@@ -37,6 +39,9 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   tname = unicode(template.name)
   def pagemsg(text):
     msg("Page %s %s: %s.%s: %s" % (index, pagetitle, tname, fromparam, text))
+
+  if show_template:
+    pagemsg("Processing %s" % (unicode(template)))
 
   if include_tempname_in_changelog:
     paramtrname = "%s.%s" % (template.name, paramtr)
@@ -192,8 +197,13 @@ def sort_group_changelogs(actions):
 # Canonicalize foreign and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'vocab', 'borrowed' or 'translation', indicating which categories
-# to examine.
+# should be 'vocab', 'borrowed', 'translation' or 'pagetext', indicating
+# which categories to examine. If CATTYPE is 'pagetext', PAGES_TO_DO should
+# be a list of (PAGETITLE, PAGETEXT). LANG is a language code and LONGLANG
+# the canonical language name, as in blib.process_links(). SCRIPT is a
+# script code or list of script codes to remove from templates.
+# TRANSLIT_MODULE is the module handling transliteration,
+# match-canonicalization and removal of diacritics.
 def canon_links(save, verbose, cattype, lang, longlang, script,
     translit_module, langs_with_terms_derived_from, startFrom, upTo,
     pages_to_do=[]):
