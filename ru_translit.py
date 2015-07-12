@@ -370,7 +370,7 @@ def post_canonicalize_latin(text):
     # convert capital_e_subst to either E or Je, and small_e_subst to
     # either e or je; similarly, maybe map Ě to Jě, ě to jě.
     # Do before recomposing accented letters.
-    bow_or_vowel = u"(^|[- \[aeiouěAEIOUĚ%s%s]%s)" % (
+    bow_or_vowel = u"(^|[- \[aeiouěAEIOUĚʺʹ%s%s]%s)" % (
             capital_e_subst, small_e_subst, ACGROPT)
     # repeat to handle sequences of ЕЕЕЕЕ...
     for i in [0,1]:
@@ -687,7 +687,8 @@ def run_tests():
     test("zontika", u"зонтик", "failed")
 
     # Test with Cyrillic e
-    test("jebe jebe", u"ебе ебе", "matched")
+    test(u"jebepʹje jebe", u"ебепье ебе", "matched")
+    test(u"jebepʹe jebe", u"ебепье ебе", "matched")
     test("Jebe Jebe", u"Ебе Ебе", "matched")
     test("ebe ebe", u"ебе ебе", "matched")
     test("Ebe Ebe", u"Ебе Ебе", "matched")
