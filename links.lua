@@ -1,6 +1,7 @@
 local export = {}
 
 --TODO: move to [[Module:languages]]
+-- Languages for which we ignore any manual transliteration.
 local override_translit = {
 	["ab"] = true,
 	["abq"] = true,
@@ -65,6 +66,13 @@ local ignore_cap = {
 	["ko"] = true,
 }
 
+-- Languages that want a category containing all manual translits.
+-- Eventually this should go away and all languages should have such a cat.
+local want_manual_translit_cat = {
+	["ar"] = true,
+	["grc"] = true,
+	["ru"] = true,
+}
 
 -- Make a language-specific link from given link's parts
 local function makeLangLink(link, lang, id, allowSelfLink)
@@ -295,9 +303,11 @@ function export.full_link(term, alt, lang, sc, face, id, annotations, allowSelfL
 		end
 	end
 	
+	local mantrCat = annotations["tr"] and annotations["tr"] ~= "" and annotations["tr"] ~= "-" and want_manual_translit_cat[lang:getCode()]
+
 	local mantrFix, redtrFix
 	local manual_tr = ""
-	
+
 	if annotations["tr"] == "" or annotations["tr"] == "-" then
 		annotations["tr"] = nil
 	elseif (term or alt) and not ((sc:getCode():find("Latn", nil, true)) or sc:getCode() == "Latinx") and (not annotations["tr"] or override_translit[lang:getCode()]) then
@@ -316,10 +326,11 @@ function export.full_link(term, alt, lang, sc, face, id, annotations, allowSelfL
 			end
 		end
 	end
-	
+
 	return link .. format_link_annotations(lang, annotations, face)
 				.. (mantrFix and "[[Category:Terms with manual transliterations different from the automated ones]][[Category:Terms with manual transliterations different from the automated ones/" .. lang:getCode() .. "]]" or "")
 				.. (redtrFix and "[[Category:Terms with redundant transliterations]][[Category:Terms with redundant transliterations/" .. lang:getCode() .. "]]" or "")
+				.. (mantrCat and "[[Category:Terms with manual transliterations]][[Category:Terms with manual transliterations/" .. lang:getCode() .. "]]" or "")
 end
 
 
