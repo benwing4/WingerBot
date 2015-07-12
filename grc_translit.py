@@ -25,6 +25,9 @@ from blib import remove_links
 # 1. Canonicalize long α plus ι to ᾳ. What about uppercase equivalent???
 #    I think it can be either way.
 # 2. Finish writing test cases.
+# 3. Check case of u"ᾱῦ", whether the PERIS shouldn't be on first vowel.
+#    Similarly with ACUTE (and GRAVE?).
+# 4. Also check case of Latin Hāídēs. What should it be?
 
 # Accented characters
 GRAVE = u"\u0300"      # grave accent = varia
@@ -45,7 +48,13 @@ GR_ACC_NO_IOBE = ("[" + GRAVE + ACUTE + MAC + BREVE + DIA + SMBR + ROBR +
         PERIS + KORO + DIATON + "]")
 GR_ACC_NO_DIA = ("[" + GRAVE + ACUTE + MAC + BREVE + SMBR + ROBR +
         PERIS + KORO + DIATON + IOBE + "]")
-MBOPT = "[" + MAC + BREVE + "]?"
+GR_ACC_NO_MB = ("[" + GRAVE + ACUTE + DIA + SMBR + ROBR +
+        PERIS + KORO + DIATON + IOBE + "]")
+LA_ACC_NO_MB = ("[" + GRAVE + ACUTE + CIRC + DIA + CAR + "]")
+MB = "[" + MAC + BREVE + "]"
+MBOPT = MB + "?"
+RS = "[" + ROBR + SMBR + "]"
+RSOPT = RS + "?"
 
 def uniprint(x):
   print x.encode('utf-8')
@@ -136,7 +145,7 @@ greek_uppercase_vowels_raw = u"ΑΕΗΙΟΩΥᾼῌῼ"
 greek_uppercase_vowels = "[" + greek_uppercase_vowels_raw + "]"
 greek_vowels = ("[" + greek_lowercase_vowels_raw + greek_uppercase_vowels_raw
         + "]")
-iotate_vowel = {u"α":u"ᾳ", u"Α":"ᾼ",
+iotate_vowel = {u"α":u"ᾳ", u"Α":u"ᾼ",
                 u"η":u"ῃ", u"Ε":u"ῌ",
                 u"ω":u"ῳ", u"Ω":u"ῼ",}
 
@@ -145,7 +154,7 @@ iotate_vowel = {u"α":u"ᾳ", u"Α":"ᾼ",
 def tr(text, lang=None, sc=None):
     text = remove_links(text)
     text = tr_canonicalize_greek(text)
-    
+
     text = rsub(text, u"γ([γκξχ])", r"n\1")
     text = rsub(text, u"ρρ", "rrh")
 
@@ -205,7 +214,7 @@ tt_to_greek_matching = {
     u"β":[u"b",u"β"], u"Β":[u"B",u"Β"], # second B is Greek
     # This will match n anywhere against γ and canonicalize to g, which
     # is probably OK because in post-processing we convert gk/gg to nk/ng.
-    u"γ":[u"g",u"n",u"γ"], u"Γ":[u"G",u"Γ"],
+    u"γ":[u"g",u"n",u"ŋ",u"γ"], u"Γ":[u"G",u"Γ"],
     u"δ":[u"d",u"δ"], u"Δ":[u"D",u"Δ"],
     # Handling of ζ/Ζ opposite zd/Zd is special-cased in
     # check_unmatching_rh_zd().
@@ -239,7 +248,7 @@ tt_to_greek_matching = {
     DIA:[DIA,""],
     SMBR:"",
     ROBR:["h","H",""], # will be canonicalized before uppercase vowel
-    PERIS:[CIRC,""],
+    PERIS:[CIRC,MAC,""],
     #KORO:"", # should not occur,
     #DIATON:DIA + ACUTE, # should not occur
     #IOBE:"i", #should not occur
@@ -330,7 +339,7 @@ def pre_canonicalize_latin(text, greek=None):
     # move accent on first part of diphthong to second part
     text = rsub(text, "([aeiuoAEIOU]" + MBOPT + ")([" + CIRC + ACUTE + GRAVE +
             "])([ui])(?!" + MBOPT + DIA + ")", r"\1\3\2")
-    
+
     return text
 
 def tr_canonicalize_latin(text):
@@ -342,6 +351,9 @@ def tr_canonicalize_latin(text):
     return text
 
 def post_canonicalize_latin(text):
+    # Move macron and breve to beginning after vowel.
+    text = rsub(text, u"([aeiouAEIOU])(" + LA_ACC_NO_MB + "*)(" +
+            MB + ")", r"\1\3\2")
     # Convert rr to rrh
     text = rsub(text, "rr($|[^h])", r"rrh\1")
     # Convert gk, gg to nk, ng
@@ -379,17 +391,16 @@ def canonicalize_latin_greek(latin, greek):
 def tr_canonicalize_greek(text):
     # Convert to decomposed form
     text = nfd_form(text)
-    ## Put rough breathing before vowel when in a diphthong, where the
-    ## rough breathing is on the second vowel. Rough breathing
-    ## comes first in order with multiple accents.
-    #text = rsub(text, "(%s%s)(%s)" % (greek_vowels, greek_vowels, ROBR),
-    #        r"\2\1")
-    # Put rough breathing before vowel.
-    text = rsub(text, "(%s)(%s)" % (greek_vowels, ROBR), r"\2\1")
-    # Repeat in case of diphthong, where rough breathing follows 2nd vowel.
-    text = rsub(text, "(%s)(%s)" % (greek_vowels, ROBR), r"\2\1")
+    # Put rough/smooth breathing before vowel. (We do this with smooth
+    # breathing as well to make it easier to add missing smooth breathing
+    # in post_canonicalize_greek().)
+    # Repeat in case of diphthong, where rough/smooth breathing follows 2nd
+    # vowel.
+    for i in xrange(2):
+        text = rsub(text, "(" + greek_vowels + MBOPT + ")(" + RS + ")",
+                r"\2\1")
     # Recombine iotated vowels; iotated accent comes last in order
-    text = rsub(text, u"([αΑηΗωΩ])(%s*)%s" % (GR_ACC_NO_IOBE, IOBE),
+    text = rsub(text, u"([αΑηΗωΩ])(" + GR_ACC_NO_IOBE + "*)" + IOBE,
             lambda m:iotate_vowel[m.group(1)] + m.group(2))
     return text
 
@@ -412,18 +423,24 @@ def pre_canonicalize_greek(text):
     return text
 
 def post_canonicalize_greek(text):
-    # Put rough breathing after diphthong; rough breathing
-    # comes first in order with multiple accents. Second vowel of
-    # diphthong must be υ or ι and no following diaeresis. Note,
-    # we actually put it only after the first vowel, and the following
-    # rsub will put it after the second vowel. We do this to avoid
-    # additional work to avoid moving the rough breathing after an
-    # ι with diaeresis.
-    text = rsub(text, u"(%s)(%s)([υι])(?!%s*%s)" % (ROBR, greek_vowels,
-        GR_ACC_NO_DIA, DIA), r"\2\1\3")
-    # Put rough breathing after vowel; rough breathing
-    # comes first in order with multiple accents
-    text = rsub(text, "(%s)(%s)" % (ROBR, greek_vowels), r"\2\1")
+    # Move macron and breve to beginning after vowel.
+    text = rsub(text, u"(" + greek_vowels + ")(" + GR_ACC_NO_MB + "*)(" +
+            MB + ")", r"\1\3\2")
+    # If no rough breathing before beginning-of-word vowel, add a smooth
+    # breathing sign.
+    text = rsub(text, u"(^|[ \[\]|])(" + greek_vowels + ")",
+            r"\1" + SMBR + r"\2")
+    # Put rough/smooth breathing after diphthong; rough breathing comes first
+    # in order with multiple accents, except macron or breve. Second vowel of
+    # diphthong must be υ or ι and no following diaeresis. Only do it at
+    # beginning of word.
+    text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels +
+            u")([υι])(?!" + GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\3\4\2")
+    # Put rough/smooth breathing after vowel; rough breathing comes first in
+    # order with multiple accents, except macron or breve. Only do it at
+    # beginning of word.
+    text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels +
+            MBOPT + ")", r"\1\3\2")
     text = nfc_form(text)
     return text
 
@@ -469,7 +486,7 @@ def tr_matching(greek, latin, err=False, msgfun=None):
             pos = gind[0]
         return pos == glen - 1 or gr[pos + 1] in [u" ", u"]", u"|", u"-"]
 
-    def get_matches():
+    def get_matches(delete_blank_matches=False):
         ac = gr[gind[0]]
         debprint("get_matches: ac is %s" % ac)
         bow = is_bow()
@@ -485,6 +502,12 @@ def tr_matching(greek, latin, err=False, msgfun=None):
                 matches = [ac]
         if type(matches) is not list:
             matches = [matches]
+        if delete_blank_matches:
+            # Don't delete blank matches if first match is blank, otherwise
+            # we run into problems with ἆθλον vs. āthlon.
+            if matches[0]:
+                matches = [x for x in matches if x]
+                debprint("get_matches: deleted blanks, matches is now %s" % matches)
         return matches
 
     # attempt to match the current Greek character against the current
@@ -492,7 +515,23 @@ def tr_matching(greek, latin, err=False, msgfun=None):
     # Greek and Latin pointers over the matched characters, add the Greek
     # character to the result characters and return True.
     def match():
-        matches = get_matches()
+        # The reason for delete_blank_matches here is to deal with the case
+        # of Greek βλάξ vs. Latin blā́ks. We want the Greek acute accent to
+        # match nothing so it gets transfered to the Latin, but if we do
+        # this naively we get a problem in these two words: the Greek contains
+        # an acute accent, while the Latin contains a macron + acute, and
+        # so the Greek acute accent matches against nothing in the Latin,
+        # then the Latin macron matches against nothing in the Greek
+        # through check_unmatching(), then we can't match Greek ξ against
+        # Latin acute accent. Instead, disallow matching Greek stuff against
+        # nothing if check_unmatching() would trigger. That way we don't
+        # match Greek acute against nothing, but instead handle the macron
+        # first, then the acute accents match against each other. We can't
+        # fix this by simply doing check_unmatching() before match() because
+        # then we wouldn't match Greek macron with Latin macron.
+        delete_blank_matches = (
+                lind[0] < llen and la[lind[0]] in tt_to_greek_unmatching)
+        matches = get_matches(delete_blank_matches)
 
         ac = gr[gind[0]]
 
@@ -638,10 +677,12 @@ def tr_matching(greek, latin, err=False, msgfun=None):
 num_failed = 0
 num_succeeded = 0
 
-def test(latin, greek, should_outcome):
+def test(latin, greek, should_outcome, expectedgreek=None):
     def msg(text):
       print text.encode('utf-8')
     global num_succeeded, num_failed
+    if not expectedgreek:
+        expectedgreek = greek
     try:
         result = tr_matching(greek, latin, True, msg)
     except RuntimeError as e:
@@ -650,6 +691,7 @@ def test(latin, greek, should_outcome):
     if result == False:
         uniprint("tr_matching(%s, %s) = %s" % (greek, latin, result))
         outcome = "failed"
+        canongreek = expectedgreek
     else:
         canongreek, canonlatin = result
         trlatin = tr(canongreek)
@@ -661,10 +703,13 @@ def test(latin, greek, should_outcome):
         else:
             uniprint("tr() UNMATCHED (= %s)" % trlatin)
             outcome = "unmatched"
+    if canongreek != expectedgreek:
+        uniprint("Canon Greek FAILED, expected %s got %s"% (
+            expectedgreek, canongreek))
     canonlatin, _ = canonicalize_latin_greek(latin, None)
     uniprint("canonicalize_latin(%s) = %s" %
             (latin, canonlatin))
-    if outcome == should_outcome:
+    if outcome == should_outcome and canongreek == expectedgreek:
         uniprint("TEST SUCCEEDED.")
         num_succeeded += 1
     else:
@@ -678,14 +723,39 @@ def run_tests():
 
     # Test inferring accents in both Cyrillic and Latin
     test(u"Khristoû", u"Χριστοῦ", "matched")
-    test(u"Khrīstoû", u"Χριστοῦ", "matched")
-    test(u"Khristoû", u"Χρῑστοῦ", "matched")
-    test(u"Khrīstoû", u"Χρῑστοῦ", "matched")
+    test(u"Khrīstoû", u"Χριστοῦ", "matched", u"Χρῑστοῦ")
+    test(u"Khristoû", u"Χρῑστοῦ", "matched")
+    test(u"Khrīstoû", u"Χρῑστοῦ", "matched")
     test(u"hioû", u"ἱοῦ", "matched")
     test(u"huioû", u"υἱοῦ", "matched")
     test(u"huiou", u"υἱοῦ", "matched")
     test(u"huiôu", u"υἱοῦ", "matched")
-    test(u"ā̂u", u"αῦ", "matched")
+    # Should add smooth breathing
+    test(u"ā̂u", u"αῦ", "matched", u"ᾱ̓ῦ") # FIXME!! Check this
+
+    test(u"huiôu", u"ὑϊοῦ", "matched")
+
+    # Various real tests from the long-vowel warnings
+    test(u"krīnō", u"κρίνω", "matched", u"κρῑ́νω")
+    # Should add smooth breathing
+    test(u"aŋkýlā", u"αγκύλα", "matched", u"ἀγκύλᾱ")
+    test(u"baptīzō", u"βαπτίζω", "matched", u"βαπτῑ́ζω")
+    test(u"stūlos", u"στῦλος", "matched")
+    test(u"hūlē", u"ὕλη", "matched", u"ῡ̔́λη")
+    test(u"Hamilkās", u"Ἀμίλκας", "failed")
+    test(u"Dānīēl", u"Δανιήλ", "matched", u"Δᾱνῑήλ")
+    test(u"hēmerā", u"ἡμέρα", "matched", u"ἡμέρᾱ")
+    test(u"sbénnūmi", u"σβέννυμι", "matched", u"σβέννῡμι")
+    test(u"Īberniā", u"Ἱβερνία", "matched", u"Ῑ̔βερνίᾱ")
+    # FIXME: Produces Hāídēs. What should it produce?
+    test(u"Hāidēs", u"ᾍδης", "matched")
+    test(u"blā́ks", u"βλάξ", "matched", u"βλᾱ́ξ")
+    test(u"blā́x", u"βλάξ", "matched", u"βλᾱ́ξ")
+    # FIXME: Think about this. We currently transliterate Greek breve with
+    # nothing, so the translit of the Greek won't match the Latin.
+    test(u"krūŏn", u"κρύον", "unmatched", u"κρῡ́ο̆ν")
+    test(u"āthlon", u"ἆθλον", "matched")
+    test(u"rhādix", u"ῥάδιξ", "matched", u"ῥᾱ́διξ")
 
     # # Things that should fail
     # test("zontak", u"зонтик", "failed")
