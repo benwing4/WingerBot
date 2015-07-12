@@ -18,10 +18,15 @@
 import re
 import unicodedata
 
+from blib import remove_links
+
 # FIXME:
 #
 # 1. Check certain things with Anatoli, e.g. always removing j + [ouóú] after
 #    hushing consonants.
+# 2. Check with Anatoli -- always safe to canonicalize sh to š etc. in
+#    preprocessing? 'h' can stand for г in ahá; can this ever occur after š or
+#    whatever?
 # 2. BUG in existing Module:ru-translit: Code to convert ЕеѢѣ to je etc.
 #    doesn't recognize cases after space or dash or vowel + accent.
 
@@ -84,6 +89,7 @@ russian_vowels = u"АОУҮЫЭЯЁЮИЕЪЬІѢѴаоуүыэяёюиеъьі�
 # Transliterates text, which should be a single word or phrase. It should
 # include stress marks, which are then preserved in the transliteration.
 def tr(text, lang=None, sc=None):
+    text = remove_links(text)
     text = tr_canonicalize_russian(text)
     
     # ё after a "hushing" consonant becomes ó (ё is mostly stressed)
@@ -92,7 +98,7 @@ def tr(text, lang=None, sc=None):
     text = rsub(text, u"([жшЖШ])ю", ur"\1u")
     
     # е after a vowel or at the beginning of a word becomes je
-    bow_or_vowel = u"(^|[- %s]%s)" % (russian_vowels, ACGROPT)
+    bow_or_vowel = u"(^|[- \[%s]%s)" % (russian_vowels, ACGROPT)
     def replace_e(m):
         ttab = {u"Е":u"Je", u"е":u"je", u"Ѣ":u"Jě", u"ѣ":u"jě"}
         return m.group(1) + ttab[m.group(2)]
@@ -129,10 +135,12 @@ def tr_adj(text):
 
 #########       Transliterate with Russian to guide       #########
 
-capital_e_subst = u"\ufff1"
-small_e_subst = u"\ufff2"
+multi_single_quote_subst = u"\ufff1"
+capital_e_subst = u"\ufff2"
+small_e_subst = u"\ufff3"
+small_jo_subst = u"\ufff4"
+small_ju_subst = u"\ufff5"
 
-multi_single_quote_subst = u"\ufff3"
 
 # This dict maps Russian characters to all the Latin characters that
 # might correspond to them. The entries can be a string (equivalent
@@ -164,9 +172,9 @@ tt_to_russian_matching = {
     # Canonicalize to capital_e_subst, which we later map to either Je or E
     # depending on what precedes. We don't use regular capital E as the
     # canonical character because Э also maps to E.
-    u"Е":[capital_e_subst,"E","Je","Ye"],
+    u"Е":[capital_e_subst,"E","Je","Ye",[u"Ɛ"]],
     # FIXME: Yo should be converted to Jo
-    u"Ё":[u"Jó",u"Yó",[u"Jo"],[u"Yo"]],
+    u"Ё":[u"Jo"+AC,u"Yo"+AC,[u"Jo"],[u"Yo"]],
     u"Ж":[u"Ž",u"zh"],
     u"З":u"Z",
     u"И":u"I",
@@ -184,7 +192,7 @@ tt_to_russian_matching = {
     u"Ф":u"F",
     u"Х":u"X",
     u"Ц":u"C",
-    u"Ч":[u"Č",u"Ch"],
+    u"Ч":[u"Č",u"Ch",[u"Š"],[u"Sh"]],
     u"Ш":[u"Š",u"Sh"],
     u"Щ":[u"Šč",u"Shch"],
     u"Ъ":[u"ʺ",u'"'],
@@ -196,14 +204,14 @@ tt_to_russian_matching = {
     u'а':u'a',
     u'б':u'b',
     u'в':u'v',
-    u'г':u'g',
+    u'г':[u'g',[u'v'],[u'x'],[u'kh'],[u'h']],
     u'д':u'd',
     # Canonicalize to small_e_subst, which we later map to either je or e
     # depending on what precedes. We don't use regular small e as the
     # canonical character because э also maps to e.
-    u"е":[small_e_subst,"e","je","ye"],
-    # FIXME: yo and o should be converted to jo
-    u'ё':[u'jó',u"yó",u"ó",[u"jo"],[u"yo"],[u"o"]],
+    u"е":[small_e_subst,"e","je","ye",[u"ɛ"]],
+    # FIXME: yo should be converted to jo
+    u'ё':[small_jo_subst,u'jo'+AC,u"yo"+AC,u"o"+AC,[u"jo"],[u"yo"],[u"o"]],
     u'ж':[u'ž',u"zh"],
     u'з':u'z',
     u'и':u'i',
@@ -221,14 +229,14 @@ tt_to_russian_matching = {
     u'ф':u'f',
     u'х':u'x',
     u'ц':u'c',
-    u'ч':[u'č',u"ch"],
+    u'ч':[u'č',u"ch",[u"š"],[u"sh"]],
     u'ш':[u'š',u"sh"],
     u'щ':[u'šč',u"shch"],
     u'ъ':[u'ʺ',u'"'],
     u'ы':u'y',
     u'ь':[u'ʹ',u"'"],
     u'э':u'e',
-    u'ю':[u'ju',u"yu",u"u"],
+    u'ю':[small_ju_subst,u'ju',u"yu",u"u"],
     u'я':[u'ja',u"ya"],
     # Russian style quotes
     u'«':[u'“',u'"'],
@@ -355,10 +363,20 @@ def tr_canonicalize_latin(text):
     return text
 
 def post_canonicalize_latin(text):
+    # Handle Russian jo/ju, with or without preceding hushing consonant that
+    # suppresses the j. We initially considered not using small_jo_subst
+    # and small_ju_subst and just remove j after hushing consonants before
+    # o/u, but that catches too many things; there may be genuine instances
+    # of hushing consonant + j (Cyrillic й) + o/u.
+    text = rsub(text, u"([žčšŽČŠ])%s" % small_jo_subst, r"\1o" + AC)
+    text = text.replace(small_jo_subst, "jo" + AC)
+    text = rsub(text, u"([žšŽŠ])%s" % small_ju_subst, r"\1u")
+    text = text.replace(small_ju_subst, "ju")
+
     # convert capital_e_subst to either E or Je, and small_e_subst to
     # either e or je; similarly, maybe map Ě to Jě, ě to jě.
     # Do before recomposing accented letters.
-    bow_or_vowel = u"(^|[- aeiouěAEIOUĚ%s%s]%s)" % (
+    bow_or_vowel = u"(^|[- \[aeiouěAEIOUĚ%s%s]%s)" % (
             capital_e_subst, small_e_subst, ACGROPT)
     # repeat to handle sequences of ЕЕЕЕЕ...
     for i in [0,1]:
@@ -371,9 +389,6 @@ def post_canonicalize_latin(text):
 
     # recompose accented letters
     text = tr_canonicalize_latin(text)
-
-    # Remove j after "hushing" consonants
-    text = rsub(text, u"([žčšŽČŠ])j([ouóú])", u"\1\2")
 
     text = text.strip()
     return text
@@ -404,8 +419,7 @@ def canonicalize_latin_russian(latin, russian):
 
 def tr_canonicalize_russian(text):
     # Remove word-final hard sign
-    text = rsub(text, u"[Ъъ]$", "")
-    text = rsub(text, u"[Ъъ]([- ])", ur"\1")
+    text = rsub(text, u"[Ъъ]($|[- \]])", ur"\1")
     
     # Ё needs converting if is decomposed
     text = rsub(text, u"ё", u"ё")
@@ -662,17 +676,25 @@ def run_tests():
     global num_succeeded, num_failed
     num_succeeded = 0
     num_failed = 0
+
+    # Test inferring accents in both Cyrillic and Latin
     test("zontik", u"зонтик", "matched")
     test(u"zóntik", u"зо́нтик", "matched")
     test(u"zóntik", u"зонтик", "matched")
     test("zontik", u"зо́нтик", "matched")
     test("zontik", u"зо́нтик", "matched")
 
+    # Things that should fail
+    test("zontak", u"зонтик", "failed")
+    test("zontika", u"зонтик", "failed")
+
+    # Test with Cyrillic e
     test("jebe jebe", u"ебе ебе", "matched")
     test("Jebe Jebe", u"Ебе Ебе", "matched")
     test("ebe ebe", u"ебе ебе", "matched")
     test("Ebe Ebe", u"Ебе Ебе", "matched")
     test("yebe yebe", u"ебе ебе", "matched")
+    test("yebe yebe", u"[[ебе]] [[ебе]]", "matched")
     test("Yebe Yebe", u"Ебе Ебе", "matched")
     test(u"ébe ébe", u"ебе ебе", "matched")
     test(u"Ébe Ébe", u"Ебе Ебе", "matched")
@@ -680,180 +702,45 @@ def run_tests():
     test(u"yéye yéye", u"е́е е́е", "matched")
     test("yeye yeye", u"е́е е́е", "matched")
 
-    # test("katab", u"كتب", "matched")
-    # test("kattab", u"كتب", "matched")
-    # test(u"kátab", u"كتب", "matched")
-    # test("katab", u"كتبٌ", "matched")
-    # test("kat", u"كتب", "failed") # should fail
-    # test("katabaq", u"كتب", "failed") # should fail
-    # test("dakhala", u"دخل", "matched")
-    # test("al-dakhala", u"الدخل", "matched")
-    # test("ad-dakhala", u"الدخل", "matched")
-    # test("al-la:zim", u"اللازم", "matched")
-    # test("al-bait", u"البيت", "matched")
-    # test("wa-dakhala", u"ودخل", "unmatched")
-    # # The Russian of the following consists of wāw + fatḥa + ZWJ + dāl + ḵāʾ + lām.
-    # test("wa-dakhala", u"وَ‍دخل", "matched")
-    # # The Russian of the following two consists of wāw + ZWJ + dāl + ḵāʾ + lām.
-    # test("wa-dakhala", u"و‍دخل", "matched")
-    # test("wadakhala", u"و‍دخل", "failed") # should fail, ZWJ must match hyphen
-    # test("wadakhala", u"ودخل", "matched")
-    # # Six different ways of spelling a long ū.
-    # test("duuba", u"دوبة", "matched")
-    # test(u"dúuba", u"دوبة", "matched")
-    # test("duwba", u"دوبة", "matched")
-    # test("du:ba", u"دوبة", "matched")
-    # test(u"dūba", u"دوبة", "matched")
-    # test(u"dū́ba", u"دوبة", "matched")
-    # # w definitely as a consonant, should be preserved
-    # test("duwaba", u"دوبة", "matched")
+    # Test with ju after hushing sounds
+    test(u"broshúra", u"брошюра", "matched")
+    test(u"broshyúra", u"брошюра", "matched")
+    test(u"zhurí", u"жюри", "matched")
 
-    # # Similar but for ī and y
-    # test("diiba", u"ديبة", "matched")
-    # test(u"díiba", u"ديبة", "matched")
-    # test("diyba", u"ديبة", "matched")
-    # test("di:ba", u"ديبة", "matched")
-    # test(u"dība", u"ديبة", "matched")
-    # test(u"dī́ba", u"ديبة", "matched")
-    # test("diyaba", u"ديبة", "matched")
+    # Test with ' representing ь, which should be canonicalized to ʹ
+    test(u"pal'da", u"пальда", "matched")
 
-    # # Test o's and e's
-    # test(u"dōba", u"دوبة", "unmatched")
-    # test(u"dōba", u"دُوبة", "unmatched")
-    # test(u"telefōn", u"تلفون", "unmatched")
+    # Test with jo
+    test(u"ketjó", u"кетё", "matched")
+    test(u"kétjo", u"кетё", "unmatched")
+    test(u"kešó", u"кешё", "matched")
+    test(u"kešjó", u"кешё", "matched")
 
-    # # Test handling of tāʾ marbūṭa
-    # # test of "duuba" already done above.
-    # test("duubah", u"دوبة", "matched") # should be reduced to -a
-    # test("duubaa", u"دوباة", "matched") # should become -āh
-    # test("duubaah", u"دوباة", "matched") # should become -āh
-    # test("mir'aah", u"مرآة", "matched") # should become -āh
+    # Test handling of embedded links, including unmatched acute accent
+    # directly before right bracket on Russian side
+    test(u"pala volu", u"пала [[вола|волу]]", "matched")
+    test(u"pala volú", u"пала [[вола|волу]]", "matched")
+    test(u"volu pala", u"[[вола|волу]] пала", "matched")
+    test(u"volú pala", u"[[вола|волу]] пала", "matched")
+    test(u"volupala", u"[[вола|волу]]пала", "matched")
+    test(u"pala volu", u"пала [[волу]]", "matched")
+    test(u"pala volú", u"пала [[волу]]", "matched")
+    test(u"volu pala", u"[[волу]] пала", "matched")
+    test(u"volú pala", u"[[волу]] пала", "matched")
+    test(u"volúpala", u"[[волу]]пала", "matched")
 
-    # # Test the definite article and its rendering in Russian
-    # test("al-duuba", u"اَلدّوبة", "matched")
-    # test("al-duuba", u"الدّوبة", "matched")
-    # test("al-duuba", u"الدوبة", "matched")
-    # test("ad-duuba", u"اَلدّوبة", "matched")
-    # test("ad-duuba", u"الدّوبة", "matched")
-    # test("ad-duuba", u"الدوبة", "matched")
-    # test("al-kuuba", u"اَلْكوبة", "matched")
-    # test("al-kuuba", u"الكوبة", "matched")
-    # test("baitu l-kuuba", u"بيت الكوبة", "matched")
-    # test("baitu al-kuuba", u"بيت الكوبة", "matched")
-    # test("baitu d-duuba", u"بيت الدوبة", "matched")
-    # test("baitu ad-duuba", u"بيت الدوبة", "matched")
-    # test("baitu l-duuba", u"بيت الدوبة", "matched")
-    # test("baitu al-duuba", u"بيت الدوبة", "matched")
-    # test("bait al-duuba", u"بيت الدوبة", "matched")
-    # test("bait al-Duuba", u"بيت الدوبة", "matched")
-    # test("bait al-kuuba", u"بيت الكوبة", "matched")
-    # test("baitu l-kuuba", u"بيت ٱلكوبة", "matched")
-
-    # test(u"ʼáwʻada", u"أوعد", "matched")
-    # test(u"'áwʻada", u"أوعد", "matched")
-    # # The following should be self-canonicalized differently.
-    # test(u"`áwʻada", u"أوعد", "matched")
-
-    # # Test handling of tāʾ marbūṭa when non-final
-    # test("ghurfatu l-kuuba", u"غرفة الكوبة", "matched")
-    # test("ghurfatun al-kuuba", u"غرفةٌ الكوبة", "matched")
-    # test("al-ghurfatu l-kuuba", u"الغرفة الكوبة", "matched")
-    # test("ghurfat al-kuuba", u"غرفة الكوبة", "unmatched")
-    # test("ghurfa l-kuuba", u"غرفة الكوبة", "unmatched")
-    # test("ghurfa(t) al-kuuba", u"غرفة الكوبة", "matched")
-    # test("ghurfatu l-kuuba", u"غرفة ٱلكوبة", "matched")
-    # test("ghurfa l-kuuba", u"غرفة ٱلكوبة", "unmatched")
-    # test("ghurfa", u"غرفةٌ", "matched")
-
-    # # Test handling of tāʾ marbūṭa when final
-    # test("ghurfat", u"غرفةٌ", "matched")
-    # test("ghurfa(t)", u"غرفةٌ", "matched")
-    # test("ghurfa(tun)", u"غرفةٌ", "matched")
-    # test("ghurfat(un)", u"غرفةٌ", "matched")
-
-    # # Test handling of embedded links
-    # test(u"’ālati l-fam", u"[[آلة]] [[فم|الفم]]", "matched")
-    # test(u"arqām hindiyya", u"[[أرقام]] [[هندية]]", "matched")
-    # test(u"arqām hindiyya", u"[[رقم|أرقام]] [[هندية]]", "matched")
-    # test(u"arqām hindiyya", u"[[رقم|أرقام]] [[هندي|هندية]]", "matched")
-    # test(u"ʾufuq al-ħadaŧ", u"[[أفق]] [[حادثة|الحدث]]", "matched")
-
-    # # Test transliteration that omits initial hamza (should be inferrable)
-    # test(u"aṣdiqaa'", u"أَصدقاء", "matched")
-    # test(u"aṣdiqā́'", u"أَصدقاء", "matched")
-    # # Test random hamzas
-    # test(u"'aṣdiqā́'", u"أَصدقاء", "matched")
-    # # Test capital letters for emphatics
-    # test(u"aSdiqaa'", u"أَصدقاء", "matched")
-    # # Test final otiose alif maqṣūra after fatḥatān
-    # test("hudan", u"هُدًى", "matched")
-    # # Test opposite with fatḥatān after alif otiose alif maqṣūra
-    # test(u"zinan", u"زنىً", "matched")
-
-    # # Check that final short vowel is canonicalized to a long vowel in the
-    # # presence of a corresponding Latin long vowel.
-    # test("'animi", u"أنمي", "matched")
-    # # Also check for 'l indicating assimilation.
-    # test("fi 'l-marra", u"في المرة", "matched")
-
-    # # Test cases where short Latin vowel corresponds to Long Russian vowel
-    # test("diba", u"ديبة", "unmatched")
-    # test("tamariid", u"تماريد", "unmatched")
-    # test("tamuriid", u"تماريد", "failed")
-
-    # # Single quotes in Russian
-    # test("man '''huwa'''", u"من '''هو'''", "matched")
-
-    # # Alif madda
-    # test("'aabaa'", u"آباء", "matched")
-    # test("mir'aah", u"مرآة", "matched")
-
-    # # Test case where close bracket occurs at end of word and an unmatched
-    # # vowel or shadda needs to be before it.
-    # test(u"fuuliyy", u"[[فولي]]", "matched")
-    # test(u"fuula", u"[[فول]]", "matched")
-    # test(u"wa-'uxt", u"[[و]][[أخت]]", "unmatched")
-    # # Here we test when an open bracket occurs in the middle of a word and
-    # # an unmatched vowel or shadda needs to be before it.
-    # test(u"wa-'uxt", u"و[[أخت]]", "unmatched")
-
-    # # Test hamza against non-hamza
-    # test(u"'uxt", u"اخت", "matched")
-    # test(u"uxt", u"أخت", "matched")
-    # test(u"'ixt", u"اخت", "matched")
-    # test(u"ixt", u"أخت", "matched") # FIXME: Should be "failed" or should correct hamza
-
-    # # Test alif after al-
-    # test(u"al-intifaaḍa", u"[[الانتفاضة]]", "matched")
-    # test(u"al-'uxt", u"الاخت", "matched")
+    # Single quotes in Russian
+    test("volu '''pala'''", u"волу '''пала'''", "matched")
+    test(u"volu '''palá'''", u"волу '''пала'''", "matched")
+    # Here the single quote after l should become ʹ but not the others
+    test(u"volu '''pal'dá'''", u"волу '''пальда'''", "matched")
+    test(u"bólʹše vsevó", u"[[бо́льше]] [[всё|всего́]]", "unmatched")
 
     # # Test adding ! or ؟
     # test(u"fan", u"فن!", "matched")
     # test(u"fan!", u"فن!", "matched")
     # test(u"fan", u"فن؟", "matched")
     # test(u"fan?", u"فن؟", "matched")
-
-    # # Test inferring fatḥatān
-    # test("hudan", u"هُدى", "matched")
-    # test("qafan", u"قفا", "matched")
-    # test("qafan qafan", u"قفا قفا", "matched")
-
-    # # Case where shadda and -un are opposite each other; need to handle
-    # # shadda first.
-    # test(u"qiṭṭ", u"قِطٌ", "matched")
-
-    # # 3 consonants in a row
-    # test(u"Kūlūmbīyā", u"كولومبيا", "matched")
-    # test(u"fustra", u"فسترة", "matched")
-
-    # # Allāh
-    # test(u"allāh", u"الله", "matched")
-
-    # # Test dagger alif, alif maqṣūra
-    # test(u"raḥmān", u"رَحْمٰن", "matched")
-    # test(u"fusḥā", u"فسحى", "matched")
-    # test(u"fusḥā", u"فُسْحَى", "matched")
-    # test(u"'āxir", u"آخر", "matched")
 
     # Final results
     uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))

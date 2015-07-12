@@ -58,12 +58,6 @@ IYYAH = IY + SH + AH
 def remove_diacritics(word):
   return re.sub(DIACRITIC_ANY, "", word)
 
-def remove_links(text):
-  text = re.sub(r"\[\[[^|\]]*?\|", "", text)
-  text = re.sub(r"\[\[", "", text)
-  text = re.sub(r"\]\]", "", text)
-  return text
-
 def reorder_shadda(text):
   # shadda+short-vowel (including tanwīn vowels, i.e. -an -in -un) gets
   # replaced with short-vowel+shadda during NFC normalisation, which

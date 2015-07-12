@@ -233,6 +233,12 @@ def init_argparser(desc):
   pa.add_argument("end", nargs="?", help="Last page to work on")
   return pa
 
+def remove_links(text):
+  text = re.sub(r"\[\[[^|\]]*?\|", "", text)
+  text = re.sub(r"\[\[", "", text)
+  text = re.sub(r"\]\]", "", text)
+  return text
+
 languages = None
 languages_byCode = None
 languages_byCanonicalName = None

@@ -19,7 +19,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, remove_links
 from arabiclib import *
 
 import ar_translit

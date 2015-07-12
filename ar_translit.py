@@ -17,6 +17,7 @@
 
 import re
 from arabiclib import *
+from blib import remove_links
 
 # FIXME!! To do:
 #
