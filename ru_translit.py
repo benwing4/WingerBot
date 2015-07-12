@@ -636,6 +636,13 @@ def tr_matching(russian, latin, err=False, msgfun=None):
     latin = post_canonicalize_latin(latin)
     return russian, latin
 
+def remove_diacritics(text):
+    text = text.replace(AC, "")
+    text = text.replace(GR, "")
+    return text
+
+################################ Test code ##########################
+
 num_failed = 0
 num_succeeded = 0
 

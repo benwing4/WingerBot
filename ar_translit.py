@@ -1158,6 +1158,9 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
     latin = post_canonicalize_latin(latin)
     return arabic, latin
 
+def remove_diacritics(word):
+    return arabiclib.remove_diacritics(word)
+
 ######### Transliterate directly, without unvocalized Arabic to guide #########
 #########                         (NEEDS WORK)                        #########
 
@@ -1236,6 +1239,8 @@ def tr_latin_direct(text, pos):
     text = post_canonicalize_arabic(text)
 
     return text
+
+################################ Test code ##########################
 
 num_failed = 0
 num_succeeded = 0

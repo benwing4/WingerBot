@@ -683,6 +683,15 @@ def tr_matching(greek, latin, err=False, msgfun=None):
     latin = post_canonicalize_latin(latin)
     return greek, latin
 
+def remove_diacritics(text):
+    text = rsub(text, u"[ᾸᾹᾰᾱῘῙῐῑῨῩῠῡ]",
+            {u"Ᾰ":u"Α", u"Ᾱ":u"Α", u"ᾰ":u"α", u"ᾱ":u"α", u"Ῐ":u"Ι", u"Ῑ":u"Ι",
+             u"ῐ":u"ι", u"ῑ":u"ι", u"Ῠ":u"Υ", u"Ῡ":u"Υ", u"ῠ":u"υ", u"ῡ":u"υ"})
+    text = nfc_form(text)
+    return text
+
+################################ Test code ##########################
+
 num_failed = 0
 num_succeeded = 0
 
