@@ -54,12 +54,6 @@ def rsub(text, fr, to):
 def error(msg):
     raise RuntimeError(msg)
 
-def nfc_form(txt):
-    return unicodedata.normalize("NFKC", txt)
-
-def nfd_form(txt):
-    return unicodedata.normalize("NFKD", txt)
-
 tt = {
     u"А":u"A", u"Б":u"B", u"В":u"V", u"Г":u"G", u"Д":u"D", u"Е":u"E",
     u"Ё":u"Jó", u"Ж":u"Ž", u"З":u"Z", u"И":u"I", u"Й":u"J",
