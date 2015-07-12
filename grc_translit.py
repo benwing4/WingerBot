@@ -22,12 +22,10 @@ from blib import remove_links
 
 # FIXME:
 #
-# 1. Canonicalize long α plus ι to ᾳ. What about uppercase equivalent???
-#    I think it can be either way.
-# 2. Finish writing test cases.
-# 3. Check case of u"ᾱῦ", whether the PERIS shouldn't be on first vowel.
+# 1. Finish writing test cases.
+# 2. Check case of u"ᾱῦ", whether the PERIS shouldn't be on first vowel.
 #    Similarly with ACUTE (and GRAVE?).
-# 4. Also check case of Latin Hāídēs. What should it be?
+# 3. Also check case of Latin Hāídēs. What should it be?
 
 # Accented characters
 GRAVE = u"\u0300"      # grave accent = varia
@@ -44,6 +42,8 @@ KORO = u"\u0343"       # koronis (is this used? looks like comma above/psili)
 DIATON = u"\u0344"     # dialytika tonos = diaeresis + acute, should not occur
 IOBE = u"\u0345"       # iota below = ypogegrammeni
 
+GR_ACC = ("[" + GRAVE + ACUTE + MAC + BREVE + DIA + SMBR + ROBR +
+        PERIS + KORO + DIATON + IOBE + "]")
 GR_ACC_NO_IOBE = ("[" + GRAVE + ACUTE + MAC + BREVE + DIA + SMBR + ROBR +
         PERIS + KORO + DIATON + "]")
 GR_ACC_NO_DIA = ("[" + GRAVE + ACUTE + MAC + BREVE + SMBR + ROBR +
@@ -426,6 +426,13 @@ def post_canonicalize_greek(text):
     # Move macron and breve to beginning after vowel.
     text = rsub(text, u"(" + greek_vowels + ")(" + GR_ACC_NO_MB + "*)(" +
             MB + ")", r"\1\3\2")
+    # Don't do this; the Greek should already have an iotated vowel.
+    # In any case, complications arise with acute accents in the Latin and
+    # Greek (should we have pā́i against παί?).
+    ## Canonicalize Greek ᾱι to ᾳ. Same for uppercase. But not if ι is followed
+    ## by diaeresis. IOBE goes at end of accents.
+    #text = rsub(text, u"([Αα])" + MAC + "(" + GR_ACC + u"*)ι(?!" +
+    #        GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\2" + IOBE)
     # If no rough breathing before beginning-of-word vowel, add a smooth
     # breathing sign.
     text = rsub(text, u"(^|[ \[\]|])(" + greek_vowels + ")",
@@ -730,6 +737,10 @@ def run_tests():
     test(u"huioû", u"υἱοῦ", "matched")
     test(u"huiou", u"υἱοῦ", "matched")
     test(u"huiôu", u"υἱοῦ", "matched")
+    #test(u"pāi", u"παι", "matched", u"πᾳ")
+    #test(u"pā́i", u"παί", "matched", u"πᾴ")
+    #test(u"pāï", u"παϊ", "matched", u"πᾱϊ")
+    #test(u"pā́ï", u"πάϊ", "matched", u"πᾱ́ϊ")
     # Should add smooth breathing
     test(u"ā̂u", u"αῦ", "matched", u"ᾱ̓ῦ") # FIXME!! Check this
 
