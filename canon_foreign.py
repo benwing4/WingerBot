@@ -26,16 +26,17 @@ from blib import msg, getparam
 # substitute for the existing Latin text, or True to remove the Latin
 # text parameter entirely, or False to do nothing. ACTIONS is a list of
 # actions indicating what was done, to insert into the changelog messages.
-# TEMPLATE is the template being processed; PARAM is the name of the
-# parameter in this template containing the foreign text; PARAMTR is the
-# name of the parameter in this template containing the Latin text. All
-# three are used only in status messages and ACTIONS.
-def do_canon_param(pagetitle, index, template, param, paramtr, foreign, latin,
-    translit_module, include_tempname_in_changelog=False):
+# TEMPLATE is the template being processed; FROMPARAM is the name of the
+# parameter in this template containing the foreign text; TOPARAM is the
+# name of the parameter into which canonicalized foreign text is saved;
+# PARAMTR is the name of the parameter in this template containing the Latin
+# text. All four are used only in status messages and ACTIONS.
+def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
+    foreign, latin, translit_module, include_tempname_in_changelog=False):
   actions = []
   tname = unicode(template.name)
   def pagemsg(text):
-    msg("Page %s %s: %s.%s: %s" % (index, pagetitle, tname, param, text))
+    msg("Page %s %s: %s.%s: %s" % (index, pagetitle, tname, fromparam, text))
 
   if include_tempname_in_changelog:
     paramtrname = "%s.%s" % (template.name, paramtr)
@@ -51,7 +52,7 @@ def do_canon_param(pagetitle, index, template, param, paramtr, foreign, latin,
           pagemsg)
       match_canon = True
     except Exception as e:
-      pagemsg("Unable to accent %s (%s): %s" % (foreign, latin, e))
+      pagemsg("Unable to match-canon %s (%s): %s" % (foreign, latin, e))
       canonlatin, canonforeign = translit_module.canonicalize_latin_foreign(latin, foreign)
   else:
     _, canonforeign = translit_module.canonicalize_latin_foreign(None, foreign)
@@ -68,21 +69,30 @@ def do_canon_param(pagetitle, index, template, param, paramtr, foreign, latin,
   except Exception as e:
     pagemsg("Unable to transliterate %s: %s" % (foreign, e))
     translit = None
+
   if canonforeign == foreign:
     pagemsg("No change in foreign %s%s" % (foreign, latintrtext))
     canonforeign = False
-  elif match_canon:
-    pagemsg("Vocalize foreign %s -> %s%s" % (foreign, canonforeign, latintrtext))
-    actions.append("accent %s=%s -> %s" % (param, foreign, canonforeign))
-  # No cross-canonicalizing takes place with foreign.
-  #elif latin:
-  #  pagemsg("Cross-canoning foreign %s -> %s%s" % (foreign, canonforeign,
-  #    latintrtext))
-  #  actions.append("cross-canon %s=%s -> %s" % (param, foreign, canonforeign))
   else:
-    pagemsg("Self-canoning foreign %s -> %s%s" % (foreign, canonforeign,
+    if match_canon:
+      operation="Match-canoning"
+      actionop="match-canon"
+    # No cross-canonicalizing takes place with Russian or Ancient Greek.
+    #elif latin:
+    #  operation="Cross-canoning"
+    #  actionop="cross-canon"
+    else:
+      operation="Self-canoning"
+      actionop="self-canon"
+    pagemsg("%s foreign %s -> %s%s" % (operation, foreign, canonforeign,
       latintrtext))
-    actions.append("self-canon %s=%s -> %s" % (param, foreign, canonforeign))
+    if fromparam == toparam:
+      actions.append("%s %s=%s -> %s" % (actionop, fromparam, foreign,
+        canonforeign))
+    else:
+      actions.append("%s %s=%s -> %s=%s" % (actionop, fromparam, foreign,
+        toparam, canonforeign))
+
   if not latin:
     pass
   elif translit and translit == canonlatin:
@@ -94,19 +104,21 @@ def do_canon_param(pagetitle, index, template, param, paramtr, foreign, latin,
     pagemsg("No change in Latin %s: foreign %s -> %s" %
         (latin, foreign, newforeign))
     canonlatin = False
-  elif match_canon:
-    pagemsg("Match-canoning Latin %s -> %s: foreign %s -> %s" % (
-        latin, canonlatin, foreign, newforeign))
-    actions.append("match-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
-  # No cross-canonicalizing takes place with Russian or Ancient Greek.
-  #else:
-  #  pagemsg("Cross-canoning Latin %s -> %s: foreign %s -> %s" % (
-  #      latin, canonlatin, foreign, newforeign))
-  #  actions.append("cross-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
   else:
-    pagemsg("Self-canoning Latin %s -> %s: foreign %s -> %s" % (
+    if match_canon:
+      operation="Match-canoning"
+      actionop="match-canon"
+    # No cross-canonicalizing takes place with Russian or Ancient Greek.
+    #else:
+    #  operation="Cross-canoning"
+    #  actionop="cross-canon"
+    else:
+      operation="Self-canoning"
+      actionop="self-canon"
+    pagemsg("%s Latin %s -> %s: foreign %s -> %s" % (operation,
         latin, canonlatin, foreign, newforeign))
-    actions.append("self-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
+    actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
+      canonlatin))
 
   return (canonforeign, canonlatin, actions)
 
@@ -125,8 +137,8 @@ def canon_param(pagetitle, index, template, param, paramtr, translit_module,
   latin = getparam(template, paramtr)
   if not foreign:
     return False
-  canonforeign, canonlatin, actions = do_canon_param(pagetitle, index, template,
-      fromparam, paramtr, foreign, latin, translit_module,
+  canonforeign, canonlatin, actions = do_canon_param(pagetitle, index,
+      template, fromparam, toparam, paramtr, foreign, latin, translit_module,
       include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
   if canonforeign:
@@ -153,8 +165,8 @@ def combine_adjacent(values):
 
 def sort_group_changelogs(actions):
   grouped_actions = {}
-  begins = ["accent ", "remove redundant ", "match-canon ", "cross-canon ",
-      "self-canon ", "remove ", ""]
+  begins = ["match-canon ", "cross-canon ", "self-canon ", "remove redundant ",
+      "remove ", ""]
   for begin in begins:
     grouped_actions[begin] = []
   actiontype = None

@@ -185,12 +185,13 @@ langs_with_terms_derived_from_arabic = [
 # substitute for the existing Latin text, or True to remove the Latin
 # text parameter entirely, or False to do nothing. ACTIONS is a list of
 # actions indicating what was done, to insert into the changelog messages.
-# TEMPLATE is the template being processed; PARAM is the name of the
-# parameter in this template containing the Arabic text; PARAMTR is the
-# name of the parameter in this template containing the Latin text. All
-# three are used only in status messages and ACTIONS.
-def do_canon_param(pagetitle, index, template, param, paramtr, arabic, latin,
-    include_tempname_in_changelog=False):
+# TEMPLATE is the template being processed; FROMPARAM is the name of the
+# parameter in this template containing the foreign text; TOPARAM is the
+# name of the parameter into which canonicalized foreign text is saved;
+# PARAMTR is the name of the parameter in this template containing the Latin
+# text. All four are used only in status messages and ACTIONS.
+def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
+    arabic, latin, include_tempname_in_changelog=False):
   actions = []
   tname = unicode(template.name)
   def pagemsg(text):
@@ -231,20 +232,29 @@ def do_canon_param(pagetitle, index, template, param, paramtr, arabic, latin,
   except Exception as e:
     pagemsg("Unable to transliterate %s: %s" % (arabic, e))
     translit = None
+
   if canonarabic == arabic:
     pagemsg("No change in Arabic %s%s" % (arabic, latintrtext))
     canonarabic = False
-  elif match_canon:
-    pagemsg("Vocalize Arabic %s -> %s%s" % (arabic, canonarabic, latintrtext))
-    actions.append("vocalize %s=%s -> %s" % (param, arabic, canonarabic))
-  elif latin:
-    pagemsg("Cross-canoning Arabic %s -> %s%s" % (arabic, canonarabic,
-      latintrtext))
-    actions.append("cross-canon %s=%s -> %s" % (param, arabic, canonarabic))
   else:
-    pagemsg("Self-canoning Arabic %s -> %s%s" % (arabic, canonarabic,
+    if match_canon:
+      operation="Vocalizing"
+      actionop="vocalize"
+    elif latin:
+      operation="Cross-canoning"
+      actionop="cross-canon"
+    else:
+      operation="Self-canoning"
+      actionop="self-canon"
+    pagemsg("%s Arabic %s -> %s%s" % (operation, foreign, canonforeign,
       latintrtext))
-    actions.append("self-canon %s=%s -> %s" % (param, arabic, canonarabic))
+    if fromparam == toparam:
+      actions.append("%s %s=%s -> %s" % (actionop, fromparam, foreign,
+        canonforeign))
+    else:
+      actions.append("%s %s=%s -> %s=%s" % (actionop, fromparam, foreign,
+        toparam, canonforeign))
+
   if not latin:
     pass
   elif translit and (translit == canonlatin
@@ -260,14 +270,18 @@ def do_canon_param(pagetitle, index, template, param, paramtr, arabic, latin,
     pagemsg("No change in Latin %s: Arabic %s -> %s" %
         (latin, arabic, newarabic))
     canonlatin = False
-  elif match_canon:
-    pagemsg("Match-canoning Latin %s -> %s: Arabic %s -> %s" % (
-        latin, canonlatin, arabic, newarabic))
-    actions.append("match-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
   else:
-    pagemsg("Cross-canoning Latin %s -> %s: Arabic %s -> %s" % (
-        latin, canonlatin, arabic, newarabic))
-    actions.append("cross-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
+    if match_canon:
+      operation="Match-canoning"
+      actionop="match-canon"
+    else:
+      operation="Cross-canoning"
+      actionop="cross-canon"
+    pagemsg("%s Latin %s -> %s: Arabic %s -> %s" % (operation,
+        latin, canonlatin, foreign, newforeign))
+    actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
+      canonlatin))
+
   for msg in msgs:
     pagemsg("NOTE: %s: Arabic %s -> %s%s" % (msg, arabic, canonarabic,
       latintrtext))
@@ -290,7 +304,7 @@ def canon_param(pagetitle, index, template, param, paramtr,
   if not arabic:
     return False
   canonarabic, canonlatin, actions = do_canon_param(pagetitle, index, template,
-      fromparam, paramtr, arabic, latin, include_tempname_in_changelog)
+      fromparam, toparam, paramtr, arabic, latin, include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
   if canonarabic:
     template.add(toparam, canonarabic)
@@ -400,7 +414,7 @@ def canon_head(pagetitle, index, template):
       latin = getparam(template, "tr")
       if arabic and latin:
         canonarabic, canonlatin, newactions = do_canon_param(
-            pagetitle, index, template, "page title", "tr", arabic, latin)
+            pagetitle, index, template, "page title", "1", "tr", arabic, latin)
         oldtempl = "%s" % unicode(template)
         if canonarabic:
           if template.has("2"):
