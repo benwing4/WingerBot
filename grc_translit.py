@@ -767,6 +767,7 @@ def run_tests():
     test(u"krūŏn", u"κρύον", "unmatched", u"κρῡ́ο̆ν")
     test(u"āthlon", u"ἆθλον", "matched")
     test(u"rhādix", u"ῥάδιξ", "matched", u"ῥᾱ́διξ")
+    test(u"Murrhā", u"Μύῤῥα", "matched", u"Μύῤῥᾱ")
 
     # # Things that should fail
     # test("zontak", u"зонтик", "failed")
