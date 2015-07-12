@@ -91,12 +91,15 @@ russian_vowels = u"АОУҮЫЭЯЁЮИЕЪЬІѢѴаоуүыэяёюиеъьі�
 def tr(text, lang=None, sc=None):
     text = remove_links(text)
     text = tr_canonicalize_russian(text)
-    
+
+    # Remove word-final hard sign
+    text = rsub(text, u"[Ъъ]($|[- \]])", ur"\1")
+
     # ё after a "hushing" consonant becomes ó (ё is mostly stressed)
     text = rsub(text, u"([жшчщЖШЧЩ])ё", ur"\1ó")
     # ю after ж and ш becomes u (e.g. брошюра, жюри)
     text = rsub(text, u"([жшЖШ])ю", ur"\1u")
-    
+
     # е after a vowel or at the beginning of a word becomes je
     bow_or_vowel = u"(^|[- \[%s]%s)" % (russian_vowels, ACGROPT)
     def replace_e(m):
@@ -105,7 +108,7 @@ def tr(text, lang=None, sc=None):
     # repeat to handle sequences of ЕЕЕЕЕ...
     text = rsub(text, u"%s([ЕеѢѣ])" % bow_or_vowel, replace_e)
     text = rsub(text, u"%s([ЕеѢѣ])" % bow_or_vowel, replace_e)
-        
+
     text = rsub(text, '.', tt)
 
     # compose accented characters
@@ -140,7 +143,8 @@ capital_e_subst = u"\ufff2"
 small_e_subst = u"\ufff3"
 small_jo_subst = u"\ufff4"
 small_ju_subst = u"\ufff5"
-
+capital_silent_hard_sign = u"\ufff6"
+small_silent_hard_sign = u"\ufff7"
 
 # This dict maps Russian characters to all the Latin characters that
 # might correspond to them. The entries can be a string (equivalent
@@ -267,6 +271,8 @@ tt_to_russian_matching = {
     u"]":u"",
     # accents
     AC:[AC,""],
+    capital_silent_hard_sign:u"",
+    small_silent_hard_sign:u"",
 }
 
 word_interrupting_chars = u"-[]"
@@ -311,18 +317,6 @@ for alt in build_canonicalize_latin:
     if canon != "multiple":
         tt_canonicalize_latin[alt] = canon
 
-# A list of Latin characters that are allowed to have particular unmatched
-# Russian characters following. This is used to allow short Latin vowels
-# to correspond to long Russian vowels. The value is the list of possible
-# unmatching Russian characters.
-tt_skip_unmatching = {
-    u"a":[u"ا"],
-    u"u":[u"و"],
-    u"o":[u"و"],
-    u"i":[u"ي"],
-    u"e":[u"ي"],
-}
-
 # A list of Latin characters that are allowed to be unmatched in the
 # Russian. The value is the corresponding Russian character to insert.
 tt_to_russian_unmatching = {
@@ -351,7 +345,7 @@ def pre_canonicalize_latin(text, russian=None):
     text = rsub(text, u"[czskCZSK]h",
         {"ch":u"č", "zh":u"ž", "sh":u"š", "kh":"x",
          "Ch":u"Č", "Zh":u"Ž", "Sh":u"Š", "Kh":"X"})
-    
+
     return text
 
 def tr_canonicalize_latin(text):
@@ -418,9 +412,6 @@ def canonicalize_latin_russian(latin, russian):
     return (latin, russian)
 
 def tr_canonicalize_russian(text):
-    # Remove word-final hard sign
-    text = rsub(text, u"[Ъъ]($|[- \]])", ur"\1")
-    
     # Ё needs converting if is decomposed
     text = rsub(text, u"ё", u"ё")
     text = rsub(text, u"Ё", u"Ё")
@@ -440,12 +431,19 @@ def pre_pre_canonicalize_russian(text):
 
     text = tr_canonicalize_russian(text)
 
+    # Convert word-final hard sign to special silent character; will be
+    # undone later
+    text = rsub(text, u"Ъ($|[- \]])", capital_silent_hard_sign + r"\1")
+    text = rsub(text, u"ъ($|[- \]])", small_silent_hard_sign + r"\1")
+
     return text
 
 def pre_canonicalize_russian(text):
     return text
 
 def post_canonicalize_russian(text):
+    text = text.replace(capital_silent_hard_sign, u"Ъ")
+    text = text.replace(small_silent_hard_sign, u"ъ")
     return text
 
 debug_tr_matching = False
@@ -728,6 +726,11 @@ def run_tests():
     test(u"volu pala", u"[[волу]] пала", "matched")
     test(u"volú pala", u"[[волу]] пала", "matched")
     test(u"volúpala", u"[[волу]]пала", "matched")
+
+    # Silent hard signs
+    test("mir", u"миръ", "matched")
+    test("mir", u"міръ", "matched")
+    test("MIR", u"МІРЪ", "matched")
 
     # Single quotes in Russian
     test("volu '''pala'''", u"волу '''пала'''", "matched")
