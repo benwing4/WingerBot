@@ -599,6 +599,8 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         return getparam(template, param)
       tempname = unicode(template.name)
       # Look for {{head|ar|...|head=<ARABIC>}}
+      # FIXME: If no head=, do the page title, storing the result into "head";
+      # requires special-casing of PROCESSFN.
       if tempname == "head":
         if getp("1") == lang:
           doparam("head")
