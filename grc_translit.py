@@ -231,7 +231,7 @@ tt_to_greek_matching = {
     u"σ":u"s", u"ς":u"s", u"Σ":u"S",
     u"τ":u"t", u"Τ":u"T",
     u"φ":[u"ph",u"φ"], u"Φ":[u"Ph",u"Φ"],
-    u"χ":[u"kh",u"χ"], u"Χ":[u"Kh",u"Χ"],
+    u"χ":[u"kh",u"χ",u"ch"], u"Χ":[u"Kh",u"Χ"],
     u"ψ":[u"ps",u"ψ"], u"Ψ":[u"Ps",u"Ψ"],
 
     # Archaic letters
