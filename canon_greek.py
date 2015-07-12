@@ -218,5 +218,6 @@ if params.page_file:
       pages_to_do.append(m.groups())
 
 canon_links(params.save, params.verbose, params.cattype, "grc", "Ancient Greek",
-    "polytonic", grc_translit, langs_with_terms_derived_from_ancient_greek,
+    ["polytonic", "Grek"], grc_translit,
+    langs_with_terms_derived_from_ancient_greek,
     startFrom, upTo, pages_to_do=pages_to_do)
