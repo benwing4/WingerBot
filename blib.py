@@ -313,269 +313,20 @@ def getEtymLanguageData():
     etym_languages_byCode[etyl["code"]] = etyl
     etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
 
-langs_with_terms_derived_from = {"Arabic":[
-  "Abkhaz",
-  "Acehnese",
-  "Adyghe",
-  "Afrikaans",
-  "Albanian",
-  "Ancient Greek",
-  "Andalusian Arabic",
-  "Aragonese",
-  "Aramaic",
-  "Armenian",
-  "Asturian",
-  "Avar",
-  "Azeri",
-  "Baluchi",
-  "Bambara",
-  "Bashkir",
-  "Basque",
-  "Bengali",
-  "Brahui",
-  "Bulgarian",
-  "Burmese",
-  "Burushaski",
-  "Catalan",
-  "Central Kurdish",
-  "Central Melanau",
-  "Chechen",
-  "Chinese",
-  "Classical Syriac",
-  "Crimean Tatar",
-  "Czech",
-  "Danish",
-  "Dhivehi",
-  "Dutch",
-  "Egyptian Arabic",
-  "English",
-  "Esperanto",
-  "Faroese",
-  "Fiji Hindi",
-  "Fijian",
-  "Finnish",
-  "French",
-  "Fula",
-  "Gagauz",
-  "Galician",
-  "Georgian",
-  "German",
-  "Greek",
-  "Gujarati",
-  "Hassaniya",
-  "Hausa",
-  "Hebrew",
-  "Hijazi Arabic",
-  "Hiligaynon",
-  "Hindi",
-  "Hungarian",
-  "Iban",
-  "Icelandic",
-  "Ido",
-  "Indonesian",
-  "Irish",
-  "Istriot",
-  "Italian",
-  "Japanese",
-  "Javanese",
-  "Judeo-Arabic",
-  "Kabardian",
-  "Kabyle",
-  "Kaingang",
-  "Karachay-Balkar",
-  "Karo Batak",
-  "Kashmiri",
-  "Kazakh",
-  "Khakas",
-  "Khmer",
-  "Korean",
-  "Kumyk",
-  "Kurdish",
-  "Kyrgyz",
-  "Ladino",
-  "Laki",
-  "Latin",
-  "Latvian",
-  "Lezgi",
-  "Ligurian",
-  "Lower Sorbian",
-  "Macedonian",
-  "Maithili",
-  "Malagasy",
-  "Malay",
-  "Maltese",
-  "Mandarin",
-  "Marathi",
-  "Marshallese",
-  "Mauritian Creole",
-  "Middle Armenian",
-  "Middle French",
-  "Middle Persian",
-  "Mirandese",
-  "Moroccan Arabic",
-  "Neapolitan",
-  "Nepali",
-  "Newari",
-  "Norman",
-  "North Levantine Arabic",
-  u"Norwegian Bokmål",
-  "Norwegian Nynorsk",
-  "Old Armenian",
-  "Old French",
-  "Old Georgian",
-  "Old Norse",
-  "Old Portuguese",
-  "Old Spanish",
-  "Ottoman Turkish",
-  "Pashto",
-  "Persian",
-  "Polish",
-  "Portuguese",
-  "Punjabi",
-  "Rajasthani",
-  "Rohingya",
-  "Romani",
-  "Romanian",
-  "Russian",
-  "Sanskrit",
-  "Sardinian",
-  "Serbo-Croatian",
-  "Shor",
-  "Sicilian",
-  "Sindhi",
-  "Slovak",
-  "Slovene",
-  "Somali",
-  "Spanish",
-  "Swahili",
-  "Swedish",
-  "Tagalog",
-  "Tajik",
-  "Tashelhit",
-  "Tatar",
-  "Telugu",
-  "Thai",
-  "Translingual",
-  "Turkish",
-  "Turkmen",
-  "Ukrainian",
-  "Urdu",
-  "Uyghur",
-  "Uzbek",
-  "Venetian",
-  "Vietnamese",
-  "Wolof",
-  "Yoruba",
-  "Zazaki",
-], "Russian":[
-  u"Abkhaz",
-  u"Adyghe",
-  u"Afrikaans",
-  u"Ahtna",
-  u"Albanian",
-  u"Aleut",
-  u"Alutiiq",
-  u"Arabic",
-  u"Armenian",
-  u"Azeri",
-  u"Bashkir",
-  u"Belarusian",
-  u"Bengali",
-  u"Bulgarian",
-  u"Catalan",
-  u"Central Kurdish",
-  u"Chechen",
-  u"Chinese",
-  u"Chuvash",
-  u"Crimean Tatar",
-  u"Czech",
-  u"Danish",
-  u"Dutch",
-  u"English",
-  u"Esperanto",
-  u"Estonian",
-  u"Faroese",
-  u"Finnish",
-  u"French",
-  u"Gagauz",
-  u"Georgian",
-  u"German",
-  u"Greek",
-  u"Hebrew",
-  u"Hindi",
-  u"Hungarian",
-  u"Icelandic",
-  u"Ido",
-  u"Ingrian",
-  u"Irish",
-  u"Italian",
-  u"Japanese",
-  u"Karakalpak",
-  u"Karelian",
-  u"Kazakh",
-  u"Ket",
-  u"Khakas",
-  u"Kildin Sami",
-  u"Korean",
-  u"Kyrgyz",
-  u"Latin",
-  u"Latvian",
-  u"Lezgi",
-  u"Lithuanian",
-  u"Lojban",
-  u"Macedonian",
-  u"Malay",
-  u"Mandarin",
-  u"Mongolian",
-  u"Nivkh",
-  u"Norman",
-  u"Norwegian Bokmål",
-  u"Norwegian Nynorsk",
-  u"Norwegian",
-  u"Ossetian",
-  u"Persian",
-  u"Polish",
-  u"Portuguese",
-  u"Romanian",
-  u"Serbo-Croatian",
-  u"Skolt Sami",
-  u"Slovak",
-  u"Slovene",
-  u"Spanish",
-  u"Swedish",
-  u"Taimyr Pidgin Russian",
-  u"Tajik",
-  u"Tatar",
-  u"Tlingit",
-  u"Translingual",
-  u"Turkish",
-  u"Turkmen",
-  u"Tuvan",
-  u"Ukrainian",
-  u"Urdu",
-  u"Uyghur",
-  u"Uzbek",
-  u"Veps",
-  u"Vietnamese",
-  u"Volapük",
-  u"Votic",
-  u"Yakut",
-  u"Yiddish",
-  u"Yup'ik",
-  u"Zazaki",
-]}
-
 # Process link-like templates, on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
 # VERBOSE is passed to blib.do_edit and will (e.g.) show exact changes.
 # PROCESS_PARAM is the function called, which is called with five arguments:
 # The page, its index (an integer), the template on the page, the param in the
 # template containing the foreign text and the param containing the Latin
-# transliteration. It should return a changelog string if changes were made,
+# transliteration. NOTE: The param may be an array ["page title", PARAM]
+# for a case where the param value should be fetched from the page title and
+# saved to PARAM. It should return a changelog string if changes were made,
 # and something else otherwise (e.g. False). Changelog strings for all
 # templates will be joined together, separated by a semi-colon.
 def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
-    process_param, join_actions=None, split_translit_templates=False):
+    process_param, join_actions=None, split_translit_templates=False,
+    langs_with_terms_derived_from=[]):
   templates_changed = {}
   templates_seen = {}
 
@@ -598,12 +349,40 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
       def getp(param):
         return getparam(template, param)
       tempname = unicode(template.name)
+
+      # Special-casing for Ancient Greek
+      did_grc_template = False
+      if lang == "grc":
+        did_grc_template = True
+        def dogrcparam(trparam):
+          if getp("head"):
+            doparam("head", trparam)
+          else:
+            doparam(["page title", "head"], trparam)
+        if tempname in ["grc-noun-con"]:
+          dogrcparam("5")
+        elif tempname in ["grc-proper noun", "grc-noun"]:
+          dogrcparam("4")
+        elif tempname in ["grc-adj-1&2", "grc-adj-1&3", "grc-part-1&3"]:
+          dogrcparam("3")
+        elif tempname in ["grc-adj-2nd", "grc-adj-3rd", "grc-adj-2&3"]:
+          dogrcparam("2")
+        elif tempname in ["grc-num"]:
+          dogrcparam("1")
+        elif tempname in ["grc-verb"]:
+          dogrcparam("tr")
+        else:
+          did_grc_template = False
+
+      if did_grc_template:
+        pass
       # Look for {{head|ar|...|head=<ARABIC>}}
-      # FIXME: If no head=, do the page title, storing the result into "head";
-      # requires special-casing of PROCESSFN.
-      if tempname == "head":
+      elif tempname == "head":
         if getp("1") == lang:
-          doparam("head")
+          if getp("head"):
+            doparam("head")
+          else:
+            doparam(["page title", "head"])
       # Look for {{t|ar|<PAGENAME>|alt=<ARABICTEXT>}}
       elif tempname in ["t", "t+", "t-", "t+check", "t-check"]:
         if getp("1") == lang:
@@ -730,7 +509,7 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
       cats = ["%s lemmas" % longlang, "%s non-lemma forms" % longlang]
     elif cattype == "borrowed":
       cats = ["%s terms derived from %s" % (x, longlang) for x in
-          langs_with_terms_derived_from[longlang]]
+          langs_with_terms_derived_from]
     else:
       raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translit'")
     for cat in cats:

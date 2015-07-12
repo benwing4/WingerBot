@@ -22,6 +22,162 @@ from blib import msg, getparam
 import arabiclib
 import ar_translit
 
+langs_with_terms_derived_from_arabic = [
+  "Abkhaz",
+  "Acehnese",
+  "Adyghe",
+  "Afrikaans",
+  "Albanian",
+  "Ancient Greek",
+  "Andalusian Arabic",
+  "Aragonese",
+  "Aramaic",
+  "Armenian",
+  "Asturian",
+  "Avar",
+  "Azeri",
+  "Baluchi",
+  "Bambara",
+  "Bashkir",
+  "Basque",
+  "Bengali",
+  "Brahui",
+  "Bulgarian",
+  "Burmese",
+  "Burushaski",
+  "Catalan",
+  "Central Kurdish",
+  "Central Melanau",
+  "Chechen",
+  "Chinese",
+  "Classical Syriac",
+  "Crimean Tatar",
+  "Czech",
+  "Danish",
+  "Dhivehi",
+  "Dutch",
+  "Egyptian Arabic",
+  "English",
+  "Esperanto",
+  "Faroese",
+  "Fiji Hindi",
+  "Fijian",
+  "Finnish",
+  "French",
+  "Fula",
+  "Gagauz",
+  "Galician",
+  "Georgian",
+  "German",
+  "Greek",
+  "Gujarati",
+  "Hassaniya",
+  "Hausa",
+  "Hebrew",
+  "Hijazi Arabic",
+  "Hiligaynon",
+  "Hindi",
+  "Hungarian",
+  "Iban",
+  "Icelandic",
+  "Ido",
+  "Indonesian",
+  "Irish",
+  "Istriot",
+  "Italian",
+  "Japanese",
+  "Javanese",
+  "Judeo-Arabic",
+  "Kabardian",
+  "Kabyle",
+  "Kaingang",
+  "Karachay-Balkar",
+  "Karo Batak",
+  "Kashmiri",
+  "Kazakh",
+  "Khakas",
+  "Khmer",
+  "Korean",
+  "Kumyk",
+  "Kurdish",
+  "Kyrgyz",
+  "Ladino",
+  "Laki",
+  "Latin",
+  "Latvian",
+  "Lezgi",
+  "Ligurian",
+  "Lower Sorbian",
+  "Macedonian",
+  "Maithili",
+  "Malagasy",
+  "Malay",
+  "Maltese",
+  "Mandarin",
+  "Marathi",
+  "Marshallese",
+  "Mauritian Creole",
+  "Middle Armenian",
+  "Middle French",
+  "Middle Persian",
+  "Mirandese",
+  "Moroccan Arabic",
+  "Neapolitan",
+  "Nepali",
+  "Newari",
+  "Norman",
+  "North Levantine Arabic",
+  u"Norwegian Bokmål",
+  "Norwegian Nynorsk",
+  "Old Armenian",
+  "Old French",
+  "Old Georgian",
+  "Old Norse",
+  "Old Portuguese",
+  "Old Spanish",
+  "Ottoman Turkish",
+  "Pashto",
+  "Persian",
+  "Polish",
+  "Portuguese",
+  "Punjabi",
+  "Rajasthani",
+  "Rohingya",
+  "Romani",
+  "Romanian",
+  "Russian",
+  "Sanskrit",
+  "Sardinian",
+  "Serbo-Croatian",
+  "Shor",
+  "Sicilian",
+  "Sindhi",
+  "Slovak",
+  "Slovene",
+  "Somali",
+  "Spanish",
+  "Swahili",
+  "Swedish",
+  "Tagalog",
+  "Tajik",
+  "Tashelhit",
+  "Tatar",
+  "Telugu",
+  "Thai",
+  "Translingual",
+  "Turkish",
+  "Turkmen",
+  "Ukrainian",
+  "Urdu",
+  "Uyghur",
+  "Uzbek",
+  "Venetian",
+  "Vietnamese",
+  "Wolof",
+  "Yoruba",
+  "Zazaki",
+]
+
 # Canonicalize ARABIC and LATIN. Return (CANONARABIC, CANONLATIN, ACTIONS).
 # CANONARABIC is vocalized and/or canonicalized Arabic text to
 # substitute for the existing Arabic text, or False to do nothing.
@@ -118,19 +274,29 @@ def do_canon_param(page, index, template, param, paramtr, arabic, latin,
 
   return (canonarabic, canonlatin, actions)
 
-# Attempt to canonicalize Arabic parameter PARAM and Latin parameter PARAMTR.
-# Return False if PARAM has no value, else list of changelog actions.
+# Attempt to canonicalize Arabic parameter PARAM (which may be a list
+# [FROMPARAM, TOPARAM], where FROMPARAM may be "page title") and Latin
+# parameter PARAMTR. Return False if PARAM has no value, else list of
+# changelog actions.
 def canon_param(page, index, template, param, paramtr,
     include_tempname_in_changelog=False):
-  arabic = getparam(template, param)
+  # FIXME! If this fails, we need to wrap calls to page.title() with
+  # unicode() just below.
+  assert(isinstance(page.title(), basestring))
+  if isinstance(param, list):
+    fromparam, toparam = param
+  else:
+    fromparam, toparam = (param, param)
+  arabic = (page.title() if fromparam == "page title" else
+    getparam(template, fromparam))
   latin = getparam(template, paramtr)
   if not arabic:
     return False
   canonarabic, canonlatin, actions = do_canon_param(page, index, template,
-      param, paramtr, arabic, latin, include_tempname_in_changelog)
+      fromparam, paramtr, arabic, latin, include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
   if canonarabic:
-    template.add(param, canonarabic)
+    template.add(toparam, canonarabic)
   if canonlatin == True:
     template.remove(paramtr)
   elif canonlatin:
@@ -319,6 +485,7 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
 
   return blib.process_links(save, verbose, "ar", "Arabic", cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
+      langs_with_terms_derived_from=langs_with_terms_derived_from_arabic,
       split_translit_templates=True)
 
 pa = blib.init_argparser("Correct vocalization and translit")

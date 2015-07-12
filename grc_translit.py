@@ -388,6 +388,9 @@ def canonicalize_latin_greek(latin, greek):
         latin = post_canonicalize_latin(latin)
     return (latin, greek)
 
+def canonicalize_latin_foreign(latin, greek):
+    return canonicalize_latin_greek(latin, greek)
+
 def tr_canonicalize_greek(text):
     # Convert to decomposed form
     text = nfd_form(text)

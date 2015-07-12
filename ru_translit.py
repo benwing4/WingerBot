@@ -409,6 +409,9 @@ def canonicalize_latin_russian(latin, russian):
         latin = post_canonicalize_latin(latin)
     return (latin, russian)
 
+def canonicalize_latin_foreign(latin, russian):
+    return canonicalize_latin_russian(latin, russian)
+
 def tr_canonicalize_russian(text):
     # Ё needs converting if is decomposed
     text = rsub(text, u"ё", u"ё")
