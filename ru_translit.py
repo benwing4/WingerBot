@@ -25,8 +25,6 @@ from blib import remove_links
 # 1. Check with Anatoli -- always safe to canonicalize sh to š etc. in
 #    preprocessing? 'h' can stand for г in ahá; can this ever occur after š or
 #    whatever?
-# 2. Fix code that converts Russian е to do it after all but Russian
-#    consonants.
 
 AC = u"\u0301"
 GR = u"\u0300"
@@ -98,14 +96,16 @@ def tr(text, lang=None, sc=None):
     # ю after ж and ш becomes u (e.g. брошюра, жюри)
     text = rsub(text, u"([жшЖШ])ю", ur"\1u")
 
-    # е after a vowel or at the beginning of a word becomes je
-    bow_or_vowel = u"(^|[- \[%s]%s)" % (russian_vowels, ACGROPT)
+    # е after a vowel, at the beginning of a word or after non-word char
+    # becomes je
     def replace_e(m):
         ttab = {u"Е":u"Je", u"е":u"je", u"Ѣ":u"Jě", u"ѣ":u"jě"}
         return m.group(1) + ttab[m.group(2)]
     # repeat to handle sequences of ЕЕЕЕЕ...
-    text = rsub(text, u"%s([ЕеѢѣ])" % bow_or_vowel, replace_e)
-    text = rsub(text, u"%s([ЕеѢѣ])" % bow_or_vowel, replace_e)
+    for i in xrange(2):
+        text = re.sub("(^|[" + russian_vowels + r"\W]" + ACGROPT +
+                # re.U so \W is Unicode-dependent
+                u")([ЕеѢѣ])", replace_e, text, 0, re.U)
 
     text = rsub(text, '.', tt)
 
@@ -635,10 +635,12 @@ def tr_matching(russian, latin, err=False, msgfun=None):
 num_failed = 0
 num_succeeded = 0
 
-def test(latin, russian, should_outcome):
+def test(latin, russian, should_outcome, expectedrussian=None):
     def msg(text):
       print text.encode('utf-8')
     global num_succeeded, num_failed
+    if not expectedrussian:
+        expectedrussian = russian
     try:
         result = tr_matching(russian, latin, True, msg)
     except RuntimeError as e:
@@ -647,6 +649,7 @@ def test(latin, russian, should_outcome):
     if result == False:
         uniprint("tr_matching(%s, %s) = %s" % (russian, latin, result))
         outcome = "failed"
+        canonrussian = expectedrussian
     else:
         canonrussian, canonlatin = result
         trlatin = tr(canonrussian)
@@ -658,10 +661,13 @@ def test(latin, russian, should_outcome):
         else:
             uniprint("tr() UNMATCHED (= %s)" % trlatin)
             outcome = "unmatched"
+    if canonrussian != expectedrussian:
+        uniprint("Canon Russian FAILED, expected %s got %s"% (
+            expectedrussian, canonrussian))
     canonlatin, _ = canonicalize_latin_russian(latin, None)
     uniprint("canonicalize_latin(%s) = %s" %
             (latin, canonlatin))
-    if outcome == should_outcome:
+    if outcome == should_outcome and canonrussian == expectedrussian:
         uniprint("TEST SUCCEEDED.")
         num_succeeded += 1
     else:
@@ -675,8 +681,8 @@ def run_tests():
 
     # Test inferring accents in both Cyrillic and Latin
     test("zontik", u"зонтик", "matched")
-    test(u"zóntik", u"зо́нтик", "matched")
-    test(u"zóntik", u"зонтик", "matched")
+    test(u"zóntik", u"зо́нтик", "matched", u"зо́нтик")
+    test(u"zóntik", u"зонтик", "matched", u"зо́нтик")
     test("zontik", u"зо́нтик", "matched")
     test("zontik", u"зо́нтик", "matched")
 
@@ -693,38 +699,38 @@ def run_tests():
     test("yebe yebe", u"ебе ебе", "matched")
     test("yebe yebe", u"[[ебе]] [[ебе]]", "matched")
     test("Yebe Yebe", u"Ебе Ебе", "matched")
-    test(u"ébe ébe", u"ебе ебе", "matched")
-    test(u"Ébe Ébe", u"Ебе Ебе", "matched")
-    test(u"yéye yéye", u"ее ее", "matched")
+    test(u"ébe ébe", u"ебе ебе", "matched", u"е́бе е́бе")
+    test(u"Ébe Ébe", u"Ебе Ебе", "matched", u"Е́бе Е́бе")
+    test(u"yéye yéye", u"ее ее", "matched", u"е́е е́е")
     test(u"yéye yéye", u"е́е е́е", "matched")
     test("yeye yeye", u"е́е е́е", "matched")
 
     # Test with ju after hushing sounds
-    test(u"broshúra", u"брошюра", "matched")
-    test(u"broshyúra", u"брошюра", "matched")
-    test(u"zhurí", u"жюри", "matched")
+    test(u"broshúra", u"брошюра", "matched", u"брошю́ра")
+    test(u"broshyúra", u"брошюра", "matched", u"брошю́ра")
+    test(u"zhurí", u"жюри", "matched", u"жюри́")
 
     # Test with ' representing ь, which should be canonicalized to ʹ
     test(u"pal'da", u"пальда", "matched")
 
     # Test with jo
     test(u"ketjó", u"кетё", "matched")
-    test(u"kétjo", u"кетё", "unmatched")
+    test(u"kétjo", u"кетё", "unmatched", u"ке́тё")
     test(u"kešó", u"кешё", "matched")
     test(u"kešjó", u"кешё", "matched")
 
     # Test handling of embedded links, including unmatched acute accent
     # directly before right bracket on Russian side
     test(u"pala volu", u"пала [[вола|волу]]", "matched")
-    test(u"pala volú", u"пала [[вола|волу]]", "matched")
+    test(u"pala volú", u"пала [[вола|волу]]", "matched", u"пала [[вола|волу́]]")
     test(u"volu pala", u"[[вола|волу]] пала", "matched")
-    test(u"volú pala", u"[[вола|волу]] пала", "matched")
+    test(u"volú pala", u"[[вола|волу]] пала", "matched", u"[[вола|волу́]] пала")
     test(u"volupala", u"[[вола|волу]]пала", "matched")
     test(u"pala volu", u"пала [[волу]]", "matched")
-    test(u"pala volú", u"пала [[волу]]", "matched")
+    test(u"pala volú", u"пала [[волу]]", "matched", u"пала [[волу́]]")
     test(u"volu pala", u"[[волу]] пала", "matched")
-    test(u"volú pala", u"[[волу]] пала", "matched")
-    test(u"volúpala", u"[[волу]]пала", "matched")
+    test(u"volú pala", u"[[волу]] пала", "matched", u"[[волу́]] пала")
+    test(u"volúpala", u"[[волу]]пала", "matched", u"[[волу́]]пала")
 
     # Silent hard signs
     test("mir", u"миръ", "matched")
@@ -733,9 +739,9 @@ def run_tests():
 
     # Single quotes in Russian
     test("volu '''pala'''", u"волу '''пала'''", "matched")
-    test(u"volu '''palá'''", u"волу '''пала'''", "matched")
+    test(u"volu '''palá'''", u"волу '''пала'''", "matched", u"волу '''пала́'''")
     # Here the single quote after l should become ʹ but not the others
-    test(u"volu '''pal'dá'''", u"волу '''пальда'''", "matched")
+    test(u"volu '''pal'dá'''", u"волу '''пальда'''", "matched", u"волу '''пальда́'''")
     test(u"bólʹše vsevó", u"[[бо́льше]] [[всё|всего́]]", "unmatched")
 
     # # Test adding ! or ؟
