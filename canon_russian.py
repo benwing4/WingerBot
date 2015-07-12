@@ -76,10 +76,11 @@ def do_canon_param(page, index, template, param, paramtr, russian, latin,
   elif match_canon:
     pagemsg("Vocalize Russian %s -> %s%s" % (russian, canonrussian, latintrtext))
     actions.append("accent %s=%s -> %s" % (param, russian, canonrussian))
-  elif latin:
-    pagemsg("Cross-canoning Russian %s -> %s%s" % (russian, canonrussian,
-      latintrtext))
-    actions.append("cross-canon %s=%s -> %s" % (param, russian, canonrussian))
+  # No cross-canonicalizing takes place with Russian.
+  #elif latin:
+  #  pagemsg("Cross-canoning Russian %s -> %s%s" % (russian, canonrussian,
+  #    latintrtext))
+  #  actions.append("cross-canon %s=%s -> %s" % (param, russian, canonrussian))
   else:
     pagemsg("Self-canoning Russian %s -> %s%s" % (russian, canonrussian,
       latintrtext))
@@ -103,10 +104,15 @@ def do_canon_param(page, index, template, param, paramtr, russian, latin,
     pagemsg("Match-canoning Latin %s -> %s: Russian %s -> %s" % (
         latin, canonlatin, russian, newrussian))
     actions.append("match-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
+  # No cross-canonicalizing takes place with Russian.
+  #else:
+  #  pagemsg("Cross-canoning Latin %s -> %s: Russian %s -> %s" % (
+  #      latin, canonlatin, russian, newrussian))
+  #  actions.append("cross-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
   else:
-    pagemsg("Cross-canoning Latin %s -> %s: Russian %s -> %s" % (
+    pagemsg("Self-canoning Latin %s -> %s: Russian %s -> %s" % (
         latin, canonlatin, russian, newrussian))
-    actions.append("cross-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
+    actions.append("self-canon %s=%s -> %s" % (paramtrname, latin, canonlatin))
 
   return (canonrussian, canonlatin, actions)
 
@@ -165,125 +171,6 @@ def sort_group_changelogs(actions):
   all_grouped_actions = '; '.join([x for x in grouped_action_strs if x])
   return all_grouped_actions
 
-# Vocalize the parameter chain for PARAM in TEMPLATE. For example, if PARAM
-# is "pl" then this will attempt to accent "pl", "pl2", "pl3", etc. based on
-# "pltr", "pl2tr", "pl3tr", etc., stopping when "plN" isn't found. Return
-# list of changelog actions.
-def canon_param_chain(page, index, template, param):
-  actions = []
-  result = canon_param(page, index, template, param, param + "tr")
-  if result != False:
-    actions.extend(result)
-  i = 2
-  while result != False:
-    thisparam = param + str(i)
-    result = canon_param(page, index, template, thisparam, thisparam + "tr")
-    if result != False:
-      actions.extend(result)
-    i += 1
-  return actions
-
-# Vocalize the head param(s) for the given headword template on the given page.
-# Modifies the templates in place. Return list of changed parameters, for
-# use in the changelog message.
-def canon_head(page, index, template):
-  actions = []
-  pagetitle = unicode(page.title(withNamespace=False))
-
-  # Handle existing 1= and head from page title
-  if template.has("tr"):
-
-    # Check for multiple transliterations of head or 1. If so, split on
-    # the multiple transliterations, with separate accented heads.
-    latin = getparam(template, "tr")
-    if "," in latin:
-      trs = re.split(",\\s*", latin)
-      # Find the first alternate head (head2, head3, ...) not already present
-      i = 2
-      while template.has("head" + str(i)):
-        i += 1
-      template.add("tr", trs[0])
-      if template.has("1"):
-        head = getparam(template, "1")
-        # for new heads, only use existing head in 1= if ends with -un (tanwīn),
-        # because many of the existing 1= values are accented according to the
-        # first transliterated entry in the list and won't work with the others
-        if not head.endswith(u"\u064C"):
-          head = pagetitle
-      else:
-        head = pagetitle
-      for tr in trs[1:]:
-        template.add("head" + str(i), head)
-        template.add("tr" + str(i), tr)
-        i += 1
-      actions.append("split translit into multiple heads")
-
-    # Try to accent 1=
-    result = canon_param(page, index, template, "1", "tr")
-    if result != False:
-      actions.extend(result)
-
-    # If 1= not found, try accenting the page title and make it the 1= value
-    if result == False:
-      russian = pagetitle
-      latin = getparam(template, "tr")
-      if russian and latin:
-        canonrussian, canonlatin, newactions = do_canon_param(
-            page, index, template, "page title", "tr", russian, latin)
-        oldtempl = "%s" % unicode(template)
-        if canonrussian:
-          if template.has("2"):
-            template.add("1", canonrussian, before="2")
-          else:
-            template.add("1", canonrussian, before="tr")
-        if canonlatin == True:
-          template.remove("tr")
-        elif canonlatin:
-          template.add("tr", canonlatin)
-        actions.extend(newactions)
-        if canonrussian or canonlatin:
-          msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
-            oldtempl, unicode(template)))
-
-  # Check and try to accent extra heads
-  i = 2
-  result = True
-  while result != False:
-    thisparam = "head" + str(i)
-    result = canon_param(page, index, template, thisparam, "tr" + str(i))
-    if result != False:
-      actions.extend(result)
-    i += 1
-  return actions
-
-# Canonicalize the Russian and Latin in the headword templates on the
-# given page. Returns the changed text along with a changelog message.
-def canon_one_page_headwords(page, index, text):
-  actions = []
-  for template in text.filter_templates():
-    if template.name in russianlib.russian_non_verbal_headword_templates:
-      thisactions = []
-      thisactions += canon_head(page, index, template)
-      for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
-          "fobl", "m", "mobl", "obl", "el", "sing", "coll", "d", "dobl",
-          "pauc", "cons"]:
-        thisactions += canon_param_chain(page, index, template, param)
-      if len(thisactions) > 0:
-        actions.append("%s: %s" % (template.name, ', '.join(thisactions)))
-  changelog = '; '.join(actions)
-  #if len(actions) > 0:
-  msg("Change log for page %s = %s" % (page.title(), changelog))
-  return text, changelog
-
-# Canonicalize Russian and Latin in headword templates on pages from STARTFROM
-# to (but not including) UPTO, either page names or 0-based integers. Save
-# changes if SAVE is true. Show exact changes if VERBOSE is true.
-def canon_headwords(save, verbose, startFrom, upTo):
-  for cat in [u"Russian lemmas", u"Russian non-lemma forms"]:
-    for page, index in blib.cat_articles(cat, startFrom, upTo):
-      blib.do_edit(page, index, canon_one_page_headwords, save=save,
-          verbose=verbose)
-
 # Canonicalize Russian and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
@@ -307,20 +194,16 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
         result = newresult
     return result
 
-  return blib.process_links(save, verbose, "ru", cattype, startFrom, upTo,
-      process_param, sort_group_changelogs, split_translit_templates=True)
+  return blib.process_links(save, verbose, "ru", "Russian", cattype,
+      startFrom, upTo, process_param, sort_group_changelogs,
+      split_translit_templates=True)
 
 pa = blib.init_argparser("Correct accentation and translit")
-pa.add_argument("-l", "--links", action='store_true',
-    help="Correct accentation and translit of links")
 pa.add_argument("--cattype", default="borrowed",
     help="Categories to examine ('russian', 'borrowed', 'translit')")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
 
-if parms.links:
-  canon_links(parms.save, parms.verbose, parms.cattype, startFrom, upTo)
-else:
-  canon_headwords(parms.save, parms.verbose, startFrom, upTo)
+canon_links(parms.save, parms.verbose, parms.cattype, startFrom, upTo)
 

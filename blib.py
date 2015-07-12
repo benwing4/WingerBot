@@ -313,7 +313,7 @@ def getEtymLanguageData():
     etym_languages_byCode[etyl["code"]] = etyl
     etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
 
-langs_with_terms_derived_from_arabic = [
+langs_with_terms_derived_from = {"Arabic":[
   "Abkhaz",
   "Acehnese",
   "Adyghe",
@@ -466,25 +466,121 @@ langs_with_terms_derived_from_arabic = [
   "Vietnamese",
   "Wolof",
   "Yoruba",
-  "Zazaki"
-]
+  "Zazaki",
+], "Russian":[
+  u"Abkhaz",
+  u"Adyghe",
+  u"Afrikaans",
+  u"Ahtna",
+  u"Albanian",
+  u"Aleut",
+  u"Alutiiq",
+  u"Arabic",
+  u"Armenian",
+  u"Azeri",
+  u"Bashkir",
+  u"Belarusian",
+  u"Bengali",
+  u"Bulgarian",
+  u"Catalan",
+  u"Central Kurdish",
+  u"Chechen",
+  u"Chinese",
+  u"Chuvash",
+  u"Crimean Tatar",
+  u"Czech",
+  u"Danish",
+  u"Dutch",
+  u"English",
+  u"Esperanto",
+  u"Estonian",
+  u"Faroese",
+  u"Finnish",
+  u"French",
+  u"Gagauz",
+  u"Georgian",
+  u"German",
+  u"Greek",
+  u"Hebrew",
+  u"Hindi",
+  u"Hungarian",
+  u"Icelandic",
+  u"Ido",
+  u"Ingrian",
+  u"Irish",
+  u"Italian",
+  u"Japanese",
+  u"Karakalpak",
+  u"Karelian",
+  u"Kazakh",
+  u"Ket",
+  u"Khakas",
+  u"Kildin Sami",
+  u"Korean",
+  u"Kyrgyz",
+  u"Latin",
+  u"Latvian",
+  u"Lezgi",
+  u"Lithuanian",
+  u"Lojban",
+  u"Macedonian",
+  u"Malay",
+  u"Mandarin",
+  u"Mongolian",
+  u"Nivkh",
+  u"Norman",
+  u"Norwegian Bokmål",
+  u"Norwegian Nynorsk",
+  u"Norwegian",
+  u"Ossetian",
+  u"Persian",
+  u"Polish",
+  u"Portuguese",
+  u"Romanian",
+  u"Serbo-Croatian",
+  u"Skolt Sami",
+  u"Slovak",
+  u"Slovene",
+  u"Spanish",
+  u"Swedish",
+  u"Taimyr Pidgin Russian",
+  u"Tajik",
+  u"Tatar",
+  u"Tlingit",
+  u"Translingual",
+  u"Turkish",
+  u"Turkmen",
+  u"Tuvan",
+  u"Ukrainian",
+  u"Urdu",
+  u"Uyghur",
+  u"Uzbek",
+  u"Veps",
+  u"Vietnamese",
+  u"Volapük",
+  u"Votic",
+  u"Yakut",
+  u"Yiddish",
+  u"Yup'ik",
+  u"Zazaki",
+]}
 
 # Process link-like templates, on pages from STARTFROM to (but not including)
 # UPTO, either page names or 0-based integers. Save changes if SAVE is true.
 # VERBOSE is passed to blib.do_edit and will (e.g.) show exact changes.
 # PROCESS_PARAM is the function called, which is called with five arguments:
 # The page, its index (an integer), the template on the page, the param in the
-# template containing the Arabic and the param containing the Latin
+# template containing the foreign text and the param containing the Latin
 # transliteration. It should return a changelog string if changes were made,
 # and something else otherwise (e.g. False). Changelog strings for all
 # templates will be joined together, separated by a semi-colon.
-def process_links(save, verbose, lang, cattype, startFrom, upTo, process_param,
-    join_actions=None, split_translit_templates=False):
+def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
+    process_param, join_actions=None, split_translit_templates=False):
   templates_changed = {}
   templates_seen = {}
 
   # Process the link-like templates on the given page with the given text,
-  # calling PROCESSFN for each pair of Arabic/Latin. Return a list of
+  # calling PROCESSFN for each pair of foreign/Latin. Return a list of
   # changelog actions.
   def do_process_one_page_links(page, index, text, processfn):
     actions = []
@@ -628,13 +724,13 @@ def process_links(save, verbose, lang, cattype, startFrom, upTo, process_param,
       for page, index in references("Template:%s" % template, startFrom, upTo):
         do_edit(page, index, process_one_page_links, save=save, verbose=verbose)
   else:
-    if cattype == "arabic":
-      cats = ["Arabic lemmas", "Arabic non-lemma forms"]
+    if cattype == "vocab":
+      cats = ["%s lemmas" % longlang, "%s non-lemma forms" % longlang]
     elif cattype == "borrowed":
-      cats = ["%s terms derived from Arabic" % x for x in
-          langs_with_terms_derived_from_arabic]
+      cats = ["%s terms derived from %s" % (x, longlang) for x in
+          langs_with_terms_derived_from[longlang]]
     else:
-      raise ValueError("Category type '%s' should be 'arabic', 'borrowed' or 'translit'")
+      raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translit'")
     for cat in cats:
       msg("Processing category %s" % cat)
       errmsg("Processing category %s" % cat)

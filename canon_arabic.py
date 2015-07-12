@@ -297,7 +297,7 @@ def canon_headwords(save, verbose, startFrom, upTo):
 # Canonicalize Arabic and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'arabic', 'borrowed' or 'translit', indicating which categories to
+# should be 'vocab', 'borrowed' or 'translit', indicating which categories to
 # examine.
 def canon_links(save, verbose, cattype, startFrom, upTo):
   def process_param(page, index, template, param, paramtr):
@@ -317,14 +317,15 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
         result = newresult
     return result
 
-  return blib.process_links(save, verbose, "ar", cattype, startFrom, upTo,
-      process_param, sort_group_changelogs, split_translit_templates=True)
+  return blib.process_links(save, verbose, "ar", "Arabic", cattype,
+      startFrom, upTo, process_param, sort_group_changelogs,
+      split_translit_templates=True)
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Correct vocalization and translit of links")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('arabic', 'borrowed', 'translit')")
+    help="Categories to examine ('vocab', 'borrowed', 'translit')")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)

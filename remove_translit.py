@@ -191,8 +191,8 @@ def process_headwords(save, verbose, startFrom, upTo):
 # returns the same thing, or canonicalizing, on pages from STARTFROM to
 # (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true.
-# CATTYPE should be 'arabic' or 'borrowed', indicating which categories
-# to examine.
+# CATTYPE should be 'vocab', 'borrowed' or 'translit', indicating which
+# categories to examine.
 def process_links(save, verbose, cattype, startFrom, upTo):
   def do_process_param(page, index, template, param, paramtr):
     result = process_param(page, index, template, param, paramtr,
@@ -210,14 +210,14 @@ def process_links(save, verbose, cattype, startFrom, upTo):
       else:
         result = newresult
     return result
-  return blib.process_links(save, verbose, "ar", cattype, startFrom, upTo,
-      do_process_param, sort_group_changelogs)
+  return blib.process_links(save, verbose, "ar", "Arabic", cattype,
+      startFrom, upTo, do_process_param, sort_group_changelogs)
 
 pa = blib.init_argparser("Remove redundant translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Vocalize links")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('arabic', 'borrowed', 'translit')")
+    help="Categories to examine ('vocab', 'borrowed', 'translit')")
 
 parms = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(parms.start, parms.end)
