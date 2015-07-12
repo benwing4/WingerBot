@@ -35,7 +35,7 @@ def undo_greek_removal(save, verbose, direcfile, startFrom, upTo):
   for current, index in blib.iter_pages(template_removals, startFrom, upTo,
       # key is the page name
       key = lambda x: x[0]):
-    page, removed_param, template_text = current
+    pagename, removed_param, template_text = current
 
     def undo_one_page_greek_removal(page, index, text):
       def pagemsg(txt):
@@ -60,9 +60,13 @@ def undo_greek_removal(save, verbose, direcfile, startFrom, upTo):
       pagemsg("Change log = %s" % changelog)
       return newtext, changelog
 
-    page = pywikibot.Page(site, page)
-    blib.do_edit(page, index, undo_one_page_greek_removal, save=save,
-        verbose=verbose)
+    page = pywikibot.Page(site, pagename)
+    if not page.exists():
+      msg("Page %s %s: WARNING, something wrong, does not exist" % (
+        index, pagename))
+    else:
+      blib.do_edit(page, index, undo_one_page_greek_removal, save=save,
+          verbose=verbose)
 
 pa = blib.init_argparser("Create Arabic declensions")
 pa.add_argument("--file",
