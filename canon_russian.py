@@ -223,7 +223,7 @@ def canon_head(page, index, template):
     if result != False:
       actions.extend(result)
 
-    # If 1= not found, try vocalizing the page title and make it the 1= value
+    # If 1= not found, try accenting the page title and make it the 1= value
     if result == False:
       russian = pagetitle
       latin = getparam(template, "tr")
@@ -310,9 +310,9 @@ def canon_links(save, verbose, cattype, startFrom, upTo):
   return blib.process_links(save, verbose, "ru", cattype, startFrom, upTo,
       process_param, sort_group_changelogs, split_translit_templates=True)
 
-pa = blib.init_argparser("Correct vocalization and translit")
+pa = blib.init_argparser("Correct accentation and translit")
 pa.add_argument("-l", "--links", action='store_true',
-    help="Correct vocalization and translit of links")
+    help="Correct accentation and translit of links")
 pa.add_argument("--cattype", default="borrowed",
     help="Categories to examine ('russian', 'borrowed', 'translit')")
 

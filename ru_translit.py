@@ -652,10 +652,10 @@ def test(latin, russian, should_outcome):
         uniprint("tr_matching(%s, %s) = %s" % (russian, latin, result))
         outcome = "failed"
     else:
-        vocrussian, canonlatin = result
-        trlatin = tr(vocrussian)
+        canonrussian, canonlatin = result
+        trlatin = tr(canonrussian)
         uniout("tr_matching(%s, %s) = %s %s," %
-                (russian, latin, vocrussian, canonlatin))
+                (russian, latin, canonrussian, canonlatin))
         if trlatin == canonlatin:
             uniprint("tr() MATCHED")
             outcome = "matched"
