@@ -22,10 +22,9 @@ from blib import remove_links
 
 # FIXME:
 #
-# 1. Finish writing test cases.
-# 2. Check case of u"ᾱῦ", whether the PERIS shouldn't be on first vowel.
+# 1. Check case of u"ᾱῦ", whether the PERIS shouldn't be on first vowel.
 #    Similarly with ACUTE (and GRAVE?).
-# 3. Also check case of Latin Hāídēs. What should it be?
+# 2. Also check case of Latin Hāídēs. What should it be?
 
 # Accented characters
 GRAVE = u"\u0300"      # grave accent = varia
@@ -80,10 +79,10 @@ def error(msg):
     raise RuntimeError(msg)
 
 def nfc_form(txt):
-    return unicodedata.normalize("NFKC", txt)
+    return unicodedata.normalize("NFKC", unicode(txt))
 
 def nfd_form(txt):
-    return unicodedata.normalize("NFKD", txt)
+    return unicodedata.normalize("NFKD", unicode(txt))
 
 tt = {
     # Plain vowels
@@ -773,62 +772,25 @@ def run_tests():
     test(u"Murrhā", u"Μύῤῥα", "matched", u"Μύῤῥᾱ")
 
     # # Things that should fail
-    # test("zontak", u"зонтик", "failed")
-    # test("zontika", u"зонтик", "failed")
+    test(u"stúlos", u"στῦλος", "failed")
+    test(u"stilos", u"στῦλος", "failed")
 
-    # # Test with Cyrillic e
-    # test("jebe jebe", u"ебе ебе", "matched")
-    # test("Jebe Jebe", u"Ебе Ебе", "matched")
-    # test("ebe ebe", u"ебе ебе", "matched")
-    # test("Ebe Ebe", u"Ебе Ебе", "matched")
-    # test("yebe yebe", u"ебе ебе", "matched")
-    # test("yebe yebe", u"[[ебе]] [[ебе]]", "matched")
-    # test("Yebe Yebe", u"Ебе Ебе", "matched")
-    # test(u"ébe ébe", u"ебе ебе", "matched")
-    # test(u"Ébe Ébe", u"Ебе Ебе", "matched")
-    # test(u"yéye yéye", u"ее ее", "matched")
-    # test(u"yéye yéye", u"е́е е́е", "matched")
-    # test("yeye yeye", u"е́е е́е", "matched")
-
-    # # Test with ju after hushing sounds
-    # test(u"broshúra", u"брошюра", "matched")
-    # test(u"broshyúra", u"брошюра", "matched")
-    # test(u"zhurí", u"жюри", "matched")
-
-    # # Test with ' representing ь, which should be canonicalized to ʹ
-    # test(u"pal'da", u"пальда", "matched")
-
-    # # Test with jo
-    # test(u"ketjó", u"кетё", "matched")
-    # test(u"kétjo", u"кетё", "unmatched")
-    # test(u"kešó", u"кешё", "matched")
-    # test(u"kešjó", u"кешё", "matched")
-
-    # # Test handling of embedded links, including unmatched acute accent
-    # # directly before right bracket on Greek side
-    # test(u"pala volu", u"пала [[вола|волу]]", "matched")
-    # test(u"pala volú", u"пала [[вола|волу]]", "matched")
-    # test(u"volu pala", u"[[вола|волу]] пала", "matched")
-    # test(u"volú pala", u"[[вола|волу]] пала", "matched")
-    # test(u"volupala", u"[[вола|волу]]пала", "matched")
-    # test(u"pala volu", u"пала [[волу]]", "matched")
-    # test(u"pala volú", u"пала [[волу]]", "matched")
-    # test(u"volu pala", u"[[волу]] пала", "matched")
-    # test(u"volú pala", u"[[волу]] пала", "matched")
-    # test(u"volúpala", u"[[волу]]пала", "matched")
+    # Test handling of embedded links, including unmatched macron
+    # directly before right bracket on Greek side
+    test(u"pala bolu", u"παλα [[βολα|βολυ]]", "matched")
+    test(u"pala bolū", u"παλα [[βολα|βολυ]]", "matched", u"παλα [[βολα|βολῡ]]")
+    test(u"bolu pala", u"[[βολα|βολυ]] παλα", "matched")
+    test(u"bolū pala", u"[[βολα|βολυ]] παλα", "matched", u"[[βολα|βολῡ]] παλα")
+    test(u"bolupala", u"[[βολα|βολυ]]παλα", "matched")
+    test(u"pala bolu", u"παλα [[βολυ]]", "matched")
+    test(u"pala bolū", u"παλα [[βολυ]]", "matched", u"παλα [[βολῡ]]")
+    test(u"bolu pala", u"[[βολυ]] παλα", "matched")
+    test(u"bolū pala", u"[[βολυ]] παλα", "matched", u"[[βολῡ]] παλα")
+    test(u"bolūpala", u"[[βολυ]]παλα", "matched", u"[[βολῡ]]παλα")
 
     # # Single quotes in Greek
-    # test("volu '''pala'''", u"волу '''пала'''", "matched")
-    # test(u"volu '''palá'''", u"волу '''пала'''", "matched")
-    # # Here the single quote after l should become ʹ but not the others
-    # test(u"volu '''pal'dá'''", u"волу '''пальда'''", "matched")
-    # test(u"bólʹše vsevó", u"[[бо́льше]] [[всё|всего́]]", "unmatched")
-
-    # # Test adding ! or ؟
-    # test(u"fan", u"فن!", "matched")
-    # test(u"fan!", u"فن!", "matched")
-    # test(u"fan", u"فن؟", "matched")
-    # test(u"fan?", u"فن؟", "matched")
+    test(u"bolu '''pala'''", u"βολυ '''παλα'''", "matched")
+    test(u"bolu '''palā'''", u"βολυ '''παλα'''", "matched", u"βολυ '''παλᾱ'''")
 
     # Final results
     uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))
