@@ -168,13 +168,13 @@ tt_to_russian_matching = {
     # Canonicalize to capital_e_subst, which we later map to either Je or E
     # depending on what precedes. We don't use regular capital E as the
     # canonical character because Э also maps to E.
-    u"Е":[capital_e_subst,"E","Je","Ye",[u"Ɛ"]],
+    u"Е":[capital_e_subst,"E","Je","Ye","'E",[u"Ɛ"]],
     # FIXME: Yo should be converted to Jo
-    u"Ё":[u"Jo"+AC,u"Yo"+AC,[u"Jo"],[u"Yo"]],
+    u"Ё":[u"Jo"+AC,u"Yo"+AC,u"Ë",[u"Jo"],[u"Yo"]],
     u"Ж":[u"Ž",u"zh"],
     u"З":u"Z",
     u"И":u"I",
-    u"Й":[u"J",u"Y"],
+    u"Й":[u"J",u"Y",u"Ĭ",u"I"],
     u"К":u"K",
     u"Л":u"L",
     u"М":u"M",
@@ -186,17 +186,17 @@ tt_to_russian_matching = {
     u"Т":u"T",
     u"У":u"U",
     u"Ф":u"F",
-    u"Х":u"X",
-    u"Ц":u"C",
-    u"Ч":[u"Č",u"Ch",[u"Š"],[u"Sh"]],
+    u"Х":[u"X",u"Kh"],
+    u"Ц":[u"C",u"Ts"],
+    u'Ч':[u'Č',u"Ch",u"Tsch",u"Tsč",u"Tch",u"Tč",[u"Š"],[u"Sh"]],
     u"Ш":[u"Š",u"Sh"],
     u"Щ":[u"Šč",u"Shch"],
-    u"Ъ":[u"ʺ",u'"'],
+    u"Ъ":[u"ʺ",u"”",u"″",u'"'],
     u"Ы":u"Y",
-    u"Ь":[u"ʹ",u"'"],
-    u"Э":u"E",
-    u"Ю":[u"Ju",u"Yu",u"U"],
-    u"Я":[u"Ja",u"Ya",u"A"],
+    u"Ь":[u"ʹ",u"’",u"´",u"'",u""],
+    u"Э":[u"E",u"Ė"],
+    u"Ю":[u"Ju",u"Yu",u"'U",u"U"],
+    u"Я":[u"Ja",u"Ya",u"'A",u"A"],
     u'а':u'a',
     u'б':u'b',
     u'в':u'v',
@@ -205,13 +205,13 @@ tt_to_russian_matching = {
     # Canonicalize to small_e_subst, which we later map to either je or e
     # depending on what precedes. We don't use regular small e as the
     # canonical character because э also maps to e.
-    u"е":[small_e_subst,"e","je","ye",[u"ɛ"]],
+    u"е":[small_e_subst,"e","je","ye",u"'e",[u"ɛ"]],
     # FIXME: yo should be converted to jo
-    u'ё':[small_jo_subst,u'jo'+AC,u"yo"+AC,u"o"+AC,[u"jo"],[u"yo"],[u"o"]],
+    u'ё':[small_jo_subst,u'jo'+AC,u"yo"+AC,u"o"+AC,u"ë",[u"jo"],[u"yo"],[u"o"]],
     u'ж':[u'ž',u"zh"],
     u'з':u'z',
     u'и':u'i',
-    u'й':u'j',
+    u'й':[u'j',u'y',u'ĭ',u'i'],
     u'к':u'k',
     u'л':u'l',
     u'м':u'm',
@@ -223,17 +223,17 @@ tt_to_russian_matching = {
     u'т':u't',
     u'у':u'u',
     u'ф':u'f',
-    u'х':u'x',
-    u'ц':u'c',
-    u'ч':[u'č',u"ch",[u"š"],[u"sh"]],
+    u'х':[u'x',u'kh',u'h'],
+    u'ц':[u'c',u'ts'],
+    u'ч':[u'č',u"ch",u"tsch",u"tsč",u"tch",u"tč",[u"š"],[u"sh"]],
     u'ш':[u'š',u"sh"],
     u'щ':[u'šč',u"shch"],
-    u'ъ':[u'ʺ',u'"'],
+    u'ъ':[u'ʺ',u"”",u"″",u'"'],
     u'ы':u'y',
-    u'ь':[u'ʹ',u"'"],
-    u'э':u'e',
-    u'ю':[small_ju_subst,u'ju',u"yu",u"u"],
-    u'я':[u'ja',u"ya"],
+    u'ь':[u'ʹ',u"’",u"´",u"'",u""],
+    u'э':[u'e',u"ė"],
+    u'ю':[small_ju_subst,u'ju',u"yu",u"'u",u"u"],
+    u'я':[u'ja',u"ya",u"'a"],
     # Russian style quotes
     u'«':[u'“',u'"'],
     u'»':[u'”',u'"'],
@@ -257,6 +257,7 @@ tt_to_russian_matching = {
     u".":u".", # period
     u"!":u"!", # exclamation point
     u"-":u"-", # hyphen/dash
+    u"/":u"/", # slash
     u"'":[(u"'",)], # single quote, for bold/italic
     u" ":u" ",
     u"[":u"",
@@ -264,8 +265,9 @@ tt_to_russian_matching = {
     # accents
     AC:[AC,""],
     GR:[GR,""],
-    capital_silent_hard_sign:u"",
-    small_silent_hard_sign:u"",
+    # UNCLEAR WE NEED THE FOLLOWING DUE TO consume_against_eow_hard_sign()
+    capital_silent_hard_sign:[u""],
+    small_silent_hard_sign:[u""],
 }
 
 word_interrupting_chars = u"-[]"
@@ -332,11 +334,16 @@ def pre_canonicalize_latin(text, russian=None):
     # canonicalize interior whitespace
     text = rsub(text, r"\s+", " ")
     # decompose accented letters
-    text = rsub(text, u"[áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙ]",
-        {u"á":"a"+AC, u"é":"e"+AC, u"í":"i"+AC, u"ó":"o"+AC, u"ú":"u"+AC,
-         u"Á":"A"+AC, u"É":"E"+AC, u"Í":"I"+AC, u"Ó":"O"+AC, u"Ú":"U"+AC,
-         u"à":"a"+GR, u"è":"e"+GR, u"ì":"i"+GR, u"ò":"o"+GR, u"ù":"u"+GR,
-         u"À":"A"+GR, u"È":"E"+GR, u"Ì":"I"+GR, u"Ò":"O"+GR, u"Ù":"U"+GR,})
+    text = rsub(text, u"[áéíóúýÁÉÍÓÚÝàèìòùỳÀÈÌÒÙỲ]",
+            {u"á":"a"+AC, u"é":"e"+AC, u"í":"i"+AC,
+             u"ó":"o"+AC, u"ú":"u"+AC, u"ý":"y"+AC,
+             u"Á":"A"+AC, u"É":"E"+AC, u"Í":"I"+AC,
+             u"Ó":"O"+AC, u"Ú":"U"+AC, u"Ý":"Y"+AC,
+             u"à":"a"+GR, u"è":"e"+GR, u"ì":"i"+GR,
+             u"ò":"o"+GR, u"ù":"u"+GR, u"ỳ":"y"+GR,
+             u"À":"A"+GR, u"È":"E"+GR, u"Ì":"I"+GR,
+             u"Ò":"O"+GR, u"Ù":"U"+GR, u"Ỳ":"Y"+GR,})
+
     # "compose" digraphs
     text = rsub(text, u"[czskCZSK]h",
         {"ch":u"č", "zh":u"ž", "sh":u"š", "kh":"x",
@@ -346,12 +353,15 @@ def pre_canonicalize_latin(text, russian=None):
 
 def tr_canonicalize_latin(text):
     # recompose accented letters
-    text = rsub(text, "[aeiouAEIOU]" + AC,
-        {"a"+AC:u"á", "e"+AC:u"é", "i"+AC:u"í", "o"+AC:u"ó", "u"+AC:u"ú",
-         "A"+AC:u"Á", "E"+AC:u"É", "I"+AC:u"Í", "O"+AC:u"Ó", "U"+AC:u"Ú",})
-    text = rsub(text, "[aeiouAEIOU]" + GR,
-        {"a"+GR:u"à", "e"+GR:u"è", "i"+GR:u"ì", "o"+GR:u"ò", "u"+GR:u"ù",
-         "A"+GR:u"À", "E"+GR:u"È", "I"+GR:u"Ì", "O"+GR:u"Ò", "U"+GR:u"Ù",})
+    text = rsub(text, "[aeiouyAEIOUY][" + AC + GR + "]",
+        {"a"+AC:u"á", "e"+AC:u"é", "i"+AC:u"í",
+         "o"+AC:u"ó", "u"+AC:u"ú", "y"+AC:u"ý",
+         "A"+AC:u"Á", "E"+AC:u"É", "I"+AC:u"Í",
+         "O"+AC:u"Ó", "U"+AC:u"Ú", "Y"+AC:u"Ý",
+         "a"+GR:u"à", "e"+GR:u"è", "i"+GR:u"ì",
+         "o"+GR:u"ò", "u"+GR:u"ù", "y"+GR:u"ỳ",
+         "A"+GR:u"À", "E"+GR:u"È", "I"+GR:u"Ì",
+         "O"+GR:u"Ò", "U"+GR:u"Ù", "Y"+GR:u"Ỳ",})
 
     return text
 
@@ -369,7 +379,7 @@ def post_canonicalize_latin(text):
     # convert capital_e_subst to either E or Je, and small_e_subst to
     # either e or je; similarly, maybe map Ě to Jě, ě to jě.
     # Do before recomposing accented letters.
-    bow_or_vowel = u"(^|[- \[aeiouěAEIOUĚʺʹ%s%s]%s)" % (
+    bow_or_vowel = u"(^|[- \[aeiouyěAEIOUYĚʺʹ%s%s]%s)" % (
             capital_e_subst, small_e_subst, ACGROPT)
     # repeat to handle sequences of ЕЕЕЕЕ...
     for i in xrange(2):
@@ -579,7 +589,7 @@ def tr_matching(russian, latin, err=False, msgfun=None):
             error("Unable to match trailing Latin character %s at index %s" %
                 (la[lind[0]], lind[0]))
 
-    # Check for an unmatched Latin short vowel or similar; if so, insert
+    # Check for an unmatched acute or grave accent; if so, insert
     # corresponding Russian diacritic.
     def check_unmatching():
         if not (lind[0] < llen):
@@ -590,6 +600,18 @@ def tr_matching(russian, latin, err=False, msgfun=None):
             res.append(unmatched)
             lres.append(la[lind[0]])
             lind[0] = lind[0] + 1
+            return True
+        return False
+
+    def consume_against_eow_hard_sign():
+        if rind[0] < rlen and ru[rind[0]] in [capital_silent_hard_sign,
+                small_silent_hard_sign]:
+            # Consume any hard/soft-like signs
+            if lind[0] < llen and la[lind[0]] in [
+                    u"Ъ",u"ъ",u'ʹ',u"’",u"´",u'ʺ',u"”",u"″"]:
+                lind[0] += 1
+            res.append(ru[rind[0]])
+            rind[0] += 1
             return True
         return False
 
@@ -617,6 +639,9 @@ def tr_matching(russian, latin, err=False, msgfun=None):
                 ru[rind[0]] in word_interrupting_chars and
                 check_unmatching()):
             debprint("Matched: Clause 1")
+            matched = True
+        elif consume_against_eow_hard_sign():
+            debprint("Matched: consume_against_eow_hard_sign()")
             matched = True
         elif rind[0] < rlen and match():
             debprint("Matched: Clause match()")
@@ -754,6 +779,18 @@ def run_tests():
     # Here the single quote after l should become ʹ but not the others
     test(u"volu '''pal'dá'''", u"волу '''пальда'''", "matched", u"волу '''пальда́'''")
     test(u"bólʹše vsevó", u"[[бо́льше]] [[всё|всего́]]", "unmatched")
+
+    # Some real-world tests
+    # FIXME!!
+    # test(u"Gorbačóv", u"Горбачев", "matched", u"Горбачёв")
+    test(u"Igor", u"Игорь", "matched")
+    test(u"rajón″", u"районъ", "matched", u"райо́нъ")
+    test(u"karantin’", u"карантинъ", "matched")
+    test(u"blyad", u"блядь", "matched")
+    test(u"ródъ", u"родъ", "matched", u"ро́дъ")
+    test(u"soból´", u"соболь", "matched", u"собо́ль")
+    test(u"časóvn'a", u"часовня", "matched", u"часо́вня")
+    test(u"ėkzistencializm", u"экзистенциализм", "matched")
 
     # # Test adding ! or ؟
     # test(u"fan", u"فن!", "matched")
