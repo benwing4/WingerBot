@@ -57,7 +57,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
           pagemsg)
       match_canon = True
     except Exception as e:
-      pagemsg("Unable to match-canon %s (%s): %s" % (foreign, latin, e))
+      pagemsg("NOTE: Unable to match-canon %s (%s): %s: %s" % (
+        foreign, latin, e, unicode(template)))
       canonlatin, canonforeign = translit_module.canonicalize_latin_foreign(latin, foreign)
   else:
     _, canonforeign = translit_module.canonicalize_latin_foreign(None, foreign)
@@ -70,9 +71,11 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   try:
     translit = translit_module.tr(canonforeign)
     if not translit:
-      pagemsg("Unable to auto-translit %s" % foreign)
+      pagemsg("NOTE: Unable to auto-translit %s (canoned from %s): %s" %
+          (canonforeign, foreign, unicode(template)))
   except Exception as e:
-    pagemsg("Unable to transliterate %s: %s" % (foreign, e))
+    pagemsg("NOTE: Unable to transliterate %s (canoned from %s): %s: %s" %
+        (canonforeign, foreign, e, unicode(template)))
     translit = None
 
   if canonforeign == foreign:
@@ -99,8 +102,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         toparam, canonforeign))
     if (translit_module.remove_diacritics(canonforeign) !=
         translit_module.remove_diacritics(foreign)):
-      pagemsg("NOTE: Without diacritics, old foreign %s different from canon %s"
-          % (foreign, canonforeign))
+      pagemsg("NOTE: Without diacritics, old foreign %s different from canon %s: %s"
+          % (foreign, canonforeign, unicode(template)))
 
   if not latin:
     pass
@@ -109,25 +112,29 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         foreign, newforeign, latintrtext))
     actions.append("remove redundant %s=%s" % (paramtrname, latin))
     canonlatin = True
-  elif canonlatin == latin:
-    pagemsg("No change in Latin %s: foreign %s -> %s" %
-        (latin, foreign, newforeign))
-    canonlatin = False
   else:
-    if match_canon:
-      operation="Match-canoning"
-      actionop="match-canon"
-    # No cross-canonicalizing takes place with Russian or Ancient Greek.
-    #else:
-    #  operation="Cross-canoning"
-    #  actionop="cross-canon"
+    if translit:
+      pagemsg("NOTE: Canoned Latin %s not same as auto-translit %s, can't remove: %s" %
+          (canonlatin, translit, unicode(template)))
+    if canonlatin == latin:
+      pagemsg("No change in Latin %s: foreign %s -> %s" %
+          (latin, foreign, newforeign))
+      canonlatin = False
     else:
-      operation="Self-canoning"
-      actionop="self-canon"
-    pagemsg("%s Latin %s -> %s: foreign %s -> %s" % (operation,
-        latin, canonlatin, foreign, newforeign))
-    actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
-      canonlatin))
+      if match_canon:
+        operation="Match-canoning"
+        actionop="match-canon"
+      # No cross-canonicalizing takes place with Russian or Ancient Greek.
+      #else:
+      #  operation="Cross-canoning"
+      #  actionop="cross-canon"
+      else:
+        operation="Self-canoning"
+        actionop="self-canon"
+      pagemsg("%s Latin %s -> %s: foreign %s -> %s" % (operation,
+          latin, canonlatin, foreign, newforeign))
+      actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
+        canonlatin))
 
   return (canonforeign, canonlatin, actions)
 
@@ -205,8 +212,7 @@ def sort_group_changelogs(actions):
 # TRANSLIT_MODULE is the module handling transliteration,
 # match-canonicalization and removal of diacritics.
 def canon_links(save, verbose, cattype, lang, longlang, script,
-    translit_module, langs_with_terms_derived_from, startFrom, upTo,
-    pages_to_do=[]):
+    translit_module, startFrom, upTo, pages_to_do=[]):
   if not isinstance(script, list):
     script = [script]
   def process_param(pagetitle, index, template, param, paramtr):
@@ -229,7 +235,4 @@ def canon_links(save, verbose, cattype, lang, longlang, script,
 
   return blib.process_links(save, verbose, lang, longlang, cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
-      langs_with_terms_derived_from=langs_with_terms_derived_from,
-      pages_to_do=pages_to_do
-      #,split_templates=True
-      )
+      pages_to_do=pages_to_do)

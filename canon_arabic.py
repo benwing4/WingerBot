@@ -22,162 +22,6 @@ from blib import msg, getparam
 import arabiclib
 import ar_translit
 
-langs_with_terms_derived_from_arabic = [
-  "Abkhaz",
-  "Acehnese",
-  "Adyghe",
-  "Afrikaans",
-  "Albanian",
-  "Ancient Greek",
-  "Andalusian Arabic",
-  "Aragonese",
-  "Aramaic",
-  "Armenian",
-  "Asturian",
-  "Avar",
-  "Azeri",
-  "Baluchi",
-  "Bambara",
-  "Bashkir",
-  "Basque",
-  "Bengali",
-  "Brahui",
-  "Bulgarian",
-  "Burmese",
-  "Burushaski",
-  "Catalan",
-  "Central Kurdish",
-  "Central Melanau",
-  "Chechen",
-  "Chinese",
-  "Classical Syriac",
-  "Crimean Tatar",
-  "Czech",
-  "Danish",
-  "Dhivehi",
-  "Dutch",
-  "Egyptian Arabic",
-  "English",
-  "Esperanto",
-  "Faroese",
-  "Fiji Hindi",
-  "Fijian",
-  "Finnish",
-  "French",
-  "Fula",
-  "Gagauz",
-  "Galician",
-  "Georgian",
-  "German",
-  "Greek",
-  "Gujarati",
-  "Hassaniya",
-  "Hausa",
-  "Hebrew",
-  "Hijazi Arabic",
-  "Hiligaynon",
-  "Hindi",
-  "Hungarian",
-  "Iban",
-  "Icelandic",
-  "Ido",
-  "Indonesian",
-  "Irish",
-  "Istriot",
-  "Italian",
-  "Japanese",
-  "Javanese",
-  "Judeo-Arabic",
-  "Kabardian",
-  "Kabyle",
-  "Kaingang",
-  "Karachay-Balkar",
-  "Karo Batak",
-  "Kashmiri",
-  "Kazakh",
-  "Khakas",
-  "Khmer",
-  "Korean",
-  "Kumyk",
-  "Kurdish",
-  "Kyrgyz",
-  "Ladino",
-  "Laki",
-  "Latin",
-  "Latvian",
-  "Lezgi",
-  "Ligurian",
-  "Lower Sorbian",
-  "Macedonian",
-  "Maithili",
-  "Malagasy",
-  "Malay",
-  "Maltese",
-  "Mandarin",
-  "Marathi",
-  "Marshallese",
-  "Mauritian Creole",
-  "Middle Armenian",
-  "Middle French",
-  "Middle Persian",
-  "Mirandese",
-  "Moroccan Arabic",
-  "Neapolitan",
-  "Nepali",
-  "Newari",
-  "Norman",
-  "North Levantine Arabic",
-  u"Norwegian Bokmål",
-  "Norwegian Nynorsk",
-  "Old Armenian",
-  "Old French",
-  "Old Georgian",
-  "Old Norse",
-  "Old Portuguese",
-  "Old Spanish",
-  "Ottoman Turkish",
-  "Pashto",
-  "Persian",
-  "Polish",
-  "Portuguese",
-  "Punjabi",
-  "Rajasthani",
-  "Rohingya",
-  "Romani",
-  "Romanian",
-  "Russian",
-  "Sanskrit",
-  "Sardinian",
-  "Serbo-Croatian",
-  "Shor",
-  "Sicilian",
-  "Sindhi",
-  "Slovak",
-  "Slovene",
-  "Somali",
-  "Spanish",
-  "Swahili",
-  "Swedish",
-  "Tagalog",
-  "Tajik",
-  "Tashelhit",
-  "Tatar",
-  "Telugu",
-  "Thai",
-  "Translingual",
-  "Turkish",
-  "Turkmen",
-  "Ukrainian",
-  "Urdu",
-  "Uyghur",
-  "Uzbek",
-  "Venetian",
-  "Vietnamese",
-  "Wolof",
-  "Yoruba",
-  "Zazaki",
-]
-
 show_template=True
 
 # Canonicalize ARABIC and LATIN. Return (CANONARABIC, CANONLATIN, ACTIONS).
@@ -220,7 +64,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
           pagemsg)
       match_canon = True
     except Exception as e:
-      pagemsg("Unable to vocalize %s (%s): %s" % (arabic, latin, e))
+      pagemsg("NOTE: Unable to vocalize %s (%s): %s: %s" % (arabic, latin, e, unicode(template)))
       canonlatin, canonarabic = ar_translit.canonicalize_latin_arabic(latin, arabic)
   else:
     _, canonarabic = ar_translit.canonicalize_latin_arabic(None, arabic)
@@ -233,9 +77,11 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   try:
     translit = ar_translit.tr(canonarabic)
     if not translit:
-      pagemsg("Unable to auto-translit %s" % arabic)
+      pagemsg("NOTE: Unable to auto-translit %s (canoned from %s): %s" %
+          (canonarabic, arabic, unicode(template)))
   except Exception as e:
-    pagemsg("Unable to transliterate %s: %s" % (arabic, e))
+    pagemsg("NOTE: Unable to transliterate %s (canoned from %s): %s: %s" %
+        (canonarabic, arabic, e, unicode(template)))
     translit = None
 
   if canonarabic == arabic:
@@ -261,8 +107,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         toparam, canonarabic))
     if (ar_translit.remove_diacritics(canonarabic) !=
         ar_translit.remove_diacritics(arabic)):
-      pagemsg("NOTE: Without diacritics, old Arabic %s different from canon %s"
-          % (arabic, canonarabic))
+      pagemsg("NOTE: Without diacritics, old Arabic %s different from canon %s: %s"
+          % (arabic, canonarabic, unicode(template)))
 
   if not latin:
     pass
@@ -275,21 +121,25 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         arabic, newarabic, latintrtext))
     actions.append("remove redundant %s=%s" % (paramtrname, latin))
     canonlatin = True
-  elif canonlatin == latin:
-    pagemsg("No change in Latin %s: Arabic %s -> %s" %
-        (latin, arabic, newarabic))
-    canonlatin = False
   else:
-    if match_canon:
-      operation="Match-canoning"
-      actionop="match-canon"
+    if translit:
+      pagemsg("NOTE: Canoned Latin %s not same as auto-translit %s, can't remove: %s" %
+          (canonlatin, translit, unicode(template)))
+    if canonlatin == latin:
+      pagemsg("No change in Latin %s: Arabic %s -> %s" %
+          (latin, arabic, newarabic))
+      canonlatin = False
     else:
-      operation="Cross-canoning"
-      actionop="cross-canon"
-    pagemsg("%s Latin %s -> %s: Arabic %s -> %s" % (operation,
-        latin, canonlatin, arabic, newarabic))
-    actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
-      canonlatin))
+      if match_canon:
+        operation="Match-canoning"
+        actionop="match-canon"
+      else:
+        operation="Cross-canoning"
+        actionop="cross-canon"
+      pagemsg("%s Latin %s -> %s: Arabic %s -> %s" % (operation,
+          latin, canonlatin, arabic, newarabic))
+      actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
+        canonlatin))
 
   for mesg in msgs:
     pagemsg("NOTE: %s: Arabic %s -> %s%s" % (mesg, arabic, canonarabic,
@@ -507,14 +357,14 @@ def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
 
   return blib.process_links(save, verbose, "ar", "Arabic", cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
-      langs_with_terms_derived_from=langs_with_terms_derived_from_arabic,
-      pages_to_do=pages_to_do, split_templates=True)
+      pages_to_do=pages_to_do, split_templates="[,/]")
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
     help="Correct vocalization and translit of links")
 pa.add_argument("--cattype", default="borrowed",
-    help="Categories to examine ('vocab', 'borrowed', 'translation', 'pagetext')")
+    help="""Categories to examine ('vocab', 'borrowed', 'translation',
+'pagetext' or comma-separated list)""")
 pa.add_argument("--page-file",
     help="""File containing "pages" to process when --cattype pagetext""")
 

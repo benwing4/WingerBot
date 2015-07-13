@@ -204,7 +204,7 @@ def cat_subcats(page, startsort = None, endsort = None):
     page = page.decode("utf-8")
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
-  pageiter = page.subcategories(startsort = startsort if not isinstance(startsort, int) else None)
+  pageiter = page.subcategories() #no startsort; startsort = startsort if not isinstance(startsort, int) else None)
   for pageind in iter_pages(pageiter, startsort, endsort):
     yield pageind
 
@@ -368,12 +368,13 @@ def getEtymLanguageData():
 # entries); for doing off-line runs; nothing saved).
 #
 # If SPLIT_TEMPLATES, then if the transliteration contains multiple entries
-# separated by a comma, the template is split into multiple copies, each with
-# one of the entries, and the templates are comma-separated.
+# separated the regex in SPLIT_TEMPLATES with optional spaces on either end,
+# the template is split into multiple copies, each with one of the entries,
+# and the templates are comma-separated.
 #
 def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
-    process_param, join_actions=None, split_templates=False,
-    langs_with_terms_derived_from=[], pages_to_do=[]):
+    process_param, join_actions=None, split_templates="[,]",
+    pages_to_do=[]):
   templates_changed = {}
   templates_seen = {}
 
@@ -511,8 +512,8 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
     if split_templates:
       def process_param_for_splitting(pagetitle, index, template, param, paramtr):
         latin = getparam(template, paramtr)
-        if "," in latin or "/" in latin:
-          trs = re.split("\\s*[,/]\\s*", latin)
+        if re.search(split_templates, latin):
+          trs = re.split("\\s*" + split_templates + "\\s*", latin)
           oldtemp = unicode(template)
           newtemps = []
           for tr in trs:
@@ -548,35 +549,38 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
   def process_one_page_links_wrapper(page, index, text):
     return process_one_page_links(unicode(page.title()), index, text)
 
-  if cattype == "translation":
-    for template in ["t", "t+", "t-", "t+check", "t-check"]:
-      msg("Processing template %s" % template)
-      errmsg("Processing template %s" % template)
-      for page, index in references("Template:%s" % template, startFrom, upTo):
-        do_edit(page, index, process_one_page_links_wrapper, save=save,
-            verbose=verbose)
-  elif cattype == "pagetext":
-    for current, index in iter_pages(pages_to_do, startFrom, upTo,
-        key=lambda x:x[0]):
-      pagetitle, pagetext = current
-      do_process_text(pagetitle, pagetext, index, process_one_page_links,
-          verbose=verbose)
+  if "," in cattype:
+    cattypes = cattype.split(",")
   else:
-    if cattype == "vocab":
-      cats = ["%s lemmas" % longlang, "%s non-lemma forms" % longlang]
-    elif cattype == "borrowed":
-      #cats = ["%s terms derived from %s" % (x, longlang) for x in
-      #    langs_with_terms_derived_from]
-      cats = [subcat for subcat, index in
-          cat_subcats("Terms derived from %s" % longlang)]
-    else:
-      raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translation'")
-    for cat in cats:
-      msg("Processing category %s" % cat)
-      errmsg("Processing category %s" % cat)
-      for page, index in cat_articles(cat, startFrom, upTo):
-        do_edit(page, index, process_one_page_links_wrapper, save=save,
+    cattypes = [cattype]
+  for cattype in cattypes:
+    if cattype == "translation":
+      for template in ["t", "t+", "t-", "t+check", "t-check"]:
+        msg("Processing template %s" % template)
+        errmsg("Processing template %s" % template)
+        for page, index in references("Template:%s" % template, startFrom, upTo):
+          do_edit(page, index, process_one_page_links_wrapper, save=save,
+              verbose=verbose)
+    elif cattype == "pagetext":
+      for current, index in iter_pages(pages_to_do, startFrom, upTo,
+          key=lambda x:x[0]):
+        pagetitle, pagetext = current
+        do_process_text(pagetitle, pagetext, index, process_one_page_links,
             verbose=verbose)
+    else:
+      if cattype == "vocab":
+        cats = ["%s lemmas" % longlang, "%s non-lemma forms" % longlang]
+      elif cattype == "borrowed":
+        cats = [subcat for subcat, index in
+            cat_subcats("Terms derived from %s" % longlang)]
+      else:
+        raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translation'")
+      for cat in cats:
+        msg("Processing category %s" % unicode(cat))
+        errmsg("Processing category %s" % unicode(cat))
+        for page, index in cat_articles(cat, startFrom, upTo):
+          do_edit(page, index, process_one_page_links_wrapper, save=save,
+              verbose=verbose)
   msg("Templates seen:")
   for template, count in sorted(templates_seen.items(), key=lambda x:-x[1]):
     msg("  %s = %s" % (template, count))
