@@ -511,8 +511,8 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
     if split_templates:
       def process_param_for_splitting(pagetitle, index, template, param, paramtr):
         latin = getparam(template, paramtr)
-        if "," in latin:
-          trs = re.split(",\\s*", latin)
+        if "," in latin or "/" in latin:
+          trs = re.split("\\s*[,/]\\s*", latin)
           oldtemp = unicode(template)
           newtemps = []
           for tr in trs:
