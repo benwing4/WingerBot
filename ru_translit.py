@@ -320,32 +320,27 @@ tt_to_russian_matching_uppercase = {
     u'Ѵ':u'I',
 }
 
+# Match Latin characters in the Russian against same characters
+for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+    tt_to_russian_matching_uppercase[ch] = ch
+
 tt_to_russian_matching_non_case = {
     # Russian style quotes
     u'«':[u'“',u'"'],
-    u'»':[u'”',u'"'],
-    # numerals
-    u"1":u"1", u"2":u"2", u"3":u"3", u"4":u"4", u"5":u"5",
-    u"6":u"6", u"7":u"7", u"8":u"8", u"9":u"9", u"0":u"0",
+    u'»':[u'”',(u'ʺ',),u'"'],
     # punctuation (leave on separate lines)
-    u",":u",", # comma
-    u";":u";", # semicolon
-    u":":u":", # colon
     # these are now handled by check_unmatch_either()
     #u"?":[u"?",u""], # question mark
     #u".":[u".",u""], # period
     #u"!":[u"!",u""], # exclamation point
     u"-":u"-", # hyphen/dash
     u"—":[u"—",u"-"], # long dash
-    u"/":u"/", # slash
     u'"':[(u'"',)], # quotation mark
     # allow single quote to match nothing so we can handle bolded text in
     # the Cyrillic without corresponding bold in the translit and add the
     # bold to the translit (occurs a lot in usexes)
     u"'":[(u"'",),(u"ʹ",),u""], # single quote, for bold/italic
     u"’":[(u"’",),(u"ʹ",),(u"'",)], # Кот-д’Ивуар
-    u"(":u"(", # parens
-    u")":u")",
     u" ":u" ",
     u"[":u"",
     u"]":u"",
@@ -356,6 +351,10 @@ tt_to_russian_matching_non_case = {
     capital_silent_hard_sign:[u""],
     small_silent_hard_sign:[u""],
 }
+
+# Match numbers and some punctuation against itself
+for ch in "1234567890,;:()/":
+    tt_to_russian_matching_non_case[ch] = ch
 
 # Convert string, list of stuff of tuple of stuff into lowercase
 def lower_entry(x):
@@ -401,10 +400,10 @@ if debug_tables:
 # list all the possibilities with and without the accent, and include
 # accented entries one character up.
 tt_to_russian_matching_2char = {
-    u"ый":["yj",["y"+AC+"j","y"+AC+"j",u"ы́й"],"yi",["y"+AC+"i","y"+AC+"j",u"ы́й"],
-        ["y"+AC,"y"+AC+"j",u"ы́й"],"y"],
-    u"ий":["ij",["i"+AC+"j","i"+AC+"j",u"и́й"],"yi",["y"+AC+"i","i"+AC+"j",u"и́й"],
-        ["i"+AC,"i"+AC+"j",u"и́й"],"i"],
+    u"ый":["yj",["y"+AC+"j","y"+AC+"j",u"ы́й"],"yj",["y"+AC+"y","y"+AC+"j",u"ы́й"],
+        "yi",["y"+AC+"i","y"+AC+"j",u"ы́й"], ["y"+AC,"y"+AC+"j",u"ы́й"],"y"],
+    u"ий":["ij",["i"+AC+"j","i"+AC+"j",u"и́й"],"iy",["i"+AC+"y","i"+AC+"j",u"и́й"],
+        "yi",["y"+AC+"i","i"+AC+"j",u"и́й"], ["i"+AC,"i"+AC+"j",u"и́й"],"i"],
     # ja for ся is strange but occurs in ться vs. tʹja
     u"ся":["sja","sa",u"ja"], # especially in the reflexive ending
     u"нн":["nn","n"],
@@ -424,7 +423,7 @@ tt_to_russian_matching_2char = {
 tt_to_russian_matching_3char = {
     u" — ":[u" — ",u"—",u" - ",u"-"],
     u"ы́й":["y"+AC+"j","yj","yi","y"+AC+"i","y"+AC,"y"],
-    u"и́й":["i"+AC+"j","ij","yi","y"+AC+"i","i"+AC,"i"],
+    u"и́й":["i"+AC+"j","ij","i"+AC+"y","iy","yi","y"+AC+"i","i"+AC,"i"],
 }
 
 tt_to_russian_matching_4char = {
