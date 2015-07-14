@@ -46,10 +46,6 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   if show_template:
     pagemsg("Processing %s" % (unicode(template)))
 
-  msgs = []
-  def notemsg(text):
-    msgs.append(text)
-
   if include_tempname_in_changelog:
     paramtrname = "%s.%s" % (tname, paramtr)
   else:
@@ -103,8 +99,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
     else:
       operation="Self-canoning"
       actionop="self-canon"
-    pagemsg("%s Arabic %s -> %s%s" % (operation, arabic, canonarabic,
-      latintrtext))
+    pagemsg("%s Arabic %s -> %s%s: %s" % (operation, arabic, canonarabic,
+      latintrtext, unicode(template)))
     if fromparam == toparam:
       actions.append("%s %s=%s -> %s" % (actionop, fromparam, arabic,
         canonarabic))
@@ -132,8 +128,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
       pagemsg("NOTE: Canoned Latin %s not same as auto-translit %s, can't remove: %s" %
           (canonlatin, translit, unicode(template)))
     if canonlatin == latin:
-      pagemsg("No change in Latin %s: Arabic %s -> %s" %
-          (latin, arabic, newarabic))
+      pagemsg("No change in Latin %s: Arabic %s -> %s (auto-translit %s)" %
+          (latin, arabic, newarabic, translit))
       canonlatin = False
     else:
       if match_canon:
@@ -142,14 +138,11 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
       else:
         operation="Cross-canoning"
         actionop="cross-canon"
-      pagemsg("%s Latin %s -> %s: Arabic %s -> %s" % (operation,
-          latin, canonlatin, arabic, newarabic))
+      pagemsg("%s Latin %s -> %s: Arabic %s -> %s (auto-translit %s): %s" % (
+          operation, latin, canonlatin, arabic, newarabic, translit,
+          unicode(template)))
       actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
         canonlatin))
-
-  for mesg in msgs:
-    pagemsg("NOTE: %s: Arabic %s -> %s%s" % (mesg, arabic, canonarabic,
-      latintrtext))
 
   return (canonarabic, canonlatin, actions)
 
@@ -365,7 +358,7 @@ def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
 
   return blib.process_links(save, verbose, "ar", "Arabic", cattype,
       startFrom, upTo, process_param, sort_group_changelogs,
-      pages_to_do=pages_to_do, split_templates="[,/]")
+      pages_to_do=pages_to_do, split_templates=u"[,،/]")
 
 pa = blib.init_argparser("Correct vocalization and translit")
 pa.add_argument("-l", "--links", action='store_true',
