@@ -209,6 +209,13 @@ small_ju_subst = u"\ufff5"
 capital_silent_hard_sign = u"\ufff6"
 small_silent_hard_sign = u"\ufff7"
 
+# List of characters we don't self-canonicalize at all, on top of
+# whatever may be derived from the matching tables. Note that we also
+# don't self-canonicalize the canonical entries in the matching tables.
+dont_self_canonicalize = (
+  u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
+
 # This dict maps Russian characters to all the Latin characters that
 # might correspond to them. The entries can be a string (equivalent
 # to a one-entry list) or a list of items. Each item can be a string
@@ -224,20 +231,27 @@ small_silent_hard_sign = u"\ufff7"
 # list, as mentioned above).
 #
 # If the item of a list, or the first element of such an item, is a
-# one-element tuple containing a string, it behaves similarly as if it
-# were just a string. In particular, it makes no difference during
-# match-canonicalization, but has a different effect during
-# self-canonicalization in that we don't trigger the check for
-# multiple possible canonicalizations during self-canonicalization.
-# The purpose of doing this is to indicate that this character occurs
-# somewhere else and should be canonicalized at self-canonicalization
-# according to that somewhere-else. For example, single-quote ("'")
-# occurs in various entries, but most occurrences are surrounded by
-# one-element tuples; only the occurrences where the canonical
-# character is u"ʹ" aren't so surrounded. The effect is that
-# single-quote will be self-canonicalized to u"ʹ", even though it
-# will be match-canonicalized to multiple possibilities depending on
-# the corresponding Russian character.
+# one-element tuple containing a string, it makes no difference during
+# match-canonicalization, but serves as a special signal during
+# self-canonicalization. If the tuple-surrounded item is not the first
+# item in the entry, it suppresses self-canonicalizing this character
+# to the first item in the entry. Note that if a character occurs in
+# multiple entries, normally no self-canonicalizing will occur of this
+# character, but if some of them have self-canonicalizing suppressed but
+# others don't it is possible to control what a character is
+# self-canonicalized to. For example, single-quote ("'") occurs in various
+# entries, but most occurrences are surrounded by one-element tuples;
+# only the occurrences where the canonical character is u"ʹ" aren't so
+# surrounded. The effect is that single-quote will be self-canonicalized
+# to u"ʹ", even though it will be match-canonicalized to multiple
+# possibilities depending on the corresponding Russian character.
+# (If the first item in an entry is a tuple, it overrides the behavior
+# that normally suppresses all self-canonicalization of the character.
+# For example, single-quote ("'") is surrounded in a tuple in the
+# entry with the same single-quote on the Russian side. That allows
+# single-quote to remain as a single-quote when match-canonicalizing a
+# single-quote on the Russian side, but ensures that it will be
+# stll self-canonicalized to u"ʹ", as previously described.)
 #
 # Each string might have multiple characters, to handle things
 # like ж=zh.
@@ -247,18 +261,16 @@ tt_to_russian_matching_uppercase = {
     u"Б":u"B",
     u"В":[u"V",u"B",u"W"],
     # most of these entries are here for the lowercase equivalent
-    # second X is Greek; FIXME, should be converted to Latin X
+    # second X is Greek
     u'Г':[u'G',[u'V'],[u'X'],[(u"Χ",),"X"],[u'Kh'],[u'H']],
     u"Д":u"D",
     # Canonicalize to capital_e_subst, which we later map to either Je or E
     # depending on what precedes. We don't use regular capital E as the
     # canonical character because Э also maps to E.
-    # FIXME: Yo 'O ʹO 'Jo ʹJo should be converted to Jo.
     u"Е":[capital_e_subst,"E","Je","Ye",u"'E",u"ʹE",
         # O matches for after hushing sounds
         [u"Ɛ"],[u"Jo"],[u"Yo",u"Jo"],[u"'O",u"Jo"],[u"ʹO",u"Jo"],
         [u"'Jo",u"Jo"],[u"ʹJo",u"Jo"],[u"O"]],
-    # FIXME: Yo 'O ʹO 'Jo ʹJo should be converted to Jo
     u"Ё":[u"Jo"+AC,u"Yo"+AC,u"'O"+AC,u"ʹO"+AC,u"'Jo"+AC,u"ʹJo"+AC,u"O"+AC,
         # be conservative and don't self-canon Ë to Jó because it might
         # be unstressed (although unlikely)
@@ -386,7 +398,6 @@ tt_to_russian_matching_2char = {
     u"ся":["sja","sa",u"ja"], # especially in the reflexive ending
     u"нн":["nn","n"],
     u"ть":[u"tʹ",u"ť",u"ț"],
-    # FIXME: Canonicalize these to convert weird char into tj
     u"тё":[u"tjo"+AC,u"ťo"+AC,u"ț"+AC,[u"ťo",u"tjo"],[u"țo",u"tjo"]],
     u"те":[u"te",u"ťe",u"țe"],
     u"ие":["ije",u"ʹje",u"'je","je"],
@@ -407,15 +418,21 @@ tt_to_russian_matching_4char = {
     u"вств":[u"vstv","stv"],
 }
 
+tt_to_russian_matching_all_char = dict(
+        tt_to_russian_matching.items() +
+        tt_to_russian_matching_2char.items() +
+        tt_to_russian_matching_3char.items() +
+        tt_to_russian_matching_4char.items())
+
 build_canonicalize_latin = {}
-for ch in u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
+for ch in dont_self_canonicalize:
+    # "multiple" suppresses any self-canonicalization of this character
     build_canonicalize_latin[ch] = "multiple"
 build_canonicalize_latin[""] = "multiple"
 
 # Make sure we don't canonicalize any canonical letter to any other one;
 # e.g. could happen with ʾ, an alternative for ʿ.
-for russian in tt_to_russian_matching:
-    alts = tt_to_russian_matching[russian]
+for russian, alts in tt_to_russian_matching_all_char.items():
     if not isinstance(alts, list):
         alts = [alts]
     canon = alts[0]
@@ -423,10 +440,20 @@ for russian in tt_to_russian_matching:
         canon = canon[0]
     if isinstance(canon, tuple):
         continue
+    # "multiple" suppresses any self-canonicalization of this character
     build_canonicalize_latin[canon] = "multiple"
+    # For from->to canonicalization, suppress self-canonicalzation of
+    # the 'to' character, because it's a possible canonical char
+    for canon in alts[1:]:
+        if isinstance(canon, list) and len(canon) == 2:
+            build_canonicalize_latin[canon[1]] = "multiple"
 
-for russian in tt_to_russian_matching:
-    alts = tt_to_russian_matching[russian]
+# Now build a table along the way to constructing the self-canonicalizing
+# table. We make from->to entries for all non-canonical chars; if we
+# encounter an existing from->to entry with a different 'to', we set the
+# value to "multiple", which suppresses any self-canonicalization of the
+# character.
+for russian, alts in tt_to_russian_matching_all_char.items():
     if not isinstance(alts, list):
         alts = [alts]
     canon = alts[0]
@@ -445,16 +472,20 @@ for russian in tt_to_russian_matching:
         if frm in build_canonicalize_latin and build_canonicalize_latin[frm] != to:
             if debug_tables:
                 msg("Setting bcl of %s to multiple" % frm)
-            build_canonicalize_latin[alt] = "multiple"
+            build_canonicalize_latin[frm] = "multiple"
         else:
             if debug_tables:
                 msg("Setting bcl of %s to %s" % (frm, to))
             build_canonicalize_latin[frm] = to
+
+# Now build the actual self-canonicalizing table, derived from the
+# previous table minus any entries with the value 'multiple'.
+# NOTE: Multiple-character 'from' entries on this table have no effect
+# since the self-canonicalizing algorithm goes character-by-character.
 tt_canonicalize_latin = {}
-for alt in build_canonicalize_latin:
-    canon = build_canonicalize_latin[alt]
-    if canon != "multiple":
-        tt_canonicalize_latin[alt] = canon
+for frm, to in build_canonicalize_latin.items():
+    if to != "multiple":
+        tt_canonicalize_latin[frm] = to
 
 if debug_tables:
     for x,y in build_canonicalize_latin.items():
@@ -1103,7 +1134,6 @@ def run_tests():
     test(u"''podnimát' ''", u"поднимать", "matched", u"поднима́ть")
     test(u"priv'áš'ivyj", u"привязчивый", "matched", u"привя́зчивый")
     test(u"zaméthyj", u"заметный", "matched", u"заме́тный")
-    # FIXME, should canonicalize the yo; Cyrillic has Latin ë
     test(u"beznadyozhnyi", u"безнадëжный", "unmatched", u"безнадёжный")
     test(u"žénščinы", u"женщины", "matched", u"же́нщины")
     test(u"diakhronicheskyi", u"диахронический", "matched")
