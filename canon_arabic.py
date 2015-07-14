@@ -65,13 +65,15 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   if latin:
     try:
       canonarabic, canonlatin = ar_translit.tr_matching(arabic, latin, True,
-          pagemsg)
+          msgfun=pagemsg)
       match_canon = True
     except Exception as e:
       pagemsg("NOTE: Unable to vocalize %s (%s): %s: %s" % (arabic, latin, e, unicode(template)))
-      canonlatin, canonarabic = ar_translit.canonicalize_latin_arabic(latin, arabic)
+      canonlatin, canonarabic = ar_translit.canonicalize_latin_arabic(latin,
+          arabic, msgfun=pagemsg)
   else:
-    _, canonarabic = ar_translit.canonicalize_latin_arabic(None, arabic)
+    _, canonarabic = ar_translit.canonicalize_latin_arabic(None, arabic,
+        msgfun=pagemsg)
 
   newlatin = canonlatin == latin and "same" or canonlatin
   newarabic = canonarabic == arabic and "same" or canonarabic
@@ -79,7 +81,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   latintrtext = (latin or canonlatin) and " (%s -> %s)" % (latin, newlatin) or ""
 
   try:
-    translit = ar_translit.tr(canonarabic)
+    translit = ar_translit.tr(canonarabic, msgfun=pagemsg)
     if not translit:
       pagemsg("NOTE: Unable to auto-translit %s (canoned from %s): %s" %
           (canonarabic, arabic, unicode(template)))

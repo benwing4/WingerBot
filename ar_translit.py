@@ -18,7 +18,7 @@
 import re, unicodedata
 import arabiclib
 from arabiclib import *
-from blib import remove_links
+from blib import remove_links, msg
 
 # FIXME!! To do:
 #
@@ -46,8 +46,8 @@ def rsub(text, fr, to):
     else:
         return re.sub(fr, to, text)
 
-def error(msg):
-    raise RuntimeError(msg)
+def error(text):
+    raise RuntimeError(text)
 
 def nfc_form(txt):
     return unicodedata.normalize("NFKC", unicode(txt))
@@ -188,7 +188,7 @@ before_diacritic_checking_subs = [
 # be transliterated (normally the function checks for non-vocalized text and
 # returns None, since such text is ambiguous in transliteration).
 def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=False,
-        force_translate=False):
+        force_translate=False, msgfun=msg):
     for sub in before_diacritic_checking_subs:
         text = rsub(text, sub[0], sub[1])
 
@@ -734,7 +734,7 @@ def post_canonicalize_latin(text):
 # is more reliable when both aare provided. This is less reliable than
 # tr_matching() and is meant when that fails. Return value is a tuple of
 # (CANONLATIN, CANONARABIC).
-def canonicalize_latin_arabic(latin, arabic):
+def canonicalize_latin_arabic(latin, arabic, msgfun=msg):
     if arabic is not None:
         arabic = pre_pre_canonicalize_arabic(arabic)
     if latin is not None:
@@ -895,7 +895,7 @@ debug_tr_matching = False
 # the right places, so that ambiguities of Latin transliteration can be
 # correctly handled. Returns a tuple of Arabic, Latin. If unable to match,
 # throw an error if ERR, else return None.
-def tr_matching(arabic, latin, err=False, msgfun=None):
+def tr_matching(arabic, latin, err=False, msgfun=msg):
     origarabic = arabic
     origlatin = latin
     def debprint(x):
@@ -1125,9 +1125,8 @@ def tr_matching(arabic, latin, err=False, msgfun=None):
             canonalif = u"إ"
         else:
             canonalif = u"أ"
-        if msgfun:
-            msgfun("Canonicalized alif to %s in %s (%s)" % (
-                canonalif, origarabic, origlatin))
+        msgfun("Canonicalized alif to %s in %s (%s)" % (
+            canonalif, origarabic, origlatin))
         res.append(canonalif)
         aind[0] += 1
         lres.append(u"ʾ")
@@ -1331,11 +1330,9 @@ num_failed = 0
 num_succeeded = 0
 
 def test(latin, arabic, should_outcome):
-    def msg(text):
-      print text.encode('utf-8')
     global num_succeeded, num_failed
     try:
-        result = tr_matching(arabic, latin, True, msg)
+        result = tr_matching(arabic, latin, True, msgfun=msg)
     except RuntimeError as e:
         uniprint(u"%s" % e)
         result = False

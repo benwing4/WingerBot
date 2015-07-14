@@ -57,15 +57,19 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   canonlatin = ""
   if latin:
     try:
-      canonforeign, canonlatin = translit_module.tr_matching(foreign, latin, True,
-          pagemsg)
+      canonforeign, canonlatin = translit_module.tr_matching(foreign,
+          latin, True, msgfun=pagemsg)
       match_canon = True
     except Exception as e:
       pagemsg("NOTE: Unable to match-canon %s (%s): %s: %s" % (
         foreign, latin, e, unicode(template)))
-      canonlatin, canonforeign = translit_module.canonicalize_latin_foreign(latin, foreign)
+      canonlatin, canonforeign = (
+          translit_module.canonicalize_latin_foreign(latin, foreign,
+            msgfun=pagemsg))
   else:
-    _, canonforeign = translit_module.canonicalize_latin_foreign(None, foreign)
+    _, canonforeign = (
+        translit_module.canonicalize_latin_foreign(None, foreign,
+          msgfun=pagemsg))
 
   newlatin = canonlatin == latin and "same" or canonlatin
   newforeign = canonforeign == foreign and "same" or canonforeign
@@ -73,7 +77,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   latintrtext = (latin or canonlatin) and " (%s -> %s)" % (latin, newlatin) or ""
 
   try:
-    translit = translit_module.tr(canonforeign)
+    translit = translit_module.tr(canonforeign, msgfun=pagemsg)
     if not translit:
       pagemsg("NOTE: Unable to auto-translit %s (canoned from %s): %s" %
           (canonforeign, foreign, unicode(template)))
@@ -121,8 +125,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
       pagemsg("NOTE: Canoned Latin %s not same as auto-translit %s, can't remove: %s" %
           (canonlatin, translit, unicode(template)))
     if canonlatin == latin:
-      pagemsg("No change in Latin %s: foreign %s -> %s" %
-          (latin, foreign, newforeign))
+      pagemsg("No change in Latin %s: foreign %s -> %s (auto-translit %s)" %
+          (latin, foreign, newforeign, translit))
       canonlatin = False
     else:
       if match_canon:
@@ -135,8 +139,8 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
       else:
         operation="Self-canoning"
         actionop="self-canon"
-      pagemsg("%s Latin %s -> %s: foreign %s -> %s" % (operation,
-          latin, canonlatin, foreign, newforeign))
+      pagemsg("%s Latin %s -> %s: foreign %s -> %s (auto-translit %s)" % (
+          operation, latin, canonlatin, foreign, newforeign, translit))
       actions.append("%s %s=%s -> %s" % (actionop, paramtrname, latin,
         canonlatin))
 

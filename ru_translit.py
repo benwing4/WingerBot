@@ -40,6 +40,14 @@ from blib import remove_links, msg
 #    accent in word
 # 9. Ask Anatoli if it's OK to convert ɛ to e when not after a consonant,
 #    e.g self-canon paciɛ́nt -> paciént or tɛ-ɛs-žé -> tɛ-es-žé
+# 10. Ask Anatoli about multiple acute accents in a word. Currently I throw
+#    an error if the Russian has multiple accents (Блу́мфонте́йн,
+#    ла́биодента́льный -- template {{t|ru|Блу́мфонте́йн|m|tr=Blúmfontɛjn, Blumfontɛ́jn}}
+#    originally has a comma in it, split into multiple templates; template
+#    {{t|ru|ла́биодента́льный|tr=labiodɛntálʹnyj|sc=Cyrl}} does not have a comma
+#    but has the Latin accent only on one syllable) but go ahead and
+#    match-canon if the Latin has multiple accents (rývók, zapóminátʹ),
+#    i.e. they will be transferred to the Russian.
 
 AC = u"\u0301"
 GR = u"\u0300"
@@ -66,8 +74,8 @@ def rsub(text, fr, to):
     else:
         return re.sub(fr, to, text)
 
-def error(msg):
-    raise RuntimeError(msg)
+def error(text):
+    raise RuntimeError(text)
 
 def nfc_form(txt):
     return unicodedata.normalize("NFKC", unicode(txt))
@@ -99,7 +107,7 @@ russian_vowels = u"АОУҮЫЭЯЁЮИЕЪЬІѢѴаоуүыэяёюиеъьі�
 
 # Transliterates text, which should be a single word or phrase. It should
 # include stress marks, which are then preserved in the transliteration.
-def tr(text, lang=None, sc=None):
+def tr(text, lang=None, sc=None, msgfun=msg):
     text = remove_links(text)
     text = tr_canonicalize_russian(text)
 
@@ -246,7 +254,8 @@ tt_to_russian_matching_uppercase = {
     u"З":u"Z",
     u"И":[u"I",u"Yi",u"Y",u"'I",u"ʹI",u"Ji",u"И"],
     u"Й":[u"J",u"Y",u"Ĭ",u"I",u"Ÿ"],
-    u"К":[u"K","Ck",u"C"],
+    # Second K is Cyrillic
+    u"К":[u"K","Ck",u"C",u"К"],
     u"Л":u"L",
     u"М":u"M",
     u"Н":[u"N",u"H"],
@@ -299,8 +308,11 @@ tt_to_russian_matching_non_case = {
     u"—":[u"—",u"-"], # long dash
     u"/":u"/", # slash
     u'"':[(u'"',)], # quotation mark
+    # allow single quote to match nothing so we can handle bolded text in
+    # the Cyrillic without corresponding bold in the translit and add the
+    # bold to the translit (occurs a lot in usexes)
     u"'":[(u"'",),(u"ʹ",),u""], # single quote, for bold/italic
-    u"’":[(u"ʹ",)],
+    u"’":[(u"’",),(u"ʹ",),(u"'",)], # Кот-д’Ивуар
     u"(":u"(", # parens
     u")":u")",
     u" ":u" ",
@@ -433,7 +445,7 @@ if debug_tables:
 # Pre-canonicalize Latin, and Russian if supplied. If Russian is supplied,
 # it should be the corresponding Russian (after pre-pre-canonicalization),
 # and is used to do extra canonicalizations.
-def pre_canonicalize_latin(text, russian=None):
+def pre_canonicalize_latin(text, russian=None, msgfun=msg):
     debprint("pre_canonicalize_latin: Enter, text=%s" % text)
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
@@ -509,7 +521,7 @@ def tr_canonicalize_latin(text):
 
     return text
 
-def post_canonicalize_latin(text):
+def post_canonicalize_latin(text, msgfun=msg):
     # Handle Russian jo/ju, with or without preceding hushing consonant that
     # suppresses the j. We initially considered not using small_jo_subst
     # and small_ju_subst and just remove j after hushing consonants before
@@ -548,7 +560,7 @@ def post_canonicalize_latin(text):
     text = text.strip()
 
     if re.search(u"[\u0400-\u052F\u2DE0-\u2DFF\uA640-\uA69F]", text):
-        msg("WARNING: Latin text %s contains Cyrillic characters" % text)
+        msgfun("WARNING: Latin text %s contains Cyrillic characters" % text)
     return text
 
 # Canonicalize a Latin transliteration and Russian text to standard form.
@@ -556,14 +568,14 @@ def post_canonicalize_latin(text):
 # is more reliable when both aare provided. This is less reliable than
 # tr_matching() and is meant when that fails. Return value is a tuple of
 # (CANONLATIN, CANONARABIC).
-def canonicalize_latin_russian(latin, russian):
+def canonicalize_latin_russian(latin, russian, msgfun=msg):
     if russian is not None:
-        russian = pre_pre_canonicalize_russian(russian)
+        russian = pre_pre_canonicalize_russian(russian, msgfun)
     if latin is not None:
-        latin = pre_canonicalize_latin(latin, russian)
+        latin = pre_canonicalize_latin(latin, russian, msgfun)
     if russian is not None:
-        russian = pre_canonicalize_russian(russian)
-        russian = post_canonicalize_russian(russian)
+        russian = pre_canonicalize_russian(russian, msgfun)
+        russian = post_canonicalize_russian(russian, msgfun)
     if latin is not None:
         # Protect instances of two or more single quotes in a row so they don't
         # get converted to sequences of ʹ characters.
@@ -572,11 +584,11 @@ def canonicalize_latin_russian(latin, russian):
         latin = re.sub(r"''+", quote_subst, latin)
         latin = rsub(latin, u".", tt_canonicalize_latin)
         latin = latin.replace(multi_single_quote_subst, "'")
-        latin = post_canonicalize_latin(latin)
+        latin = post_canonicalize_latin(latin, msgfun)
     return (latin, russian)
 
-def canonicalize_latin_foreign(latin, russian):
-    return canonicalize_latin_russian(latin, russian)
+def canonicalize_latin_foreign(latin, russian, msgfun=msg):
+    return canonicalize_latin_russian(latin, russian, msgfun)
 
 def tr_canonicalize_russian(text):
     # Ё needs converting if is decomposed
@@ -588,7 +600,7 @@ def tr_canonicalize_russian(text):
 # Early pre-canonicalization of Russian, doing stuff that's safe. We split
 # this from pre-canonicalization proper so we can do Latin pre-canonicalization
 # between the two steps.
-def pre_pre_canonicalize_russian(text):
+def pre_pre_canonicalize_russian(text, msgfun=msg):
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
     # canonicalize whitespace, including things like no-break space
@@ -607,21 +619,21 @@ def pre_pre_canonicalize_russian(text):
     newtext = rsub(text, latin_lookalikes_re, latin_to_russian_lookalikes)
     if newtext != text:
         if re.search("[A-Za-z]", newtext):
-            msg("WARNING: Russian %s has Latin chars in it after trying to correct them, not correcting"
+            msgfun("WARNING: Russian %s has Latin chars in it after trying to correct them, not correcting"
                     % text)
         # Don't do things like расставить все точки над i
         elif re.search(r"\b[A-Za-z]\b", text, re.U):
-            msg("WARNING: Russian %s has one-char Latin word in it, not correcting"
+            msgfun("WARNING: Russian %s has one-char Latin word in it, not correcting"
                     % text)
         else:
             text = newtext
 
     return text
 
-def pre_canonicalize_russian(text):
+def pre_canonicalize_russian(text, msgfun=msg):
     return text
 
-def post_canonicalize_russian(text):
+def post_canonicalize_russian(text, msgfun=msg):
     text = text.replace(capital_silent_hard_sign, u"Ъ")
     text = text.replace(small_silent_hard_sign, u"ъ")
     return text
@@ -637,12 +649,40 @@ def debprint(x):
 # appropriate, so that ambiguities of Latin transliteration can be
 # correctly handled. Returns a tuple of Russian, Latin. If unable to match,
 # throw an error if ERR, else return None.
-def tr_matching(russian, latin, err=False, msgfun=None):
+def tr_matching(russian, latin, err=False, msgfun=msg):
     origrussian = russian
     origlatin = latin
-    russian = pre_pre_canonicalize_russian(russian)
-    latin = pre_canonicalize_latin(latin, russian)
-    russian = pre_canonicalize_russian(russian)
+    russian = pre_pre_canonicalize_russian(russian, msgfun)
+    latin = pre_canonicalize_latin(latin, russian, msgfun)
+    russian = pre_canonicalize_russian(russian, msgfun)
+
+    if re.search(GR, russian):
+        msgfun("WARNING: Russian %s has a grave accent" % russian)
+    if re.search(GR, latin):
+        msgfun("WARNING: Latin %s has a grave accent" % latin)
+    russian_words = re.split(r"([\s+-/|\[\].])", russian)
+    latin_words = re.split(r"([\s+-/|\[\].])", latin)
+    for accent, english in [(AC, "acute"), (GR, "grave")]:
+        for word in russian_words:
+            if len(rsub(word, "[^" + accent + "]", "")) > 1:
+                error("Russian %s has multiple %s accents in a word, can't match-canonicalize"
+                        % (russian, english))
+        for word in latin_words:
+            if len(rsub(word, "[^" + accent + "]", "")) > 1:
+                msgfun("WARNING: Latin %s has multiple %s accents"
+                        % (latin, english))
+
+    # Change grave to acute if no acute accent also in word and only one
+    # grave accent in word.
+    new_latin_words = []
+    for word in latin_words:
+        if (re.search(GR, word) and not re.search(AC, word) and
+                len(rsub(word, "[^" + GR + "]", "")) == 1):
+            msgfun("Changing grave to acute in word %s (Latin %s, Russian %s)"
+                    % (word, latin, russian))
+            word = rsub(word, GR, AC)
+        new_latin_words.append(word)
+    latin = "".join(new_latin_words)
 
     ru = [] # exploded Russian characters
     la = [] # exploded Latin characters
@@ -870,8 +910,8 @@ def tr_matching(russian, latin, err=False, msgfun=None):
 
     russian = "".join(res)
     latin = "".join(lres)
-    russian = post_canonicalize_russian(russian)
-    latin = post_canonicalize_latin(latin)
+    russian = post_canonicalize_russian(russian, msgfun)
+    latin = post_canonicalize_latin(latin, msgfun)
     return russian, latin
 
 def remove_diacritics(text):
@@ -889,7 +929,7 @@ def test(latin, russian, should_outcome, expectedrussian=None):
     if not expectedrussian:
         expectedrussian = russian
     try:
-        result = tr_matching(russian, latin, True, msg)
+        result = tr_matching(russian, latin, True)
     except RuntimeError as e:
         uniprint(u"%s" % e)
         result = False
