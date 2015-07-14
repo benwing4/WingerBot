@@ -34,6 +34,10 @@ from blib import remove_links
 #    and removing the now-redundant transliteration
 # 6. Consider removing a stray paren from the Latin when it's unmatched and
 #    no parens in the Russian, e.g. in recycling: {{t|ru|вторичная переработка|f|tr=vtoríčnaja pererabótka)|sc=Cyrl}}
+# 7. FIXME Module:ru-translit -- add Ɛɛʹʺ to list of russian_vowels
+#    (all count as word chars)
+# 8. FIXME: Match-canon jo to jó against ё if multi-syllable and no other
+#    accent in word
 
 AC = u"\u0301"
 GR = u"\u0300"
@@ -89,7 +93,7 @@ tt = {
     u'Ѣ':u'Ě', u'ѣ':u'ě', u'Ѵ':u'I', u'ѵ':u'i',
 }
 
-russian_vowels = u"АОУҮЫЭЯЁЮИЕЪЬІѢѴаоуүыэяёюиеъьіѣѵAEIOUYĚaeiouyě"
+russian_vowels = u"АОУҮЫЭЯЁЮИЕЪЬІѢѴаоуүыэяёюиеъьіѣѵAEIOUYĚƐaeiouyěɛʹʺ"
 
 # Transliterates text, which should be a single word or phrase. It should
 # include stress marks, which are then preserved in the transliteration.
@@ -213,6 +217,7 @@ tt_to_russian_matching_uppercase = {
     u"Б":u"B",
     u"В":[u"V",u"B",u"W"],
     # most of these entries are here for the lowercase equivalent
+    # second X is Greek; FIXME, should be converted to Latin X
     u'Г':[u'G',[u'V'],[u'X'],[(u"Χ",)],[u'Kh'],[u'H']],
     u"Д":u"D",
     # Canonicalize to capital_e_subst, which we later map to either Je or E
@@ -473,19 +478,27 @@ def post_canonicalize_latin(text):
     text = rsub(text, u"([žšŽŠ])%s" % small_ju_subst, r"\1u")
     text = text.replace(small_ju_subst, "ju")
 
-    # convert capital_e_subst to either E or Je, and small_e_subst to
-    # either e or je; similarly, maybe map Ě to Jě, ě to jě.
+    # convert capital_e_subst to either Je (not after cons) or E (after cons),
+    # and small_e_subst to je or e; similarly, maybe map Ě to Jě, ě to jě.
     # Do before recomposing accented letters.
-    bow_or_vowel = u"(^|[- \[aeiouyěAEIOUYĚʺʹ%s%s]%s)" % (
+    non_cons = ur"(^|[aeiouyěɛAEIOUYĚƐʹʺ\W%s%s]%s)" % (
             capital_e_subst, small_e_subst, ACGROPT)
-    # repeat to handle sequences of ЕЕЕЕЕ...
+    # repeat to handle sequences of EEEEE... or eeeee....
     for i in xrange(2):
-        text = rsub(text, u"(%s)%s" % (bow_or_vowel, capital_e_subst), r"\1Je")
-        text = rsub(text, u"(%s)%s" % (bow_or_vowel, small_e_subst), r"\1je")
-        text = rsub(text, u"(%s)Ě" % bow_or_vowel, r"\1Jě")
-        text = rsub(text, u"(%s)ě" % bow_or_vowel, r"\1jě")
+        text = re.sub(u"(%s)%s" % (non_cons, capital_e_subst), r"\1Je", text,
+                0, re.U)
+        text = re.sub(u"(%s)%s" % (non_cons, small_e_subst), r"\1je", text,
+                0, re.U)
+        text = re.sub(u"(%s)Ě" % non_cons, r"\1Jě", text, 0, re.U)
+        text = re.sub(u"(%s)ě" % non_cons, r"\1jě", text, 0, re.U)
     text = text.replace(capital_e_subst, "E")
     text = text.replace(small_e_subst, "e")
+
+    # ɛ not after cons -> e; same for Ɛ
+    # repeat to handle sequences of ƐƐƐƐƐ... or ɛɛɛɛɛ....
+    for i in xrange(2):
+        text = re.sub(u"(%s)Ɛ" % non_cons, r"\1E", text, 0, re.U)
+        text = re.sub(u"(%s)ɛ" % non_cons, r"\1e", text, 0, re.U)
 
     # recompose accented letters
     text = tr_canonicalize_latin(text)
@@ -992,6 +1005,8 @@ def run_tests():
     test(u"vrémja—dén’gi", u"время — деньги", "matched", u"вре́мя — де́ньги")
     test(u"piniǎ", u"пиния", "matched")
     test(u"losjón", u"лосьон", "matched", u"лосьо́н")
+    test(u"εkzegéza", u"экзегеза", "matched", u"экзеге́за")
+    test(u"brunɛ́jec", u"бруне́ец", "unmatched")
 
     # Test adding !, ? or .
     test(u"fan", u"фан!", "matched")
