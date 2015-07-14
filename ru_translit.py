@@ -792,9 +792,9 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
             matches = [matches]
         return ac, matches
 
+    # Check for link of the form [[foo|bar]] and skip over the part
+    # up through the vertical bar, copying it
     def skip_vertical_bar_link():
-        # Check for link of the form [[foo|bar]] and skip over the part
-        # up through the vertical bar, copying it
         if rind[0] < rlen and ru[rind[0]] == '[':
             newpos = rind[0]
             while newpos < rlen and ru[newpos] != ']':
@@ -812,8 +812,9 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
     # attempt to match the current Russian character (or multi-char sequence,
     # if NUMCHAR > 1) against the current Latin character(s). If no match,
     # return False; else, increment the Russian and Latin pointers over
-    # the matched characters, add the Russian character to the result
-    # characters and return True.
+    # the matched characters, add the Russian character(s) and the
+    # corresponding match-canonical Latin character(s) to the result lists
+    # and return True.
     def match(numchar):
         if rind[0] + numchar > rlen:
             return False
@@ -912,6 +913,12 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
             return True
         return False
 
+    # If the Russian is an end-of-word hard sign, consume any hard or
+    # soft signs or single/double-quote-like characters. We need a
+    # special case here because we want the "canonical" Latin entry
+    # to be empty, and putting an empty string as the canonical Latin
+    # entry followed by other entries won't work; the empty string
+    # will match and the other entries will never get checked.
     def consume_against_eow_hard_sign():
         if rind[0] < rlen and ru[rind[0]] in [capital_silent_hard_sign,
                 small_silent_hard_sign]:
