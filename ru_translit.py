@@ -211,21 +211,33 @@ small_silent_hard_sign = u"\ufff7"
 
 # This dict maps Russian characters to all the Latin characters that
 # might correspond to them. The entries can be a string (equivalent
-# to a one-entry list) or a list of strings or one-element lists
-# containing strings (the latter is equivalent to a string but
-# suppresses canonicalization during transliteration; see below). The
-# ordering of elements in the list is important insofar as which
-# element is first, because the default behavior when canonicalizing
+# to a one-entry list) or a list of items. Each item can be a string
+# (canonicalize to the first character in the entry during
+# transliteration), a one-element list (don't canonicalize during
+# transliteration), or a two-element list (canonicalize from the
+# first element to the second element during transliteration).
+# The ordering of items in the list is important insofar as which
+# item is first, because the default behavior when canonicalizing
 # a transliteration is to substitute any string in the list with the
-# first element of the list (this can be suppressed by making an
-# element a one-entry list containing a string, as mentioned above).
+# first item of the list (this can be suppressed by making an
+# item a one-element list, or changed by making an item a two-element
+# list, as mentioned above).
 #
-# If the element of a list is a one-element tuple, we canonicalize
-# during match-canonicalization but we do not trigger the check for
-# multiple possible canonicalizations during self-canonicalization;
-# instead we indicate that this character occurs somewhere else and
-# should be canonicalized at self-canonicalization according to that
-# somewhere-else.
+# If the item of a list, or the first element of such an item, is a
+# one-element tuple containing a string, it behaves similarly as if it
+# were just a string. In particular, it makes no difference during
+# match-canonicalization, but has a different effect during
+# self-canonicalization in that we don't trigger the check for
+# multiple possible canonicalizations during self-canonicalization.
+# The purpose of doing this is to indicate that this character occurs
+# somewhere else and should be canonicalized at self-canonicalization
+# according to that somewhere-else. For example, single-quote ("'")
+# occurs in various entries, but most occurrences are surrounded by
+# one-element tuples; only the occurrences where the canonical
+# character is u"ʹ" aren't so surrounded. The effect is that
+# single-quote will be self-canonicalized to u"ʹ", even though it
+# will be match-canonicalized to multiple possibilities depending on
+# the corresponding Russian character.
 #
 # Each string might have multiple characters, to handle things
 # like ж=zh.
@@ -236,7 +248,7 @@ tt_to_russian_matching_uppercase = {
     u"В":[u"V",u"B",u"W"],
     # most of these entries are here for the lowercase equivalent
     # second X is Greek; FIXME, should be converted to Latin X
-    u'Г':[u'G',[u'V'],[u'X'],[(u"Χ",)],[u'Kh'],[u'H']],
+    u'Г':[u'G',[u'V'],[u'X'],[(u"Χ",),"X"],[u'Kh'],[u'H']],
     u"Д":u"D",
     # Canonicalize to capital_e_subst, which we later map to either Je or E
     # depending on what precedes. We don't use regular capital E as the
@@ -244,12 +256,14 @@ tt_to_russian_matching_uppercase = {
     # FIXME: Yo 'O ʹO 'Jo ʹJo should be converted to Jo.
     u"Е":[capital_e_subst,"E","Je","Ye",u"'E",u"ʹE",
         # O matches for after hushing sounds
-        [u"Ɛ"],[u"Jo"],[u"Yo"],[u"'O"],[u"ʹO"],[u"'Jo"],[u"ʹJo"],[u"O"]],
+        [u"Ɛ"],[u"Jo"],[u"Yo",u"Jo"],[u"'O",u"Jo"],[u"ʹO",u"Jo"],
+        [u"'Jo",u"Jo"],[u"ʹJo",u"Jo"],[u"O"]],
     # FIXME: Yo 'O ʹO 'Jo ʹJo should be converted to Jo
     u"Ё":[u"Jo"+AC,u"Yo"+AC,u"'O"+AC,u"ʹO"+AC,u"'Jo"+AC,u"ʹJo"+AC,u"O"+AC,
         # be conservative and don't self-canon Ë to Jó because it might
         # be unstressed (although unlikely)
-        (u"Ë",),[u"Jo"],[u"Yo"],[u"'O"],[u"ʹO"],[u"'Jo"],[u"ʹJo"],[u"O"]],
+        (u"Ë",),[u"Jo"],[u"Yo",u"Jo"],[u"'O",u"Jo"],[u"ʹO",u"Jo"],
+        [u"'Jo",u"Jo"],[u"ʹJo",u"Jo"],[u"O"]],
     u"Ж":[u"Ž",u"zh",u"ʐ"], # no cap equiv: u"ʐ"?
     u"З":u"Z",
     u"И":[u"I",u"Yi",u"Y",u"'I",u"ʹI",u"Ji",u"И"],
@@ -278,7 +292,7 @@ tt_to_russian_matching_uppercase = {
     u"Ъ":double_quote_like_matching + [u""],
     u"Ы":[u"Y",u"I",u"Ɨ",u"Ы",u"ı"],
     u"Ь":single_quote_like_matching + [u""],
-    u"Э":[u"E",u"Ė",[u"Ɛ"]], # FIXME should we canonicalize ɛ here?
+    u"Э":[u"E",u"Ė",[u"Ɛ"]], # FIXME should we canonicalize Ɛ here?
     u"Ю":[u"Ju",u"Yu",u"'U",u"ʹU",u"U",u"'Ju",u"ʹJu"],
     u"Я":[u"Ja",u"Ya",u"'A",u"ʹA",u"A",u"'Ja",u"ʹJa"],
     # archaic, pre-1918 letters
@@ -339,10 +353,11 @@ def lower_entry(x):
 # "multiple" in build_canonicalize_latin()
 def make_tuple(x):
     if isinstance(x, list):
+        if len(x) == 2:
+            frm, to = x
+            return [make_tuple(frm), to]
         assert len(x) == 1
-        if isinstance(x[0], tuple):
-            return x
-        return [(x[0],)]
+        return [make_tuple(x[0])]
     if isinstance(x, tuple):
         return x
     return (x,)
@@ -372,7 +387,7 @@ tt_to_russian_matching_2char = {
     u"нн":["nn","n"],
     u"ть":[u"tʹ",u"ť",u"ț"],
     # FIXME: Canonicalize these to convert weird char into tj
-    u"тё":[u"tjo"+AC,u"ťo"+AC,u"ț"+AC,[u"ťo"],[u"țo"]],
+    u"тё":[u"tjo"+AC,u"ťo"+AC,u"ț"+AC,[u"ťo",u"tjo"],[u"țo",u"tjo"]],
     u"те":[u"te",u"ťe",u"țe"],
     u"ие":["ije",u"ʹje",u"'je","je"],
     u"сч":[u"sč",u"šč",u"š"],
@@ -401,37 +416,40 @@ build_canonicalize_latin[""] = "multiple"
 # e.g. could happen with ʾ, an alternative for ʿ.
 for russian in tt_to_russian_matching:
     alts = tt_to_russian_matching[russian]
-    if isinstance(alts, basestring):
-        build_canonicalize_latin[alts] = "multiple"
-    else:
-        assert isinstance(alts, list)
-        canon = alts[0]
-        if isinstance(canon, tuple):
-            continue
-        if isinstance(canon, list):
-            assert len(canon) == 1
-            build_canonicalize_latin[canon[0]] = "multiple"
-        else:
-            build_canonicalize_latin[canon] = "multiple"
+    if not isinstance(alts, list):
+        alts = [alts]
+    canon = alts[0]
+    if isinstance(canon, list):
+        canon = canon[0]
+    if isinstance(canon, tuple):
+        continue
+    build_canonicalize_latin[canon] = "multiple"
 
 for russian in tt_to_russian_matching:
     alts = tt_to_russian_matching[russian]
-    if isinstance(alts, basestring):
-        continue
+    if not isinstance(alts, list):
+        alts = [alts]
     canon = alts[0]
     if isinstance(canon, list):
         continue
     for alt in alts[1:]:
-        if isinstance(alt, list) or isinstance(alt, tuple):
+        frm = alt
+        to = canon
+        if isinstance(frm, list):
+            if len(frm) == 1:
+                continue
+            assert len(frm) == 2
+            frm, to = frm
+        if isinstance(frm, tuple):
             continue
-        if alt in build_canonicalize_latin and build_canonicalize_latin[alt] != canon:
+        if frm in build_canonicalize_latin and build_canonicalize_latin[frm] != to:
             if debug_tables:
-                msg("Setting bcl of %s to multiple" % alt)
+                msg("Setting bcl of %s to multiple" % frm)
             build_canonicalize_latin[alt] = "multiple"
         else:
             if debug_tables:
-                msg("Setting bcl of %s to %s" % (alt, canon))
-            build_canonicalize_latin[alt] = canon
+                msg("Setting bcl of %s to %s" % (frm, to))
+            build_canonicalize_latin[frm] = to
 tt_canonicalize_latin = {}
 for alt in build_canonicalize_latin:
     canon = build_canonicalize_latin[alt]
@@ -778,16 +796,28 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
             lind[0], lind[0] >= llen and "EOF" or la[lind[0]]))
 
         for m in matches:
+            subst = matches[0]
+            if type(subst) is list:
+                subst = subst[0]
+            if type(subst) is tuple:
+                subst = subst[0]
             preserve_latin = False
-            # If an element of the match list is a list, it means
-            # "don't canonicalize".
+            # If an element of the match list is a one-element list, it means
+            # "don't canonicalize". If a two-element list, it means
+            # "canonicalize from m[0] to m[1]".
             if type(m) is list:
-                preserve_latin = True
-                m = m[0]
+                if len(m) == 1:
+                    preserve_latin = True
+                    m = m[0]
+                else:
+                    assert len(m) == 2
+                    m, subst = m
+            assert isinstance(subst, basestring)
             # A one-element tuple is a signal for use in self-canonicalization,
             # not here.
-            elif type(m) is tuple:
+            if type(m) is tuple:
                 m = m[0]
+            assert isinstance(m, basestring)
             l = lind[0]
             matched = True
             debprint("m: %s" % m)
@@ -805,9 +835,6 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
                     for cp in m:
                         lres.append(cp)
                 else:
-                    subst = matches[0]
-                    if type(subst) is list or type(subst) is tuple:
-                        subst = subst[0]
                     for cp in subst:
                         lres.append(cp)
                 lind[0] = l
