@@ -18,7 +18,7 @@
 import re
 import unicodedata
 
-from blib import remove_links
+from blib import remove_links, msg
 
 # FIXME:
 #
@@ -38,6 +38,8 @@ from blib import remove_links
 #    (all count as word chars)
 # 8. FIXME: Match-canon jo to jó against ё if multi-syllable and no other
 #    accent in word
+# 9. Ask Anatoli if it's OK to convert ɛ to e when not after a consonant,
+#    e.g self-canon paciɛ́nt -> paciént or tɛ-ɛs-žé -> tɛ-es-žé
 
 AC = u"\u0301"
 GR = u"\u0300"
@@ -147,6 +149,8 @@ def tr_adj(text):
 #                     Transliterate from Latin to Russian                  #
 ############################################################################
 
+debug_tables = False
+
 #########       Transliterate with Russian to guide       #########
 
 # list of items to pre-canonicalize to ʺ, which needs to be first in the list
@@ -162,17 +166,23 @@ single_quote_like_matching = single_quote_like + [u"'ʹ",u"'"]
 double_quote_like_re = "[" + "".join(double_quote_like) + "]"
 single_quote_like_re = "[" + "".join(single_quote_like) + "]"
 
-russian_to_latin_lookalikes = {
+russian_to_latin_lookalikes_lc = {
         u"а":"a", u"е":"e", u"о":"o", u"х":"x", u"ӓ":u"ä", u"ё":u"ë", u"с":"c",
         u"і":"i",
-        u"а́":u"á", u"е́":u"é", u"о́":"ó", u"і́":u"í",
+        u"а́":u"á", u"е́":u"é", u"о́":u"ó", u"і́":u"í",
         u"р":"p", u"у":"y",
+    }
+russian_to_latin_lookalikes_cap = {
         u"А":"A", u"Е":"E", u"О":"O", u"Х":"X", u"Ӓ":u"ä", u"Ё":u"Ë", u"С":"C",
         u"І":"I", u"К":"K",
-        u"А́":"Á", u"Е́":"É", u"О́":"Ó", u"І́":"Í",
+        u"А́":u"Á", u"Е́":u"É", u"О́":u"Ó", u"І́":u"Í",
     }
+russian_to_latin_lookalikes = dict(russian_to_latin_lookalikes_lc.items() +
+        russian_to_latin_lookalikes_cap.items())
+# When converting Latin to Russian, only do lowercase so we don't do phrases
+# like X, C++, витамин C, сульфат железа(II), etc.
 latin_to_russian_lookalikes = dict(
-        [(y, x) for x, y in russian_to_latin_lookalikes.items()])
+        [(y, x) for x, y in russian_to_latin_lookalikes_lc.items()])
 # Filter out multi-char sequences, which will work only on the right side of
 # the correspondence (the accented Russian chars; the other way will be
 # handled by the non-accented equivalents, i.e. accented Russian with accent
@@ -251,7 +261,7 @@ tt_to_russian_matching_uppercase = {
     u'Ч':[u'Č',u"Ch",u"Tsch",u"Tsč",u"Tch",u"Tč",u"T͡ɕ",u"Ć",[u"Š"],[u"Sh"]],
     u"Ш":[u"Š",u"Sh"],
     u"Щ":[u"Šč",u"Shch",u"Sch",u"Sč",u"Š(č)",u"Ŝč",u"Ŝ",u"Š'",u"ʂ",u"Sh'",
-        u"Š",u"Sh"],# No cap equiv? u"ʂ",
+        u"Š",u"Sh"],# No cap equiv: u"ʂ"?
     u"Ъ":double_quote_like_matching + [u""],
     u"Ы":[u"Y",u"I",u"Ɨ",u"Ы",u"ı"],
     u"Ь":single_quote_like_matching + [u""],
@@ -285,7 +295,8 @@ tt_to_russian_matching_non_case = {
     u"—":[u"—",u"-"], # long dash
     u"/":u"/", # slash
     u'"':[(u'"',)], # quotation mark
-    u"'":[(u"'",),(u"ʹ"),u""], # single quote, for bold/italic
+    u"'":[(u"'",),(u"ʹ",),u""], # single quote, for bold/italic
+    u"’":[(u"’",)],
     u"(":u"(", # parens
     u")":u")",
     u" ":u" ",
@@ -308,17 +319,34 @@ def lower_entry(x):
     if x == capital_e_subst:
         return small_e_subst
     return x.lower()
+# Surround entries with a one-entry tuple so they don't trigger
+# "multiple" in build_canonicalize_latin()
+def make_tuple(x):
+    if isinstance(x, list):
+        assert len(x) == 1
+        if isinstance(x[0], tuple):
+            return x
+        return [(x[0],)]
+    if isinstance(x, tuple):
+        return x
+    return (x,)
 
 tt_to_russian_matching = {}
 for k,v in tt_to_russian_matching_uppercase.items():
     if isinstance(v, basestring):
         v = [v]
-    tt_to_russian_matching[k] = v + [lower_entry(x) for x in v]
+    # Surround lower->upper matching with a one-entry tuple so they
+    # don't trigger "multiple" in build_canonicalize_latin()
+    tt_to_russian_matching[k] = v + [make_tuple(lower_entry(x)) for x in v]
     tt_to_russian_matching[k.lower()] = [lower_entry(x) for x in v]
 tt_to_russian_matching[u"ё"][0:0] = [small_jo_subst]
 tt_to_russian_matching[u"ю"][0:0] = [small_ju_subst]
 for k,v in tt_to_russian_matching_non_case.items():
     tt_to_russian_matching[k] = v
+
+if debug_tables:
+    for k,v in tt_to_russian_matching.items():
+        msg("t2rm %s = %s" % (k, v))
 
 tt_to_russian_matching_2char = {
     u"ый":["yj","yi","y"],
@@ -360,10 +388,12 @@ for russian in tt_to_russian_matching:
     if isinstance(alts, basestring):
         build_canonicalize_latin[alts] = "multiple"
     else:
+        assert isinstance(alts, list)
         canon = alts[0]
         if isinstance(canon, tuple):
-            pass
+            continue
         if isinstance(canon, list):
+            assert len(canon) == 1
             build_canonicalize_latin[canon[0]] = "multiple"
         else:
             build_canonicalize_latin[canon] = "multiple"
@@ -379,14 +409,22 @@ for russian in tt_to_russian_matching:
         if isinstance(alt, list) or isinstance(alt, tuple):
             continue
         if alt in build_canonicalize_latin and build_canonicalize_latin[alt] != canon:
+            if debug_tables:
+                msg("Setting bcl of %s to multiple" % alt)
             build_canonicalize_latin[alt] = "multiple"
         else:
+            if debug_tables:
+                msg("Setting bcl of %s to %s" % (alt, canon))
             build_canonicalize_latin[alt] = canon
 tt_canonicalize_latin = {}
 for alt in build_canonicalize_latin:
     canon = build_canonicalize_latin[alt]
     if canon != "multiple":
         tt_canonicalize_latin[alt] = canon
+
+if debug_tables:
+    for x,y in build_canonicalize_latin.items():
+        msg("%s = %s" % (x, y))
 
 # Pre-canonicalize Latin, and Russian if supplied. If Russian is supplied,
 # it should be the corresponding Russian (after pre-pre-canonicalization),
@@ -559,7 +597,17 @@ def pre_pre_canonicalize_russian(text):
     text = rsub(text, u"ъ($|[- \]])", small_silent_hard_sign + r"\1")
 
     # sub non-Cyrillic similar chars to Cyrillic
-    text = rsub(text, latin_lookalikes_re, latin_to_russian_lookalikes)
+    newtext = rsub(text, latin_lookalikes_re, latin_to_russian_lookalikes)
+    if newtext != text:
+        if re.search("[A-Za-z]", newtext):
+            msg("WARNING: Russian %s has Latin chars in it after trying to correct them, not correcting"
+                    % text)
+        # Don't do things like расставить все точки над i
+        elif re.search(r"\b[A-Za-z]\b", text, re.U):
+            msg("WARNING: Russian %s has one-char Latin word in it, not correcting"
+                    % text)
+        else:
+            text = newtext
 
     return text
 
@@ -830,8 +878,6 @@ num_failed = 0
 num_succeeded = 0
 
 def test(latin, russian, should_outcome, expectedrussian=None):
-    def msg(text):
-      print text.encode('utf-8')
     global num_succeeded, num_failed
     if not expectedrussian:
         expectedrussian = russian
