@@ -44,9 +44,13 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
     pagemsg("Processing %s" % (unicode(template)))
 
   if include_tempname_in_changelog:
-    paramtrname = "%s.%s" % (template.name, paramtr)
+    paramtrname = "%s.%s" % (tname, paramtr)
   else:
     paramtrname = paramtr
+
+  if latin == "-":
+    pagemsg("Latin is -, taking no action")
+    return False, False, []
 
   # Compute canonforeign and canonlatin
   match_canon = False
@@ -220,13 +224,14 @@ def canon_links(save, verbose, cattype, lang, longlang, script,
         translit_module, include_tempname_in_changelog=True)
     scvalue = getparam(template, "sc")
     if scvalue in script:
+      tname = unicode(template.name)
       msg("Page %s %s: %s.%s: Removing sc=%s" % (index,
-        pagetitle, unicode(template.name), "sc", scvalue))
+        pagetitle, tname, "sc", scvalue))
       oldtempl = "%s" % unicode(template)
       template.remove("sc")
       msg("Page %s %s: Replaced %s with %s" %
           (index, pagetitle, oldtempl, unicode(template)))
-      newresult = ["remove %s.sc=%s" % (template.name, scvalue)]
+      newresult = ["remove %s.sc=%s" % (tname, scvalue)]
       if result != False:
         result = result + newresult
       else:
