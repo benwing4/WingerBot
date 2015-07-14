@@ -158,6 +158,7 @@ def tr_adj(text):
 ############################################################################
 
 debug_tables = False
+debug_tr_matching = False
 
 #########       Transliterate with Russian to guide       #########
 
@@ -215,6 +216,8 @@ small_silent_hard_sign = u"\ufff7"
 dont_self_canonicalize = (
   u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
+# List of characters that can be unmatched on either Latin or Russian side.
+unmatch_either = [AC, GR, "!", "?", "."]
 
 # This dict maps Russian characters to all the Latin characters that
 # might correspond to them. The entries can be a string (equivalent
@@ -222,11 +225,13 @@ dont_self_canonicalize = (
 # (canonicalize to the first character in the entry during
 # transliteration), a one-element list (don't canonicalize during
 # transliteration), or a two-element list (canonicalize from the
-# first element to the second element during transliteration).
-# The ordering of items in the list is important insofar as which
-# item is first, because the default behavior when canonicalizing
-# a transliteration is to substitute any string in the list with the
-# first item of the list (this can be suppressed by making an
+# first element to the second element during transliteration), or a
+# three-element list (like a two-element list, but the third is the
+# Russian to canonicalize to on the Russian side, instead of the
+# actually-matched Russian). The ordering of items in the list is important
+# insofar as which item is first, because the default behavior when
+# canonicalizing a transliteration is to substitute any string in the
+# list with the first item of the list (this can be suppressed by making an
 # item a one-element list, or changed by making an item a two-element
 # list, as mentioned above).
 #
@@ -391,9 +396,15 @@ if debug_tables:
     for k,v in tt_to_russian_matching.items():
         msg("t2rm %s = %s" % (k, v))
 
+# FIXME FIXME FIXME!! We need a better way of handling accents in the interior
+# of a multi-character Russian matching sequence. For the moment we have to
+# list all the possibilities with and without the accent, and include
+# accented entries one character up.
 tt_to_russian_matching_2char = {
-    u"ый":["yj","yi","y"],
-    u"ий":["ij","yi",u"i"],
+    u"ый":["yj",["y"+AC+"j","y"+AC+"j",u"ы́й"],"yi",["y"+AC+"i","y"+AC+"j",u"ы́й"],
+        ["y"+AC,"y"+AC+"j",u"ы́й"],"y"],
+    u"ий":["ij",["i"+AC+"j","i"+AC+"j",u"и́й"],"yi",["y"+AC+"i","i"+AC+"j",u"и́й"],
+        ["i"+AC,"i"+AC+"j",u"и́й"],"i"],
     # ja for ся is strange but occurs in ться vs. tʹja
     u"ся":["sja","sa",u"ja"], # especially in the reflexive ending
     u"нн":["nn","n"],
@@ -412,6 +423,8 @@ tt_to_russian_matching_2char = {
 
 tt_to_russian_matching_3char = {
     u" — ":[u" — ",u"—",u" - ",u"-"],
+    u"ы́й":["y"+AC+"j","yj","yi","y"+AC+"i","y"+AC,"y"],
+    u"и́й":["i"+AC+"j","ij","yi","y"+AC+"i","i"+AC,"i"],
 }
 
 tt_to_russian_matching_4char = {
@@ -465,8 +478,9 @@ for russian, alts in tt_to_russian_matching_all_char.items():
         if isinstance(frm, list):
             if len(frm) == 1:
                 continue
-            assert len(frm) == 2
-            frm, to = frm
+            assert len(frm) == 2 or len(frm) == 3
+            to = frm[1]
+            frm = frm[0]
         if isinstance(frm, tuple):
             continue
         if frm in build_canonicalize_latin and build_canonicalize_latin[frm] != to:
@@ -687,7 +701,6 @@ def post_canonicalize_russian(text, msgfun=msg):
     text = text.replace(small_silent_hard_sign, u"ъ")
     return text
 
-debug_tr_matching = False
 def debprint(x):
     if debug_tr_matching:
         uniprint(x)
@@ -833,6 +846,7 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
                 subst = subst[0]
             if type(subst) is tuple:
                 subst = subst[0]
+            substrussian = ac
             preserve_latin = False
             # If an element of the match list is a one-element list, it means
             # "don't canonicalize". If a two-element list, it means
@@ -841,10 +855,13 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
                 if len(m) == 1:
                     preserve_latin = True
                     m = m[0]
-                else:
-                    assert len(m) == 2
+                elif len(m) == 2:
                     m, subst = m
+                else:
+                    assert len(m) == 3
+                    m, subst, substrussian = m
             assert isinstance(subst, basestring)
+            assert isinstance(substrussian, basestring)
             # A one-element tuple is a signal for use in self-canonicalization,
             # not here.
             if type(m) is tuple:
@@ -852,16 +869,17 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
             assert isinstance(m, basestring)
             l = lind[0]
             matched = True
-            debprint("m: %s" % m)
+            debprint("m: %s, subst: %s" % (m, subst))
             for cp in m:
-                debprint("cp: %s" % cp)
                 if l < llen and la[l] == cp:
+                    debprint("cp: %s, l=%s, la=%s" % (cp, l, la[l]))
                     l = l + 1
                 else:
+                    debprint("cp: %s, unmatched")
                     matched = False
                     break
             if matched:
-                for c in ac:
+                for c in substrussian:
                     res.append(c)
                 if preserve_latin:
                     for cp in m:
@@ -889,7 +907,6 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
     # Handle acute or grave accent or punctuation, which can be unmatching
     # on either side.
     def check_unmatch_either():
-        unmatch_either = [AC, GR, "!", "?", "."]
         # Matching accents
         if (lind[0] < llen and rind[0] < rlen and
                 la[lind[0]] in unmatch_either and
@@ -1164,6 +1181,7 @@ def run_tests():
     test(u"losjón", u"лосьон", "matched", u"лосьо́н")
     test(u"εkzegéza", u"экзегеза", "matched", u"экзеге́за")
     test(u"brunɛ́jec", u"бруне́ец", "unmatched")
+    test(u"runglíjskij jazýk", u"рунглийский язык", "matched", u"рунгли́йский язы́к")
 
     # Test adding !, ? or .
     test(u"fan", u"фан!", "matched")
