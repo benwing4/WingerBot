@@ -239,7 +239,9 @@ tt_to_russian_matching_uppercase = {
         [u"Ɛ"],[u"Jo"],[u"Yo"],[u"'O"],[u"ʹO"],[u"'Jo"],[u"ʹJo"],[u"O"]],
     # FIXME: Yo 'O ʹO 'Jo ʹJo should be converted to Jo
     u"Ё":[u"Jo"+AC,u"Yo"+AC,u"'O"+AC,u"ʹO"+AC,u"'Jo"+AC,u"ʹJo"+AC,u"O"+AC,
-        u"Ë",[u"Jo"],[u"Yo"],[u"'O"],[u"ʹO"],[u"'Jo"],[u"ʹJo"],[u"O"]],
+        # be conservative and don't self-canon Ë to Jó because it might
+        # be unstressed (although unlikely)
+        (u"Ë",),[u"Jo"],[u"Yo"],[u"'O"],[u"ʹO"],[u"'Jo"],[u"ʹJo"],[u"O"]],
     u"Ж":[u"Ž",u"zh",u"ʐ"], # no cap equiv: u"ʐ"?
     u"З":u"Z",
     u"И":[u"I",u"Yi",u"Y",u"'I",u"ʹI",u"Ji",u"И"],
@@ -260,7 +262,9 @@ tt_to_russian_matching_uppercase = {
     u"Ц":[u"C",u"T͡s",u"Ts",u"Tz"],
     u'Ч':[u'Č',u"Ch",u"Tsch",u"Tsč",u"Tch",u"Tč",u"T͡ɕ",u"Ć",[u"Š"],[u"Sh"]],
     u"Ш":[u"Š",u"Sh"],
-    u"Щ":[u"Šč",u"Shch",u"Sch",u"Sč",u"Š(č)",u"Ŝč",u"Ŝ",u"Š'",u"ʂ",u"Sh'",
+    # don't self-canon Ŝ to Щ because it might be occurring in a sequence Ŝč
+    # or similar
+    u"Щ":[u"Šč",u"Shch",u"Sch",u"Sč",u"Š(č)",u"Ŝč",u"Ŝć",(u"Ŝ",),u"Š'",u"ʂ",u"Sh'",
         u"Š",u"Sh"],# No cap equiv: u"ʂ"?
     u"Ъ":double_quote_like_matching + [u""],
     u"Ы":[u"Y",u"I",u"Ɨ",u"Ы",u"ı"],
@@ -296,7 +300,7 @@ tt_to_russian_matching_non_case = {
     u"/":u"/", # slash
     u'"':[(u'"',)], # quotation mark
     u"'":[(u"'",),(u"ʹ",),u""], # single quote, for bold/italic
-    u"’":[(u"’",)],
+    u"’":[(u"ʹ",)],
     u"(":u"(", # parens
     u")":u")",
     u" ":u" ",
@@ -542,6 +546,9 @@ def post_canonicalize_latin(text):
     text = tr_canonicalize_latin(text)
 
     text = text.strip()
+
+    if re.search(u"[\u0400-\u052F\u2DE0-\u2DFF\uA640-\uA69F]", text):
+        msg("WARNING: Latin text %s contains Cyrillic characters" % text)
     return text
 
 # Canonicalize a Latin transliteration and Russian text to standard form.
