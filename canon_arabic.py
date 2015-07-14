@@ -55,6 +55,10 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
   else:
     paramtrname = paramtr
 
+  if latin == "-":
+    pagemsg("Latin is -, taking no action")
+    return False, False, []
+
   # Compute canonarabic and canonlatin
   match_canon = False
   canonlatin = ""
