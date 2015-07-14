@@ -51,7 +51,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
     msgs.append(text)
 
   if include_tempname_in_changelog:
-    paramtrname = "%s.%s" % (template.name, paramtr)
+    paramtrname = "%s.%s" % (tname, paramtr)
   else:
     paramtrname = paramtr
 
@@ -305,7 +305,8 @@ def canon_head(pagetitle, index, template):
 def canon_one_page_headwords(pagetitle, index, text):
   actions = []
   for template in text.filter_templates():
-    if template.name in arabiclib.arabic_non_verbal_headword_templates:
+    tname = unicode(template.name)
+    if tname in arabiclib.arabic_non_verbal_headword_templates:
       thisactions = []
       thisactions += canon_head(pagetitle, index, template)
       for param in ["pl", "plobl", "cpl", "cplobl", "fpl", "fplobl", "f",
@@ -313,7 +314,7 @@ def canon_one_page_headwords(pagetitle, index, text):
           "pauc", "cons"]:
         thisactions += canon_param_chain(pagetitle, index, template, param)
       if len(thisactions) > 0:
-        actions.append("%s: %s" % (template.name, ', '.join(thisactions)))
+        actions.append("%s: %s" % (tname, ', '.join(thisactions)))
   changelog = '; '.join(actions)
   #if len(actions) > 0:
   msg("Change log for page %s = %s" % (pagetitle, changelog))
@@ -342,13 +343,14 @@ def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
     result = canon_param(pagetitle, index, template, param, paramtr,
         include_tempname_in_changelog=True)
     if getparam(template, "sc") == "Arab":
+      tname = unicode(template.name)
       msg("Page %s %s: %s.%s: Removing sc=Arab" % (index,
-        pagetitle, unicode(template.name), "sc"))
+        pagetitle, tname, "sc"))
       oldtempl = "%s" % unicode(template)
       template.remove("sc")
       msg("Page %s %s: Replaced %s with %s" %
           (index, pagetitle, oldtempl, unicode(template)))
-      newresult = ["remove %s.sc=Arab" % template.name]
+      newresult = ["remove %s.sc=Arab" % tname]
       if result != False:
         result = result + newresult
       else:
