@@ -139,6 +139,11 @@ def do_process_text(pagetitle, pagetext, index, func=None, verbose=False):
 
     break
 
+ignore_prefixes = ["User:", "Talk:",
+    "Wiktionary:Beer parlour", "Wiktionary:Translation requests",
+    "Wiktionary:Grease pit", "Wiktionary:Etymology scriptorium",
+    "Wiktionary:Information desk"]
+
 def iter_pages(pageiter, startsort = None, endsort = None, key = None):
   i = 0
   t = None
@@ -150,24 +155,35 @@ def iter_pages(pageiter, startsort = None, endsort = None, key = None):
     if startsort != None and isinstance(startsort, int) and i < startsort:
       continue
 
+    if key:
+      keyval = key(current)
+      pagetitle = keyval
+    elif isinstance(current, basestring):
+      keyval = current
+      pagetitle = keyval
+    else:
+      keyval = current.title(withNamespace=False)
+      pagetitle = unicode(current.title())
     if endsort != None:
       if isinstance(endsort, int):
         if i > endsort:
           break
       else:
-        if key:
-          keyval = key(current)
-        elif isinstance(current, basestring):
-          keyval = current
-        else:
-          keyval = current.title(withNamespace=False)
         if keyval >= endsort:
           break
 
     if not t and isinstance(endsort, int):
       t = datetime.datetime.now()
 
-    yield current, i
+    # Ignore user pages, talk pages and certain Wiktionary pages
+    is_ignore_prefix = False
+    for ip in ignore_prefixes:
+      if pagetitle.startswith(ip):
+        is_ignore_prefix = True
+    if " talk:" in pagetitle:
+      is_ignore_prefix = True
+    if not is_ignore_prefix:
+      yield current, i
 
     if i % steps == 0:
       tdisp = ""
@@ -382,6 +398,9 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
   # calling PROCESSFN for each pair of foreign/Latin. Return a list of
   # changelog actions.
   def do_process_one_page_links(pagetitle, index, text, processfn):
+    def pagemsg(text):
+      msg("Page %s %s: %s" % (index, pagetitle, text))
+
     actions = []
     for template in text.filter_templates():
       def doparam(param, trparam="tr", noadd=False):
@@ -422,7 +441,13 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         else:
           did_grc_template = False
 
-      if did_grc_template:
+      # Skip {{attention|ar|FOO}} or {{etyl|ar|FOO}} or {{audio|FOO|lang=ar}}
+      # or {{lb|ar|FOO}} or {{context|FOO|lang=ar}} or {{Babel-2|ar|FOO}},
+      # where FOO is not Arabic
+      if (tempname in ["attention", "etyl", "audio", "lb", "context"] or
+          "Babel" in tempname):
+        pass
+      elif did_grc_template:
         pass
       # Look for {{head|ar|...|head=<ARABIC>}}
       elif tempname == "head":
@@ -469,18 +494,38 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
       elif tempname == "usex":
         if getp("lang") == lang:
           doparam("1")
+      elif tempname == "cardinalbox":
+        pagemsg("WARNING: Encountered cardinalbox, check params carefully: %s"
+            % unicode(template))
+        # FUCKME: This is a complicated template, might be doing it wrong
+        doparam("5")
+        doparam("6")
+        for p in ["card", "ord", "adv", "mult", "dis", "coll", "opt", "opt2",
+            "opt2x"]:
+          if getp(p + "alt"):
+            doparam(p + "alt")
+          else:
+            doparam(p)
+          if getp("alt"):
+            doparam("alt")
+          else:
+            doparam("wplink")
       # Look for any other template with lang as first argument
       elif (#tempname in ["l", "link", "m", "mention"] and
-          getp("1") == lang):
+          # If "1" matches, don't do templates with a lang= as well,
+          # e.g. we don't want to do {{hyphenation|ru|men|lang=sh}} in
+          # Russian because it's actually lang sh. But do do 'borrowing',
+          # which legitimately has two language codes, in 1= and lang=.
+          getp("1") == lang and (tempname == "borrowing" or not getp("lang"))):
         # Look for:
         #   {{m|ar|<PAGENAME>|<ARABICTEXT>}}
         #   {{m|ar|<PAGENAME>|alt=<ARABICTEXT>}}
         #   {{m|ar|<ARABICTEXT>}}
         if getp("alt"):
           doparam("alt")
-        elif getp("3"):
+        elif tempname != "borrowing" and getp("3"):
           doparam("3")
-        else:
+        elif tempname != "transliteration":
           doparam("2")
       # Look for any other template with "lang=ar" in it. But beware of
       # {{borrowing|en|<ENGLISHTEXT>|lang=ar}}.
