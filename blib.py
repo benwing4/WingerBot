@@ -511,8 +511,17 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
     # First split up any templates with commas in the Latin
     if split_templates:
       def process_param_for_splitting(pagetitle, index, template, param, paramtr):
+        if isinstance(param, list):
+          fromparam, toparam = param
+        else:
+          fromparam = param
+        if fromparam == "page title":
+          foreign = pagetitle
+        else:
+          foreign = getparam(template, fromparam)
         latin = getparam(template, paramtr)
-        if re.search(split_templates, latin):
+        if (re.search(split_templates, latin) and not
+            re.search(split_templates, foreign)):
           trs = re.split("\\s*" + split_templates + "\\s*", latin)
           oldtemp = unicode(template)
           newtemps = []
