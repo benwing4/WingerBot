@@ -94,6 +94,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
       operation="Match-canoning"
       actionop="match-canon"
     # No cross-canonicalizing takes place with Russian or Ancient Greek.
+    # (FIXME not true with Russian, but the cross-canonicalizing is minimal.)
     #elif latin:
     #  operation="Cross-canoning"
     #  actionop="cross-canon"
@@ -133,6 +134,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         operation="Match-canoning"
         actionop="match-canon"
       # No cross-canonicalizing takes place with Russian or Ancient Greek.
+      # (FIXME not true with Russian, but the cross-canonicalizing is minimal.)
       #else:
       #  operation="Cross-canoning"
       #  actionop="cross-canon"
