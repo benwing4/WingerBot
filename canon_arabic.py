@@ -361,13 +361,14 @@ def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
       pages_to_do=pages_to_do, split_templates=u"[,،/]")
 
 pa = blib.init_argparser("Correct vocalization and translit")
-pa.add_argument("-l", "--links", action='store_true',
-    help="Correct vocalization and translit of links")
+pa.add_argument("--headwords", action='store_true',
+    help="Correct vocalization and translit of headwords")
 pa.add_argument("--cattype", default="borrowed",
     help="""Categories to examine ('vocab', 'borrowed', 'translation',
-'pagetext' or comma-separated list)""")
+'pagetext', 'pages' or comma-separated list)""")
 pa.add_argument("--page-file",
-    help="""File containing "pages" to process when --cattype pagetext""")
+    help="""File containing "pages" to process when --cattype pagetext,
+or list of pages when --cattype pages""")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -375,14 +376,17 @@ pages_to_do = []
 if params.page_file:
   for line in codecs.open(params.page_file, "r", encoding="utf-8"):
     line = line.strip()
-    m = re.match(r"Page [0-9]+ (.*?): [^:]*: Processing (.*?)$", line)
-    if not m:
-      msg("WARNING: Unable to parse line: [%s]" % line)
+    if params.cattype == "pages":
+      pages_to_do.append(line)
     else:
-      pages_to_do.append(m.groups())
+      m = re.match(r"^Page [0-9]+ (.*?): [^:]*: Processing (.*?)$", line)
+      if not m:
+        msg("WARNING: Unable to parse line: [%s]" % line)
+      else:
+        pages_to_do.append(m.groups())
 
-if params.links:
+if params.headwords:
+  canon_headwords(params.save, params.verbose, startFrom, upTo)
+else:
   canon_links(params.save, params.verbose, params.cattype, startFrom, upTo,
       pages_to_do=pages_to_do)
-else:
-  canon_headwords(params.save, params.verbose, startFrom, upTo)

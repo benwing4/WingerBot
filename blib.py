@@ -381,7 +381,8 @@ def getEtymLanguageData():
 # 'borrowed' (do pages for terms borrowed from the language), 'translation'
 # (do pages containing references to any of the 5 standard translation
 # templates), 'pagetext' (do the pages in PAGES_TO_DO, a list of (TITLE, TEXT)
-# entries); for doing off-line runs; nothing saved).
+# entries); for doing off-line runs; nothing saved), or 'pages' (do the
+# pages in PAGES_TO_DO, a list of page titles).
 #
 # If SPLIT_TEMPLATES, then if the transliteration contains multiple entries
 # separated the regex in SPLIT_TEMPLATES with optional spaces on either end,
@@ -407,7 +408,7 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         if not noadd:
           templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
         result = processfn(pagetitle, index, template, param, trparam)
-        if isinstance(result, list):
+        if result and isinstance(result, list):
           actions.extend(result)
           if not noadd:
             templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
@@ -615,6 +616,11 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         for page, index in references("Template:%s" % template, startFrom, upTo):
           do_edit(page, index, process_one_page_links_wrapper, save=save,
               verbose=verbose)
+    elif cattype == "pages":
+      for pagename, index in iter_pages(pages_to_do, startFrom, upTo):
+        page = pywikibot.Page(site, pagename)
+        do_edit(page, index, process_one_page_links_wrapper, save=save,
+            verbose=verbose)
     elif cattype == "pagetext":
       for current, index in iter_pages(pages_to_do, startFrom, upTo,
           key=lambda x:x[0]):
