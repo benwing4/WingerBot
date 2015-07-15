@@ -402,7 +402,7 @@ if debug_tables:
 # list all the possibilities with and without the accent, and include
 # accented entries one character up.
 tt_to_russian_matching_2char = {
-    u"ый":["yj",["y"+AC+"j","y"+AC+"j",u"ы́й"],"yj",["y"+AC+"y","y"+AC+"j",u"ы́й"],
+    u"ый":["yj",["y"+AC+"j","y"+AC+"j",u"ы́й"],"yy",["y"+AC+"y","y"+AC+"j",u"ы́й"],
         "yi",["y"+AC+"i","y"+AC+"j",u"ы́й"], ["y"+AC,"y"+AC+"j",u"ы́й"],"y"],
     u"ий":["ij",["i"+AC+"j","i"+AC+"j",u"и́й"],"iy",["i"+AC+"y","i"+AC+"j",u"и́й"],
         "yi",["y"+AC+"i","i"+AC+"j",u"и́й"], ["i"+AC,"i"+AC+"j",u"и́й"],"i"],
@@ -424,8 +424,8 @@ tt_to_russian_matching_2char = {
 
 tt_to_russian_matching_3char = {
     u" — ":[u" — ",u"—",u" - ",u"-"],
-    u"ы́й":["y"+AC+"j","yj","yi","y"+AC+"i","y"+AC,"y"],
-    u"и́й":["i"+AC+"j","ij","i"+AC+"y","iy","yi","y"+AC+"i","i"+AC,"i"],
+    u"ы́й":["y"+AC+"j","yj","y"+AC+"i","yi","y"+AC+"y","yy","y"+AC,"y"],
+    u"и́й":["i"+AC+"j","ij","i"+AC+"y","iy","y"+AC+"i","yi","i"+AC,"i"],
 }
 
 tt_to_russian_matching_4char = {
@@ -1190,6 +1190,8 @@ def run_tests():
     test(u"εkzegéza", u"экзегеза", "matched", u"экзеге́за")
     test(u"brunɛ́jec", u"бруне́ец", "unmatched")
     test(u"runglíjskij jazýk", u"рунглийский язык", "matched", u"рунгли́йский язы́к")
+    test(u"skyy jazýk", u"скый язык", "matched", u"скый язы́к")
+    test(u"skýy jazýk", u"скый язык", "matched", u"скы́й язы́к")
 
     # Test adding !, ? or .
     test(u"fan", u"фан!", "matched")
