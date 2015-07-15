@@ -34,8 +34,6 @@ from blib import remove_links, msg
 #    and removing the now-redundant transliteration
 # 6. Consider removing a stray paren from the Latin when it's unmatched and
 #    no parens in the Russian, e.g. in recycling: {{t|ru|вторичная переработка|f|tr=vtoríčnaja pererabótka)|sc=Cyrl}}
-# 7. FIXME Module:ru-translit -- add Ɛɛʹʺ to list of russian_vowels
-#    (all count as word chars)
 # 8. FIXME: Match-canon jo to jó against ё if multi-syllable and no other
 #    accent in word
 # 9. Ask Anatoli if it's OK to convert ɛ to e when not after a consonant,
@@ -336,6 +334,10 @@ tt_to_russian_matching_non_case = {
     u"-":u"-", # hyphen/dash
     u"—":[u"—",u"-"], # long dash
     u'"':[(u'"',)], # quotation mark
+    # allow parens on the Russian side to get copied over the the Latin
+    # side if unmatching
+    u"(":[u"(",u""],
+    u")":[u")",u""],
     # allow single quote to match nothing so we can handle bolded text in
     # the Cyrillic without corresponding bold in the translit and add the
     # bold to the translit (occurs a lot in usexes)
@@ -353,7 +355,7 @@ tt_to_russian_matching_non_case = {
 }
 
 # Match numbers and some punctuation against itself
-for ch in "1234567890,;:()/":
+for ch in "1234567890,;:/":
     tt_to_russian_matching_non_case[ch] = ch
 
 # Convert string, list of stuff of tuple of stuff into lowercase
@@ -562,6 +564,13 @@ def pre_canonicalize_latin(text, russian=None, msgfun=msg):
         elif (text.startswith("''") and text.endswith("''") and
                 not russian.startswith("''") and not russian.endswith("''")):
             text = text[2:-2]
+        # If no parens in Russian and stray, unmatched praren at beginning or
+        # end of Latin, remove it
+        if "(" not in russian and ")" not in russian:
+            if text.endswith(")") and "(" not in text:
+                text = text[0:-1]
+            if text.startswith("(") and ")" not in text:
+                text = text[1:]
 
     # remove leading/trailing spaces again, cases like ''podnimát' ''
     text = text.strip()
@@ -1192,6 +1201,13 @@ def run_tests():
     test(u"fan", u"фан.", "matched")
     test(u"fan.", u"фан.", "matched")
     test(u"fan.", u"фан", "matched", u"фан.")
+
+    # Check behavior of parens
+    test(u"(fan)", u"(фан)", "matched")
+    test(u"fan", u"(фан)", "matched")
+    test(u"(fan", u"фан", "matched")
+    test(u"fan)", u"фан", "matched")
+    test(u"(fan)", u"фан", "failed")
 
     # Final results
     uniprint("RESULTS: %s SUCCEEDED, %s FAILED." % (num_succeeded, num_failed))
