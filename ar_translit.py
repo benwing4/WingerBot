@@ -494,6 +494,12 @@ tt_to_arabic_matching = {
     #u"–":u"-",
 }
 
+# exclude consonants like h ʿ ʕ ʕ that can occur second in a two-charcter
+# sequence, because of cases like u"múdhhil" vs. u"مذهل"
+latin_consonants_no_double_after_cons = u"bcdfgjklmnpqrstvwxyzʾʔḍḥḳḷṃṇṛṣṭṿẉỵẓḃċḋḟġḣṁṅṗṙṡṫẇẋẏżčǧȟǰňřšžḇḏẖḵḻṉṟṯẕḡs̄z̄çḑģḩķļņŗşţz̧ćǵḱĺḿńṕŕśẃźďľťƀđǥħłŧƶğḫʃɖʈt̤ð"
+latin_consonants_no_double_after_cons_re = "[%s]" % (
+        latin_consonants_no_double_after_cons)
+
 # Characters that aren't in tt_to_arabic_matching but which are valid
 # Arabic characters in some circumstances (in particular, opposite a hyphen,
 # where they are matched in check_against_hyphen()). We need to tell
@@ -591,7 +597,7 @@ def pre_canonicalize_latin(text, arabic=None):
     # canonicalize interior whitespace
     text = rsub(text, r"\s+", " ")
     # eliminate ' after space or - and before non-vowel, indicating elided /a/
-    text = rsub(text, r"([ -])'([^'aeiouāēīōū])", r"\1\2")
+    text = rsub(text, r"([ -])'([^'aeiouəāēīōū])", r"\1\2")
     # eliminate accents
     text = rsub(text, u".",
         {u"á":u"a", u"é":u"e", u"í":u"i", u"ó":u"o", u"ú":u"u",
@@ -631,21 +637,27 @@ def pre_canonicalize_latin(text, arabic=None):
     text = rsub(text, r"\(un\)$", "")
     #### vowel/diphthong canonicalizations
     text = rsub(text, u"[ae][iy]", u"ay")
-    text = rsub(text, u"([aeiouāēīōū])u", r"\1w")
-    text = rsub(text, u"([aeiouāēīōū])i", r"\1y")
-    text = rsub(text, u"īy", u"iyy")
-    text = rsub(text, u"ūw", u"uww")
+    text = rsub(text, u"([aeiouəāēīōū])u", r"\1w")
+    text = rsub(text, u"([aeiouəāēīōū])i", r"\1y")
     # Convert -iy- not followed by a vowel or y to long -ī-
-    text = rsub(text, u"iy($|[^aeiouyāēīōū])", ur"ī\1")
+    text = rsub(text, u"iy($|[^aeiouəyāēīōū])", ur"ī\1")
     # Same for -uw- -> -ū-
-    text = rsub(text, u"uw($|[^aeiouwāēīōū])", ur"ū\1")
+    text = rsub(text, u"uw($|[^aeiouəwāēīōū])", ur"ū\1")
     # Insert y between i and a
     text = rsub(text, u"([iī])([aā])", r"\1y\2")
     # Insert w between u and a
     text = rsub(text, u"([uū])([aā])", r"\1w\2")
+    text = rsub(text, u"īy", u"iyy")
+    text = rsub(text, u"ūw", u"uww")
     # Reduce cases of three characters in a row (e.g. from īyy -> iyyy -> iyy);
     # but not ''', which stands for boldface, or ..., which is legitimate
     text = rsub(text, r"([^'.])\1\1", r"\1\1")
+    # Remove double consonant following another consonant
+    text = re.sub(ur"([^aeiouəāēīōū\W])(%s)\2" % (
+        latin_consonants_no_double_after_cons_re), r"\1\2", text, 0, re.U)
+    # Remove double consonant preceding another consonant
+    text = re.sub(ur"([^aeiouəāēīōū\W])\1(%s)" % (
+        latin_consonants_no_double_after_cons_re), r"\1\2", text, 0, re.U)
     if arabic:
         # Remove links from Arabic to simplify the following code
         arabic = remove_links(arabic)
@@ -904,9 +916,10 @@ def tr_matching(arabic, latin, err=False, msgfun=msg):
     arabic = pre_pre_canonicalize_arabic(arabic)
     latin = pre_canonicalize_latin(latin, arabic)
     arabic = pre_canonicalize_arabic(arabic)
-    # convert double consonant after vowel to consonant + shadda,
+    # convert double consonant after non-cons to consonant + shadda,
     # but not multiple quotes or multiple periods
-    latin = rsub(latin, ur"([aeiouāēīōū])([^'.])\2", u"\\1\\2\u0651")
+    latin = re.sub(ur"(^|[aeiouəāēīōū\W])([^'.])\2", u"\\1\\2\u0651",
+            latin, 0, re.U)
 
     ar = [] # exploded Arabic characters
     la = [] # exploded Latin characters
@@ -916,6 +929,8 @@ def tr_matching(arabic, latin, err=False, msgfun=msg):
         ar.append(cp)
     for cp in latin:
         la.append(cp)
+    debprint("Arabic characters: %s" % ar)
+    debprint("Latin characters: %s" % la)
     aind = [0] # index of next Arabic character
     alen = len(ar)
     lind = [0] # index of next Latin character
@@ -1000,6 +1015,9 @@ def tr_matching(arabic, latin, err=False, msgfun=msg):
                     return True
                 newpos += 1
 
+        debprint("match: lind=%s, la=%s" % (
+            lind[0], lind[0] >= llen and "EOF" or la[lind[0]]))
+
         for m in matches:
             preserve_latin = False
             # If an element of the match list is a list, it means
@@ -1015,10 +1033,11 @@ def tr_matching(arabic, latin, err=False, msgfun=msg):
             matched = True
             debprint("m: %s" % m)
             for cp in m:
-                debprint("cp: %s" % cp)
                 if l < llen and la[l] == cp:
+                    debprint("cp: %s, l=%s, la=%s" % (cp, l, la[l]))
                     l = l + 1
                 else:
+                    debprint("cp: %s, unmatched")
                     matched = False
                     break
             if matched:
@@ -1116,7 +1135,7 @@ def tr_matching(arabic, latin, err=False, msgfun=msg):
             return False
         # Check for hamza + vowel.
         if not (lind[0] < llen - 1 and la[lind[0]] in hamza_match_chars and
-                la[lind[0] + 1] in u"aeiouāēīōū"):
+                la[lind[0] + 1] in u"aeiouəāēīōū"):
             return False
         # long vowels should have been pre-canonicalized to have the
         # corresponding short vowel before them.
@@ -1587,6 +1606,8 @@ def run_tests():
     test(u"finjáːn šæːy", u"فِنْجَان شَاي", "matched")
     test(u"múdhhil", u"مذهل", "matched")
     test(u"ixtiār", u"اختيار", "matched")
+    test(u"miṯll", u"مثل", "matched")
+    test(u"li-wajhi llāh", u"لِوَجْهِ اللهِ", "unmatched")
 
     # FIXME's: assimilating_l_subst only matches against canonical sun
     # letters, not against non-canonical ones like θ. We can fix that
