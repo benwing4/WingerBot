@@ -39,8 +39,9 @@ def undo_greek_removal(save, verbose, direcfile, startFrom, upTo):
 
     def undo_one_page_greek_removal(page, index, text):
       def pagemsg(txt):
-        msg("Page %s %s: %s" % (index, page, txt))
+        msg("Page %s %s: %s" % (index, unicode(page.title()), txt))
       template = blib.parse_text(template_text).filter_templates()[0]
+      orig_template = unicode(template)
       if getparam(template, "sc") == "polytonic":
         template.remove("sc")
       to_template = unicode(template)
@@ -48,16 +49,25 @@ def undo_greek_removal(save, verbose, direcfile, startFrom, upTo):
       template.remove(removed_param)
       from_template = unicode(template)
       text = unicode(text)
+      found_orig_template = orig_template in text
       newtext = text.replace(from_template, to_template)
+      changelog = ""
       if newtext == text:
-        pagemsg("WARNING: Unable to locate old template when undoing Greek param removal: %s"
-            % from_template)
-      elif len(newtext) - len(text) != len(to_template) - len(from_template):
-        pagemsg("WARNING: Length mismatch when undoing Greek param removal, may have matched multiple templates: old=%s, new=%s" % (
-          from_template, to_template))
-      changelog = "Undid removal of %s=%s in {{%s}}" % (removed_param,
-          param_value, unicode(template.name))
-      pagemsg("Change log = %s" % changelog)
+        if not found_orig_template:
+          pagemsg("WARNING: Unable to locate 'from' template when undoing Greek param removal: %s"
+              % from_template)
+        else:
+          pagemsg("Original template found, taking no action")
+      else:
+        if found_orig_template:
+          pagemsg("WARNING: Undid removal, but original template %s already present!" %
+              orig_template)
+        if len(newtext) - len(text) != len(to_template) - len(from_template):
+          pagemsg("WARNING: Length mismatch when undoing Greek param removal, may have matched multiple templates: from=%s, to=%s" % (
+            from_template, to_template))
+        changelog = "Undid removal of %s=%s in %s" % (removed_param,
+            param_value, to_template)
+        pagemsg("Change log = %s" % changelog)
       return newtext, changelog
 
     page = pywikibot.Page(site, pagename)
