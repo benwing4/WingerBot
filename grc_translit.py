@@ -368,14 +368,14 @@ def post_canonicalize_latin(text):
 # is more reliable when both aare provided. This is less reliable than
 # tr_matching() and is meant when that fails. Return value is a tuple of
 # (CANONLATIN, CANONARABIC).
-def canonicalize_latin_greek(latin, greek):
+def canonicalize_latin_greek(latin, greek, msgfun=msg):
     if greek is not None:
         greek = pre_pre_canonicalize_greek(greek)
     if latin is not None:
         latin = pre_canonicalize_latin(latin, greek)
     if greek is not None:
         greek = pre_canonicalize_greek(greek)
-        greek = post_canonicalize_greek(greek)
+        greek = post_canonicalize_greek(greek, msgfun=msgfun)
     if latin is not None:
         # Protect instances of two or more single quotes in a row so they don't
         # get converted to sequences of ʹ characters.
@@ -388,7 +388,7 @@ def canonicalize_latin_greek(latin, greek):
     return (latin, greek)
 
 def canonicalize_latin_foreign(latin, greek, msgfun=msg):
-    return canonicalize_latin_greek(latin, greek)
+    return canonicalize_latin_greek(latin, greek, msgfun=msgfun)
 
 def tr_canonicalize_greek(text):
     # Convert to decomposed form
@@ -435,7 +435,7 @@ def pre_pre_canonicalize_greek(text):
 def pre_canonicalize_greek(text):
     return text
 
-def post_canonicalize_greek(text):
+def post_canonicalize_greek(text, msgfun=msg):
     # Move macron and breve to beginning after vowel.
     text = rsub(text, u"(" + greek_vowels + ")(" + GR_ACC_NO_MB + "*)(" +
             MB + ")", r"\1\3\2")
@@ -446,10 +446,15 @@ def post_canonicalize_greek(text):
     ## by diaeresis. IOBE goes at end of accents.
     #text = rsub(text, u"([Αα])" + MAC + "(" + GR_ACC + u"*)ι(?!" +
     #        GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\2" + IOBE)
+    # Don't do this; it's not always appropriate (e.g. with suffixes);
+    # instead issue a warning.
     # If no rough breathing before beginning-of-word vowel, add a smooth
     # breathing sign.
-    text = rsub(text, u"(^|[ \[\]|])(" + greek_vowels + ")",
+    newtext = rsub(text, u"(^|[ \[\]|])(" + greek_vowels + ")",
             r"\1" + SMBR + r"\2")
+    if newtext != text:
+        msgfun("WARNING: Text %s may be missing a smooth-breathing sign" %
+                text)
     # Put rough/smooth breathing after diphthong; rough breathing comes first
     # in order with multiple accents, except macron or breve. Second vowel of
     # diphthong must be υ or ι and no following diaeresis. Only do it at
@@ -695,7 +700,7 @@ def tr_matching(greek, latin, err=False, msgfun=msg):
 
     greek = "".join(res)
     latin = "".join(lres)
-    greek = post_canonicalize_greek(greek)
+    greek = post_canonicalize_greek(greek, msgfun=msgfun)
     latin = post_canonicalize_latin(latin)
     return greek, latin
 
@@ -716,7 +721,7 @@ def test(latin, greek, should_outcome, expectedgreek=None):
     if not expectedgreek:
         expectedgreek = greek
     try:
-        result = tr_matching(greek, latin, True, msgfun=msg)
+        result = tr_matching(greek, latin, True)
     except RuntimeError as e:
         uniprint(u"%s" % e)
         result = False
