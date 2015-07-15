@@ -138,6 +138,9 @@ def remove_translit(params, startFrom, upTo):
           elif is_grc and re.search(ur"[āīūĀĪŪ]", val):
             pagemsg("WARNING: grc and value %s=%s has long a/i/u in it, not removing: %s" %
                 (param, val, unicode(t)))
+          elif is_grc and re.search(ur"[ăĭŭĂĬŬ]", val):
+            pagemsg("WARNING: grc and value %s=%s has a/i/u with breve in it, not removing: %s" %
+                (param, val, unicode(t)))
           else:
             if has_nwc:
               pagemsg("NOTE: Value %s=%s has non-Western chars but removing anyway because starts with 'tr': %s" %
@@ -269,6 +272,7 @@ def remove_translit(params, startFrom, upTo):
           (["ka"], "Geor"),
           (["el"], "Grek"),
           (["grc"], "polytonic"),
+          (["grc"], "Grek"),
           ]:
         if getp("1") in langs or getp("lang") in langs and tname != "borrowing":
           doparam("sc", script)
