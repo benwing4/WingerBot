@@ -103,6 +103,12 @@ def remove_translit(params, startFrom, upTo):
     pagetitle = page.title()
     def pagemsg(text):
       msg("Page %s %s: %s" % (index, pagetitle, text))
+
+    # Hack for grc pages where we don't want to remove the translit
+    if u"Ͷ" in pagetitle or u"ͷ" in pagetitle:
+      pagemsg(u"Page has Ͷ or ͷ in it, not doing")
+      return text, ""
+
     params_removed = []
     for t in text.filter_templates():
       tname = unicode(t.name)
