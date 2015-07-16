@@ -279,8 +279,8 @@ tt_to_russian_matching_uppercase = {
         # be unstressed (although unlikely)
         (u"Ë",),[u"Jo"],[u"Yo",u"Jo"],[u"'O",u"Jo"],[u"ʹO",u"Jo"],
         [u"'Jo",u"Jo"],[u"ʹJo",u"Jo"],[u"O"]],
-    u"Ж":[u"Ž",u"zh",u"ʐ"], # no cap equiv: u"ʐ"?
-    u"З":u"Z",
+    u"Ж":[u"Ž",u"Zh",u"ʐ",u"Z"], # no cap equiv: u"ʐ"?
+    u"З":[u"Z",u"Ž"],
     u"И":[u"I",u"Yi",u"Y",u"'I",u"ʹI",u"Ji",u"И"],
     u"Й":[u"J",u"Y",u"Ĭ",u"I",u"Ÿ"],
     # Second K is Cyrillic
@@ -293,11 +293,11 @@ tt_to_russian_matching_uppercase = {
     u"Р":u"R",
     u"С":[u"S",u"C"],
     u"Т":u"T",
-    u"У":[u"U",u"Y",u"Ou"],
+    u"У":[u"U",u"Y",u"Ou",u"W"],
     u"Ф":[u"F",u"Ph"],
     # final X is Greek
     u"Х":[u"X",u"Kh",u"Ch",u"Č",u"Χ",u"H"], # Ch might have been canoned to Č
-    u"Ц":[u"C",u"T͡s",u"Ts",u"Tz"],
+    u"Ц":[u"C",u"T͡s",u"Ts",u"Tz",u"Č"],
     u'Ч':[u'Č',u"Ch",u"Tsch",u"Tsč",u"Tch",u"Tč",u"T͡ɕ",u"Ć",[u"Š"],[u"Sh"]],
     u"Ш":[u"Š",u"Sh"],
     # don't self-canon Ŝ to Щ because it might be occurring in a sequence Ŝč
@@ -403,9 +403,11 @@ if debug_tables:
 # accented entries one character up.
 tt_to_russian_matching_2char = {
     u"ый":["yj",["y"+AC+"j","y"+AC+"j",u"ы́й"],"yy",["y"+AC+"y","y"+AC+"j",u"ы́й"],
-        "yi",["y"+AC+"i","y"+AC+"j",u"ы́й"], ["y"+AC,"y"+AC+"j",u"ы́й"],"y"],
+        u"yĭ",["y"+AC+u"ĭ","y"+AC+"j",u"ы́й"],"yi",["y"+AC+"i","y"+AC+"j",u"ы́й"],
+        ["y"+AC,"y"+AC+"j",u"ы́й"],"y"],
     u"ий":["ij",["i"+AC+"j","i"+AC+"j",u"и́й"],"iy",["i"+AC+"y","i"+AC+"j",u"и́й"],
-        "yi",["y"+AC+"i","i"+AC+"j",u"и́й"], ["i"+AC,"i"+AC+"j",u"и́й"],"i"],
+        u"iĭ",["i"+AC+u"ĭ","i"+AC+"j",u"и́й"],"yi",["y"+AC+"i","i"+AC+"j",u"и́й"],
+        ["i"+AC,"i"+AC+"j",u"и́й"],"i"],
     # ja for ся is strange but occurs in ться vs. tʹja
     u"ся":["sja","sa",u"ja"], # especially in the reflexive ending
     u"нн":["nn","n"],
@@ -424,8 +426,10 @@ tt_to_russian_matching_2char = {
 
 tt_to_russian_matching_3char = {
     u" — ":[u" — ",u"—",u" - ",u"-"],
-    u"ы́й":["y"+AC+"j","yj","y"+AC+"i","yi","y"+AC+"y","yy","y"+AC,"y"],
-    u"и́й":["i"+AC+"j","ij","i"+AC+"y","iy","y"+AC+"i","yi","i"+AC,"i"],
+    u"ы́й":["y"+AC+"j","yj","y"+AC+u"ĭ",u"yĭ","y"+AC+"i","yi","y"+AC+"y","yy",
+        "y"+AC,"y"],
+    u"и́й":["i"+AC+"j","ij","i"+AC+u"ĭ",u"iĭ","i"+AC+"y","iy","y"+AC+"i","yi",
+        "i"+AC,"i"],
 }
 
 tt_to_russian_matching_4char = {
@@ -705,6 +709,10 @@ def pre_canonicalize_russian(text, msgfun=msg):
     return text
 
 def post_canonicalize_russian(text, msgfun=msg):
+    # FIXME: The punctuation should outside the single quotes and brackets
+    # but goes inside. We should avoid this at the start rather than fixing
+    # it up later.
+    text = rsub(text, r"([!.?])('+|\]+)\1", r"\2\1")
     text = text.replace(capital_silent_hard_sign, u"Ъ")
     text = text.replace(small_silent_hard_sign, u"ъ")
     return text
