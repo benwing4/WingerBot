@@ -216,8 +216,17 @@ small_silent_hard_sign = u"\ufff7"
 dont_self_canonicalize = (
   u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
-# List of characters that can be unmatched on either Latin or Russian side.
-unmatch_either = [AC, GR, "!", "?", "."]
+# Lists of characters that can be unmatched on either Latin or Russian side.
+# unmatch_either_before indicates characters handled before match(),
+# unmatch_either_after indicates characters handled after match(). The
+# difference concerns what happens when an unmatched character on the
+# Russian side that can be unmatched (e.g. a right bracket, single quote
+# or soft sign) is against an unmatched character in the Latin side that's
+# in one of the following two lists. The acute/grave accents need to go
+# before the unmatched Russian character, whereas the punctuation needs to
+# go after.
+unmatch_either_before = [AC, GR]
+unmatch_either_after = ["!", "?", "."]
 
 # This dict maps Russian characters to all the Latin characters that
 # might correspond to them. The entries can be a string (equivalent
@@ -329,7 +338,7 @@ tt_to_russian_matching_non_case = {
     u'«':[u'“',u'"'],
     u'»':[u'”',(u'ʺ',),u'"'],
     # punctuation (leave on separate lines)
-    # these are now handled by check_unmatch_either()
+    # these are now handled by check_unmatch_either(unmatch_either_before)
     #u"?":[u"?",u""], # question mark
     #u".":[u".",u""], # period
     #u"!":[u"!",u""], # exclamation point
@@ -349,12 +358,12 @@ tt_to_russian_matching_non_case = {
     u"[":u"",
     u"]":u"",
     u",":[u",", u" ,", u""],
-    # these are now handled by check_unmatch_either()
+    # these are now handled by check_unmatch_either(unmatch_either_after)
     #AC:[AC,""],
     #GR:[GR,""],
-    # UNCLEAR WE NEED THE FOLLOWING DUE TO consume_against_eow_hard_sign()
-    capital_silent_hard_sign:[u""],
-    small_silent_hard_sign:[u""],
+    # now handled by consume_against_eow_hard_sign()
+    #capital_silent_hard_sign:[u""],
+    #small_silent_hard_sign:[u""],
 }
 
 # Match numbers and some punctuation against itself
@@ -712,10 +721,6 @@ def pre_canonicalize_russian(text, msgfun=msg):
     return text
 
 def post_canonicalize_russian(text, msgfun=msg):
-    # FIXME: The punctuation should outside the single quotes and brackets
-    # but goes inside. We should avoid this at the start rather than fixing
-    # it up later.
-    text = rsub(text, r"([!.?])('+|\]+)\1", r"\2\1")
     text = text.replace(capital_silent_hard_sign, u"Ъ")
     text = text.replace(small_silent_hard_sign, u"ъ")
     return text
@@ -813,6 +818,8 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
         ac = ru[rind[0]]
         debprint("get_matches: ac is %s" % ac)
         matches = tt_to_russian_matching.get(ac)
+        if matches == None and ac in unmatch_either_after:
+            matches = []
         debprint("get_matches: matches is %s" % matches)
         if matches == None:
             if True:
@@ -925,7 +932,7 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
 
     # Handle acute or grave accent or punctuation, which can be unmatching
     # on either side.
-    def check_unmatch_either():
+    def check_unmatch_either(unmatch_either):
         # Matching accents
         if (lind[0] < llen and rind[0] < rlen and
                 la[lind[0]] in unmatch_either and
@@ -978,12 +985,12 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
 
     while rind[0] < rlen or lind[0] < llen:
         matched = False
-        # Check for matching or unmatching acute/grave accent or punctuation.
+        # Check for matching or unmatching acute/grave accent.
         # We do this first to deal with cases where the Russian has a
         # right bracket, single quote or similar character that can be
         # unmatching, and the Latin has an unmatched accent, which needs
         # to be matched first.
-        if check_unmatch_either():
+        if check_unmatch_either(unmatch_either_before):
             matched = True
         elif consume_against_eow_hard_sign():
             debprint("Matched: consume_against_eow_hard_sign()")
@@ -1002,6 +1009,13 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
             matched = True
         elif match(1):
             debprint("Matched: Clause match(1)")
+            matched = True
+        # Check for matching or unmatching punctuation. We do this afterwards
+        # to deal with cases where the Russian has a right bracket,
+        # single quote or similar character that can be unmatching, and the
+        # Latin has an unmatched punctuation char, which needs to be matched
+        # afterwards.
+        elif check_unmatch_either(unmatch_either_after):
             matched = True
         if not matched:
             if err:
