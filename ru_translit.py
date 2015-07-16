@@ -46,6 +46,9 @@ from blib import remove_links, msg
 #    but has the Latin accent only on one syllable) but go ahead and
 #    match-canon if the Latin has multiple accents (rývók, zapóminátʹ),
 #    i.e. they will be transferred to the Russian.
+# 11. Ask Anatoli about stressed and unstressed ё. Since ё can be unstressed,
+#    should we add an accent on it when we know it's stressed (from the
+#    Latin)?
 
 AC = u"\u0301"
 GR = u"\u0300"
