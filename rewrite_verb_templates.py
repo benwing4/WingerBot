@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 numeric_to_roman_form = {
   "1":"I", "2":"II", "3":"III", "4":"IV", "5":"V",
@@ -49,7 +49,7 @@ def rewrite_one_page_verb_headword(page, index, text):
             template.get(str(pno)).name = str(pno + 1)
         # Make sure form= param is first ...
         template.remove("form")
-        template.add("form", canonicalize_form(form), before=template.params[0].name if len(template.params) > 0 else None)
+        addparam(template, "form", canonicalize_form(form), before=template.params[0].name if len(template.params) > 0 else None)
         # ... then forcibly change its name to 1=
         template.get("form").name = "1"
         template.get("1").showkey = False
@@ -84,7 +84,7 @@ def canonicalize_verb_form(save, startFrom, upTo, tempname, formarg):
         origtemp = unicode(template)
         form = getparam(template, formarg)
         if form:
-          template.add(formarg, canonicalize_form(form))
+          addparam(template, formarg, canonicalize_form(form))
         newtemp = unicode(template)
         if origtemp != newtemp:
           msg("Replacing %s with %s" % (origtemp, newtemp))

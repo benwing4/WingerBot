@@ -19,7 +19,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam, remove_links
+from blib import msg, getparam, addparam, remove_links
 from arabiclib import *
 
 import ar_translit
@@ -208,7 +208,7 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
           def getp(param):
             return getparam(headword_template, param)
           def putp(param, value):
-            headword_template.add(param, value)
+            addparam(headword_template, param, value)
           head = getp("1")
           orighead = head
 

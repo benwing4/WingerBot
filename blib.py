@@ -57,6 +57,13 @@ def getparam(template, param):
   else:
     return ""
 
+def addparam(template, param, value, showkey=None, before=None):
+  if re.match("^[0-9]+", param):
+    template.add(param, value, preserve_spacing=False, showkey=showkey,
+        before=before)
+  else:
+    template.add(param, value, showkey=showkey, before=before)
+
 def do_edit(page, index, func=None, null=False, save=False, verbose=False):
   title = page.title()
   def pagemsg(text):
@@ -590,7 +597,7 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
           oldtemp = unicode(template)
           newtemps = []
           for tr in trs:
-            template.add(paramtr, tr)
+            addparam(template, paramtr, tr)
             newtemps.append(unicode(template))
           newtemp = ", ".join(newtemps)
           old_newtext = newtext[0]

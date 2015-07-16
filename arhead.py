@@ -2,6 +2,7 @@
 #coding: utf-8
  
 import blib, pywikibot, re, string, sys, codecs
+from blib import addparam
 import arabiclib
  
 def fix(page, index, text):
@@ -10,7 +11,7 @@ def fix(page, index, text):
       if template.has("head") and not template.has(1) and not template.has(2) and not template.has(3) and not template.has(4) and not template.has(5) and not template.has(6) and not template.has(7) and not template.has(8):
         head = unicode(template.get("head").value)
         template.remove("head")
-        template.add("head", head, before=template.params[0].name if len(template.params) > 0 else None)
+        addparam(template, "head", head, before=template.params[0].name if len(template.params) > 0 else None)
  
         if template.params[0].name == "head":
           template.get("head").showkey = False

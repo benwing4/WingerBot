@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 def fix_tool_place_noun(save, verbose, startFrom, upTo):
   for template in ["ar-tool noun", "ar-noun of place", "ar-instance noun"]:
@@ -34,7 +34,7 @@ def fix_tool_place_noun(save, verbose, startFrom, upTo):
           else:
             msg("Page %s %s: Template %s: Add lc=1" %
                 (index, pagetitle, template))
-            t.add("lc", "1")
+            addparam(t, "lc", "1")
       changelog = "%s: If cap= is present, remove it, else add lc=" % template
       msg("Page %s %s: Change log = %s" % (index, pagetitle, changelog))
       return text, changelog

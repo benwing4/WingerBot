@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam, remove_links
+from blib import msg, getparam, addparam, remove_links
 from arabiclib import *
 
 def split_one_page_etymologies(page, index, pagetext, verbose):

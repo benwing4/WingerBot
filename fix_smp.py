@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 from arabiclib import *
 
 def fix_smp(save, verbose, startFrom, upTo):
@@ -40,7 +40,7 @@ def fix_smp(save, verbose, startFrom, upTo):
               else:
                 msg("Page %s %s: Changing %s=smp to %s=sp in %s" % (
                   index, pagetitle, param, param, t.name))
-                t.add(param, "sp")
+                addparam(t, param, "sp")
             param = "pl%s" % i
             pl = getparam(t, param)
             i += 1

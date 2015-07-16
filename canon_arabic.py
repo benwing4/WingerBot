@@ -17,7 +17,7 @@
 import re, codecs
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 import arabiclib
 import ar_translit
@@ -165,11 +165,11 @@ def canon_param(pagetitle, index, template, param, paramtr,
       fromparam, toparam, paramtr, arabic, latin, include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
   if canonarabic:
-    template.add(toparam, canonarabic)
+    addparam(template, toparam, canonarabic)
   if canonlatin == True:
     template.remove(paramtr)
   elif canonlatin:
-    template.add(paramtr, canonlatin)
+    addparam(template, paramtr, canonlatin)
   if canonarabic or canonlatin:
     msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
       oldtempl, unicode(template)))
@@ -245,7 +245,7 @@ def canon_head(pagetitle, index, template):
       i = 2
       while template.has("head" + str(i)):
         i += 1
-      template.add("tr", trs[0])
+      addparam(template, "tr", trs[0])
       if template.has("1"):
         head = getparam(template, "1")
         # for new heads, only use existing head in 1= if ends with -un (tanwīn),
@@ -256,8 +256,8 @@ def canon_head(pagetitle, index, template):
       else:
         head = pagetitle
       for tr in trs[1:]:
-        template.add("head" + str(i), head)
-        template.add("tr" + str(i), tr)
+        addparam(template, "head" + str(i), head)
+        addparam(template, "tr" + str(i), tr)
         i += 1
       actions.append("split translit into multiple heads")
 
@@ -276,13 +276,13 @@ def canon_head(pagetitle, index, template):
         oldtempl = "%s" % unicode(template)
         if canonarabic:
           if template.has("2"):
-            template.add("1", canonarabic, before="2")
+            addparam(template, "1", canonarabic, before="2")
           else:
-            template.add("1", canonarabic, before="tr")
+            addparam(template, "1", canonarabic, before="tr")
         if canonlatin == True:
           template.remove("tr")
         elif canonlatin:
-          template.add("tr", canonlatin)
+          addparam(template, "tr", canonlatin)
         actions.extend(newactions)
         if canonarabic or canonlatin:
           msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,

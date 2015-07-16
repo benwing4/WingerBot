@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import blib
+from blib import getparam, addparam
 
 def rewrite_one_page_ar_nisba(page, index, text):
   for template in text.filter_templates():
@@ -22,7 +23,7 @@ def rewrite_one_page_ar_nisba(page, index, text):
       if template.has("head") and not template.has(1):
         head = unicode(template.get("head").value)
         template.remove("head")
-        template.add("1", head, before=template.params[0].name if len(template.params) > 0 else None)
+        addparam(template, "1", head, before=template.params[0].name if len(template.params) > 0 else None)
       if template.has("plhead"):
         blib.msg("%s has plhead=" % page.title())
   return text, "ar-nisba: head= -> 1="

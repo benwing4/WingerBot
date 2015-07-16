@@ -17,7 +17,7 @@
 import re, unicodedata
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 show_template=True
 
@@ -176,11 +176,11 @@ def canon_param(pagetitle, index, template, param, paramtr, translit_module,
       include_tempname_in_changelog)
   oldtempl = "%s" % unicode(template)
   if canonforeign:
-    template.add(toparam, canonforeign)
+    addparam(template, toparam, canonforeign)
   if canonlatin == True:
     template.remove(paramtr)
   elif canonlatin:
-    template.add(paramtr, canonlatin)
+    addparam(template, paramtr, canonlatin)
   if canonforeign or canonlatin:
     msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
       oldtempl, unicode(template)))

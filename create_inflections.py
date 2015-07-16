@@ -19,7 +19,7 @@ import codecs
 import time
 
 import blib, pywikibot
-from blib import msg, errmsg, getparam
+from blib import msg, errmsg, getparam, addparam
 from arabiclib import *
 
 site = pywikibot.Site()
@@ -676,7 +676,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   noremove=is_verb_part or wordtype == "dictionary form")
               if reorder_shadda(existing) != reorder_shadda(existing_no_i3rab):
                 notes.append("removed %s i3rab" % wordtype)
-                template.add(param, existing_no_i3rab)
+                addparam(template, param, existing_no_i3rab)
                 subsections[j] = unicode(parsed)
                 sections[i] = ''.join(subsections)
                 trparam = "tr" if param == "1" else param.replace("head", "tr")
@@ -815,13 +815,13 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   new_gender != defgender):
                 pagemsg("Modifying first gender from '%s' to '%s'" % (
                   existing_gender, new_gender))
-                headword_template.add("2", new_gender)
+                addparam(headword_template, "2", new_gender)
                 changed = True
               if (new_gender2 != existing_gender2 and new_gender2 and
                   new_gender2 != defgender):
                 pagemsg("Modifying second gender from '%s' to '%s'" % (
                   existing_gender2, new_gender2))
-                headword_template.add("g2", new_gender2)
+                addparam(headword_template, "g2", new_gender2)
                 changed = True
               if changed:
                 subsections[j] = unicode(parsed)
@@ -869,7 +869,7 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                 if existing:
                   assert(existing == value)
                 else:
-                  headword_template.add(param, value)
+                  addparam(headword_template, param, value)
                   changed = True
                   notes.append("updated %s=%s" % (param, value))
               if changed:
@@ -918,20 +918,20 @@ def create_inflection_entry(save, index, inflection, infltr, lemma, lemmatr,
                   if len(inflection) > len(existing_infl):
                     pagemsg("Updating existing %s %s with %s" %
                         (infltemp, existing_infl, inflection))
-                    infl_headword_template.add(infl_headword_matching_param,
+                    addparam(infl_headword_template, infl_headword_matching_param,
                       inflection)
                     if infltr:
                       trparam = "tr" if infl_headword_matching_param == "1" \
                           else infl_headword_matching_param.replace("head", "tr")
-                      infl_headword_template.add(trparam, infltr)
+                      addparam(infl_headword_template, trparam, infltr)
 
                   # Replace existing lemma with new one
                   if len(lemma) > len(existing_lemma):
                     pagemsg("Updating existing '%s' %s with %s" %
                         (deftemp, existing_lemma, lemma))
-                    defn_template.add("1", lemma)
+                    addparam(defn_template, "1", lemma)
                     if lemmatr:
-                      defn_template.add("tr", lemmatr)
+                      addparam(defn_template, "tr", lemmatr)
 
                   subsections[j] = unicode(parsed)
                   sections[i] = ''.join(subsections)
@@ -2248,7 +2248,7 @@ def create_elatives(save, elfile, startFrom, upTo):
             else:
               pagemsg("Adding elative %s to template: %s" % (
                 elative, unicode(template)))
-              template.add("el", elative)
+              addparam(template, "el", elative)
         if not found_positive:
           pagemsg("WARNING, positive %s not found for elative %s (page exists but couldn't find appropriate template)" % (
             arpositive, elative))

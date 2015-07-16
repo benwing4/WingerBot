@@ -15,7 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import blib
-from blib import msg
+from blib import msg, getparam, addparam
 
 def search_noconj(startFrom, upTo):
   for page, index in blib.cat_articles(u"Arabic verbs", startFrom, upTo):

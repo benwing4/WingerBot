@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import blib
+from blib import getparam, addparam
 
 def rewrite_one_page_ar_plural(page, index, text):
   for template in text.filter_templates():

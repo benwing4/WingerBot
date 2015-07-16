@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 from arabiclib import *
 
 site = pywikibot.Site()
@@ -102,7 +102,7 @@ def do_verbs(save, startFrom, upTo):
         if newvn != vnvalue:
           msg("Page %s %s: Verb %s, replacing %s with %s" % (
             index, pagename, verbid, vnvalue, newvn))
-          template.add("vn", newvn)
+          addparam(template, "vn", newvn)
           verbids.append(verbid)
     return text, "Remove i3rab from verbal nouns for verb(s) %s" % (
           ', '.join(verbids))

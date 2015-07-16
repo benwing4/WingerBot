@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import blib
+from blib import getparam, addparam
 
 def rewrite_template_names(old, new, removelist, save, verbose,
     startFrom, upTo):

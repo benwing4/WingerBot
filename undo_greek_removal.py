@@ -17,7 +17,7 @@
 import re, codecs
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 site = pywikibot.Site()
 

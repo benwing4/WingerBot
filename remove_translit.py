@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 import arabiclib
 import ar_translit
@@ -77,7 +77,7 @@ def process_param(pagetitle, index, template, param, paramtr,
       if latin != canonlatin:
         pagemsg("Match-canonicalizing Latin %s to %s" % (latin, canonlatin))
         oldtempl = "%s" % unicode(template)
-        template.add(paramtr, canonlatin)
+        addparam(template, paramtr, canonlatin)
         msg("Page %s %s: Replaced %s with %s" %
             (index, pagetitle, oldtempl, unicode(template)))
         return ["match-canon %s=%s -> %s" % (paramtrname, latin, canonlatin)]
@@ -86,7 +86,7 @@ def process_param(pagetitle, index, template, param, paramtr,
     if latin != canonlatin:
       pagemsg("Self-canonicalizing Latin %s to %s" % (latin, canonlatin))
       oldtempl = "%s" % unicode(template)
-      template.add(paramtr, canonlatin)
+      addparam(template, paramtr, canonlatin)
       msg("Page %s %s: Replaced %s with %s" %
           (index, pagetitle, oldtempl, unicode(template)))
       return ["self-canon %s=%s -> %s" % (paramtrname, latin, canonlatin)]

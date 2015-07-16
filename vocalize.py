@@ -17,7 +17,7 @@
 import re
 
 import blib, pywikibot
-from blib import msg, getparam
+from blib import msg, getparam, addparam
 
 import arabiclib
 import ar_translit
@@ -59,7 +59,7 @@ def vocalize_param(pagetitle, index, template, param, paramtr):
     vocalized = do_vocalize_param(pagetitle, index, template, param, arabic, latin)
     if vocalized:
       oldtempl = "%s" % unicode(template)
-      template.add(param, vocalized)
+      addparam(template, param, vocalized)
       msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
         oldtempl, unicode(template)))
       return vocalized
@@ -102,7 +102,7 @@ def vocalize_head(pagetitle, index, template):
       i = 2
       while template.has("head" + str(i)):
         i += 1
-      template.add("tr", trs[0])
+      addparam(template, "tr", trs[0])
       if template.has("1"):
         head = getparam(template, "1")
         # for new heads, only use existing head in 1= if ends with -un (tanwīn),
@@ -113,8 +113,8 @@ def vocalize_head(pagetitle, index, template):
       else:
         head = pagetitle
       for tr in trs[1:]:
-        template.add("head" + str(i), head)
-        template.add("tr" + str(i), tr)
+        addparam(template, "head" + str(i), head)
+        addparam(template, "tr" + str(i), tr)
         i += 1
       paramschanged.append("split translit into multiple heads")
 
@@ -133,9 +133,9 @@ def vocalize_head(pagetitle, index, template):
         if vocalized:
           oldtempl = "%s" % unicode(template)
           if template.has("2"):
-            template.add("1", vocalized, before="2")
+            addparam(template, "1", vocalized, before="2")
           else:
-            template.add("1", vocalized, before="tr")
+            addparam(template, "1", vocalized, before="tr")
           paramschanged.append("1")
           msg("Page %s %s: Replaced %s with %s" % (index, pagetitle,
             oldtempl, unicode(template)))
