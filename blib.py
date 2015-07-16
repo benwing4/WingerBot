@@ -452,17 +452,21 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
       # Skip {{attention|ar|FOO}} or {{etyl|ar|FOO}} or {{audio|FOO|lang=ar}}
       # or {{lb|ar|FOO}} or {{context|FOO|lang=ar}} or {{Babel-2|ar|FOO}}
       # or various others, where FOO is not Arabic
-      if (tempname in ["attention", "audio", "audio-IPA",
+      if (tempname in [
+        "attention",
+        "audio", "audio-IPA",
         "catlangcode", "C", "catlangname",
+        "commonscat",
         "etyl", "etym",
+        "gloss",
         "label", "lb", "context", "cx",
         "non-gloss definition", "non-gloss", "non gloss", "n-g",
         "qualifier", "qual", "i", "italbrac",
         "rfe", "rfinfl",
         "sense", "italbrac-colon",
         "senseid",
-        "given name", "IPA", "phrasebook", "PIE root", "surname", "Q",
-        "was fwotd"]
+        "given name",
+        "+preo", "IPA", "phrasebook", "PIE root", "surname", "Q", "was fwotd"]
         or "Babel" in tempname):
         pass
       elif did_grc_template:
