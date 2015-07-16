@@ -14,12 +14,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
+import re, unicodedata
 
 import blib, pywikibot
 from blib import msg, getparam
 
 show_template=True
+
+def real_nfd_form(txt):
+    return unicodedata.normalize("NFD", unicode(txt))
 
 # Canonicalize FOREIGN and LATIN. Return (CANONFOREIGN, CANONLATIN, ACTIONS).
 # CANONFOREIGN is accented and/or canonicalized foreign text to
@@ -111,8 +114,13 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         toparam, canonforeign))
     if (translit_module.remove_diacritics(canonforeign) !=
         translit_module.remove_diacritics(foreign)):
-      pagemsg("NOTE: Without diacritics, old foreign %s different from canon %s: %s"
-          % (foreign, canonforeign, unicode(template)))
+      msgs = ""
+      if "  " in foreign or foreign.startswith(" ") or foreign.endswith(" "):
+        msgs += " (stray space in old foreign)"
+      if re.search("[A-Za-z]", real_nfd_form(foreign)):
+        msgs += " (Latin in old foreign)"
+      pagemsg("NOTE: Without diacritics, old foreign %s different from canon %s%s: %s"
+          % (foreign, canonforeign, msgs, unicode(template)))
 
   if not latin:
     pass
@@ -230,6 +238,8 @@ def canon_links(save, verbose, cattype, lang, longlang, script,
         translit_module, include_tempname_in_changelog=True)
     scvalue = getparam(template, "sc")
     if scvalue in script:
+      if show_template and result == False:
+        pagemsg("Processing %s" % (unicode(template)))
       tname = unicode(template.name)
       msg("Page %s %s: %s.%s: Removing sc=%s" % (index,
         pagetitle, tname, "sc", scvalue))
