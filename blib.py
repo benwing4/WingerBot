@@ -443,10 +443,20 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
           did_grc_template = False
 
       # Skip {{attention|ar|FOO}} or {{etyl|ar|FOO}} or {{audio|FOO|lang=ar}}
-      # or {{lb|ar|FOO}} or {{context|FOO|lang=ar}} or {{Babel-2|ar|FOO}},
-      # where FOO is not Arabic
-      if (tempname in ["attention", "etyl", "audio", "lb", "context"] or
-          "Babel" in tempname):
+      # or {{lb|ar|FOO}} or {{context|FOO|lang=ar}} or {{Babel-2|ar|FOO}}
+      # or various others, where FOO is not Arabic
+      if (tempname in ["attention", "audio", "audio-IPA",
+        "catlangcode", "C", "catlangname",
+        "etyl", "etym",
+        "label", "lb", "context", "cx",
+        "non-gloss definition", "non-gloss", "non gloss", "n-g",
+        "qualifier", "qual", "i", "italbrac",
+        "rfe", "rfinfl",
+        "sense", "italbrac-colon",
+        "senseid",
+        "given name", "IPA", "phrasebook", "PIE root", "surname", "Q",
+        "was fwotd"]
+        or "Babel" in tempname):
         pass
       elif did_grc_template:
         pass
@@ -496,21 +506,29 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         if getp("lang") == lang:
           doparam("1")
       elif tempname == "cardinalbox":
-        pagemsg("WARNING: Encountered cardinalbox, check params carefully: %s"
-            % unicode(template))
-        # FUCKME: This is a complicated template, might be doing it wrong
-        doparam("5")
-        doparam("6")
-        for p in ["card", "ord", "adv", "mult", "dis", "coll", "opt", "opt2",
-            "opt2x"]:
-          if getp(p + "alt"):
-            doparam(p + "alt")
-          else:
-            doparam(p)
-          if getp("alt"):
-            doparam("alt")
-          else:
-            doparam("wplink")
+        if getp("1") == lang:
+          pagemsg("WARNING: Encountered cardinalbox, check params carefully: %s"
+              % unicode(template))
+          # FUCKME: This is a complicated template, might be doing it wrong
+          doparam("5")
+          doparam("6")
+          for p in ["card", "ord", "adv", "mult", "dis", "coll", "opt", "opt2",
+              "opt2x"]:
+            if getp(p + "alt"):
+              doparam(p + "alt")
+            else:
+              doparam(p)
+            if getp("alt"):
+              doparam("alt")
+            else:
+              doparam("wplink")
+      elif tempname == "elements":
+        if getp("lang") == lang:
+          doparam("2")
+          doparam("4")
+      elif tempname == "w":
+        if getp("lang") == lang:
+          doparam("w")
       # Look for any other template with lang as first argument
       elif (#tempname in ["l", "link", "m", "mention"] and
           # If "1" matches, don't do templates with a lang= as well,
