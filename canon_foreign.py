@@ -119,6 +119,10 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         msgs += " (stray space in old foreign)"
       if re.search("[A-Za-z]", real_nfd_form(foreign)):
         msgs += " (Latin in old foreign)"
+      if re.search(u"\u00A0", foreign):
+        msgs += " (NBSP in old foreign)"
+      if re.search(u"[\u200E\u200F]", foreign):
+        msgs += " (L2R/R2L in old foreign)"
       pagemsg("NOTE: Without diacritics, old foreign %s different from canon %s%s: %s"
           % (foreign, canonforeign, msgs, unicode(template)))
 
