@@ -162,16 +162,18 @@ debug_tr_matching = False
 
 # list of items to pre-canonicalize to ʺ, which needs to be first in the list
 double_quote_like = [u"ʺ",u"”",u"″"]
-# list of items to match-canonicalize to ʺ, which needs to be first in the list
-double_quote_like_matching = double_quote_like + [u'"']
 # list of items to pre-canonicalize to ʹ, which needs to be first in the list
 single_quote_like = [u"ʹ",u"’",u"ʼ",u"´",u"′",u"ʲ",u"ь",u"ˈ",u"`",u"‘"]
-# list of items to match-canonicalize to ʹ, which needs to be first in the list
-# Don't put 'j here because we might legitimately have ья or similar
-single_quote_like_matching = single_quote_like + [u"'ʹ",u"'"]
 # regexps to use for early canonicalization in pre_canonicalize_latin()
 double_quote_like_re = "[" + "".join(double_quote_like) + "]"
 single_quote_like_re = "[" + "".join(single_quote_like) + "]"
+# list of items to match-canonicalize against a Russian hard sign;
+# the character ʺ needs to be first in the list
+hard_sign_matching = double_quote_like + [u'"']
+# list of items to match-canonicalize against a Russian soft sign;
+# the character ʹ which needs to be first in the list
+# Don't put 'j here because we might legitimately have ья or similar
+soft_sign_matching = single_quote_like + [u"'ʹ",u"'",u"y",u"j"]
 
 russian_to_latin_lookalikes_lc = {
         u"а":"a", u"е":"e", u"о":"o", u"х":"x", u"ӓ":u"ä", u"ё":u"ë", u"с":"c",
@@ -280,7 +282,7 @@ tt_to_russian_matching_uppercase = {
         (u"Ë",),[u"Jo"],[u"Yo",u"Jo"],[u"'O",u"Jo"],[u"ʹO",u"Jo"],
         [u"'Jo",u"Jo"],[u"ʹJo",u"Jo"],[u"O"]],
     u"Ж":[u"Ž",u"Zh",u"ʐ",u"Z"], # no cap equiv: u"ʐ"?
-    u"З":[u"Z",u"Ž"],
+    u"З":u"Z",
     u"И":[u"I",u"Yi",u"Y",u"'I",u"ʹI",u"Ji",u"И"],
     u"Й":[u"J",u"Y",u"Ĭ",u"I",u"Ÿ"],
     # Second K is Cyrillic
@@ -304,9 +306,9 @@ tt_to_russian_matching_uppercase = {
     # or similar
     u"Щ":[u"Šč",u"Shch",u"Sch",u"Sč",u"Š(č)",u"Ŝč",u"Ŝć",(u"Ŝ",),u"Š'",u"ʂ",u"Sh'",
         u"Š",u"Sh"],# No cap equiv: u"ʂ"?
-    u"Ъ":double_quote_like_matching + [u""],
+    u"Ъ":hard_sign_matching + [u""],
     u"Ы":[u"Y",u"I",u"Ɨ",u"Ы",u"ı"],
-    u"Ь":single_quote_like_matching + [u""],
+    u"Ь":soft_sign_matching + [u""],
     u"Э":[u"E",u"Ė",[u"Ɛ"]], # FIXME should we canonicalize Ɛ here?
     u"Ю":[u"Ju",u"Yu",u"'U",u"ʹU",u"U",u"'Ju",u"ʹJu"],
     u"Я":[u"Ja",u"Ya",u"'A",u"ʹA",u"A",u"'Ja",u"ʹJa"],
@@ -346,6 +348,7 @@ tt_to_russian_matching_non_case = {
     u" ":u" ",
     u"[":u"",
     u"]":u"",
+    u",":[u",", u" ,", u""],
     # these are now handled by check_unmatch_either()
     #AC:[AC,""],
     #GR:[GR,""],
@@ -355,7 +358,7 @@ tt_to_russian_matching_non_case = {
 }
 
 # Match numbers and some punctuation against itself
-for ch in "1234567890,;:/":
+for ch in "1234567890;:/":
     tt_to_russian_matching_non_case[ch] = ch
 
 # Convert string, list of stuff of tuple of stuff into lowercase
@@ -957,7 +960,7 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
                 small_silent_hard_sign]:
             # Consume any hard/soft-like signs
             if lind[0] < llen and la[lind[0]] in ([u"Ъ",u"ъ"] +
-                    double_quote_like_matching + single_quote_like_matching):
+                    hard_sign_matching + soft_sign_matching):
                 lind[0] += 1
             res.append(ru[rind[0]])
             rind[0] += 1
@@ -1200,6 +1203,9 @@ def run_tests():
     test(u"runglíjskij jazýk", u"рунглийский язык", "matched", u"рунгли́йский язы́к")
     test(u"skyy jazýk", u"скый язык", "matched", u"скый язы́к")
     test(u"skýy jazýk", u"скый язык", "matched", u"скы́й язы́к")
+    test(u"ni púha ni perá", u"ни пуха, ни пера", "matched",
+            u"ни пу́ха, ни пера́")
+    test(u"predpolozytelyniy", u"предположи́тельный", "matched")
 
     # Test adding !, ? or .
     test(u"fan", u"фан!", "matched")
