@@ -37,7 +37,9 @@ if params.page_file:
     if params.cattype == "pages":
       pages_to_do.append(line)
     else:
-      m = re.match(r"\* \[\[(.*?)]]: .*?<nowiki>(.*?)</nowiki>$", line)
+      m = re.match(r"^Page [0-9]+ (.*?): [^:]*: Processing (.*?)$", line)
+      if not m:
+        m = re.match(r"\* \[\[(.*?)]]: .*?<nowiki>(.*?)</nowiki>$", line)
       if not m:
         msg("WARNING: Unable to parse line: [%s]" % line)
       else:
