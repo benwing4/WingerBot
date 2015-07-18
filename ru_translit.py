@@ -24,20 +24,8 @@ from blib import remove_links, msg
 #
 # 1. Should we canonicalize ɛ when it matches э? e.g. лавэ (lavɛ́)?
 # 2. Cases like бере́г (berjóg) -- should we canonicalize to ё? Probably not?
-# 3. Ask Anatoli: Is it safe to convert H to X opposite Cyrillic Х?
-#    Occurs in Христова vs. Hristóva
-# 4. Ask Anatoli: Is it safe to convert b to v opposite Cyrillic в?
-#    Occurs many times, e.g. in раздваивать vs. razdvaibat'
-# 5. Ask Anatoli about splitting templates: {{t+|ru|Катар|m|tr=Kátar, Katár}}
-#    becomes {{t+|ru|Катар|m|tr=Kátar}}, {{t+|ru|Катар|m|tr=Katár}} and
-#    then {{t+|ru|Ка́тар|m}}, {{t+|ru|Ката́р|m}} after accenting the Russian
-#    and removing the now-redundant transliteration
-# 6. Consider removing a stray paren from the Latin when it's unmatched and
-#    no parens in the Russian, e.g. in recycling: {{t|ru|вторичная переработка|f|tr=vtoríčnaja pererabótka)|sc=Cyrl}}
 # 8. FIXME: Match-canon jo to jó against ё if multi-syllable and no other
 #    accent in word
-# 9. Ask Anatoli if it's OK to convert ɛ to e when not after a consonant,
-#    e.g self-canon paciɛ́nt -> paciént or tɛ-ɛs-žé -> tɛ-es-žé
 # 10. Ask Anatoli about multiple acute accents in a word. Currently I throw
 #    an error if the Russian has multiple accents (Блу́мфонте́йн,
 #    ла́биодента́льный -- template {{t|ru|Блу́мфонте́йн|m|tr=Blúmfontɛjn, Blumfontɛ́jn}}
@@ -49,6 +37,9 @@ from blib import remove_links, msg
 # 11. Ask Anatoli about stressed and unstressed ё. Since ё can be unstressed,
 #    should we add an accent on it when we know it's stressed (from the
 #    Latin)?
+# 12. Ask Anatoli: Is it OK to normalize NBSP to regular space? If not, it
+#    should be matched against regular space in the Latin and the Latin will
+#    be canonicalized to NBSP.
 
 AC = u"\u0301"
 GR = u"\u0300"
@@ -77,12 +68,6 @@ def rsub(text, fr, to):
 
 def error(text):
     raise RuntimeError(text)
-
-def nfc_form(txt):
-    return unicodedata.normalize("NFKC", unicode(txt))
-
-def nfd_form(txt):
-    return unicodedata.normalize("NFKD", unicode(txt))
 
 tt = {
     u"А":u"A", u"Б":u"B", u"В":u"V", u"Г":u"G", u"Д":u"D", u"Е":u"E",
