@@ -21,7 +21,7 @@ from blib import msg, getparam, addparam
 
 show_template=True
 
-def real_nfd_form(txt):
+def nfd_form(txt):
     return unicodedata.normalize("NFD", unicode(txt))
 
 # Canonicalize FOREIGN and LATIN. Return (CANONFOREIGN, CANONLATIN, ACTIONS).
@@ -117,9 +117,9 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
       msgs = ""
       if "  " in foreign or foreign.startswith(" ") or foreign.endswith(" "):
         msgs += " (stray space in old foreign)"
-      if re.search("[A-Za-z]", real_nfd_form(foreign)):
+      if re.search("[A-Za-z]", nfd_form(foreign)):
         msgs += " (Latin in old foreign)"
-      if re.search(u"\u00A0", foreign):
+      if u"\u00A0" in foreign:
         msgs += " (NBSP in old foreign)"
       if re.search(u"[\u200E\u200F]", foreign):
         msgs += " (L2R/R2L in old foreign)"
