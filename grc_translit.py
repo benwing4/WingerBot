@@ -50,8 +50,9 @@ GR_ACC_NO_DIA = ("[" + GRAVE + ACUTE + MAC + BREVE + SMBR + ROBR +
 GR_ACC_NO_MB = ("[" + GRAVE + ACUTE + DIA + SMBR + ROBR +
         PERIS + KORO + DIATON + IOBE + "]")
 LA_ACC_NO_MB = ("[" + GRAVE + ACUTE + CIRC + DIA + CAR + "]")
-MB = "[" + MAC + BREVE + "]"
-MBOPT = MB + "?"
+ONE_MB = "[" + MAC + BREVE + "]"
+MBS = ONE_MB + "+"
+MBSOPT = ONE_MB + "*"
 RS = "[" + ROBR + SMBR + "]"
 RSOPT = RS + "?"
 
@@ -79,10 +80,10 @@ def error(text):
     raise RuntimeError(text)
 
 def nfc_form(txt):
-    return unicodedata.normalize("NFKC", unicode(txt))
+    return unicodedata.normalize("NFC", unicode(txt))
 
 def nfd_form(txt):
-    return unicodedata.normalize("NFKD", unicode(txt))
+    return unicodedata.normalize("NFD", unicode(txt))
 
 tt = {
     # Plain vowels
@@ -144,6 +145,8 @@ greek_uppercase_vowels_raw = u"ΑΕΗΙΟΩΥᾼῌῼ"
 greek_uppercase_vowels = "[" + greek_uppercase_vowels_raw + "]"
 greek_vowels = ("[" + greek_lowercase_vowels_raw + greek_uppercase_vowels_raw
         + "]")
+# vowels that can be the first part of a diphthong
+greek_diphthong_first_vowels = u"[αεηοωΑΕΗΟΩ]"
 iotate_vowel = {u"α":u"ᾳ", u"Α":u"ᾼ",
                 u"η":u"ῃ", u"Ε":u"ῌ",
                 u"ω":u"ῳ", u"Ω":u"ῼ",}
@@ -336,8 +339,8 @@ def pre_canonicalize_latin(text, greek=None):
     text = nfd_form(text)
     text = rsub(text, "y", "u")
     # move accent on first part of diphthong to second part
-    text = rsub(text, "([aeiuoAEIOU]" + MBOPT + ")([" + CIRC + ACUTE + GRAVE +
-            "])([ui])(?!" + MBOPT + DIA + ")", r"\1\3\2")
+    text = rsub(text, "([aeiuoAEIOU]" + MBSOPT + ")([" + CIRC + ACUTE + GRAVE +
+            "])([ui])(?!" + MBSOPT + DIA + ")", r"\1\3\2")
 
     return text
 
@@ -352,7 +355,7 @@ def tr_canonicalize_latin(text):
 def post_canonicalize_latin(text):
     # Move macron and breve to beginning after vowel.
     text = rsub(text, u"([aeiouAEIOU])(" + LA_ACC_NO_MB + "*)(" +
-            MB + ")", r"\1\3\2")
+            MBS + ")", r"\1\3\2")
     # Convert rr to rrh
     text = rsub(text, "rr($|[^h])", r"rrh\1")
     # Convert gk, gg to nk, ng
@@ -403,12 +406,13 @@ def tr_canonicalize_greek(text):
     # in order with multiple accents, except macron or breve. Second vowel of
     # diphthong must be υ or ι and no following diaeresis. Only do it at
     # beginning of word.
-    text = rsub(text, r"(^|[ \[\]|])(" + greek_vowels + MBOPT + u"[υι])(" +
-            RS + ")(?!" + GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\3\2")
+    text = rsub(text, r"(^|[ \[\]|])(" + greek_diphthong_first_vowels + MBSOPT +
+            u"[υι])(" + RS + ")(?!" + GR_ACC_NO_DIA + "*" + DIA + ")",
+            r"\1\3\2")
     # Put rough/smooth breathing before vowel; rough breathing comes first in
     # order with multiple accents, except macron or breve. Only do it at
     # beginning of word.
-    text = rsub(text, r"(^|[ \[\]|])(" + greek_vowels + MBOPT + ")(" +
+    text = rsub(text, r"(^|[ \[\]|])(" + greek_vowels + MBSOPT + ")(" +
             RS + ")", r"\1\3\2")
     # Recombine iotated vowels; iotated accent comes last in order.
     # We do this because iotated vowels have special Latin mappings that
@@ -428,6 +432,11 @@ def pre_pre_canonicalize_greek(text):
     # canonicalize interior whitespace
     text = rsub(text, r"\s+", " ")
 
+    # Do some compatibility transformations since we no longer do the
+    # NFKC/NFKD transformations due to them changing Greek 1FBD (koronis) into
+    # 0020 SPACE + 0313 COMBINING COMMA ABOVE.
+    text = text.replace(u"\u00B5", u"μ")
+
     text = tr_canonicalize_greek(text)
 
     return text
@@ -438,7 +447,7 @@ def pre_canonicalize_greek(text):
 def post_canonicalize_greek(text, msgfun=msg):
     # Move macron and breve to beginning after vowel.
     text = rsub(text, u"(" + greek_vowels + ")(" + GR_ACC_NO_MB + "*)(" +
-            MB + ")", r"\1\3\2")
+            MBS + ")", r"\1\3\2")
     # Don't do this; the Greek should already have an iotated vowel.
     # In any case, complications arise with acute accents in the Latin and
     # Greek (should we have pā́i against παί?).
@@ -459,13 +468,14 @@ def post_canonicalize_greek(text, msgfun=msg):
     # in order with multiple accents, except macron or breve. Second vowel of
     # diphthong must be υ or ι and no following diaeresis. Only do it at
     # beginning of word.
-    text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels + MBOPT +
-            u"[υι])(?!" + GR_ACC_NO_DIA + "*" + DIA + ")", r"\1\3\2")
+    text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" +
+            greek_diphthong_first_vowels + MBSOPT + u"[υι])(?!" + GR_ACC_NO_DIA
+            + "*" + DIA + ")", r"\1\3\2")
     # Put rough/smooth breathing after vowel; rough breathing comes first in
     # order with multiple accents, except macron or breve. Only do it at
     # beginning of word.
     text = rsub(text, r"(^|[ \[\]|])(" + RS + ")(" + greek_vowels +
-            MBOPT + ")", r"\1\3\2")
+            MBSOPT + ")", r"\1\3\2")
     # Eliminate breve over short vowel
     text = rsub(text, u"([οεΟΕ])" + BREVE, r"\1")
     # Eliminate macron over long vowel
@@ -708,6 +718,7 @@ def remove_diacritics(text):
     text = rsub(text, u"[ᾸᾹᾰᾱῘῙῐῑῨῩῠῡ]",
             {u"Ᾰ":u"Α", u"Ᾱ":u"Α", u"ᾰ":u"α", u"ᾱ":u"α", u"Ῐ":u"Ι", u"Ῑ":u"Ι",
              u"ῐ":u"ι", u"ῑ":u"ι", u"Ῠ":u"Υ", u"Ῡ":u"Υ", u"ῠ":u"υ", u"ῡ":u"υ"})
+    text = rsub(text, ONE_MB, "")
     text = nfc_form(text)
     return text
 
