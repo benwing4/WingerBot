@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, codecs
+import re, codecs, unicodedata
 
 import blib, pywikibot
 from blib import msg, getparam, addparam
@@ -23,6 +23,25 @@ import arabiclib
 import ar_translit
 
 show_template=True
+
+def nfd_form(txt):
+    return unicodedata.normalize("NFD", unicode(txt))
+
+def diff_string(old, new):
+  minlen = min(len(old), len(new))
+  i = 0
+  while i < minlen:
+    if old[i] != new[i]:
+      return "at pos %s, old %s vs new %s" % (i, old[i],
+          new[i])
+      break
+    i += 1
+  else:
+    assert len(old) != len(new)
+    if len(old) < len(new):
+      return "first stray char at pos %s in new = %s" % (i, new[i])
+    else:
+      return "first stray char at pos %s in old = %s" % (i, old[i])
 
 # Canonicalize ARABIC and LATIN. Return (CANONARABIC, CANONLATIN, ACTIONS).
 # CANONARABIC is vocalized and/or canonicalized Arabic text to
@@ -86,6 +105,7 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
         (canonarabic, arabic, e, unicode(template)))
     translit = None
 
+  show_diff_string = False
   if canonarabic == arabic:
     pagemsg("No change in Arabic %s%s" % (arabic, latintrtext))
     canonarabic = False
@@ -96,21 +116,50 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
     elif latin:
       operation="Cross-canoning"
       actionop="cross-canon"
+      show_diff_string = True
     else:
       operation="Self-canoning"
       actionop="self-canon"
-    pagemsg("%s Arabic %s -> %s%s: %s" % (operation, arabic, canonarabic,
-      latintrtext, unicode(template)))
+      show_diff_string = True
+    if show_diff_string:
+      diffmsg = " (%s)" % diff_string(arabic, canonarabic)
+    else:
+      diffmsg = ""
+    pagemsg("%s Arabic %s -> %s%s%s: %s" % (operation, arabic, canonarabic,
+      latintrtext, diffmsg, unicode(template)))
     if fromparam == toparam:
       actions.append("%s %s=%s -> %s" % (actionop, fromparam, arabic,
         canonarabic))
     else:
       actions.append("%s %s=%s -> %s=%s" % (actionop, fromparam, arabic,
         toparam, canonarabic))
-    if (ar_translit.remove_diacritics(canonarabic) !=
-        ar_translit.remove_diacritics(arabic)):
-      pagemsg("NOTE: Without diacritics, old Arabic %s different from canon %s: %s"
-          % (arabic, canonarabic, unicode(template)))
+    rdcanonarabic = ar_translit.remove_diacritics(canonarabic)
+    rdarabic = ar_translit.remove_diacritics(arabic)
+    if rdarabic != rdcanonarabic:
+      msgs = []
+      if "  " in rdarabic or rdarabic.startswith(" ") or rdarabic.endswith(" "):
+        msgs.append("stray space")
+      if re.search("[A-Za-z]", nfd_form(rdarabic)):
+        msgs.append("Latin")
+      if u"\u00A0" in rdarabic:
+        msgs.append("NBSP")
+      if re.search(u"[\u200E\u200F]", rdarabic):
+        msgs.append("L2R/R2L")
+      if u"ی" in rdarabic:
+        msgs.append("Farsi Yeh")
+      if u"ک" in rdarabic:
+        msgs.append("Keheh")
+      if re.search(u"[\uFB50-\uFDCF]", rdarabic):
+        msgs.append("Arabic Pres-A")
+      if re.search(u"[\uFDF0-\uFDFF]", rdarabic):
+        msgs.append("Arabic word ligatures")
+      if re.search(u"[\uFE70-\uFEFF]", rdarabic):
+        msgs.append("Arabic Pres-B")
+      diffmsg = diff_string(rdarabic, rdcanonarabic)
+
+      pagemsg("NOTE: Without diacritics, old Arabic %s different from canon %s%s (%s): %s"
+          % (arabic, canonarabic, msgs and " (in old: %s)" % ", ".join(msgs) or "",
+            diffmsg, unicode(template)))
 
   if not latin:
     pass
@@ -360,33 +409,34 @@ def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
       startFrom, upTo, process_param, sort_group_changelogs,
       pages_to_do=pages_to_do, split_templates=u"[,،/]")
 
-pa = blib.init_argparser("Correct vocalization and translit")
-pa.add_argument("--headwords", action='store_true',
-    help="Correct vocalization and translit of headwords")
-pa.add_argument("--cattype", default="borrowed",
-    help="""Categories to examine ('vocab', 'borrowed', 'translation',
-'pagetext', 'pages' or comma-separated list)""")
-pa.add_argument("--page-file",
-    help="""File containing "pages" to process when --cattype pagetext,
-or list of pages when --cattype pages""")
+if __name__ == "__main__":
+  pa = blib.init_argparser("Correct vocalization and translit")
+  pa.add_argument("--headwords", action='store_true',
+      help="Correct vocalization and translit of headwords")
+  pa.add_argument("--cattype", default="borrowed",
+      help="""Categories to examine ('vocab', 'borrowed', 'translation',
+  'pagetext', 'pages' or comma-separated list)""")
+  pa.add_argument("--page-file",
+      help="""File containing "pages" to process when --cattype pagetext,
+  or list of pages when --cattype pages""")
 
-params = pa.parse_args()
-startFrom, upTo = blib.parse_start_end(params.start, params.end)
-pages_to_do = []
-if params.page_file:
-  for line in codecs.open(params.page_file, "r", encoding="utf-8"):
-    line = line.strip()
-    if params.cattype == "pages":
-      pages_to_do.append(line)
-    else:
-      m = re.match(r"^Page [0-9]+ (.*?): [^:]*: Processing (.*?)$", line)
-      if not m:
-        msg("WARNING: Unable to parse line: [%s]" % line)
+  params = pa.parse_args()
+  startFrom, upTo = blib.parse_start_end(params.start, params.end)
+  pages_to_do = []
+  if params.page_file:
+    for line in codecs.open(params.page_file, "r", encoding="utf-8"):
+      line = line.strip()
+      if params.cattype == "pages":
+        pages_to_do.append(line)
       else:
-        pages_to_do.append(m.groups())
+        m = re.match(r"^Page [0-9]+ (.*?): [^:]*: Processing (.*?)$", line)
+        if not m:
+          msg("WARNING: Unable to parse line: [%s]" % line)
+        else:
+          pages_to_do.append(m.groups())
 
-if params.headwords:
-  canon_headwords(params.save, params.verbose, startFrom, upTo)
-else:
-  canon_links(params.save, params.verbose, params.cattype, startFrom, upTo,
-      pages_to_do=pages_to_do)
+  if params.headwords:
+    canon_headwords(params.save, params.verbose, startFrom, upTo)
+  else:
+    canon_links(params.save, params.verbose, params.cattype, startFrom, upTo,
+        pages_to_do=pages_to_do)
