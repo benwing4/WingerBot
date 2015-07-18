@@ -26,6 +26,19 @@ from blib import remove_links, msg
 #    also need extra clause in has_diacritics_subs (2nd one)
 # 2. alif madda should match against 'a with short a
 
+# STATUS:
+#
+# OK to run. We actually did a run saving the results, using a page file,
+# like this:
+#
+# python canon_arabic.py --cattype pages --page-file canon_arabic.4+14.saved-pages.out --save >! canon_arabic.15.saved-pages.save.out
+#
+# But it was interrupted partway through.
+#
+# Wrote parse_log_file.py to create a modified log file suitable for editing
+# to allow manual changes to be saved rapidly (using a not-yet-written script,
+# presumably modeled on undo_greek_removal.py).
+
 def uniprint(x):
   print x.encode('utf-8')
 def uniout(x):
@@ -49,11 +62,11 @@ def rsub(text, fr, to):
 def error(text):
     raise RuntimeError(text)
 
-def nfc_form(txt):
+def nfkc_form(txt):
     return unicodedata.normalize("NFKC", unicode(txt))
 
-def nfd_form(txt):
-    return unicodedata.normalize("NFKD", unicode(txt))
+def nfc_form(txt):
+    return unicodedata.normalize("NFC", unicode(txt))
 
 zwnj = u"\u200c" # zero-width non-joiner
 zwj  = u"\u200d" # zero-width joiner
@@ -583,9 +596,9 @@ tt_to_arabic_unmatching = {
 # Pre-canonicalize Latin, and Arabic if supplied. If Arabic is supplied,
 # it should be the corresponding Arabic (after pre-pre-canonicalization),
 # and is used to do extra canonicalizations.
-def pre_canonicalize_latin(text, arabic=None):
+def pre_canonicalize_latin(text, arabic=None, msgfun=msg):
     # Map to canonical composed form, eliminate presentation variants etc.
-    text = nfc_form(text)
+    text = nfkc_form(text)
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
     # remove embedded comments
@@ -662,11 +675,16 @@ def pre_canonicalize_latin(text, arabic=None):
         # Remove links from Arabic to simplify the following code
         arabic = remove_links(arabic)
         # If Arabic ends with -un, remove it from the Latin (it will be
-        # removed from Arabic in pre-canonicalization).
-        if arabic.endswith(u"\u064C"):
-            text = rsub(text, "un$", "")
-        # Now remove -un from the Arabic.
-        arabic = rsub(arabic, u"\u064C$", "")
+        # removed from Arabic in pre-canonicalization). But not if the
+        # Arabic has a space in it (may be legitimate, in Koranic quotes or
+        # whatever).
+        if arabic.endswith(u"\u064C") and " " not in arabic:
+            newtext = rsub(text, "un$", "")
+            if newtext != text:
+                msgfun("Removing final -un from Latin %s" % text)
+                text = newtext
+            # Now remove -un from the Arabic.
+            arabic = rsub(arabic, u"\u064C$", "")
         # If Arabic ends with tāʾ marbūṭa, canonicalize some Latin endings
         # right now. Only do this at the end of the text, not at the end
         # of each word, since an Arabic word in the middle might be in the
@@ -748,11 +766,11 @@ def post_canonicalize_latin(text):
 # (CANONLATIN, CANONARABIC).
 def canonicalize_latin_arabic(latin, arabic, msgfun=msg):
     if arabic is not None:
-        arabic = pre_pre_canonicalize_arabic(arabic)
+        arabic = pre_pre_canonicalize_arabic(arabic, msgfun=msgfun)
     if latin is not None:
-        latin = pre_canonicalize_latin(latin, arabic)
+        latin = pre_canonicalize_latin(latin, arabic, msgfun=msgfun)
     if arabic is not None:
-        arabic = pre_canonicalize_arabic(arabic, safe=True)
+        arabic = pre_canonicalize_arabic(arabic, safe=True, msgfun=msgfun)
         arabic = post_canonicalize_arabic(arabic, safe=True)
     if latin is not None:
         # Protect instances of two or more single quotes in a row so they don't
@@ -770,15 +788,36 @@ def canonicalize_latin_arabic(latin, arabic, msgfun=msg):
         latin = post_canonicalize_latin(latin)
     return (latin, arabic)
 
+# Special-casing for punctuation-space and diacritic-only text; don't
+# pre-canonicalize.
+def dont_pre_canonicalize_arabic(text):
+    if u"\u2008" in text:
+        return True
+    rdtext = remove_diacritics(text)
+    if len(rdtext) == 0:
+        return True
+    if rdtext == u"ـ":
+        return True
+    return False
+
 # Early pre-canonicalization of Arabic, doing stuff that's safe. We split
 # this from pre-canonicalization proper so we can do Latin pre-canonicalization
 # between the two steps.
-def pre_pre_canonicalize_arabic(text):
-    # Map to canonical composed form, eliminate presentation variants
-    text = nfc_form(text)
+def pre_pre_canonicalize_arabic(text, msgfun=msg):
+    if dont_pre_canonicalize_arabic(text):
+        msgfun("Not pre-canonicalizing %s due to U+2008 or overly short" %
+                text)
+        return text
+    # Map to canonical composed form, eliminate presentation variants.
+    # But don't do it if word ligatures are present or length-1 words with
+    # presentation variants, because we want to leave those alone.
+    if (not re.search(u"[\uFDF0-\uFDFF]", text)
+            and not re.search(u"(^|[\\W])[\uFB50-\uFDCF\uFE70-\uFEFF]($|[\\W])",
+                text, re.U)):
+        text = nfkc_form(text)
     # remove L2R, R2L markers
     text = rsub(text, u"[\u200E\u200F]", "")
-    # remove leading/trailing spaces
+    # remove leading/trailing spaces;
     text = text.strip()
     # canonicalize interior whitespace
     text = rsub(text, r"\s+", " ")
@@ -802,19 +841,44 @@ def pre_pre_canonicalize_arabic(text):
     text = rsub(text, u"([^\u064E\u0627\u0622\u0670])\u0629",
         u"\\1\u064E\u0629")
     # some Arabic text has a shadda after the initial consonant; remove it
-    text = rsub(text, ur"(^|[ |\[\]])(.)" + SH, r"\1\2")
+    newtext = rsub(text, ur"(^|[ |\[\]])(.)" + SH, r"\1\2")
+    if text != newtext:
+        if " " in newtext:
+            # Shadda after initial consonant can legitimately occur in
+            # Koranic text, standing for assimilation of the final consonant
+            # of the preceding word
+            msgfun("Not removing shadda after initial consonant in %s because of space in text"
+                    %  text)
+        else:
+            msgfun("Removing shadda after initial consonant in %s" % text)
+            text = newtext
     # similarly for sukūn + consonant + shadda.
-    text = rsub(text, SK + "(.)" + SH, SK + r"\1")
+    newtext = rsub(text, SK + "(.)" + SH, SK + r"\1")
+    if text != newtext:
+        msgfun(u"Removing shadda after sukūn + consonant in %s" % text)
+        text = newtext
     # fatḥa mistakenly placed after consonant + alif should go before.
-    text = rsub(text, "([" + lconsonants + "])" + A + "?" + ALIF + A,
+    newtext = rsub(text, "([" + lconsonants + "])" + A + "?" + ALIF + A,
             r"\1" + AA)
+    if text != newtext:
+        msgfun(u"uFixing fatḥa after consonant + alif in %s" % text)
+        text = newtext
     return text
 
 # Pre-canonicalize the Arabic. If SAFE, only do "safe" operations appropriate
 # to canonicalizing Arabic on its own, not before a tr_matching() operation.
-def pre_canonicalize_arabic(text, safe=False):
+def pre_canonicalize_arabic(text, safe=False, msgfun=msg):
+    if dont_pre_canonicalize_arabic(text):
+        return text
     # Remove final -un i3rab
-    text = rsub(text, u"\u064C$", "")
+    if text.endswith(u"\u064C"):
+        if " " in text:
+            # Don't remove final -un from text with spaces because it might
+            # be a Koranic quote or similar where we want the -un
+            msgfun("Not removing final -un from Arabic %s because it has a space in it" % text)
+        else:
+            msgfun("Removing final -un from Arabic %s" % text)
+            text = rsub(text, u"\u064C$", "")
     if not safe:
         # Final alif or alif maqṣūra following fatḥatān is silent (e.g. in
         # accusative singular or words like عَصًا "stick" or هُذًى "guidance";
@@ -854,6 +918,8 @@ def pre_canonicalize_arabic(text, safe=False):
     return text
 
 def post_canonicalize_arabic(text, safe=False):
+    if dont_pre_canonicalize_arabic(text):
+        return text
     if not safe:
         text = rsub(text, silent_alif_subst, u"ا")
         text = rsub(text, silent_alif_maqsuura_subst, u"ى")
@@ -913,9 +979,9 @@ def tr_matching(arabic, latin, err=False, msgfun=msg):
     def debprint(x):
         if debug_tr_matching:
             uniprint(x)
-    arabic = pre_pre_canonicalize_arabic(arabic)
-    latin = pre_canonicalize_latin(latin, arabic)
-    arabic = pre_canonicalize_arabic(arabic)
+    arabic = pre_pre_canonicalize_arabic(arabic, msgfun=msgfun)
+    latin = pre_canonicalize_latin(latin, arabic, msgfun=msgfun)
+    arabic = pre_canonicalize_arabic(arabic, msgfun=msgfun)
     # convert double consonant after non-cons to consonant + shadda,
     # but not multiple quotes or multiple periods
     latin = re.sub(ur"(^|[aeiouəāēīōū\W])([^'.])\2", u"\\1\\2\u0651",
@@ -1332,8 +1398,8 @@ tt_to_arabic_direct = {
 # transliterates final -a as fatḥa, never as tāʾ marbūṭa (should make use of
 # POS for this). Doesn't (and can't) know about cases where sh, th, etc.
 # stand for single letters rather than combinations.
-def tr_latin_direct(text, pos):
-    text = pre_canonicalize_latin(text)
+def tr_latin_direct(text, pos, msgfun=msg):
+    text = pre_canonicalize_latin(text, msgfun=msg)
     text = rsub(text, u"ah$", u"\u064Eة")
     text = rsub(text, u"āh$", u"\u064Eاة")
     text = rsub(text, u".", tt_to_arabic_direct)
@@ -1351,7 +1417,7 @@ num_succeeded = 0
 def test(latin, arabic, should_outcome):
     global num_succeeded, num_failed
     try:
-        result = tr_matching(arabic, latin, True, msgfun=msg)
+        result = tr_matching(arabic, latin, True)
     except RuntimeError as e:
         uniprint(u"%s" % e)
         result = False
