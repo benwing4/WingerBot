@@ -109,11 +109,9 @@ This file is now in run-logs-8.
 
 Then I manually went through this file to fix up the Arabic and translits,
 correcting the Arabic as necessary and deleting or correcting the translit.
-I worked backward from the end and got through 'android' to 'a', and the
-capital letters Z through G. Note that I skipped some of the entries that
-I thought I had previously corrected in the above manual run; in case where
-I didn't skip them, it will be unable to fix them up because they've already
-been fixed up.
+Note that I skipped some of the entries that I thought I had previously
+corrected in the above manual run; in case where I didn't skip them, it will
+be unable to fix them up because they've already been fixed up.
 
 ---------- TODO ----------
 
@@ -122,22 +120,19 @@ like this:
 
 python canon_arabic.py --cattype pages --page-file canon_arabic.4+14.saved-pages.out --save >! canon_arabic.16.saved-pages.save.out
 
-2. Finish editing canon_arabic.15.saved-pages.save.parse-log-file.iy.iyya.out,
-doing capital F through A.
-
-3. Write a script to take the manual edits and save them; this should
+2. Write a script to take the manual edits and save them; this should
 probably be based on undo_greek_removal, which did something similar for
 Greek (it undid changes by constructing the FROM and TO templates, searching
 for the TO template and replacing it with the FROM template). In this case,
 each line has the MODIFIED and modified-modified templates, and so we want
 to replace the former with the latter.
 
-4. Take the file canon_arabic.16.saved-pages.save.out and do the same steps
+3. Take the file canon_arabic.16.saved-pages.save.out and do the same steps
 above that were done on canon_arabic.15.saved-pages.save.out to get a file
 to edit manually; edit that manually and propagate the changes to Wiktionary
 using the newly-written script.
 
-5. Go through the remainder of the unable-to-vocalize and then match-canon
+4. Go through the remainder of the unable-to-vocalize and then match-canon
 cases, edit them manually and propagate the changes to Wiktionary.
 
 ------------------------------ Russian ------------------------------
