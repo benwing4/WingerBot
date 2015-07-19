@@ -78,7 +78,7 @@ def undo_greek_removal(save, verbose, direcfile, startFrom, upTo):
       blib.do_edit(page, index, undo_one_page_greek_removal, save=save,
           verbose=verbose)
 
-pa = blib.init_argparser("Create Arabic declensions")
+pa = blib.init_argparser("Undo Greek transliteration removal")
 pa.add_argument("--file",
     help="File containing templates and removal directives to undo")
 
