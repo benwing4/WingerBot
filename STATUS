@@ -1,0 +1,182 @@
+STATUS:
+
+Sun Jul 19 829am
+
+------------------------------ Arabic ------------------------------
+
+A run was done to vocalize the Arabic based on the translit and then either
+canonicalize or remove the translit, on all the pages specified by
+--cattype translation,vocab,borrowed (pages referencing one of the 5
+translation templates t/t+/t-/t+check/t-check, pages in Arabic lemmas and
+non-lemmas, and pages containing terms borrowed from Arabic).
+
+This run was done as follows:
+
+python canon_arabic.py --cattype pages --page-file canon_arabic.4+14.saved-pages.out --save >! canon_arabic.15.saved-pages.save.out
+
+It was interrupted after it got through capital A through Z and lowercase
+as far as 'android'. the file canon_arabic.15.saved-pages.save.out is now
+in run-logs-7.
+
+---------- interlude ----------
+Note that the file canon_arabic.4+14.saved-pages.out (now in run-logs-7) was
+produced as follows:
+
+1. A run was done without saving anything, over the three cattypes mentioned
+above. This took several hours.
+
+python canon_arabic.py --cattype translation,vocab,borrowed >! canon_arabic.4.translation,vocab,borrowed.out
+
+The file canon_arabic.4.translation,vocab,borrowed.out is now in run-logs-6.
+
+2. From the file canon_arabic.4.translation,vocab,borrowed.out, the
+"Processing" lines were extracted and processed to generate input of the
+form required by '--cattype pagetext':
+
+grep 'Processing {{' canon_arabic.4.translation,vocab,borrowed.out| perl -pe 's/^Page [0-9]+ /Page 000 /'|sort|uniq >! canon_arabic.4.all.processing.out
+
+This file is in run-logs-6.
+
+3. This was then processed by canon_arabic:
+
+python canon_arabic.py --cattype pagetext --page-file canon_arabic.4.all.processing.out >! canon_arabic.14.all.processing.processed.out
+
+(The "14" in it is because there were many previous versions, with
+corresponding changes to ar_translit.py and/or canon_arabic.py.)
+
+4. This was then processed to get the list of pages that would be saved:
+
+cat canon_arabic.14.all.processing.processed.out |grep 'Would save with comment'|perl -pe 's/^Page [0-9]+ (.*?): Would save.*$/$1/' | sort|uniq > canon_arabic.14.processed.saved-pages.out
+
+5. Something similar was done with the original run log from step 1. This
+was done because at the time that the step-1 run log was generated, not all
+templates processed caused 'Processing {{' lines to be output (in particular,
+templates where only sc=Arab was removed), so there were potentially pages
+to be processed that were not in the list generated in step 4.
+
+cat canon_arabic.4.translation,vocab,borrowed.out |grep 'Would save with comment'|perl -pe 's/^Page [0-9]+ (.*?): Would save.*$/$1/' | sort|uniq > canon_arabic.4.all.saved-pages.out
+
+6. These two lists were combined to get the list of pages to process.
+
+cat canon_arabic.4.all.saved-pages.out canon_arabic.14.processed.saved-pages.out |sort|uniq > canon_arabic.4+14.saved-pages.out
+
+This list has 10,739 pages, whereas the original run done in step 1 processed
+on the order of 200,000 pages (not all distinct; many pages were processed
+multiple times, esp. in the translation stage).
+
+Note that the reason why both lists were combined is because there were lots
+of changes made to canon_arabic.py and ar_translit.py between when the ".4"
+and ".14" lists were generated, and it's possible there were templates that
+could be processed by the later versions but not the earlier versions, leading
+to additional pages to process. (In practice there were only two such pages.)
+
+---------- end interlude ----------
+
+Then a manual edit run was done by looking through the output run log file
+canon_arabic.15.saved-pages.save.out for the string "iy " (more or less,
+transliterations ending in -iy, mostly in translation templates) and manually
+editing the pages referenced to fix things up. Corresponding forms in -iyya
+(feminine nisbas) were fixed up in the process. I started with capital A and
+got through (I think) somewhere in capital P before stopping. It occurred
+to me that a better way would be to do all the edits in a single file and
+write a script (NOT YET WRITTEN) to do all the saves at once. For this
+reason, parse_log_file.py was written to take a run log and annotate various
+statements that contain a single template at the end (the original template
+before the script modified it) to instead contain three templates, including
+the original template and two copies of the modified template, in the order
+MODIFIED <- ORIGINAL (MODIFIED), so that the first MODIFIED could be edited
+with the ORIGINAL for reference, and the second copy would remain around so
+that the change to the modified-modified version could be made automatically.
+
+The output run log file canon_arabic.15.saved-pages.save.out from doing
+a '--save' run was processed to form an input for further manual modification:
+
+python parse_log_file.py --file canon_arabic.15.saved-pages.save.out > canon_arabic.15.saved-pages.save.parse-log-file.5.out
+
+This file is now in run-logs-8.
+
+This was then grepped for "Processing" lines referencing words ending in
+Arabic ي or some variant of -iyya, to fix up cases where -ī occurs instead of
+-iyy, and associated -iyya (feminine) words, which often have the same
+vowel-length errors in them:
+
+grep -P '(ي|يَة|يَّة|يَّة)[|}]' canon_arabic.15.saved-pages.save.parse-log-file.5.out |grep 'Processing:' > canon_arabic.15.saved-pages.save.parse-log-file.iy.iyya.out
+
+Note that two of the alternatives in the grep statement list the same -iyya
+ending with the shadda and kasra in different orders.
+
+This file is now in run-logs-8.
+
+Then I manually went through this file to fix up the Arabic and translits,
+correcting the Arabic as necessary and deleting or correcting the translit.
+I worked backward from the end and got through 'android' to 'a', and the
+capital letters Z through G. Note that I skipped some of the entries that
+I thought I had previously corrected in the above manual run; in case where
+I didn't skip them, it will be unable to fix them up because they've already
+been fixed up.
+
+---------- TODO ----------
+
+1. Do another run of canon_arabic.py to finish its processing, something
+like this:
+
+python canon_arabic.py --cattype pages --page-file canon_arabic.4+14.saved-pages.out --save >! canon_arabic.16.saved-pages.save.out
+
+2. Finish editing canon_arabic.15.saved-pages.save.parse-log-file.iy.iyya.out,
+doing capital F through A.
+
+3. Write a script to take the manual edits and save them; this should
+probably be based on undo_greek_removal, which did something similar for
+Greek (it undid changes by constructing the FROM and TO templates, searching
+for the TO template and replacing it with the FROM template). In this case,
+each line has the MODIFIED and modified-modified templates, and so we want
+to replace the former with the latter.
+
+4. Take the file canon_arabic.16.saved-pages.save.out and do the same steps
+above that were done on canon_arabic.15.saved-pages.save.out to get a file
+to edit manually; edit that manually and propagate the changes to Wiktionary
+using the newly-written script.
+
+5. Go through the remainder of the unable-to-vocalize and then match-canon
+cases, edit them manually and propagate the changes to Wiktionary.
+
+------------------------------ Russian ------------------------------
+
+---------- TODO ----------
+
+No --save run has yet been done to canonicalize the Russian based on the
+translit (in this case this involves transfering accents to the Russian)
+and removing/canonicalizing the translit. However, a non-save run has been
+done, with the results in these two files:
+
+canon_russian.21.borrowed,vocab.out
+canon_russian.21.translation.out
+
+It also looks like the "Processing {{" lines were extracted into this file:
+
+canon_russian.borrowed,vocab,translation.processing.out
+
+And a canon_russian.py run was done on that file with the results in
+
+canon_russian.25.all.processing.processed.out
+
+Similar steps as above for Arabic should be done to generate the list of
+"saved pages" to process.
+
+NOTE: There are a couple of remaining issues that I have asked Anatoli and
+Wikitiki89 about but which they haven't answered, in particular the handling
+of no-break space (NBSP) and canonicalizing jó against Russian ё (whether
+we should add an accent to the Russian character). We don't currently add
+such an accent and I'm thinking we should not, and we convert NBSP to regular
+space but I'm thinking instead we should match-canonicalize NBSP in the
+Russian against regular space in the Latin and convert it to NBSP in the Latin.
+
+After doing the --save run, parse_log_file.py should be run and grepped for
+"Unable to match-canon" (or similar), and the results put on Wiktionary for
+Anatoli and/or Wikitiki89 to manually edit (there are about 800 such cases,
+not crazy to do by hand). I may have to split them over more than one page
+due to page-size limits. I should probably also create pages for cases where
+the Russian and Latin were match-canoned, to be similarly edited manually
+by Anatoli/Wikitiki89. Then the edited results should be processed by the
+not-yet-written script to propagate the results to Wiktionary.
+
