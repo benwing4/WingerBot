@@ -346,6 +346,7 @@ tt_to_russian_matching_non_case = {
     u"[":u"",
     u"]":u"",
     u",":[u",", u" ,", u""],
+    u"\u00A0":[u"\u00A0", u" "],
     # these are now handled by check_unmatch_either(unmatch_either_after)
     #AC:[AC,""],
     #GR:[GR,""],
@@ -703,6 +704,10 @@ def pre_pre_canonicalize_russian(text, msgfun=msg):
         else:
             text = newtext
 
+    # canonicalize sequences of accents
+    text = rsub(text, AC + "+", AC)
+    text = rsub(text, GR + "+", GR)
+
     return text
 
 def pre_canonicalize_russian(text, msgfun=msg):
@@ -739,7 +744,7 @@ def tr_matching(russian, latin, err=False, msgfun=msg):
     for accent, english in [(AC, "acute"), (GR, "grave")]:
         for word in russian_words:
             if len(rsub(word, "[^" + accent + "]", "")) > 1:
-                error("Russian %s has multiple %s accents in a word, can't match-canonicalize"
+                msgfun("WARNING: Russian %s has multiple %s accents"
                         % (russian, english))
         for word in latin_words:
             if len(rsub(word, "[^" + accent + "]", "")) > 1:
