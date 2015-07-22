@@ -1,11 +1,24 @@
 #!/usr/bin/env python
+#coding: utf-8
+
+#    rewrite_idafa.py is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 
-import blib
+import blib, pywikibot
 from blib import msg, getparam, addparam
-
-# FIXME! Finish writing this, based on other .py files.
+from arabiclib import arabic_decl_templates
 
 def rewrite_one_page_idafa(page, index, text):
   def pagemsg(txt):
@@ -14,13 +27,13 @@ def rewrite_one_page_idafa(page, index, text):
   num_modhead_changed = 0
   idafa_added = []
   for t in text.filter_templates():
-    if t.name == "ar-decl-noun":
+    if t.name.startswith("ar-decl-"):
       changed = False
 
       # Change old-style ʾidāfa (state=con) to new-style (basestate=con)
       oldt = unicode(t)
       if (getparam(t, "state") == "con" and getparam(t, "modcase") and
-          not getparam(t, "basestate"))
+          not getparam(t, "basestate")):
         modstate = getparam(t, "modstate")
         addparam(t, "basestate", "con")
         addparam(t, "modidafa", "yes")
@@ -103,6 +116,13 @@ def rewrite_one_page_idafa(page, index, text):
   return "", text
 
 def rewrite_idafa(save, verbose, startFrom, upTo):
-  for page, index in blib.references("Template:ar-decl-noun", startFrom, upTo):
-    blib.do_edit(page, index, rewrite_one_page_idafa, save=save,
-        verbose=verbose)
+  for template in arabic_decl_templates:
+    for page, index in blib.references("Template:" + template, startFrom, upTo):
+      blib.do_edit(page, index, rewrite_one_page_idafa, save=save,
+          verbose=verbose)
+
+pa = blib.init_argparser(u"Rewrite ʾidāfa params with idafa= param, and related changes")
+params = pa.parse_args()
+startFrom, upTo = blib.parse_start_end(params.start, params.end)
+
+rewrite_idafa(params.save, params.verbose, startFrom, upTo)

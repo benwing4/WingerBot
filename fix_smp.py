@@ -21,8 +21,7 @@ from blib import msg, getparam, addparam
 from arabiclib import *
 
 def fix_smp(save, verbose, startFrom, upTo):
-  for template in ["ar-decl-noun", "ar-decl-gendered-noun", "ar-decl-coll-noun",
-      "ar-decl-sing-noun", "ar-decl-adj", "ar-decl-numeral"]:
+  for template in arabic_decl_templates:
     # Fix the template refs. If cap= is present, remove it; else, add lc=.
     def fix_one_page_smp(page, index, text):
       pagetitle = page.title()

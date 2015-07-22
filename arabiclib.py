@@ -99,3 +99,7 @@ arabic_all_headword_templates = (
     arabic_participle_headword_templates +
     arabic_verb_headword_templates +
     arabic_other_headword_templates)
+
+arabic_decl_templates = [
+  "ar-decl-noun", "ar-decl-gendered-noun", "ar-decl-coll-noun",
+    "ar-decl-sing-noun", "ar-decl-adj", "ar-decl-numeral"]
