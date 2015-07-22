@@ -1,0 +1,187 @@
+Jul 20 2015 7:09am
+
+1. Fix up Russian translit according to discussion: (1) Keep NBSP and
+   match-canon Latin space to NBSP; (2) consider using paciɛ́nt rather than
+   paciént (currently I convert the latter to the former, but instead
+   perhaps I should convert the other way; Anatoli and Wikitiki
+   disagree here).
+2. Ancient Greek υι is a diphthong but ιυ isn't. Currently I treat neither as
+   a diphthong; fix this.
+3. Figure out how to format lines involving -in ending; should they be
+   {{t|ar|مُحَامٍ}}, {{i|definite}} {{t|ar|المُحَامِي}}? Should I write the latter
+   template as {{t|ar|مُحَامٍ|alt=المُحَامِي}}?
+4. Consider changing the "Arabic - QWERTY - vowels.6" keyboard layout so that
+   in CAPS LOCK mode the Option key selects diacritics in the expected way for
+   the U.S. Extended layout, e.g. Option+A for macron, Option+X for dot-under,
+   Option+H for horizontal-line-under, Option+V for caron. Also consider
+   adding a keystroke for ʾ and ʿ. Also consider making a modified
+   "U.S. Extended" that has keystrokes for ʾ and ʿ.
+5. Add an additional step in canon_arabic.py that maybe links each word
+   of a multi-word expression in a translit template or certain other
+   templates. Make sure we can do this; might want to have an explicit
+   list of templates where we can do this, and check that the text is
+   entirely Arabic. Maybe do this on a word-by-word basis in case of
+   text that is mixed Arabic/Latin (does this occur? Might occur in
+   Russian) and only link words that are entirely Arabic. If there's a
+   hyphen in the Arabic we might consider trying to link each hyphenated
+   portion separately, as if they were separate words. Before linking
+   the words, check if the entire expression has a page dedicated to it,
+   and don't link if so. Furthermore, for Arabic, check for al- at the
+   beginning of a word, and construct a link of the form e.g. [[كِتَاب|الكِتَاب]]
+   i.e. the displayed text includes the al- but the linked text is without
+   it. If there's an "alt" display then either we want to put the links
+   in the alt (if that's allowed) or nowhere. We might also want to consider
+   removing the alt= (and moving it to the normal place for the link) if
+   the alt= and the link have the same text without diacritics.
+6. Consider fixing up [[Module:ar-nominals]] so that definite and indefinite
+   ʾidāfa expressions are supported, e.g. غُرْفَة نَوْم is indefinite "a bedroom"
+   and غُرْفَة النَوْم is definite "the bedroom", and list them under indefinite/
+   definite, rather than under "construct state". This might require changing
+   the way we specify ʾidāfa expressions to separate out the specification
+   of overall state from the state of the first member, and might be an
+   opportunity to add an 'idafa' param to simplify specifying idafas.
+   (DONE, NOT TESTED, NOT DOCUMENTED)
+7. Add an 'idafa' parameter to simplify specifying ʾidāfa constructions:
+   -- idafa=sg is equivalent to |basestate=con|modcase=gen|modnumber=sg|modidafa=yes
+   -- idafa=du is equivalent to |basestate=con|modcase=gen|modnumber=du|modidafa=yes
+   -- idafa=pl is equivalent to |basestate=con|modcase=gen|modnumber=pl|modidafa=yes
+   -- idafa=def-sg is the same as |state=def|basestate=con|modcase=gen|modstate=def|modnumber=sg|modidafa=yes
+   -- idafa=ind-sg is the same as |state=ind|basestate=con|modcase=gen|modstate=ind|modnumber=sg|modidafa=yes
+   -- similar for idafa=def-pl, ind-pl, def-du, ind-du
+   -- idafa=yes is the same as idafa=sg
+   -- idafa=def is the same as idafa=def-sg
+   -- idafa=ind is the same as idafa=ind-sg
+   -- the most common will be idafa=yes, idafa=def, idafa=pl, idafa=def-pl
+   (DONE, NOT TESTED, NOT DOCUMENTED)
+   Also, write code to first convert as follows:
+   -- |state=con|modcase=X|modstate=Y --> |state=Y|basestate=con|modcase=X|modstate=Y
+   -- |state=con|modcase=X without modnumber --> |basestate=con|modcase=X
+   Then, convert to |idafa=<something> using the above equivalences.
+   Also, flag cases where modcase= is used without modnumber= (these would
+   eventually be adjectival modifiers in mod3, mod4, etc. that modify
+   ʾidāfa modifiers). To simplify things we should create a tracker for
+   whenever 'modcase' is used.
+   (MOSTLY DONE, NOT TESTED, ALTHOUGH DOESN'T ASSUME A TRACKER)
+   Modify the code that conditions on whether we're dealing with an ʾidāfa
+   or adjectival modifier to check for a new value mod_idafa= that gets set
+   when idafa= calls for an ʾidāfa modifier (because checking for
+   modcase=, modstate=, modnumber= would all be unreliable, because they
+   might be fixed to particular values in an adjectival modifier to agree
+   with an ʾidāfa modifier). (DONE, NOT TESTED)
+8. We need to think also of how things might be expanded to cover multiple
+   modifying words, and how to extend the 'idafa' param to cover e.g. the
+   second modifying word (third word in the expression), which might be
+   a noun as part of an 'idafa' expression with the second word (first
+   modifier), or an adjective modifying the first or second noun. In the
+   latter case it will be in a fixed number/gender/case combination.
+   It might work something like this:
+   -- First, we need to rename mod2, mod3, etc. => modhead2, modhead3, etc.
+      Use a tracker to find such instances. That way, we can use mod2 for
+      the second modifier, mod3 for the third, etc. Note that we may need
+      to modify the tr= parameters (not currently used), so that perhaps
+      corresponding to modhead2, modhead3, etc. is modtr2, modtr3, etc.
+      similar to how we have tr2, tr3, etc. corresponding to head2, head3, etc.
+      (MOSTLY DONE, NOT TESTED, ALTHOUGH DOESN'T ASSUME A TRACKER; WE DO
+       HAVE A TRACKER "mod2" IN THE CODE, WHICH SHOULD BE CHECKED AFTER
+       THE BOT HAS BEEN RUN)
+   -- |idafa2= is used for the second modifier, idafa3= for the third, etc.
+   -- Add values for the idafa parameters: 'adj-base' (adjectival modifier
+      of base noun, equivalent to omitting the idafa param); 'adj-mod'
+      (adjectival modifier of first modifier, equivalent to |modNcase=gen
+      along with |modNstate=, |modNnumber=, |modNnumgen= agreeing with those
+      of the idafa param); 'adj-mod2' (adjectival modifier of second modifier);
+      etc.
+   -- The 'defcon' check that inserts ... before an adjectival modifier
+      needs to determine which modifiers are ʾidāfa and which are adjectival
+      and insert the ... before the first adjectival modifier; this would
+      be done by looking for modidafa=, mod2idafa=, etc.
+   -- Possibly, we should avoid exposing the modcase/modnumber/modstate
+      parameters and require everything to be done through idafa, idafa2, etc.
+   (EVERYTHING ABOVE DONE BUT NOT TESTED UNLESS OTHERWISE LABELED)
+9. Consider a different method of specifying a declension in
+   [[Module:ar-nominals]]. We specify three stems for nouns, six for adjectives
+   (sg/du/pl, also m/f for adj), with substitutions in <> representing
+   endings that may change:
+
+   <> or <un> = normal triptote ending, not in -a or -āh
+   <sh> = short triptote ending, no extra alif in ind. acc. [if we're
+          able to, we should eliminate this and look at the sounds that
+          precede to determine whether to do long or short ending]
+   <u> = diptote ending
+   <a> = feminine ending in ة
+   <aah> = feminine ending in اة
+   <iyy> = -iyy (-ī in informal)
+   <lc> = long construct ending
+   <in> = -in
+   <ind> = -in diptote (-iya rather than -iyan in acc. indef.)
+   <an> = -an
+   <ant> = -an with tall alif
+   <uun> = -ūn strong masc. pl.
+   <awn> = -awn strong masc. pl.
+   <aat> = -āt strong fem. pl.
+   <aan> = -ān dual
+   <hu> = هِ if preceded by i, ī or y, else هُ [we might need instead to
+          have <hu> = هُ in nom/acc, هِ in gen, and have <huhihi> = هُ
+          in nom, هِ in acc/gen]
+
+   <al> can (and usually should) appear at the beginning of a word,
+   indicating that al- should appear in the definite state.
+
+   Any of these except <hu>, <huhihi> and <al> can be followed by a dash
+   and further specs, e.g. to limit the case/number/state to specified:
+
+   <-n> = indefinite
+   <-d> = definite
+   <-c> = construct
+   <-u> = nominative
+   <-a> = accusative
+   <-i> = genitive
+   <-f> = "full" (final ʿirāb, i.e. short vowels and tanwīn -n, appear even
+          in the lemma and informal)
+
+   These can be strung together, e.g. <-in> for genitive indefinite.
+
+   Example: غُرْف<a-c> <al>نَوْم<-i>
+
+   This corresponds to nom. ind. غُرْفَةُ نَوْمٍ, nom. def. غُرْفَة النَوْمِ,
+   lemma غُرْفَة نَوْم "ḡurfat nawm", etc.
+
+   Example: المَارّ<-d> ذِكْر<-cf><hu>
+
+   This would be specified along with state=def and corresponds to
+   nom. def. المَارُّ ذِكْرُهُ and gen. def. المَارِّ ذِكْرِهِ etc. along with
+   lemma المَارّ ذِكْرُهُ "al-mārr ḏikruhu" where the "u" declension vowel
+   is preserved in the lemma (and informal).
+
+   If explicit translit is required, the <> construct should be
+   repeated, e.g. بِرِيطَان<iyy>/biriṭān<iyy>
+
+10. There's a bug in ar-nominals concerning the declension of terms that
+    end in -ī and -ū, which in the dual end up as -īān, etc. instead of
+    -iyān. (DONE, NOT TESTED)
+11. Check for cases where I mistakenly removed a sequence of consonant +
+    doubled consonant that shouldn't have been removed:
+
+grep -P '[bcdfghjklmnpqrstvwxyz]([bcdfghjklmnpqrstvwxyz])\1' canon_arabic.14.all.processing.processed.out
+
+    It looks like all legitimate cases occur at the end of a word, so add
+    that restriction. There's one on [[Alfvén wave]] that should be
+    ''mawjat ʾalffīn'', there's [[Dongguan]], there's ''ʕaamyya miṣryya''
+    on [[Egyptian Arabic]], there's ''alrsalh ela ahl afss'' on [[Ephesians]],
+    there's ''afss'' on [[Ephesus]], also ''maš-had'' on [[Mashhad]] should
+    be ''mašhad''. (FIXED PAGES; NOT ADDED RESTRICTION; NEED TO
+    SPECIAL-CASE دُونْغْغْوَان (dunḡḡwān) TO PREVENT IT FROM BEING PROCESSED
+    BY THE CODE BELOW THAT WILL CHECK FOR DOUBLE CONSONANT + CONSONANT)
+
+    Similarly check for cases involving doubled consonant + consonant:
+
+grep -P '([bcdfghjklmnpqrstvwxyz])\1[bcdfghjklmnpqrstvwxyz]' canon_arabic.14.all.processing.processed.out
+
+    There's at least one involving the word "literally" appearing in the
+    translit on [[panendeism]], changed to ''literaly''. (The above regexp
+    will need to be more sophisticated, because it hits too many false
+    positives on page names like "pretty", "pebble", etc.)
+12. Check handling of words with two acute accents in Russian. Think about
+    whether it makes sense to throw an error when the Russian has multiple
+    accents in the word; once we transfer accents from the Latin to the
+    Russian, more Russian words will have multiple accents.

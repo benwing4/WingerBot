@@ -106,7 +106,6 @@ local LRM = u(0x200E) --left-to-right mark
 
 -- First syllable or so of elative/color-defect adjective
 local ELCD_START = "^" .. HAMZA_ON_ALIF .. AOPT .. CONSPAR
-
 local export = {}
 
 --------------------
@@ -169,13 +168,6 @@ function rsub(term, foo, bar)
 	return retval
 end
 
--- version of rsub() that asserts that a match occurred
-function assert_rsub(term, foo, bar)
-	local retval, numsub = rsubn(term, foo, bar)
-	assert(numsub > 0)
-	return retval
-end
-
 function make_link(arabic)
 	--return m_links.full_link(nil, arabic, lang, nil, "term", nil, {tr = "-"}, false)
 	return m_links.full_link(nil, arabic, lang, nil, "term", nil, {}, false)
@@ -193,12 +185,6 @@ end
 -- Functions that do the actual inflecting by creating the forms of a basic term.
 local inflections = {}
 
-local max_mods = 9 -- maximum number of modifiers
-local mod_list = {"mod"} -- list of "mod", "mod2", "mod3", ...
-for i in 2,max_mods do
-	table.insert(mod_list, "mod" .. i)
-end
-
 -- Create and return the 'data' structure that will hold all of the
 -- generated declensional forms, as well as other ancillary information
 -- such as the possible numbers, genders and cases the the actual numbers
@@ -212,7 +198,7 @@ function init_data()
 	-- alternative spellings involving different hamza seats,
 	-- e.g. مُبْتَدَؤُون or مُبْتَدَأُون). Alternative hamza spellings are separated
 	-- in display by an "inner separator" (/), while alternatives on
-	-- the level of different plurals are separated by an "outer separator" (;).
+	-- the level of different plurals are separated by an "outer seprator" (;).
 	return {forms = {}, title = nil, categories = {},
 		allgenders = {"m", "f"},
 		allstates = {"ind", "def", "con"},
@@ -227,7 +213,7 @@ function init_data()
 		allcases_with_lemma = {"nom", "acc", "gen", "inf", "lemma"},
 		-- index into endings array indicating correct ending for given
 		-- combination of state and case
-		statecases = {
+	    statecases = {
 			ind = {nom = 1, acc = 2, gen = 3, inf = 10, lemma = 13},
 			def = {nom = 4, acc = 5, gen = 6, inf = 11, lemma = 14},
 			-- used for a definite adjective modifying a construct-state noun
@@ -259,7 +245,7 @@ function init(origargs)
 	-- and matching up individual parts, to allow separate translit arguments
 	-- to be specified for overrides. But maybe not; the point of allowing
 	-- separate translit arguments is for compatibility with headword
-	-- templates such as "ar-noun" and "ar-adj", and those templates don't
+	-- templates such as 'ar-noun' and 'ar-adj', and those templates don't
 	-- handle override arguments.
 
 	local function dotr(arg, argtr)
@@ -269,18 +255,16 @@ function init(origargs)
 		args[arg] = args[arg] .. "/" .. args[argtr]
 	end
 
-	-- By convention, corresponding to arg 1 is tr; corresponding to
-	-- head2, head3, ... is tr2, tr3, ...; corresponding to
-	-- modhead2, modhead3, ... is modtr2, modtr3, ...; corresponding to
-	-- modNhead2, modNhead3, ... is modNtr2, modNtr3, ..; corresponding to
-	-- all other arguments FOO, FOO2, ... is FOOtr, FOO2tr, ...
+	-- By convention, corresponding to arg 1 is 'tr'; corresponding to
+	-- head2, head3, ... is tr2, tr3, ...; corresponding to all other
+	-- arguments FOO, FOO2, ... is FOOtr, FOO2tr, ...
 	for k, v in pairs(args) do
 		if k == "tr" then
 			dotr(1, "tr")
-		elseif rfind(k, "tr[0-9]+$") then
-			dotr(assert_rsub(k, "tr([0-9]+)$", "head%1"), k)
+		elseif rfind(k, "^tr[0-9]") then
+			dotr(rsub(k, "^tr", "head"), k)
 		elseif rfind(k, "tr$") then
-			dotr(assert_rsub(k, "tr$", ""), k)
+			dotr(rsub(k, "tr$", ""), k)
 		end
 	end
 
@@ -291,17 +275,14 @@ function init(origargs)
 end
 
 -- Parse the user-specified state spec and other related arguments. The
--- user can specify, using idafaN=, how modifiers are related to previous
--- words. The user can also manually specify which states are to appear;
--- whether to omit the definite article in the definite state; and
--- how/whether to restrict modifiers to a particular state, case or number.
--- Normally the modN_* parameters and basestate= do not need to be set
--- directly; instead, use idafaN=. It may be necessary to explicitly
--- specify state= in the presence of proper nouns or definite-only
--- adjectival expressions. NOTE: At the time this function is called,
--- data.numbers has not yet been initialized.
+-- user can manually specify which states are to appear; whether to omit
+-- the definite article in the definite state; and how/whether to
+-- restrict modifiers to a particular state, case or number.
 function parse_state_etc_spec(data, args)
-	local function check(arg, dataval, allvalues)
+	data.omitarticle = args["omitarticle"]
+	data.noirreg = args["noirreg"]
+
+	local function check2(arg, dataval, allvalues)
 		if args[arg] and not contains(allvalues, args[arg]) then
 			error("For " .. arg .. "=, value '" .. args[arg] .. "' should be one of " ..
 				table.concat(allvalues, ", "))
@@ -309,219 +290,31 @@ function parse_state_etc_spec(data, args)
 		data[dataval] = args[arg]
 	end
 
-	local function check_boolean(arg, dataval)
-		check(arg, dataval, {"yes", "no"})
-		if data[dataval] == "yes" then
-			data[dataval] = true
-		else
-			data[dataval] = false
-		end
+	local function check(arg, allvalues)
+		check2(arg, arg, allvalues)
 	end
-
-	-- Make sure no holes in mod values
-	for i in 1,(#mod_list)-1 do
-		if args[mod_list[i+1]] and not args[mod_list[i]] then
-			error("Hole in modifier arguments -- " .. mod_list[i+1] ..
-				" present but not " .. mod_list[i])
-		end
-	end
-	
-	-- FIXME! Remove this once we're sure there are no instances of mod2
-	-- that haven't been converted to modhead2.
-	if args["mod2"] then
-		track("mod2")
-	end
-
-	-- Set default value; may be overridden e.g. by arg["state"] or
-	-- by idafaN=.
-	data.states = data.allstates
-
-	-- List of pairs of idafaN/modN parameters
-	local idafa_mod_list = {{"idafa", "mod"}}
-	for i in 2,max_mods do
-		table.insert(idafa_mod_list, {"idafa" .. i, "mod" .. i})
-	end
-
-	-- True if the value of an |idafa= param is a valid adjectival modifier
-	-- value.
-	local function valid_adjectival_idafaval(idafaval)
-		return idafaval == "adj" or idafaval == "adj-base" or
-			idafaval == "adj-mod" or rfind(idafaval, "^adj%-mod[0-9]+$")
-	end
-
-	-- Extract the referent (base or modifier) of an adjectival |idafa= param.
-	-- Assumes the value is valid.
-	local function adjectival_idafaval_referent(idafaval)
-		if idafaval == "adj" then
-			return "base"
-		end
-		return assert_rsub(idafaval, "^adj%-", "")
-	end
-
-	-- Convert a base/mod spec to an index: 0=base, 1=mod, 2=mod2, etc.
-	local function basemod_to_index(basemod)
-		if mod == "base" then return 0 end
-		if mod == "mod" then return 1 end
-		return assert_rsub(basemod, "^mod", "") + 0
-	end
-
-	-- Recognize idafa spec and handle it.
-	-- We do the following:
-	-- (1) Check that if idafaN= is given, then modN= is also given.
-	-- (2) Check that adjectival modifiers aren't followed by idafa modifiers.
-	-- (3) Check that adjectival modifiers are modifying the base or an
-	--     ʾidāfa modifier, not another adjectival modifier.
-	-- (4) Support idafa values "adj-base", "adj-mod", "adj-mod2", "adj"
-	--     (="adj-base") etc. and check that we're referring to an earlier
-	--     word.
-	-- (5) For ʾidāfa modifiers, set basestate=con, set modN_case=gen,
-	--     set modN_idafa=true, and set modN_number to the number specified
-	--     in the parameter value (e.g. 'sg' or 'def-pl'); and if the
-	--     parameter value specifies a state (e.g. 'def' or 'ind-du'),
-	--     set modN_state= to this value, and if this is the last ʾidāfa
-	--     modifier, also set state= to this value; if this is not the last
-	--     ʾidāfa modifier, set modN_state=con and disallow a state to be
-	--     specified in the parameter value.
-	-- (6) For adjectival modifiers of the base, do nothing.
-	-- (7) For adjectival modifiers of ʾidāfa modifiers, set modN_case=gen;
-	--     set modN_idafa=false; and set modN_number=, modN_numgen= and
-	--     modN_state= to match the values of the idafa modifier.
-
-	-- error checking and find last ʾidāfa modifier
-	local last_is_idafa = true
-	local last_idafa_mod = "base"
-	for _, idafa_mod in ipairs(idafa_mod_list) do
-		local idafaparam = idafa_mod[1]
-		local mod = idafa_mod[2]
-		local idafaval = args[idafaparam]
-
-		if idafaval then
-			local paramval = idafaparam .. "=" .. idafaval
-			if not args[mod] then
-				error("'" .. idafaparam .. "' parameter without corresponding '"
-					.. mod .. "' parameter")
-			end
-			if not valid_adjectival_idafaval(idafaval) then
-				-- We're a construct (ʾidāfa) modifier
-				if not last_is_idafa then
-					error("ʾidāfa modifier " .. paramval .. " follows adjectival modifier")
-				end
-				last_idafa_mod = mod
-			else
-				last_is_idafa = false
-				local adjref = adjectival_idafaval_referent(idafaval)
-				if adjref ~= "base" then
-					if basemod_to_index(adjref) >= basemod_to_index(mod) then
-						error(paramval .. " can only refer to an earlier element")
-					end
-					local idafaref = assert_rsub(adjref, "^mod", "idafa")
-					if not args[idafaref] then
-						error(paramval .. " cannot refer to a missing modifier")
-					elseif valid_adjectival_idafaval(args[idafaref]) then
-						error(paramval .. " cannot refer to an adjectival modifier")
-					end
-				end
-			end
-		end
-	end
-
-	-- Now go through and set all the modN_ data values appropriately.
-	for _, idafa_mod in ipairs(idafa_mod_list) do
-		local idafaparam = idafa_mod[1]
-		local mod = idafa_mod[2]
-		local idafaval = args[idafaparam]
-
-		if idafaval then
-			local paramval = idafaparam .. "=" .. idafaval
-			local bad_idafa = true
-			if idafaval == "yes" then
-				idafaval = "sg"
-			end
-			if contains(data.allstates, idafaval) then
-				idafaval = idafaval .. "-sg"
-			end
-			if not idafaval then
-				bad_idafa = false
-			elseif valid_adjectival_idafaval(idafaval) then
-				local adjref = adjectival_idafaval_referent(idafaval)
-				if adjref ~= "base" then
-					data[mod .. "_case"] = "gen"
-					data[mod .. "_state"] = data[adjref .. "_state"]
-					data[mod .. "_number"] = data[adjref .. "_number"]
-					data[mod .. "_numgen"] = data[adjref .. "_numgen"]
-					data[mod .. "_idafa"] = false
-				end
-				bad_idafa = false
-			elseif contains(data.allnumbers, idafaval) then
-				data.basestate = "con"
-				data[mod .. "_case"] = "gen"
-				data[mod .. "_number"] = idafaval
-				data[mod .. "_idafa"] = true
-				if mod ~= last_idafa_mod then
-					data[mod .. "_state"] = "con"
-				end
-				bad_idafa = false
-			elseif rfind(idafaval, "%-") then
-				local state_num = rsplit(idafaval, "%-")
-				if #state_num == 2 then
-					local state = state_num[1]
-					local num = state_num[2]
-					if contains(data.allstates, state) and contains(data.allnumbers, num) then
-						if mod == last_idafa_mod then
-							data.states = {state}
-						else
-							error(paramval .. " cannot specify a state because it is not the last ʾidāfa modifier")
-						end
-						data.basestate = "con"
-						data[mod .. "_case"] = "gen"
-						data[mod .. "_state"] = state
-						data[mod .. "_number"] = num
-						data[mod .. "_idafa"] = true
-						bad_idafa = false
-					end
-				end
-			end
-			if bad_idafa then
-				error(paramval .. " should be one of yes, def, sg, def-sg, adj, adj-base, adj-mod, adj-mod2 or similar")
-			end
-		end
-	end
-
-	-- Now process explicit settings, so that they can override the
-	-- settings based on idafaN=.
-	check("basestate", "basestate", data.allstates)
-	check_boolean("noirreg", "noirreg")
-	check_boolean("omitarticle", "omitarticle")
-
-	for _, mod in ipairs(mod_list) do
-		check(mod .. "state", mod .. "_state", data.allstates)
-		check(mod .. "case", mod .. "_case", data.allcases)
-		check(mod .. "number", mod .. "_number", data.allnumgens)
-		check(mod .. "numgen", mod .. "_numgen", data.allnumgens)
-		check_boolean(mod .. "idafa", mod .. "_idafa")
-		check_boolean(mod .. "omitarticle", mod .. "_omitarticle")
-	end
+	check("basestate", data.allstates)
+	check("modstate", data.allstates)
+	check("modcase", data.allcases)
+	check("modnumber", data.allnumgens)
+	check("modnumgen", data.allnumgens)
 
 	-- HACK!! If we have an ʾidāfa construction (i.e. mod= is given and also
 	-- modcase=, so we're not dealing with an adjectival construction) and
 	-- a single-state value is given for state=, treat it as if basestate=
-	-- was given. This is because currently such cases are written using
-	-- state=con rather than basestate=con.
-	--
-	-- FIXME! Remove this hack after we have run a bot to convert the
-	-- parameters appropriately.
-	--
-	-- MOD FIXME! This doesn't work for multiple mods, and is a hack anyway
-	-- which should be removed and will be once the args are converted, and
-	-- determining whether we have an ʾidāfa construction should be based on
-	-- mod_idafa.
+	-- was given. This is because currently such
+	-- cases are written using state=con rather than basestate=con.
+	-- FIXME: Rewrite as follows: If we have an ʾidāfa construction (mod= and
+	-- modcase=), change state=con to basestate=con, and make state= reflect
+	-- the value of modstate= if any.
 	if args["state"] and not rfind(args["state"], ",") and not args["basestate"]
 			and args["mod"] and args["modcase"] then
-		check("state", "basestate", data.allstates)
+		check2("state", "basestate", data.allstates)
 		if args["modstate"] then
 			data.states = {args["modstate"]}
+		else
+			data.states = data.allstates
 		end
-		data.mod_idafa = true
 	elseif args["state"] then
 		data.states = rsplit(args["state"], ",")
 		for _, state in ipairs(data.states) do
@@ -530,17 +323,51 @@ function parse_state_etc_spec(data, args)
 					table.concat(data.allstates, ", "))
 			end
 		end
+	else
+		data.states = data.allstates
 	end
 
-	-- Make sure modN_numgen is initialized, to modN_number if necessary.
-	-- This simplifies logic in certain places, e.g. call_inflections().
-	for _, mod in ipairs(mod_list) do
-		data[mod .. "_numgen"] = data[mod .. "_numgen"] or data[mod .. "_number"]
+	-- Recognize idafa spec and handle it
+	local idafa = args["idafa"]
+	local bad_idafa = true
+	if idafa == "yes" then
+		idafa = "sg"
 	end
+	if contains(data.allstates, idafa) then
+		idafa = idafa .. "-sg"
+	end
+	if not idafa then
+		bad_idafa = false
+	elseif contains(data.numbers, idafa) then
+		data.basestate = "con"
+		data.modcase = "gen"
+		data.modnumber = idafa
+		bad_idafa = false
+	elseif rfind(idafa, "%-") then
+		local state_num = rsplit(idafa, "%-")
+		if #state_num == 2 then
+			local state = state_num[1]
+			local num = state_num[2]
+			if contains(state, data.allstates) and contains(num, data.allnumbers) then
+				data.states = {state}
+				data.basestate = "con"
+				data.modcase = "gen"
+				data.modstate = state
+				data.modnumber = num
+				bad_idafa = false
+			end
+		end
+	end
+	if bad_idafa then
+		error("For idafa=, value '" .. args["idafa"] .. "' should be one of " ..
+			"yes, def, sg, def-sg or similar")
+	end
+
+	data.modnumgen = data.modnumgen or data.modnumber
 end
 
 -- Parse the user-specified number spec. The user can manually specify which
--- numbers are to appear. Return true if |number= was specified.
+-- numbers are to appear.
 function parse_number_spec(data, args)
 	if args["number"] then
 		data.numbers = rsplit(args["number"], ",")
@@ -592,8 +419,8 @@ end
 -- list of singular items to base derived forms off of (masculine or feminine
 -- as appropriate), an array of length-two arrays of {COMBINED_STEM, TYPE} as
 -- returned by stem_and_type(); ISFEM is true if this is feminine gender;
--- NUM is "sg", "du" or "pl". POS is the part of speech, generally "noun" or
--- "adjective".
+-- NUM is 'sg', 'du' or 'pl'. POS is the part of speech, generally 'noun' or
+-- 'adjective'.
 function insert_stems(stem, results, sgs, isfem, num, pos)
 	if stem == "-" then
 		return
@@ -642,9 +469,7 @@ function handle_lemma_and_overrides(data, args)
 	end
 
 	do_overrides("")
-	for _, mod in ipairs(mod_list) do
-		do_overrides(mod .. "_")
-	end
+	do_overrides("mod_")
 
 	local function get_lemma(mod)
 		for _, numgen in ipairs(data.numgens()) do
@@ -659,25 +484,19 @@ function handle_lemma_and_overrides(data, args)
 	end
 
 	data.forms["lemma"] = get_lemma("")
-	for _, mod in ipairs(mod_list) do
-		data.forms[mod .. "_lemma"] = get_lemma(mod .. "_")
-	end
+	data.forms["mod_lemma"] = get_lemma("mod_")
 	handle_override("lemma")
-	for _, mod in ipairs(mod_list) do
-		handle_override(mod .. "_lemma")
-	end
+	handle_override("mod_lemma")
 end
 
 -- Return the part of speech based on the part of speech contained in
--- data.pos and MOD (either "", "mod_", "mod2_", etc., same as in
--- do_gender_number_1()). If we're a modifier, don't use data.pos but
--- instead choose based on whether modifier is adjectival or nominal
--- (ʾiḍāfa).
-function get_pos(data, mod)
-	ismod == mod ~= ""
+-- data.pos and whether we're a modifier. If we're a modifier, don't use
+-- data.pos but instead choose based on whether modifier is adjectival or
+-- nominal (ʾiḍāfa).
+function get_pos(data, ismod)
 	if not ismod then
 		return data.pos
-	elseif data[mod .. "idafa"] then
+	elseif data.modstate or data.modcase then
 		return "noun"
 	else
 		return "adjective"
@@ -686,19 +505,18 @@ end
 
 -- Find the stems associated with a particular gender/number combination.
 -- ARGS is the set of all arguments. ARGPREFS is an array of argument prefixes
--- (e.g. "f" for the actual arguments "f", "f2", ..., for the feminine
--- singular; we allow more than one to handle "cpl"). SGS is a
+-- (e.g. 'f' for the actual arguments 'f', 'f2', ..., for the feminine
+-- singular; we allow more than one to handle 'cpl'). SGS is a
 -- "stem-type list" (see do_gender_number()), and is the list of stems to
 -- base derived forms off of (masculine or feminine as appropriate), an array
 -- of length-two arrays of {COMBINED_STEM, TYPE} as returned by
 -- stem_and_type(). DEFAULT, ISFEM and NUM are as in do_gender_number().
--- MOD is either "", "mod_", "mod2_", etc. depending if we're working on a
--- base or modifier argument (in the latter case, basically if the argument
--- begins with "mod").
-function do_gender_number_1(data, args, argprefs, sgs, default, isfem, num, mod)
+-- ISMOD is true if we're handling a modifier argument (basically, if the
+-- argument begins with 'mod').
+function do_gender_number_1(data, args, argprefs, sgs, default, isfem, num, ismod)
 	local results = {}
 	local function handle_stem(stem)
-		insert_stems(stem, results, sgs, isfem, num, get_pos(data, mod))
+		insert_stems(stem, results, sgs, isfem, num, get_pos(data, ismod))
 	end
 
 	-- If no arguments specified, use the default instead.
@@ -738,75 +556,58 @@ end
 
 -- For a given gender/number combination, parse and return the full set
 -- of stems for both base and modifier. The return value is a
--- "stem specification", i.e. table with a "base" key for the base, a
--- "mod" key for the first modifier (see below), a "mod2" key for the
--- second modifier, etc. listing all stems for both the base and modifier(s).
--- The value of each key is a "stem-type list", i.e. an array of stem-type
--- pairs, where each element is a size-two array of {COMBINED_STEM, STEM_TYPE}.
--- COMBINED_STEM is a stem with attached transliteration in the form
--- STEM/TRANSLIT (where the transliteration is either manually specified in
--- the stem argument, e.g. 'pl=لُورْدَات/lordāt', or auto-transliterated from
--- the Arabic, with BOGUS_CHAR substituting for the transliteration if
--- auto-translit fails. STEM_TYPE is the declension of the stem, either
--- manually specified, e.g. 'بَبَّغَاء:di' for manually-specified diptote, or
--- auto-detected (see stem_and_type() and detect_type()).
+-- "stem specification", i.e. table with a 'base' key for the base and a
+-- 'mod' key for the modifier (see below), listing all stems for both the
+-- base and modifier. The value of each key is a "stem-type list", i.e.
+-- an array of stem-type pairs, where each element is a size-two array of
+-- {COMBINED_STEM, STEM_TYPE}. COMBINED_STEM is a stem with attached
+-- transliteration in the form STEM/TRANSLIT (where the transliteration is
+-- either manually specified in the stem argument, e.g. 'pl=لُورْدَات/lordāt',
+-- or auto-transliterated from the Arabic, with BOGUS_CHAR substituting
+-- for the transliteration if auto-translit fails. STEM_TYPE is the
+-- declension of the stem, either manually specified, e.g. 'بَبَّغَاء:di' for
+-- manually-specified diptote, or auto-detected (see stem_and_type() and
+-- detect_type()).
 --
 -- DATA and ARGS are as in init(). ARGPREFS is an array of the prefixes for
 -- the argument(s) specifying the stem (and optional translit and declension
 -- type). For a given ARGPREF, we check ARGPREF, ARGPREF2, ARGPREF3, ... in
 -- turn for the base, and modARGPREF, modARGPREF2, modARGPREF3, ... in turn
--- for the first modifier, and mod2ARGPREF, mod2ARGPREF2, mod2ARGPREF3, ...
--- for the second modifier, etc. SGS is a stem specification (see above),
--- giving the stems that are used to base derived forms off of (e.g. if a stem
--- type "smp" appears in place of a stem, the sound masculine plural of the
+-- for the modifier. SGS is a stem specification (see above), giving the
+-- stems that are used to base derived forms off of (e.g. if a stem type
+-- "smp" appears in place of a stem, the sound masculine plural of the
 -- stems in SGS will be derived). DEFAULT is a single stem (i.e. a string) that
 -- is used when no stems were explicitly given by the user (typically either
--- "f", "m", "d" or "p"), or nil for no default. ISFEM is true if we're
+-- 'f', 'm', 'd' or 'p'), or nil for no default. ISFEM is true if we're
 -- accumulating stems for a feminine number/gender category, and NUM is the
--- number (expected to be "sg", "du" or "pl") of the number/gender category
+-- number (expected to be 'sg', 'du' or 'pl') of the number/gender category
 -- we're accumulating stems for.
 --
 -- About bases and modifiers: Note that e.g. in the noun phrase يَوْم الاِثْنَيْن
 -- the head noun يَوْم is the base and the noun الاِثْنَيْن is the modifier.
--- In a noun phrase like البَحْر الأَبْيَض المُتَوَسِّط, there are two modifiers.
 -- Note that modifiers come in two varieties, adjectival modifiers and
--- construct (ʾidāfa) modifiers. The first above noun phrase is an example
--- of a noun phrase with a construct modifier, where the base is fixed in
--- the construct state and the modifier is fixed in number and case
--- (which is always genitive) and possibly in state. The second above noun
--- phrase is an example of a noun phrase with two adjectival modifiers.
+-- construct modifiers. The above noun phrase is an example of a construct
+-- modifier, where the base is fixed in the construct state and the
+-- modifier is fixed in state, number and case (which is always genitive).
 -- A construct modifier is generally a noun, whereas an adjectival modifier
--- is an adjective that usually agrees in state, number and case with the
--- base noun. (Note that in the case of multiple modifiers, it is possible
--- for e.g. the second modifier to be an adjectival modifier that agrees
--- with the first, construct, modifier, in which case its case will be fixed
--- to genitive, its number will be fixed to the same number as the first
--- modifier and its state will vary or not depending on whether the first
--- modifier's state varies. It is not possible in general to distinguish
--- adjectival and construct modifiers by looking at the values of
--- modN_state, modN_case or modN_number, since e.g. a third modifier could
--- have all of them specified and be either kind. Thus we have modN_idafa,
--- which is true for a construct modifier, false otherwise.)
+-- is an adjective that agrees in state, number and case with the base
+-- noun.
 function do_gender_number(data, args, argprefs, sgs, default, isfem, num)
 	local results = do_gender_number_1(data, args, argprefs, sgs["base"],
-		default, isfem, num, "")
-	basemodtable = {base=results}
-	for _, mod in ipairs(mod_list) do
-		local modn_argprefs = {}
-		for _, argpref in ipairs(argprefs) do
-			table.insert(modn_argprefs, mod .. argpref)
-		end
-		local modn_results = do_gender_number_1(data, args, modn_argprefs,
-			sgs[mod] or {}, default, isfem, num, mod .. "_")
-		basemodtable[mod] = modn_results
+		default, isfem, num, false)
+	local mod_argprefs = {}
+	for _, argpref in ipairs(argprefs) do
+		table.insert(mod_argprefs, "mod" .. argpref)
 	end
-	return basemodtable
+	local mod_results = do_gender_number_1(data, args, mod_argprefs,
+		sgs["mod"] or {}, default, isfem, num, true)
+	return {base=results, mod=mod_results}
 end
 
 -- Generate inflections for the given combined stem and type, for MOD
--- (either "" if we're working on the base or "mod_", "mod2_", etc. if we're
--- working on a modifier) and NUMGEN (number or number-gender combination,
--- of the sort that forms part of the keys in DATA.FORMS).
+-- (either "" or "mod_", depending on whether we're working on the base or
+-- a modifier) and NUMGEN (number or number-gender combination, of the sort
+-- that forms part of the keys in DATA.FORMS).
 function call_inflection(combined_stem, ty, data, mod, numgen)
 	if ty == "-" then
 		return
@@ -823,17 +624,17 @@ end
 -- Generate inflections for the stems of a given number/gender combination
 -- and for either the base or the modifier. STEMTYPES is a stem-type list
 -- (see do_gender_number()), listing all the stems and corresponding
--- declension types. MOD is either "", "mod_", "mod2_", etc. depending on
--- whether we're working on the base or a modifier. NUMGEN is the number or
--- number-gender combination we're working on, of the sort that forms part
--- of the keys in DATA.FORMS, e.g. "sg" or "m_sg".
+-- declension types. MOD is either "" or "mod_", depending on whether we're
+-- working on the base or a modifier. NUMGEN is the number or number-gender
+-- combination we're working on, of the sort that forms part of the keys in
+-- DATA.FORMS, e.g. 'sg' or 'm_sg'.
 function call_inflections(stemtypes, data, mod, numgen)
-	local mod_with_modnumgen = mod ~= "" and data[mod .. "numgen"]
-	-- If modN_numgen= is given, do nothing if NUMGEN isn't the same
-	if mod_with_modnumgen and data[mod .. "numgen"] ~= numgen then
+	local mod_with_modnumgen = mod ~= "" and data.modnumgen
+	-- If modnumgen= is given, do nothing if NUMGEN isn't the same
+	if mod_with_modnumgen and data.modnumgen ~= numgen then
 		return
 	end
-	-- always call inflection() if mod_with_modnumgen since it may affect
+	-- always call inflections if mod_with_modnumgen since it may affect
 	-- other numbers (cf. يَوْم الاِثْنَيْن)
 	if mod_with_modnumgen or contains(data.numbers, rsub(numgen, "^.*_", "")) then
 		for _, stemtype in ipairs(stemtypes) do
@@ -849,8 +650,8 @@ end
 -- array of a stem specification (containing the set of stems and
 -- corresponding declension types for the base and any modifiers;
 -- see do_gender_number()) and a NUMGEN string, i.e. a string identifying
--- the number or number/gender in question (e.g. "sg", "du", "pl",
--- "m_sg", "f_pl", etc.).
+-- the number or number/gender in question (e.g. 'sg', 'du', 'pl',
+-- 'm_sg', 'f_pl', etc.).
 function do_inflections_and_overrides(data, args, inflections)
 	-- do this before generating inflections so POS change is reflected in
 	-- categories
@@ -860,10 +661,7 @@ function do_inflections_and_overrides(data, args, inflections)
 
 	for _, inflection in ipairs(inflections) do
 		call_inflections(inflection[1]["base"] or {}, data, "", inflection[2])
-		for _, mod in ipairs(mod_list) do
-			call_inflections(inflection[1][mod] or {}, data,
-				mod .. "_", inflection[2])
-		end
+		call_inflections(inflection[1]["mod"] or {}, data, "mod_", inflection[2])
 	end
 
 	handle_lemma_and_overrides(data, args)
@@ -872,15 +670,13 @@ end
 -- Helper function for get_heads(). Parses the stems for either the
 -- base or the modifier (see do_gender_number()). ARG1 is the argument
 -- for the first stem and ARGN is the prefix of the arguments for the
--- remaining stems. For example, for the singular base, ARG1=1 and
--- ARGN="head"; for the first singular modifier, ARG1="mod" and
--- ARGN="modhead"; for the plural base, ARG1=ARGN="pl". The arguments
--- other than the first are numbered 2, 3, ..., which is appended to
--- ARGN. MOD is either "", "mod_", "mod2_", etc. depending if we're
--- working on a base or modifier argument. The returned value is an
--- array of stems, where each element is a size-two array of
--- {COMBINED_STEM, STEM_TYPE}. See do_gender_number().
-function get_heads_1(data, args, arg1, argn, mod)
+-- remaining stems. For example, for the singular base, ARG1="1" and
+-- ARGN="head"; for the singular modifier, ARG1="mod" and ARGN="mod".
+-- The arguments other than the first are numbered 2, 3, ..., which is
+-- appended to ARGN. The returned value is an array of stems, where
+-- each element is a size-two array of {COMBINED_STEM, STEM_TYPE}.
+-- See do_gender_number().
+function get_heads_1(data, args, arg1, argn, ismod)
 	if not args[arg1] then
 		return {}
 	end
@@ -889,14 +685,14 @@ function get_heads_1(data, args, arg1, argn, mod)
 		heads = {{"", "-"}}
 	else
 		heads = {}
-		insert_stems(args[arg1], heads, {{args[arg1], ""}}, false, "sg",
-			get_pos(data, mod))
+		insert_stems(args[arg1], heads, {{args[arg1], ""}}, false, 'sg',
+			get_pos(data, ismod))
 	end
 	local i = 2
 	while args[argn .. i] do
 		local arg = args[argn .. i]
-		insert_stems(arg, heads, {{arg, ""}}, false, "sg",
-			get_pos(data, mod))
+		insert_stems(arg, heads, {{arg, ""}}, false, 'sg',
+			get_pos(data, ismod))
 		i = i + 1
 	end
 	return heads
@@ -921,13 +717,9 @@ function get_heads(data, args, headtype)
 	end
 
 	if not args[1] then error("Parameter 1 (" .. headtype .. " stem) may not be empty.") end
-	local base = get_heads_1(data, args, 1, "head", "")
-	basemodtable = {base=base}
-	for _, mod in ipairs(mod_list) do
-		local modn = get_heads_1(data, args, mod, mod .. "head", mod .. "_")
-		basemodtable[mod] = modn
-	end
-	return basemodtable, false
+	local base = get_heads_1(data, args, 1, "head", false)
+	local mod = get_heads_1(data, args, "mod", "mod", true)
+	return {base=base, mod=mod}, false
 end
 
 -- The main entry point for noun tables.
@@ -937,13 +729,13 @@ function export.show_noun(frame)
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
-	local sgs, is_template = get_heads(data, args, "singular")
+	local sgs, is_template = get_heads(data, args, 'singular')
 	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(data, args, {"pl", "cpl"}, sgs, nil, false, "pl")
 	-- always do dual so cases like يَوْم الاِثْنَيْن work -- a singular with
 	-- a dual modifier, where data.number refers only the singular
 	-- but we need to go ahead and compute the dual so it parses the
-	-- "modd" modifier dual argument. When the modifier dual argument
+	-- 'modd' modifier dual argument. When the modifier dual argument
 	-- is parsed, it will store the resulting dual declension for اِثْنَيْن
 	-- in the modifier slot for all numbers, including specifically
 	-- the singular.
@@ -962,10 +754,10 @@ end
 
 function any_feminine(data, stem_spec)
 	for basemod, stemtypelist in pairs(stem_spec) do
-		-- Only check modifiers if modN_numgen= not given. If not given, the
+		-- Only check modifiers if modnumgen= not given. If not given, the
 		-- modifier needs to be declined for all numgens; else only for the
 		-- given numgen, which should be explicitly specified.
-		if not (basemod ~= "base" and data[basemod .. "_numgen"]) then
+		if not (basemod ~= "base" and data.modnumgen) then
 			for _, stemtype in ipairs(stemtypelist) do
 				if rfind(stemtype[1], TAM .. UNUOPT .. "/") then
 					return true
@@ -978,10 +770,10 @@ end
 
 function all_feminine(data, stem_spec)
 	for basemod, stemtypelist in pairs(stem_spec) do
-		-- Only check modifiers if modN_numgen= not given. If not given, the
+		-- Only check modifiers if modnumgen= not given. If not given, the
 		-- modifier needs to be declined for all numgens; else only for the
 		-- given numgen, which should be explicitly specified.
-		if not (basemod ~= "base" and data[basemod .. "_numgen"]) then
+		if not (basemod ~= "base" and data.modnumgen) then
 			for _, stemtype in ipairs(stemtypelist) do
 				if not rfind(stemtype[1], TAM .. UNUOPT .. "/") then
 					return false
@@ -1001,7 +793,7 @@ function export.show_coll_noun(frame)
 	data.numgens = function() return data.numbers end
 	data.allnumgens = data.allnumbers
 
-	local colls, is_template = get_heads(data, args, "collective")
+	local colls, is_template = get_heads(data, args, 'collective')
 	local pls = is_template and {base={{"{{{pl}}}", "tri"}}} or
 		do_gender_number(data, args, {"pl", "cpl"}, colls, nil, false, "pl")
 
@@ -1059,7 +851,7 @@ function export.show_sing_noun(frame)
 
 	parse_state_etc_spec(data, args)
 
-	local sings, is_template = get_heads(data, args, "singulative")
+	local sings, is_template = get_heads(data, args, 'singulative')
 
 	-- If all singulative nouns feminine in form, form a masculine collective
 	local singfem = all_feminine(data, sings)
@@ -1201,15 +993,6 @@ end
 function combine_with_ending(ar, tr, ending)
 	local endingar, endingtr = split_arabic_tr(ending)
 	allar = hamza_seat(ar .. endingar)
-	-- Convert ...īān to ...iyān in case of stems ending in -ī or -ū
-	-- (e.g. kubrī "bridge").
-	if rfind(endingtr, "^[aeiouāēīōū]") then
-		if rfind(tr, "ī$") then
-			tr = rsub(tr, "ī$", "iy")
-		elseif rfind(tr, "ū$") then
-			tr = rsub(tr, "ū$", "uw")
-		end
-	end
 	tr = tr .. endingtr
 	allartr = {}
 	for _, arval in ipairs(allar) do
@@ -1232,30 +1015,30 @@ end
 
 -- Form inflections from combination of STEM, with transliteration TR,
 -- and ENDINGS (and definite article where necessary) and store in DATA,
--- for the number or gender/number determined by MOD ("", "mod_", "mod2_",
--- etc.; see call_inflection()) and NUMGEN ("sg", "du", "pl", or "m_sg",
--- "f_pl", etc. for adjectives). ENDINGS is an array of 15 values, each of
--- which is a string or array of alternatives. The order of ENDINGS is
--- indefinite nom, acc, gen; definite nom, acc, gen; construct-state nom, acc,
--- gen; informal indefinite, definite, construct; lemma indefinite, definite,
+-- for the number or gender/number determined by MOD ("" or "mod_"; see
+-- call_inflection()) and NUMGEN ("sg", "du", "pl", or "m_sg", "f_pl",
+-- etc. for adjectives). ENDINGS is an array of 15 values, each of which
+-- is a string or array of alternatives. The order of ENDINGS is indefinite
+-- nom, acc, gen; definite nom, acc, gen; construct-state nom, acc, gen;
+-- informal indefinite, definite, construct; lemma indefinite, definite,
 -- construct. (Normally the lemma is based off of the indefinite, but if
 -- the inflection has been restricted to particular states, it comes from
 -- one of those states, in the order indefinite, definite, construct.)
 function add_inflections(stem, tr, data, mod, numgen, endings)
 	stem = canon_hamza(stem)
 	assert(#endings == 15)
-	local ismod = mod ~= ""
-	-- If working on modifier and modN_numgen= is given, it better agree with
+	local ismod = mod == "mod_"
+	-- If working on modifier and modnumgen= is given, it better agree with
 	-- NUMGEN; the case where it doesn't agree should have been caught in
 	-- call_inflections().
-	if ismod and data[mod .. "numgen"] then
-		assert(data[mod .. "numgen"] == numgen)
+	if ismod and data.modnumgen then
+		assert(data.modnumgen == numgen)
 	end
 	-- Return a list of combined of ar/tr forms, with the ending tacked on.
 	-- There may be more than one form because of alternative hamza seats that
 	-- may be supplied, e.g. مُبْتَدَؤُون or مُبْتَدَأُون (mubtadaʾūn "(grammatical) subjects").
 	local defstem, deftr
-	if stem == "?" or data[mod .. "omitarticle"] then
+	if stem == "?" or data.omitarticle then
 		defstem = stem
 		deftr = tr
 	else
@@ -1264,22 +1047,7 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 		deftr = rsub("al-" .. tr, "^al%-([sšṣtṯṭdḏḍzžẓnrḷ])", "a%1-%1")
 	end
 	
-	-- For a given MOD spec, is the previous word (base or modifier) a noun?
-	-- We assume the base is always a noun in this case, and otherwise
-	-- look at the value of modN_idafa.
-	local function prev_mod_is_noun(mod)
-		if mod == "mod_" then
-			return true
-		end
-		if mod == "mod2_" then
-			return data["mod_idafa"]
-		end
-		modnum = assert_rsub(mod, "^mod([0-9]+)_$", "%1")
-		modnum = modnum - 1
-		return data["mod" .. modnum .. "_idafa"]
-	end
-
-	local numgens = ismod and data[mod .. "numgen"] and data.numgens() or {numgen}
+	local numgens = ismod and data.modnumgen and data.numgens() or {numgen}
 	-- "defcon" means definite adjective modifying construct state noun. We
 	-- add a ... before the adjective (and after the construct-state noun) to
 	-- indicate that a nominal modifier would go between noun and adjective.
@@ -1291,17 +1059,16 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 			for _, case in ipairs(data.allcases_with_lemma) do
 				-- We are generating the inflections for STATE, but sometimes
 				-- we want to use the inflected form of a different state, e.g.
-				-- if modN_state= or basestate= is set to some particular state.
+				-- if MODSTATE or BASESTATE is set to some particular state.
 				-- We use "defcon" in place of "con" when we're dealing with
-				-- an adjectival modifier; see comment above.
-				local first_adj_modifier = ismod and not data[mod .. "idafa"]
-					and prev_mod_is_noun(mod)
-				local thestate = ismod and data[mod .. "state"] or
-				  ismod and not data[mod .. "idafa"] and prev_mod_is_noun(mod) and state == "con" and "defcon" or
+				-- an adjectival modifier (MODCASE isn't set); see comment
+				-- above.
+				local thestate = ismod and data.modstate or
+				  ismod and not data.modcase and state == "con" and "defcon" or
 				  not ismod and data.basestate or
 				  state
 				local thecase = (case == "lemma" or case == "inf") and case or
-					ismod and data[mod .. "case"] or case
+					ismod and data.modcase or case
 				add_inflection(data, mod .. case .. "_" .. ng .. "_" .. state,
 					stems[thestate], trs[thestate],
 					endings[data.statecases[thestate][thecase]])
@@ -1355,14 +1122,13 @@ end
 -- inflections -- the modifier part of the lemma should agree in case
 -- with modifier's case if it's restricted in case.
 function mod_oblique(mod, data)
-	return mod ~= "" and data[mod .. "case"] and (
-		data[mod .. "case"] == "acc" or data[mod .. "case"] == "gen")
+	return mod ~= "" and data.modcase and (data.modcase == "acc" or data.modcase == "gen")
 end
 
 -- Similar to mod_oblique but specifically when the modifier case is
 -- limited to the accusative (which is rare or nonexistent in practice).
 function mod_acc(mod, data)
-	return mod ~= "" and data[mod .. "case"] and data[mod .. "case"] == "acc"
+	return mod ~= "" and data.modcase and data.modcase == "acc"
 end
 
 -- Handle triptote and diptote inflections
@@ -1506,7 +1272,7 @@ end
 
 function in_defective(stem, tr, data, mod, numgen, tri)
 	if not rfind(stem, IN .. "$") then
-		error(""in" declension stem should end in -in: '" .. stem .. "'")
+		error("'in' declension stem should end in -in: '" .. stem .. "'")
 	end
 
 	stem = rsub(stem, IN .. "$", "")
@@ -1532,16 +1298,16 @@ end
 
 function detect_in_type(stem, ispl)
 	if ispl and rfind(stem, "^" .. CONS .. AOPT .. CONS .. AOPTA .. CONS .. IN .. "$") then -- layālin
-		return "diin"
+		return 'diin'
 	else -- other -in words
-		return "triin"
+		return 'triin'
 	end
 end
 
 -- Defective in -in
 inflections["in"] = function(stem, tr, data, mod, numgen)
 	in_defective(stem, tr, data, mod, numgen,
-		detect_in_type(stem, rfind(numgen, "pl")) == "triin")
+		detect_in_type(stem, rfind(numgen, "pl")) == 'triin')
 end
 
 -- Defective in -in, force "triptote" variant
@@ -1715,16 +1481,16 @@ end
 -- diptotes and sound plurals to either come with ʾiʿrāb or not. We detect
 -- some cases where vowels are missing, when it seems fairly unambiguous to
 -- do so. ISFEM is true if we are dealing with a feminine stem (not
--- currently used and needs to be rethought). NUM is "sg", "du", or "pl",
+-- currently used and needs to be rethought). NUM is 'sg', 'du', or 'pl',
 -- depending on the number of the stem.
 --
--- POS is the part of speech, generally "noun" or "adjective". Used to
+-- POS is the part of speech, generally 'noun' or 'adjective'. Used to
 -- distinguish nouns and adjectives of the فَعْلَان type. There are nouns of
 -- this type and they generally are triptotes, e.g. قَطْرَان "tar"
 -- and شَيْطَان "devil". An additional complication is that the user can set
 -- the POS to something else, like "numeral". We don't use this POS for
 -- modifiers, where we determine whether they are noun-like or adjective-like
--- according to whether mod_idafa= is true.
+-- according to whether modstate= or modcase= is set.
 --
 -- Some unexpectedly diptote nouns/adjectives:
 --
@@ -1755,39 +1521,39 @@ function export.detect_type(stem, isfem, num, pos)
 	-- So that we don't get tripped up by alif madda, we replace alif madda
 	-- with the sequence hamza + fatḥa + alif before the regexps below.
 	stem = rsub(stem, AMAD, HAMZA .. AA)
-	if num == "du" then
+	if num == 'du' then
 		if rfind(stem, ALIF .. NI .. "?$") then
-			return "d"
+			return 'd'
 		else
 			error("Malformed stem for dual, should end in the nominative dual ending -ān(i): '" .. origstem .. "'")
 		end
 	end
 	if rfind(stem, IN .. "$") then -- -in words
-		return detect_in_type(stem, num == "pl")
+		return detect_in_type(stem, num == 'pl')
 	elseif rfind(stem, AN .. "[" .. ALIF .. AMAQ .. "]$") then
-		return "an"
+		return 'an'
 	elseif rfind(stem, AN .. "$") then
 		error("Malformed stem, fatḥatan should be over second-to-last letter: " .. origstem)
-	elseif num == "pl" and rfind(stem, AW .. SKOPT .. N .. AOPT .. "$") then
-		return "awnp"
-	elseif num == "pl" and rfind(stem, ALIF .. T .. UNOPT .. "$") and
+	elseif num == 'pl' and rfind(stem, AW .. SKOPT .. N .. AOPT .. "$") then
+		return 'awnp'
+	elseif num == 'pl' and rfind(stem, ALIF .. T .. UNOPT .. "$") and
 		-- Avoid getting tripped up by plurals like ʾawqāt "times",
 		-- ʾaḥwāt "fishes", ʾabyāt "verses", ʾazyāt "oils", ʾaṣwāt "voices",
 		-- ʾamwāt "dead (pl.)".
 		not rfind(stem, HAMZA_ON_ALIF .. A .. CONS .. SK .. CONS .. AAT .. UNOPT .. "$") then
-		return "sfp"
-	elseif num == "pl" and rfind(stem, W .. N .. AOPT .. "$") and
+		return 'sfp'
+	elseif num == 'pl' and rfind(stem, W .. N .. AOPT .. "$") and
 		-- Avoid getting tripped up by plurals like ʿuyūn "eyes",
 		-- qurūn "horns" (note we check for U between first two consonants
 		-- so we correctly ignore cases like sinūn "hours" (from sana),
 		-- riʾūn "lungs" (from riʾa) and banūn "sons" (from ibn).
 		not rfind(stem, "^" .. CONS .. U .. CONS .. UUN .. AOPT .. "$") then
-		return "smp"
+		return 'smp'
 	elseif rfind(stem, UN .. "$") then -- explicitly specified triptotes (we catch sound feminine plurals above)
-		return "tri"
+		return 'tri'
 	elseif rfind(stem, U .. "$") then -- explicitly specified diptotes
-		return "di"
-	elseif -- num == "pl" and
+		return 'di'
+	elseif -- num == 'pl' and
 		( -- various diptote plural patterns; these are diptote even in the singular (e.g. yanāyir "January", falāfil "falafel", tuʾabāʾ "yawn, fatigue"
 		  -- currently we sometimes end up with such plural patterns in the "singular" in a singular
 		  -- ʾidāfa construction with plural modifier. (FIXME: These should be fixed to the correct number.)
@@ -1797,36 +1563,36 @@ function export.detect_type(stem, isfem, num, pos)
 		rfind(stem, "^" .. CONS .. U .. CONS .. AOPT .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("wuzaraa") or -- wuzarāʾ "ministers", juhalāʾ "ignorant (pl.)"
 		rfind(stem, ELCD_START .. SKOPT .. CONS .. IOPT .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("asdiqaa") or -- ʾaṣdiqāʾ
 		rfind(stem, ELCD_START .. IOPT .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("aqillaa") -- ʾaqillāʾ, ʾajillāʾ "important (pl.)", ʾaḥibbāʾ "lovers"
-		) then
-		return "di"
-	elseif num == "sg" and ( -- diptote singular patterns (nouns/adjectives)
+	    ) then
+		return 'di'
+	elseif num == 'sg' and ( -- diptote singular patterns (nouns/adjectives)
 		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. HAMZA .. "$") and dotrack("qamraa") or -- qamrāʾ "moon-white, moonlight"; baydāʾ "desert"; ṣaḥrāʾ "desert-like, desert"; tayhāʾ "trackless, desolate region"; not pl. to avoid catching e.g. ʾabnāʾ "sons", ʾaḥmāʾ "fathers-in-law", ʾamlāʾ "steppes, deserts" (pl. of malan), ʾanbāʾ "reports" (pl. of nabaʾ)
 		rfind(stem, ELCD_START .. SK .. CONS .. A .. CONS .. "$") and dotrack("abyad") or -- ʾabyaḍ "white", ʾakbar "greater"; FIXME nouns like ʾaʿzab "bachelor", ʾaḥmad "Ahmed" but not ʾarnab "rabbit", ʾanjar "anchor", ʾabjad "abjad", ʾarbaʿ "four", ʾandar "threshing floor" (cf. diptote ʾandar "rarer")
 		rfind(stem, ELCD_START .. A .. CONS .. SH .. "$") and dotrack("alaff") or -- ʾalaff "plump", ʾaḥabb "more desirable"
 		-- do the following on the origstem so we can check specifically for alif madda
 		rfind(origstem, "^" .. AMAD .. CONS .. A .. CONS .. "$") and dotrack("aalam") -- ʾālam "more painful", ʾāḵar "other"
 		) then
-		return "di"
-	elseif num == "sg" and pos == "adjective" and ( -- diptote singular patterns (adjectives)
+		return 'di'
+	elseif num == 'sg' and pos == 'adjective' and ( -- diptote singular patterns (adjectives)
 		rfind(stem, "^" .. CONS .. A .. CONS .. SK .. CONS .. AOPTA .. N .. "$") and dotrack("kaslaan") or -- kaslān "lazy", ʿaṭšān "thirsty", jawʿān "hungry", ḡaḍbān "angry", tayhān "wandering, perplexed"; but not nouns like qaṭrān "tar", šayṭān "devil", mawtān "plague", maydān "square"
 		-- rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. N .. "$") and dotrack("laffaa") -- excluded because of too many false positives e.g. ḵawwān "disloyal", not to mention nouns like jannān "gardener"; only diptote example I can find is ʿayyān "incapable, weary" (diptote per Lane but not Wehr)
 		rfind(stem, "^" .. CONS .. A .. CONS .. SH .. AOPTA .. HAMZA .. "$") and dotrack("laffaa") -- laffāʾ "plump (fem.)"; but not nouns like jarrāʾ "runner", ḥaddāʾ "camel driver", lawwāʾ "wryneck"
 		) then
-		return "di"
+		return 'di'
 	elseif rfind(stem, AMAQ .. "$") then -- kaslā, ḏikrā (spelled with alif maqṣūra)
-		return "inv"
+		return 'inv'
 	elseif rfind(stem, "[" .. ALIF .. SK .. "]" .. Y .. AOPTA .. "$") then -- dunyā, hadāyā (spelled with tall alif after yāʾ)
-		return "inv"
+		return 'inv'
 	elseif rfind(stem, ALIF .. "$") then -- kāmērā, lībiyā (spelled with tall alif; we catch dunyā and hadāyā above)
-		return "lwinv"
+		return 'lwinv'
 	elseif rfind(stem, II .. "$") then -- cases like كُوبْرِي kubrī "bridge" and صَوَانِي ṣawānī pl. of ṣīniyya; modern words that would probably end with -in
 		dotrack("ii")
-		return "inv"
+		return 'inv'
 	elseif rfind(stem, UU .. "$") then -- FIXME: Does this occur? Check the tracking
 		dotrack("uu")
-		return "inv"
+		return 'inv'
 	else
-		return "tri"
+		return 'tri'
 	end
 end
 
@@ -1869,19 +1635,19 @@ end
 -- transliteration TR and of type (i.e. declension) TYPE. If the type
 -- is omitted, it is auto-detected using detect_type(). If the transliteration
 -- is omitted, it is auto-transliterated from the Arabic. If only the type
--- is present, it is a sound plural type ("sf", "sm" or "awn"),
+-- is present, it is a sound plural type ('sf', 'sm' or 'awn'),
 -- in which case the stem and translit are generated from the singular by
 -- regular rules. SG may be of the form ARABIC/TR or ARABIC. ISFEM is true
--- if WORD is a feminine stem. NUM is either "sg", "du" or "pl" according to
+-- if WORD is a feminine stem. NUM is either 'sg', 'du' or 'pl' according to
 -- the number of the stem. The return value will be in the ARABIC/TR format.
 --
--- POS is the part of speech, generally "noun" or "adjective". Used to
+-- POS is the part of speech, generally 'noun' or 'adjective'. Used to
 -- distinguish nouns and adjectives of the فَعْلَان type. There are nouns of
 -- this type and they generally are triptotes, e.g. قَطْرَان "tar"
 -- and شَيْطَان "devil". An additional complication is that the user can set
 -- the POS to something else, like "numeral". We don't use this POS for
 -- modifiers, where we determine whether they are noun-like or adjective-like
--- according to whether mod_idafa= is true.
+-- according to whether modstate= or modcase= is set.
 function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	local rettype = nil
 	if rfind(word, ":") then
@@ -1934,15 +1700,15 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		end
 	end
 
-	if (num ~= "sg" or not isfem) and (word == "elf" or word == "cdf" or word == "intf" or word == "rf" or word == "f") then
+	if (num ~= 'sg' or not isfem) and (word == "elf" or word == "cdf" or word == "intf" or word == "rf" or word == "f") then
 		error("Inference of form for inflection type '" .. word .. "' only allowed in singular feminine")
 	end
 	
-	if num ~= "du" and word == "d" then
+	if num ~= 'du' and word == "d" then
 		error("Inference of form for inflection type '" .. word .. "' only allowed in dual")
 	end
 	
-	if num ~= "pl" and (word == "sfp" or word == "smp" or word == "awnp" or word == "cdp" or word == "sp" or word == "fp" or word == "p") then
+	if num ~= 'pl' and (word == "sfp" or word == "smp" or word == "awnp" or word == "cdp" or word == "sp" or word == "fp" or word == "p") then
 		error("Inference of form for inflection type '" .. word .. "' only allowed in plural")
 	end
 
@@ -2047,20 +1813,20 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 
 	if word == "f" then
 		if sgtype == "cd" then
-			return export.stem_and_type("cdf", sg, sgtype, true, "sg", pos)
+			return export.stem_and_type("cdf", sg, sgtype, true, 'sg', pos)
 		elseif sgtype == "el" then
-			return export.stem_and_type("elf", sg, sgtype, true, "sg", pos)
+			return export.stem_and_type("elf", sg, sgtype, true, 'sg', pos)
 		elseif sgtype =="di" and is_intensive_adj(sgar) then
-			return export.stem_and_type("intf", sg, sgtype, true, "sg", pos)
+			return export.stem_and_type("intf", sg, sgtype, true, 'sg', pos)
 		elseif sgtype == "di" and is_elcd_adj(sgar) then
 			-- If form is elative or color-defect, we don't know which of
 			-- the two it is, and each has a special feminine which isn't
 			-- the regular "just add ة", so shunt to unknown. This will
 			-- ensure that ?'s appear in place of the inflection -- also
 			-- for dual and plural.
-			return export.stem_and_type("?", sg, sgtype, true, "sg", pos)
+			return export.stem_and_type("?", sg, sgtype, true, 'sg', pos)
 		else
-			return export.stem_and_type("rf", sg, sgtype, true, "sg", pos)
+			return export.stem_and_type("rf", sg, sgtype, true, 'sg', pos)
 		end
 	end
 
@@ -2087,7 +1853,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		-- FIXME: handle cd (color-defect)
 		-- FIXME: handle el (elative)
 		-- FIXME: handle int (intensive)
-		return export.stem_and_type("rm", sg, sgtype, false, "sg", pos)
+		return export.stem_and_type("rm", sg, sgtype, false, 'sg', pos)
 	end
 
 	-- The plural used for feminine adjectives. If the singular type is
@@ -2095,21 +1861,21 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	-- use color/defect plural. Otherwise shunt to sound feminine plural.
 	if word == "fp" then
 		if sgtype == "cd" or is_feminine_cd_adj(sgar) then
-			return export.stem_and_type("cdp", sg, sgtype, true, "pl", pos)
+			return export.stem_and_type("cdp", sg, sgtype, true, 'pl', pos)
 		else
-			return export.stem_and_type("sfp", sg, sgtype, true, "pl", pos)
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
 		end
 	end
 
 	if word == "sp" then
 		if sgtype == "cd" then
-			return export.stem_and_type("cdp", sg, sgtype, isfem, "pl", pos)
+			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
 		elseif isfem then
-			return export.stem_and_type("sfp", sg, sgtype, true, "pl", pos)
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
 		elseif sgtype == "an" then
-			return export.stem_and_type("awnp", sg, sgtype, false, "pl", pos)
+			return export.stem_and_type("awnp", sg, sgtype, false, 'pl', pos)
 		else
-			return export.stem_and_type("smp", sg, sgtype, false, "pl", pos)
+			return export.stem_and_type("smp", sg, sgtype, false, 'pl', pos)
 		end
 	end
 
@@ -2118,9 +1884,9 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	-- shunt to unknown, so ? appears in place of the inflections.
 	if word == "p" then
 		if sgtype == "cd" then
-			return export.stem_and_type("cdp", sg, sgtype, isfem, "pl", pos)
+			return export.stem_and_type("cdp", sg, sgtype, isfem, 'pl', pos)
 		else
-			return export.stem_and_type("?", sg, sgtype, isfem, "pl", pos)
+			return export.stem_and_type("?", sg, sgtype, isfem, 'pl', pos)
 		end
 	end
 
@@ -2130,11 +1896,11 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 	-- (conservative plural).
 	if word == "paucp" then
 		if rfind(sgar, TAM .. UNUOPT .. "$") then
-			return export.stem_and_type("sfp", sg, sgtype, true, "pl", pos)
+			return export.stem_and_type("sfp", sg, sgtype, true, 'pl', pos)
 		elseif rfind(sgar, IY .. SH .. UNUOPT .. "$") then
-			return export.stem_and_type("smp", sg, sgtype, false, "pl", pos)
+			return export.stem_and_type("smp", sg, sgtype, false, 'pl', pos)
 		else
-			return export.stem_and_type("p", sg, sgtype, isfem, "pl", pos)
+			return export.stem_and_type("p", sg, sgtype, isfem, 'pl', pos)
 		end
 	end
 
@@ -2143,7 +1909,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 		local ret = (
 			sub(AN .. "[" .. ALIF .. AMAQ .. "]$", AY .. AAN, "an$", "ayān") or -- ends in -an
 			sub(IN .. "$", IY .. AAN, "in$", "iyān") or -- ends in -in
-			sgtype == "lwinv" and sub(AOPTA .. "$", AT .. AAN, "[āa]$", "atān") or -- lwinv, ends in alif; allow translit with short -a
+		    sgtype == "lwinv" and sub(AOPTA .. "$", AT .. AAN, "[āa]$", "atān") or -- lwinv, ends in alif; allow translit with short -a
 			sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AY .. AAN, "ā$", "ayān") or -- ends in alif or alif maqṣūra
 			-- We separate the ʾiʿrāb and no-ʾiʿrāb cases even though we can
 			-- do a single Arabic regexp to cover both because we want to
@@ -2176,7 +1942,7 @@ function export.stem_and_type(word, sg, sgtype, isfem, num, pos)
 			sub(IN .. "$", IY .. AAT, "in$", "iyāt") or -- ends in -in
 			sgtype == "inv" and (
 				sub(AOPT .. "[" .. ALIF .. AMAQ .. "]$", AYAAT, "ā$", "ayāt") -- ends in alif or alif maqṣūra
-			) or
+	        ) or
 			sgtype == "lwinv" and (
 				sub(AOPTA .. "$", AAT, "[āa]$", "āt") -- loanword ending in tall alif; allow translit with short -a
 			) or
@@ -2248,35 +2014,38 @@ end
 local outersep = LRM .. "; "
 local innersep = LRM .. "/"
 
--- Subfunction of show_form(), used to implement recursively generating
--- all combinations of elements from FORM and from each of the items in
--- LIST_OF_MODS, both of which are either arrays of strings or arrays of
--- arrays of strings, where the strings are in the form ARABIC/TRANSLIT,
--- as described in show_form(). TRAILING_ARTRMODS is an array of ARTRMOD
--- items, each of which is a two-element array of ARMOD (Arabic) and TRMOD
--- (transliteration), accumulating all of the suffixes generated so far
--- in the recursion process. Each time we recur we take the last MOD item
--- off of LIST_OF_MODS, separate each element in MOD into its Arabic and
--- Latin parts and to each Arabic/Latin pair we add all elements in
--- TRAILING_ARTRMODS, passing the newly generated list of ARTRMOD items
--- down the next recursion level with the shorter LIST_OF_MODS. We end up
--- returning a string to insert into the Wiki-markup table.
-function show_form_1(form, list_of_mods, trailing_artrmods, use_parens)
-	if #list_of_mods == 0 then
-		local arabicvals = {}
-		local latinvals = {}
-		local parenvals = {}
-		
-		-- Accumulate separately the Arabic and transliteration into
-		-- ARABICVALS and LATINVALS, then concatenate each down below.
-		-- However, if USE_PARENS, we put each transliteration directly
-		-- after the corresponding Arabic, in parens, and put the results
-		-- in PARENVALS, which get concatenated below. (This is used in the
-		-- title of the declension table.)
-		for _, artrmod in ipairs(trailing_artrmods) do
-			assert(#artrmod == 2)
-			local armod = artrmod[1]
-			local trmod = artrmod[2]
+function show_form(form, mods, use_parens)
+	if not form then
+		return "&mdash;"
+	elseif type(form) ~= "table" then
+		error("a non-table value was given in the list of inflected forms.")
+	end
+	if #form == 0 then
+		return "&mdash;"
+	end
+	
+	local arabicvals = {}
+	local latinvals = {}
+	local parenvals = {}
+	
+	-- Accumulate separately the Arabic and transliteration into
+	-- ARABICVALS and LATINVALS, then concatenate each down below.
+	-- However, if USE_PARENS, we put each transliteration directly
+	-- after the corresponding Arabic, in parens, and put the results
+	-- in PARENVALS, which get concatenated below. (This is used in the
+	-- title of the declension table.)
+	for _, mod in ipairs(mods) do
+		if type(mod) ~= "table" then
+			mod = {mod}
+		end
+		for _, submod in ipairs(mod) do
+			local armod, trmod = split_arabic_tr(submod)
+			if armod == "-" then
+				armod = ""
+				trmod = ""
+			end
+			if armod ~= "" then armod = ' ' .. armod end
+			if trmod ~= "" then trmod = ' ' .. trmod end
 			for _, subform in ipairs(form) do
 				local ar_span, tr_span
 				local ar_subspan, tr_subspan
@@ -2319,102 +2088,40 @@ function show_form_1(form, list_of_mods, trailing_artrmods, use_parens)
 				end
 			end
 		end
+	end
 
-		if use_parens then
-			return table.concat(parenvals, outersep)
-		else
-			local arabic_span = table.concat(arabicvals, outersep)
-			local latin_span = table.concat(latinvals, outersep)
-			return arabic_span .. "<br />" .. latin_span
-		end
+	if use_parens then
+		return table.concat(parenvals, outersep)
 	else
-		local last_mods = table.remove(list_of_mods)
-		local artrmods = {}
-		for _, mod in ipairs(last_mods) do
-			if type(mod) ~= "table" then
-				mod = {mod}
-			end
-			for _, submod in ipairs(mod) do
-				local armod, trmod = split_arabic_tr(submod)
-				-- If the value is -, we need to create a blank entry
-				-- rather than skipping it; if we have no entries at any
-				-- level, then there will be no overall entries at all
-				-- because the inside of the loop at the next level will
-				-- never be executed.
-				if armod == "-" then
-					armod = ""
-					trmod = ""
-				end
-				if armod ~= "" then armod = ' ' .. armod end
-				if trmod ~= "" then trmod = ' ' .. trmod end
-				for _, trailing_artrmod in ipairs(trailing_artrmods) do
-					local trailing_armod = trailing_artrmod[1]
-					local trailing_trmod = trailing_artrmod[2]
-					armod = armod .. trailing_armod
-					trmod = trmod .. trailing_trmod
-					artrmod = {armod, trmod}
-					table.insert(artrmods, artrmod)
-				end
-			end
-		end
-		return show_form_1(form, list_of_mods, artrmods, use_parens)
+		local arabic_span = table.concat(arabicvals, outersep)
+		local latin_span = table.concat(latinvals, outersep)
+		return arabic_span .. "<br />" .. latin_span
 	end
 end
 
--- Generate a string to substitute into a particular form in a Wiki-markup
--- table. FORM is the set of inflected forms corresponding to the base,
--- either an array of strings (referring e.g. to different possible plurals)
--- or an array of arrays of strings (the first level referring e.g. to
--- different possible plurals and the inner level referring typically to
--- hamza-spelling variants). LIST_OF_MODS is an array of MODS elements, one
--- per modifier. Each MODS element is the set of inflected forms corresponding
--- to the modifier and is of the same form as FORM, i.e. an array of strings
--- or an array of arrays of strings. Each string is typically of the form
--- "ARABIC/TRANSLIT", i.e. an Arabic string and a Latin string separated
--- by a slash. We loop over all possible combinations of elements from
--- each array; this requires recursion.
-function show_form(form, list_of_mods, use_parens)
-	if not form then
-		return "&mdash;"
-	elseif type(form) ~= "table" then
-		error("a non-table value was given in the list of inflected forms.")
-	end
-	if #form == 0 then
-		return "&mdash;"
-	end
-
-	-- We need to start the recursion with the third parameter containing
-	-- one blank element rather than no elements, otherwise no elements
-	-- will be propagated to the next recursion level.
-	return show_form_1(form, list_of_mods, {{"", ""}}, use_parens)
-end
-
--- Create a Wiki-markup table using the values in DATA and the template in
--- WIKICODE.
 function make_table(data, wikicode)
 	-- Function used as replace arg of call to rsub(). Replace the
 	-- specified param with its (HTML) value. The param references appear
 	-- as {{{PARAM}}} in the wikicode.
 	local function repl(param)
-		if param == "pos" then
+		if param == "lemma" then
+			local mods = data.forms["mod_lemma"]
+			if not mods or #mods == 0 then
+				mods = {""}
+			end
+			return show_form(data.forms["lemma"], mods, "use parens")
+		elseif param == "pos" then
 			return data.pos
 		elseif param == "info" then
 			return data.title and " (" .. data.title .. ")" or ""
 		elseif rfind(param, "type$") then
 			return table.concat(data.forms[param] or {"&mdash;"}, outersep)
 		else
-			local list_of_mods = {}
-			for _, mod in ipairs(mod_list) do
-				local mods = data.forms[mod .. "_" .. param]
-				if not mods or #mods == 0 then
-					-- We need one blank element rather than no element,
-					-- otherwise no elements will be propagated from one
-					-- recursion level to the next.
-					mods = {""}
-				end
-				table.insert(list_of_mods, mods)
+			local mods = data.forms["mod_" .. param]
+			if not mods or #mods == 0 then
+				mods = {""}
 			end
-			return show_form(data.forms[param], list_of_mods, param == "lemma")
+			return show_form(data.forms[param], mods)
 		end
 	end
 	
@@ -2433,7 +2140,6 @@ function make_table(data, wikicode)
 	return rsub(wikicode, "{{{([a-z_]+)}}}", repl) .. m_utilities.format_categories(data.categories, lang)
 end
 
--- Generate part of the noun table for a given number spec NUM (e.g. sg)
 function generate_noun_num(num)
 	return [=[! style="background: #CDCDCD;" | Indefinite
 ! style="background: #CDCDCD;" | Definite
@@ -2470,10 +2176,10 @@ function make_noun_table(data)
 ]=]
 
 	for _, num in ipairs(data.numbers) do
-		if num == "du" then
+		if num == 'du' then
 			wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" | Dual
-]=] .. generate_noun_num("du")
+]=] .. generate_noun_num('du')
 		else
 			wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | ]=] .. data.engnumberscap[num] .. "\n" .. [=[
@@ -2489,8 +2195,6 @@ function make_noun_table(data)
 	return make_table(data, wikicode)
 end
 
--- Generate part of the gendered-noun table for a given numgen spec
--- NUM (e.g. m_sg)
 function generate_gendered_noun_num(num)
 	return [=[|-
 ! style="background: #CDCDCD;" | Indefinite
@@ -2543,12 +2247,12 @@ function make_gendered_noun_table(data)
 ]=]
 
 	for _, num in ipairs(data.numbers) do
-		if num == "du" then
+		if num == 'du' then
 			wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Dual
 ! style="background: #CDCDCD;" colspan=3 | Masculine
 ! style="background: #CDCDCD;" colspan=3 | Feminine
-]=] .. generate_gendered_noun_num("du")
+]=] .. generate_gendered_noun_num('du')
 		else
 			wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=3 | ]=] .. data.engnumberscap[num] .. "\n" .. [=[
@@ -2567,7 +2271,6 @@ function make_gendered_noun_table(data)
 	return make_table(data, wikicode)
 end
 
--- Generate part of the adjective table for a given numgen spec NUM (e.g. m_sg)
 function generate_adj_num(num)
 	return [=[|-
 ! style="background: #CDCDCD;" | Indefinite
@@ -2617,14 +2320,14 @@ function make_adj_table(data)
 |-
 ! style="background: #CDCDCD;" colspan=2 | {{{m_sg_type}}}
 ! style="background: #CDCDCD;" colspan=2 | {{{f_sg_type}}}
-]=] .. generate_adj_num("sg")
+]=] .. generate_adj_num('sg')
 	end
 	if contains(data.numbers, "du") then
 		wikicode = wikicode .. [=[|-
 ! style="background: #CDCDCD;" rowspan=2 | Dual
 ! style="background: #CDCDCD;" colspan=2 | Masculine
 ! style="background: #CDCDCD;" colspan=2 | Feminine
-]=] .. generate_adj_num("du")
+]=] .. generate_adj_num('du')
 	end
 	if contains(data.numbers, "pl") then
 		wikicode = wikicode .. [=[|-
@@ -2634,7 +2337,7 @@ function make_adj_table(data)
 |-
 ! style="background: #CDCDCD;" colspan=2 | {{{m_pl_type}}}
 ! style="background: #CDCDCD;" colspan=2 | {{{f_pl_type}}}
-]=] .. generate_adj_num("pl")
+]=] .. generate_adj_num('pl')
 	end
 	wikicode = wikicode .. [=[|}
 </div>
