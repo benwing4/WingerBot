@@ -1,0 +1,216 @@
+{{documentation subpage}}
+This template displays an inflection table for Arabic adjectives. The parameters are largely the same as for the headword template {{temp|ar-adj}}, and in general it is possible to copy such a template, change its name to {{temp|ar-decl-adj}}, and get an appropriate declension table -- provided that the masculine plural is specified appropriately, or that the adjective is of a sort that uses a sound masculine plural (e.g. participles of non-form-I verbs and some form-I participles).
+
+See also {{temp|ar-decl-noun}}.
+
+==Parameters==
+; {{para|1}}
+: The stem used in the masculine singular, including vowels. Can optionally be of the form 'STEM:TYPE' with an explicitly specified inflection type (see below); otherwise the inflection type is inferred from the form of the stem. Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied (note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-adj}}). Can be "-" to suppress the masculine singular.
+; {{para|head2}}, {{para|head3}}, ...
+: Additional masculine singular stems.
+; {{para|tr}}, {{para|tr2}}, {{para|tr3}}, ...
+: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates.
+; {{para|f}}, {{para|f2}}, ...
+: The stem(s) used in the feminine singular, including vowels. Normally unnecessary; if omitted, the feminine singular will be inferred from the masculine singular (equivalent to specifying {{para|f|f}}). Can be of the form 'STEM' (inflection type inferred), 'STEM:TYPE' (with an explicitly specified inflection type, as above), or 'TYPE' (feminine singular stem inferred from inflection type and masculine singular stem; only works for 'f', 'rf', 'intf', 'cdf', 'elf'). Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied. Can be "-" to suppress the feminine.
+; {{para|ftr}}, {{para|f2tr}}, ...
+: Alternative way to specify manual transliteration for {{para|f}}, {{para|f2}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates. Similar parameters are available for plurals and duals.
+; {{para|pl}}, {{para|pl2}}, ...
+: The stem(s) used in the masculine plural, including vowels. If omitted, equivalent to specifying {{para|pl|p}}; i.e. defaults to being unknown, except for color-defect adjectives, where the plural can automatically be determined. To specify a strong plural (as for derived participles), use {{para|pl|sp}}. Has the same allowed forms as for the feminine singular.
+; {{para|fpl}}, {{para|fpl2}}, ...
+: The stem(s) used in the feminine plural, including vowels. Normally unnecessary; if omitted, inferred from the feminine singular (equivalent to specifying {{para|fpl|sp}}). Has the same allowed forms as for the feminine singular.
+; {{para|cpl}}, {{para|cpl2}}, ...
+: The stem(s) used in the masculine and feminine plural, including vowels. Equivalent to specifying both {{para|pl}} and {{para|fpl}} with the same value. Can be freely mixed with {{para|pl}} and {{para|fpl}} and will be listed after them. Has the same allowed forms as for the feminine singular.
+; {{para|d}}, {{para|d2}}, ...
+: The stem(s) used in the masculine dual, including vowels. Normally unnecessary; if omitted, inferred from the masculine singular (equivalent to specifying {{para|d|d}}). Has the same allowed forms as for the feminine singular.
+; {{para|fd}}, {{para|fd2}}, ...
+: The stem(s) used in the feminine dual, including vowels. Normally unnecessary; if omitted, inferred from the feminine singular (equivalent to specifying {{para|fd|d}}). Has the same allowed forms as for the feminine singular.
+; {{para|number}}
+: Explicitly control which numbers appear. The value is a comma-separated list of one of more of ''sg, du, pl''. By default, all numbers appear.
+; {{para|state}}
+: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind'' (indefinite) or ''def'' (definite); the value ''con'' (construct), possible for nouns, doesn't apply to adjectives (although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+; {{para|basestate}}
+: Override the morphological state. This is mostly used with proper nouns. The value is one of ''ind'' or ''def'' (''con'' doesn't apply to adjectives, although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives).
+; {{para|omitarticle}}
+: If specified, omit the definite article that is otherwise automatically added in the definite state.
+; {{para|nom_m_sg_ind}}, {{para|nom_m_sg_def}}, {{para|nom_m_sg_con}}, ...
+: Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), gender (<code>m/f</code>), number (<code>sg/du/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). Manual transliterations can be specified using the 'STEM/TR' form (no alternative parameters are provided in this case for manual translits). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular adjectives]] (or [[:Category:Arabic irregular numerals]], etc. depending on the part of speech), unless {{para|noirreg}} is given a value.
+; {{para|lemma}}
+: Override the lemma (displayed at the head of the declension table).
+; {{para|noirreg}}
+: If specified, don't place the page in an irregular-declension category when overrides are specified.
+; {{para|pos}}
+: Override the part of speech (displayed at the head of the declension table).
+; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modf}},{{para|modf2}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modfpl}},{{para|modfpl2}},...; {{para|modd}},{{para|modd2}},...; {{para|modfd}},{{para|modfd2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumgen}}, and {{para|modtr}},{{para|modtr2}},...; {{para|modftr}},{{para|modf2tr}},...; etc.
+: Specify another word that is declined separately as a modifier. See {{temp|ar-decl-noun}}, except that {{para|modnumgen}} is used to restrict both number and gender, typically {{para|modnumgen|m_sg}}.
+; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2f}},{{para|mod2f2}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2fpl}},{{para|mod2fpl2}},...; {{para|mod2d}},{{para|mod2d2}},...; {{para|mod2fd}},{{para|mod2fd2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
+: Specify a second modifying word. See {{temp|ar-decl-noun}}. Similarly, a third modifying word, etc. can be specified using {{para|mod3}} and derivatives, up to {{para|mod9}}.
+
+==Inflection types==
+; <code>tri</code>
+: Regular triptote.
+; <code>di</code>
+: Regular diptote.
+; <code>in</code>
+: Form ending in ''-in'', such as final-weak active participles. This automatically selects the "triptote" or "diptote" variant according to the number (singular or plural) and form of the adjective.
+; <code>triin</code>
+: Form ending in ''-in'', forcing the "triptote" variant (with indefinite accusative in ''-iyan''). Rarely needed for adjectives.
+; <code>diin</code>
+: Form ending in ''-in'', forcing the "diptote" variant (with indefinite accusative in ''-iya''). Rarely needed for adjectives. See {{temp|ar-decl-noun}} for a discussion of the singular and plural ''-in'' variants in nouns.
+; <code>inv</code>
+: Invariable declension ending in alif or alif maqṣūra. Such words will have feminine plurals in ''-ayāt'' and duals in ''-ayān''.
+; <code>lwinv</code>
+: Invariable declension, loanword-type. Always ends in tall alif. Such words will have feminine plurals in ''-āt'' and duals in ''-atān'', as if the alif was a tāʾ marbūṭa.
+; <code>an</code>
+: Forms ending in ''-an'', such as final-weak passive participles.
+; <code>el</code>
+: Elative adjective. Same as ''di'' but causes the feminine to be inferred as type ''elf''.
+; <code>cd</code>
+: Color-defect adjective. Same as ''di'' but causes the feminine to be inferred as type ''cdf'' and plural to be inferred as type ''cdp''.
+; <code>rf</code>
+: Regular feminine in ''-a''.
+; <code>intf</code>
+: Intensive feminine, e.g. {{m|ar|كَسْلَى}} to masculine {{m|ar|كَسْلَان||lazy}}.
+; <code>elf</code>
+: Elative feminine, e.g. {{m|ar|كُبْرَى}} to masculine {{m|ar|أَكْبَر||bigger}}.
+; <code>cdf</code>
+: Color-defect feminine, e.g. {{m|ar|حَمْرَاء}} to masculine {{m|ar|أَحْمَر||red}}.
+; <code>f</code>
+: Select the appropriate feminine form. Equivalent to ''elp'' if the masculine is of type ''el''; ''cdp'' if the masculine is of type ''cd''; ''intf'' if the masculine is of the form of an intensive adjective, such as {{m|ar|كَسْلَان||lazy}} or {{m|ar|عَطْشَان||thirsty}}; else ''rf''.
+; <code>smp</code>
+: Sound masculine plural in ''-ūn(a)/-īn(a)''.
+; <code>sfp</code>
+: Sound feminine plural in ''-āt-''.
+; <code>awnp</code>
+: Plural ending in ''-awn(a)'', esp. of adjectives, such as {{m|ar|أَدْنَوْنَ}} plural of {{m|ar|أَدْنَى||closer, lower}}.
+; <code>cdp</code>
+: Color-defect adjective plural.
+; <code>p</code>
+: Select the appropriate plural form if known (currently only if the singular is of type ''cd'', in which case it is equivalent to ''cdp''); else, equivalent to type ''?''.
+; <code>sp</code>
+: Select the appropriate plural form if known, else a strong plural. Equivalent to ''cdp'' if the singular is of type ''cd''; else ''sfp'' for feminines, ''awnp'' for masculines if the singular is of type ''an'', ''smp'' for other masculines.
+; <code>d</code>
+: Select the appropriate dual form.
+; <code>?</code>
+: Indicate that the declension is unknown. All inflections will appear as question marks.
+
+==Examples==
+
+===A simple example===
+For participles, nisbas and similar adjectives that take sound plurals, it is enough to simply specify a single stem, e.g. for the adjective {{m|ar|مُسْلِم}}, a simple declaration works:
+
+<code>{{temp|ar-decl-adj|مُسْلِم}}</code>
+
+This yields
+
+{{ar-decl-adj|مُسْلِم}}
+
+===A more complex example===
+For more complex examples, generally it is sufficient to copy the headword declaration for an adjective and make minor changes, mostly just changing the template name from <code>{{temp|ar-adj|...}}</code> to <code>{{temp|ar-decl-adj|...}}</code>. For example, for the adjective {{m|ar|كَسْلَان||lazy}}, the headword is declared as follows:
+
+<code><nowiki>{{ar-adj|كَسْلَان|f=كَسْلَانَة|f2=كَسْلَى|pl=كَسَالَى|pl2=كُسَالَى|pl3=كَسْلَى}}</nowiki></code>
+
+Just changing the template name yields the correct declension template:
+
+<code><nowiki>{{ar-decl-adj|كَسْلَان|f=كَسْلَانَة|f2=كَسْلَى|pl=كَسَالَى|pl2=كُسَالَى|pl3=كَسْلَى}}</nowiki></code>
+
+This produces
+
+{{ar-decl-adj|كَسْلَان|f=كَسْلَانَة|f2=كَسْلَى|pl=كَسَالَى|pl2=كُسَالَى|pl3=كَسْلَى}}
+
+Note that the code automatically figures out the {{m|ar|كَسْلَان}} is a diptote, and correctly infers the declension of all the other forms. Generally the code is quite good at doing this.
+
+===Nisba adjectives===
+Although nisba adjectives use a special template to produce the headword line, they behave like participles, and the normal adjective declension template works fine.
+
+For example, for {{m|ar|مِصْرِيّ||Egyptian}}, the headword template is as follows:
+
+<code>{{temp|ar-nisba|مِصْرِيّ}}</code>
+
+It is easily converted to a declension template:
+
+<code>{{temp|ar-decl-adj|مِصْرِيّ}}</code>
+
+This produces
+
+{{ar-decl-adj|مِصْرِيّ}}
+
+This works when the plural is overridden, as well, e.g. for {{m|ar|عَرَبِيّ||Arab}}, the headword template is as follows:
+
+<code>{{temp|ar-nisba|عَرَبِيّ|pl=عَرَب}}</code>
+
+It is easily converted to a declension template just by changing the template name:
+
+<code>{{temp|ar-decl-adj|عَرَبِيّ|pl=عَرَب}}</code>
+
+This produces
+
+{{ar-decl-adj|عَرَبِيّ|pl=عَرَب}}
+
+===Color/defect adjectives===
+
+Color/defect adjectives typically have a particular format for the feminine and common plural, e.g. for {{m|ar|أَصْفَر||yellow}}:
+
+<code><nowiki>{{ar-adj|أَصْفَر|f=صَفْرَاء|cpl=صُفْر}}</nowiki></code>
+
+There is also a special declension class for them, which automatically conjugates the feminine and plural correctly:
+
+<code>{{temp|ar-decl-adj|أَصْفَر:cd}}</code>
+
+This produces:
+
+{{ar-decl-adj|أَصْفَر:cd}}
+
+When the plural needs to be overridden, that can be done, e.g. for {{m|ar|أَحْمَر||red}}:
+
+<code><nowiki>{{ar-decl-adj|أَحْمَر:cd|cpl=حُمْر|cpl2=أَحَامِر}}</nowiki></code>
+
+producing
+
+{{ar-decl-adj|أَحْمَر:cd|cpl=حُمْر|cpl2=أَحَامِر}}
+
+Note that both the masculine and feminine singular are diptotes. The <code>:cd</code> annotation gets this correct, but the code would also get this correct if the forms were explicitly specified, e.g. using
+
+<code><nowiki>{{ar-decl-adj|أَحْمَر|f=حَمْرَاء|cpl=حُمْر|cpl2=أَحَامِر}}</nowiki></code>
+
+because {{m|ar|أَحْمَر}} and {{m|ar|حَمْرَاء}} have a shape that is recognizable as a diptote.
+
+===Irregular adjectives===
+Irregular adjectives can be specified using annotations and overrides, as necessary.
+
+====Irregular example 1====
+One complex example is the demonstrative pronoun {{m|ar|هٰذَا||this}}, which logically exists only in the definite state, but which doesn't have the definite article attached to it.
+
+Its declension can be specified as follows:
+
+<code><nowiki>{{ar-decl-adj|هٰذَا:inv|f=هٰذِهِ:inv|pl=هٰؤُلَاءِ:inv|fpl=هٰؤُلَاءِ:inv|d=هٰذَان|fd=هٰتَان|state=def|omitarticle=yes|pos=determiner}}</nowiki></code>
+
+yielding
+
+{{ar-decl-adj|هٰذَا:inv|f=هٰذِهِ:inv|pl=هٰؤُلَاءِ:inv|fpl=هٰؤُلَاءِ:inv|d=هٰذَان|fd=هٰتَان|state=def|omitarticle=yes|pos=determiner}}
+
+This is actually fairly straightforward. Except in the dual, the forms are invariable for case, and this is specified using the <code>:inv</code> annotation to put the words in the invariable declension. (Words in this declension normally end in {{m|ar|ـى}} or {{m|ar|ـا}}, but that is not a requirement of the declension.) The state is restricted to definite, and {{para|omitarticle|yes}} is given so that the article won't be attached automatically to the forms given. We also override the part of speech displayed next to the lemma so it says "determiner" instead of "adjective".
+
+====Irregular example 2====
+Slightly more complicated is the corresponding demonstrative pronoun {{m|ar|ذٰلِكَ||that}}. For this demonstrative, the dual declension is irregular, with an extra morpheme {{m|ar|ـكَ}} attached to the end of all forms. As a result, overrides are needed to specify the declension, requiring a more complex specification:
+
+<pre><nowiki>
+{{ar-decl-adj|ذٰلِكَ:inv|inf_m_sg_def=ذٰلِك|f=تِلْكَ:inv
+|pl=أُولٰئِكَ/ʾulāʾika:inv|fpl=أُولٰئِكَ/ʾulāʾika:inv
+|nom_m_du_def=ذَانِكَ|acc_m_du_def=ذَيْنِكَ|gen_m_du_def=ذَيْنِكَ|inf_m_du_def=ذَيْنِكَ
+|nom_f_du_def=تَانِكَ|acc_f_du_def=تَيْنِكَ|gen_f_du_def=تَيْنِكَ|inf_f_du_def=تَيْنِكَ
+|state=def|omitarticle=yes|pos=determiner}}
+</nowiki></pre>
+
+Here the dual forms need to be specified using overrides because of their irregularity. Furthermore, the plural has an irregular transliteration, where the first vowel is written long but pronounced short; as a result, the transliteration needs to be given manually.  Other than these complications, the specification is similar to {{m|ar|هٰذَا||this}}.
+
+This produces
+
+{{ar-decl-adj|ذٰلِكَ:inv|inf_m_sg_def=ذٰلِك|f=تِلْكَ:inv
+|pl=أُولٰئِكَ/ʾulāʾika:inv|fpl=أُولٰئِكَ/ʾulāʾika:inv
+|nom_m_du_def=ذَانِكَ|acc_m_du_def=ذَيْنِكَ|gen_m_du_def=ذَيْنِكَ|inf_m_du_def=ذَيْنِكَ
+|nom_f_du_def=تَانِكَ|acc_f_du_def=تَيْنِكَ|gen_f_du_def=تَيْنِكَ|inf_f_du_def=تَيْنِكَ
+|state=def|omitarticle=yes|pos=determiner}}
+
+<includeonly>
+[[Category:Arabic adjective inflection-table templates|{{BASEPAGENAME}}]]
+</includeonly>

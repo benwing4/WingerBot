@@ -68,13 +68,13 @@ See also {{temp|ar-decl-adj}}.
 : Indicate that the declension is unknown. All inflections will appear as question marks.
 
 ==ʾIdāfa parameter values==
-; <code>sg<code>, <code>du</code>, <code>pl</code>
+; <code>sg</code>, <code>du</code>, <code>pl</code>
 : An ''ʾidāfa'' modifier that can exist in multiple states and is of the specified number, e.g. indefinite-state {{m|ar|غُرْفَة نَوْم|tr=ḡurfat nawm|gloss=bedroom}}, with corresponding definite state {{m|ar||غُرْفَة ال-نَوْم|tr=ḡurfat an-nawm}}.
 ; <code>yes</code>
 : Same as <code>sg</code>.
-; <code>def-sg<code>, <code>def-du</code>, <code>def-pl</code>, <code>ind-sg<code>, <code>ind-du</code>, <code>ind-pl</code>
+; <code>def-sg</code>, <code>def-du</code>, <code>def-pl</code>, <code>ind-sg</code>, <code>ind-du</code>, <code>ind-pl</code>
 : An ''ʾidāfa'' modifier that exists in a fixed state and number.
-; <code>def<code>, <code>ind</code>
+; <code>def</code>, <code>ind</code>
 : same as <code>def-sg</code>, <code>ind-sg</code>, respectively.
 ; <code>adj</code> ''or'' <code>adj-base</code>
 : An adjectival modifier that modifies the base word. Unnecessary to specify; this is the default.
@@ -137,7 +137,7 @@ This produces
 
 {{ar-decl-noun|مِصْرِيّ|pl=sp}}
 
-Note that it is necessary to specify the plural; otherwise the declension table will have only singular. However, it is unnecessary to write out the plural; it is enough to just specify the type (in this case <code>smp</code> for sound masculine plural), and the actual form will be inferred from the singular.
+Note that it is necessary to specify the plural; otherwise the declension table will have only singular. However, it is unnecessary to write out the plural; it is enough to just specify the type (in this case <code>sp</code> for sound plural), and the actual form will be inferred from the singular.
 
 When the plural is overridden in the headword, conversion is even easier. An example is {{m|ar|عَرَبِيّ||Arab}}. The nisba noun headword template is:
 
@@ -153,7 +153,7 @@ producing
 
 ===Definite proper nouns===
 
-Definite proper nouns like {{m|ar|الإِسْلَام||Islam}} exist only in the definite state. This can be specified using <code>state=def</code>. The stem should be specified without the definite article, e.g.
+Definite proper nouns like {{m|ar|الإِسْلَام||Islam}} exist only in the definite state. This can be specified using {{para|state|def}}. The stem should be specified without the definite article, e.g.
 
 <code>{{temp|ar-decl-noun|إِسْلَام|state=def}}</code>
 
@@ -189,7 +189,7 @@ yielding
 Note that this declension uses a number of advanced features:
 
 # The singular behaves as a long-construct noun, and is thus specified as <code>ذ:lc</code>, with an annotation indicating that it is a long-construct noun.
-# The declension is restricted to be construct-state-only using <code>state=con</code>.
+# The declension is restricted to be construct-state-only using {{para|state|con}}.
 # The plural {{m|ar|أُولُو|tr=ʾulū}} is the construct state of a sound masculine plural noun, and hence it is given in the form it would occur if it existed in other states. Furthermore, the pronunciation is irregular, with the first vowel spelled long but pronounced short; as a result, the transliteration is explicitly given with a short vowel. Note that this is automatically declined as nominative {{m|ar|أُولُو|tr=ʾulū}}, accusative/genitive {{m|ar|أُولِِي|tr=ʾulī}}, with the ending changed appropriately while keeping the stem of both the Arabic and explicit transliteration. (Note, the written-out transliteration of the hamza <code>ʾ</code> appears backwards due to display issues. Underlyingly it is written correctly, as can be seen by editing this page to examine its source code.)
 
 ====Irregular example 2====
@@ -214,7 +214,7 @@ Note that the dual {{m|ar|اِمْرَآنِ}}, with ''ʾalif madda'', is automa
 It was noted above that the dual of the stem {{m|ar|اِمْرَأ||man}} was correctly constructed as {{m|ar|اِمْرَآنِ}}, with an ''ʾalif madda'' hamza seat. In general, the code has extensive knowledge of the rules regarding the correct hamza seat in various circumstances and should essentially always get this correct. An example of this knowledge at work is the declension of the words {{m|ar|شَيْء||thing}} and {{m|ar|مُبْتَدَأ||(grammatical) subject}}, declared as follows:
 
 * <code>{{temp|ar-decl-noun|شَيْء|pl=أَشْيَاء}}</code>
-* <code>{{temp|ar-decl-noun|مُبْتَدَأ|pl=smp}}</code>
+* <code>{{temp|ar-decl-noun|مُبْتَدَأ|pl=sp}}</code>
 
 and appearing as follows:
 

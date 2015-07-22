@@ -1,0 +1,30 @@
+{{documentation subpage}}
+This template displays an inflection table for Arabic gendered nouns, i.e. nouns that have a feminine equivalent (e.g. {{m|ar|أَمْرِيكِيّ||[[American]]}}). The parameters are identical to {{temp|ar-decl-adj}}, but the table displayed is a bit different because it displays the construct state in addition to indefinite and definite (hence there are six columns across, three for masculine and three for feminine).
+
+See also {{temp|ar-decl-noun}}.
+
+==Examples==
+
+===A simple example===
+For participles, nisbas and similar adjectives that take sound plurals, it is enough to simply specify a single stem with a sound masculine plural, e.g. for the noun {{m|ar|مُسْلِم||[[Muslim]]}}, a simple declaration works:
+
+<code>{{temp|ar-decl-gendered-noun|مُسْلِم|pl=sp}}</code>
+
+This yields
+
+{{ar-decl-gendered-noun|مُسْلِم|pl=sp}}
+
+===A slightly more complex example===
+For {{m|ar|تُرْكِيّ||[[Turk]]}}, the masculine plurals need to be given explicitly:
+
+<code><nowiki>{{ar-decl-gendered-noun|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}</nowiki></code>
+
+This yields
+
+{{ar-decl-gendered-noun|تُرْكِيّ|pl=أَتْرَاك|pl2=تُرْك}}
+
+For more complex examples, generally it is sufficient to copy the headword declaration for a noun and make minor changes, mostly just changing the template name from <code>{{temp|ar-noun|...}}</code> to <code>{{temp|ar-decl-gendered-noun|...}}</code>. For <code>{{temp|ar-noun-nisba}}</code>, you may need to add {{para|pl|sp}}, since the strong masculine plural is generated automatically by <code>{{temp|ar-noun-nisba}}</code>.
+
+<includeonly>
+[[Category:Arabic noun inflection-table templates|{{BASEPAGENAME}}]]
+</includeonly>

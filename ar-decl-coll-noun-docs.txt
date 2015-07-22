@@ -1,0 +1,59 @@
+{{documentation subpage}}
+This template displays an inflection table for Arabic collective nouns. The parameters are largely the same as for the headword template {{temp|ar-coll-noun}}, and in general it is possible to copy such a template, change its name to {{temp|ar-decl-coll-noun}}, and get an appropriate declension table. (Ideally, delete extraneous stuff such as the gender.)
+
+This template works very similarly to {{temp|ar-decl-noun}}. See that template for a fuller discussion along with examples. See also {{temp|ar-decl-sing-noun}}.
+
+==Parameters==
+; {{para|1}}
+: The stem used in the collective, including vowels. Can optionally be of the form 'STEM:TYPE' with an explicitly specified inflection type (see below); otherwise the inflection type is inferred from the form of the stem. Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied (note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-coll-noun}}). Can be just 'TYPE' with irregular noun types, where the stem is known. Can be "-" for words without a collective.
+; {{para|head2}}, {{para|head3}}, ...
+: Additional collective stems.
+; {{para|tr}}, {{para|tr2}}, {{para|tr3}}, ...
+: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates.
+; {{para|pl}}, {{para|pl2}}, ...
+: The stem(s) used in the plural, including vowels. Can be of the form 'STEM' (inflection type inferred), 'STEM:TYPE' (with an explicitly specified inflection type, as above), or 'TYPE' (plural stem inferred from inflection type and collective stem; only works for 'sp', 'sfp', 'smp' and 'awnp'). Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied.
+; {{para|pltr}}, {{para|pl2tr}}, ...
+: Alternative way to specify manual transliteration for {{para|pl}}, {{para|pl2}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates. Similar parameters are available for singulatives, duals and paucals.
+; {{para|sing}}, {{para|sing2}}, ...
+: The stem(s) used in the singulative, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the collective. Can be "-" for words without a singulative.
+; {{para|d}}, {{para|d2}}, ...
+: The stem(s) used in the dual, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be "-" for words without a dual.
+; {{para|pauc}}, {{para|pauc2}}, ...
+: The stem(s) used in the paucal, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be "-" for words without a paucal.
+; {{para|number}}
+: Explicitly control which numbers appear. The value is a comma-separated list of one of more of ''coll, sing, du, pauc, pl''. By default, all except the plural appear, unless a particular number is disabled using "-"; the plural appears only when at least one plural is given.
+; {{para|state}}
+: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind, def, con'' (standing for indefinite, definite, construct). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+; {{para|basestate}}
+: Override the morphological state. See {{temp|ar-decl-noun}}.
+; {{para|omitarticle}}
+: If specified, omit the definite article that is otherwise automatically added in the definite state.
+; {{para|nom_coll_ind}}, {{para|nom_coll_def}}, {{para|nom_coll_con}}, ...
+: Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), number (<code>sing/coll/du/pauc/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular nouns]], unless {{para|noirreg}} is given a value.
+; {{para|lemma}}
+: Override the lemma (displayed at the head of the declension table).
+; {{para|noirreg}}
+: If specified, don't place the page in an irregular-declension category when overrides are specified.
+; {{para|pos}}
+: Override the part of speech (displayed at the head of the declension table).
+; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modsing}},{{para|modsing2}},...; {{para|modd}},{{para|modd2}},...; {{para|modpauc}},{{para|modpauc2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumber}}, and {{para|modtr}},{{para|mod2tr}},...; {{para|modpltr}},{{para|modpl2tr}},...; etc.
+: Specify another word that is declined separately as a modifier. See {{temp|ar-decl-noun}}.
+; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2sing}},{{para|mod2sing2}},...; {{para|mod2d}},{{para|mod2d2}},...; {{para|mod2pauc}},{{para|mod2pauc2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
+: Specify a second modifying word. See {{temp|ar-decl-noun}}. Similarly, a third modifying word, etc. can be specified using {{para|mod3}} and derivatives, up to {{para|mod9}}.
+
+==Inflection types==
+See {{temp|ar-decl-noun}}.
+
+==Examples==
+
+The following code:
+
+<code>{{temp|ar-decl-coll-noun|شَجَر|pl=أَشْجَار}}</code>
+
+generates the following:
+
+{{ar-decl-coll-noun|شَجَر|pl=أَشْجَار}}
+
+<includeonly>
+[[Category:Arabic noun inflection-table templates|{{BASEPAGENAME}}]]
+</includeonly>

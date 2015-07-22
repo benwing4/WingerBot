@@ -1,0 +1,19 @@
+{{documentation subpage}}
+This template displays an inflection table for Arabic numerals, optionally with feminine equivalent. The parameters are identical to {{temp|ar-decl-adj}}, but the table displayed is a bit different because it displays the construct state in addition to indefinite and definite (hence there are six columns across, three for masculine and three for feminine).
+
+See also {{temp|ar-decl-noun}}.
+
+==Examples==
+
+===A simple example===
+The following example is for {{m|ar|ثَلَاثَة||[[three]]}}, which (like other small numerals) can be declined as either a triptote or a diptote (see the usage note on that page):
+
+<code><nowiki>{{ar-decl-numeral|ثَلَاثَة|head2=ثَلَاثَة:di|f=ثَلَاث}}</nowiki></code>
+
+This yields
+
+{{ar-decl-numeral|ثَلَاثَة|head2=ثَلَاثَة:di|f=ثَلَاث}}
+
+<includeonly>
+[[Category:Arabic numeral inflection-table templates|{{BASEPAGENAME}}]]
+</includeonly>
