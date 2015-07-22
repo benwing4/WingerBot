@@ -185,3 +185,5 @@ grep -P '([bcdfghjklmnpqrstvwxyz])\1[bcdfghjklmnpqrstvwxyz]' canon_arabic.14.all
     whether it makes sense to throw an error when the Russian has multiple
     accents in the word; once we transfer accents from the Latin to the
     Russian, more Russian words will have multiple accents.
+13. Note to Wikitiki89 the example of застёгну́ть "to buckle", with accent
+    taken from застёгивать and/or застёжка
