@@ -69,8 +69,6 @@ adjectival_phrases = [
     u"إبادة جماعية",
 ]
 
-plural_genders = ["p", "m-p", "f-p"]
-
 # Create or insert declension sections in a given page. POS is the part of
 # speech of the word (capitalized, e.g. "Noun"). Only save the changed page
 # if SAVE is true. TEMPNAME is the name of the headword template, e.g.
@@ -207,6 +205,11 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
             continue
           def getp(param):
             return getparam(headword_template, param)
+          # NOTE: We physically add and remove parameters from the headword
+          # template to get the list of parameters to use in creating the
+          # declension template. These changes don't get propagated to the
+          # headword template because we don't convert the parsed text back
+          # to a string.
           def putp(param, value):
             addparam(headword_template, param, value)
           head = getp("1")
@@ -287,23 +290,21 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
             word1al = starts_with_al(words[1])
             words[0] = remove_al(words[0])
             words[1] = remove_al(words[1])
+            putp("1", words[0])
+            putp("mod", words[1])
             if not word0al and word1al:
               # Found an ʾidāfa construction
               pagemsg("Headword template head %s has space in it and found definite idafa" % (orighead))
               add_note("modifier definite idafa construction")
               idafa = True
-              putp("1", words[0])
-              putp("state", "con")
-              putp("mod", words[1])
-              putp("modstate", "def")
-              putp("modcase", "gen")
-              putp("modnumber", sgnum)
+              idafaval = "def-" + sgnum
+              if idafaval == "def-sg":
+                idafaval = "def"
+              putp("idafa", idafaval)
             elif word0al and word1al:
               pagemsg("Headword template head %s has space in it and found definite adjective construction" % (orighead))
               add_note("modifier definite adjective construction")
-              putp("1", words[0])
               putp("state", "def")
-              putp("mod", words[1])
             elif word0al and not word1al:
               pagemsg("WARNING: Headword template head %s has space in it and found al-X + Y construction, can't handle, skipping" % (orighead))
               continue
@@ -313,23 +314,14 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
             elif words[1].endswith(I + Y + SH):
               pagemsg("Headword template head %s has space in it and found indefinite adjective nisba construction" % (orighead))
               add_note("modifier indefinite nisba adjective construction")
-              putp("1", words[0])
-              putp("mod", words[1])
             elif pagename in adjectival_phrases:
               pagemsg("Headword template head %s has space in it, indefinite, and manually specified to be adjectival" % (orighead))
               add_note("modifier indefinite adjective construction")
-              putp("1", words[0])
-              putp("mod", words[1])
             else:
               pagemsg("Headword template head %s has space in it, indefinite, and not specified to be adjectival, assuming idafa" % (orighead))
               add_note("modifier indefinite idafa construction")
               idafa = True
-              putp("1", words[0])
-              putp("state", "con")
-              putp("mod", words[1])
-              putp("modstate", "ind")
-              putp("modcase", "gen")
-              putp("modnumber", sgnum)
+              putp("idafa", sgnum)
 
             # Now remove any i3rab diacritics
             putp("1", remove_nom_i3rab(getp("1")))
@@ -339,7 +331,7 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
               putp("mod", remove_nom_i3rab(getp("mod")))
 
             # Now check if the lemma is plural
-            if getp("2") in plural_genders:
+            if re.match(r"\bp\b", getp("2")):
               pagemsg("Headword template head %s has space in it and is plural" % (orighead))
               add_note("plural lemma")
               if getp("tr"):
@@ -351,8 +343,6 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
               if not idafa:
                 putp("modpl", getp("mod"))
                 putp("mod", "-")
-              else:
-                putp("modnumber", "pl")
 
             # Now check if lemma has plural specified
             elif getp("pl"):
@@ -472,7 +462,7 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
               putp("1", pagename)
 
             # Now check if the lemma is plural
-            if getp("2") in plural_genders:
+            if re.match(r"\bp\b", getp("2")):
               pagemsg("Headword template head %s is plural" % (head))
               add_note("plural lemma")
               if getp("tr"):
@@ -518,9 +508,9 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
           def process_param(param):
             arabic = remove_i3rab(param)
             # Value of + is used in ar-nisba, ar-noun-nisba, ar-adj-in
-            # to signal the strong masculine plural.
+            # to signal the strong plural.
             if arabic.endswith("=+"):
-              newarabic = re.sub(r"=\+$", "=smp", arabic)
+              newarabic = re.sub(r"=\+$", "=sp", arabic)
               pgmsg("Converting %s to %s: %s" % (arabic,
                 newarabic, unicode(headword_template)))
               arabic = newarabic
@@ -542,10 +532,8 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
           params = '|'.join([process_param(param) for param in headword_template.params if not param_should_be_removed(param)])
           # For templates that automatically supply the masculine plural,
           # supply it here, too if not overridden.
-          if tempname in ["ar-nisba", "ar-noun-nisba", "ar-adj-sound"] and not getp("pl"):
-            params += '|pl=smp'
-          if tempname in ["ar-adj-an"] and not getp("pl"):
-            params += '|pl=awnp'
+          if tempname in ["ar-nisba", "ar-noun-nisba", "ar-adj-sound", "ar-adj-an"] and not getp("pl"):
+            params += '|pl=sp'
 
           # Separate off any [[Category: Foo]] declarators, insert before them
           m = re.match(r"^(.*?\n+)((\[\[[A-Za-z0-9_\-]+:[^\]]+\]\]\n*)*)$",
