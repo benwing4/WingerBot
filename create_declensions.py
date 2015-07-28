@@ -80,7 +80,7 @@ adjectival_phrases = [
 # are expanded so that e.g. "f" will also remove parameters named
 # "f2", "f3", "f4", etc. and "ftr", "f2tr", "f3tr", etc.
 def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
-    removeparams):
+    removeparams, is_proper=False):
   pagename = page.title()
   comments = []
 
@@ -231,6 +231,18 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
             pagemsg("WARNING: Headword template for head %s has cpl param in it, skipping" % (head))
             continue
 
+          # Check for empty head. If w/o explicit translit, skip; else,
+          # fetch head from page title.
+          if not head:
+            if not getp("tr"):
+              pagemsg("WARNING: Headword template head is empty and without explicit translit, skipping")
+              continue
+            else:
+              pagemsg("Headword template head is empty but has explicit translit")
+              add_note("empty head, using page name")
+            head = pagename
+            putp("1", head)
+
           # Try to handle cases with a modifier; we can't handle all of them yet
           headspace = False
           if ' ' in head:
@@ -292,7 +304,40 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
             words[1] = remove_al(words[1])
             putp("1", words[0])
             putp("mod", words[1])
-            if not word0al and word1al:
+            if word0al and word1al:
+              pagemsg("Headword template head %s has space in it and found definite adjective construction" % (orighead))
+              add_note("modifier definite adjective construction")
+              putp("state", "def")
+            elif word0al and not word1al:
+              pagemsg("WARNING: Headword template head %s has space in it and found al-X + Y construction, can't handle, skipping" % (orighead))
+              continue
+            elif is_proper:
+              if words[0].endswith(ALIF) and word1al:
+                pagemsg("Proper noun headword template head %s has space in it and found ind-def with definite adjectival modifier" % (orighead))
+                add_note("modifier proper noun + definite adjective construction")
+                putp("state", "ind-def")
+              elif remove_diacritics(words[0]) == u"جمهورية":
+                if word1al:
+                  pagemsg("Proper noun headword template head %s has space in it and found definite idafa" % (orighead))
+                  add_note("modifier definite idafa construction")
+                  idafa = True
+                  assert sgnum == "sg"
+                  idafaval = "def"
+                  putp("idafa", idafaval)
+                elif words[1].endswith(ALIF):
+                  pagemsg("Proper noun headword template head %s has space in it and found idafa with ind-def modifier" % (orighead))
+                  add_note("modifier proper-noun ind-def idafa construction")
+                  assert sgnum == "sg"
+                  idafaval = "ind-def"
+                  putp("idafa", idafaval)
+                else:
+                  pagemsg("WARNING: Proper noun headword template head %s has space in it and found idafa construction we can't handle, skipping" % (orighead))
+                  continue
+              else:
+                  pagemsg("WARNING: Proper noun headword template head %s has space in it and can't determine whether idafa, skipping" % (orighead))
+                  continue
+
+            elif not word0al and word1al:
               # Found an ʾidāfa construction
               pagemsg("Headword template head %s has space in it and found definite idafa" % (orighead))
               add_note("modifier definite idafa construction")
@@ -301,13 +346,6 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
               if idafaval == "def-sg":
                 idafaval = "def"
               putp("idafa", idafaval)
-            elif word0al and word1al:
-              pagemsg("Headword template head %s has space in it and found definite adjective construction" % (orighead))
-              add_note("modifier definite adjective construction")
-              putp("state", "def")
-            elif word0al and not word1al:
-              pagemsg("WARNING: Headword template head %s has space in it and found al-X + Y construction, can't handle, skipping" % (orighead))
-              continue
             elif words[1].endswith(I + Y):
               pagemsg("WARNING: Headword template head %s has space in it and appears to end in badly formatted nisba, FIXME, skipping" % (orighead))
               continue
@@ -440,6 +478,13 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
                 check_for_al("tr%s" % i)
                 for param in params_to_check:
                   check_for_al("%s%str" % (param, i))
+            elif is_proper:
+              if head.endswith(ALIF):
+                pagemsg(u"Headword template head %s ends in -ā" % (head))
+                putp("state", "ind-def")
+              else:
+                pagemsg(u"WARNING: Headword template head %s is indefinite proper noun, not ending in -ā, skipping" % (head))
+                continue
 
             if head.endswith(UN):
               pagemsg("Headword template head %s ends with explicit i3rab (UN)" % (head))
@@ -449,17 +494,6 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
               pagemsg("Headword template head %s ends with explicit i3rab (U)" % (head))
               add_note("head has explicit i3rab (U)")
               # We don't continue here because we don't need to handle this case
-
-            # Check for empty head. If w/o explicit translit, skip; else,
-            # fetch head from page title.
-            if not head:
-              if not getp("tr"):
-                pagemsg("WARNING: Headword template head is empty and without explicit translit, skipping")
-                continue
-              else:
-                pagemsg("Headword template head is empty but has explicit translit")
-                add_note("empty head, using page name")
-              putp("1", pagename)
 
             # Now check if the lemma is plural
             if re.match(r"\bp\b", getp("2")):
@@ -573,12 +607,14 @@ def create_declension(page, index, save, pos, tempname, decltempname, sgnum,
       page.save(comment = comment)
 
 def create_declensions(save, pos, tempname, decltempname, sgnum,
-    startFrom, upTo, removeparams):
+    startFrom, upTo, removeparams, is_proper=False):
   for page, index in blib.references("Template:%s" % tempname, startFrom, upTo):
     create_declension(page, index, save, pos, tempname, decltempname, sgnum,
-        removeparams)
+        removeparams, is_proper=is_proper)
 
 pa = blib.init_argparser("Create Arabic declensions")
+pa.add_argument("--proper", action='store_true',
+    help="Do proper nouns only")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -617,15 +653,19 @@ non_gendered_params_to_remove = params_to_remove + [
              # declension table)
 ]
 
-create_declensions(params.save, "Noun", "ar-noun", "ar-decl-noun",
-    "sg", startFrom, upTo, non_gendered_params_to_remove)
-create_declensions(params.save, "Noun", "ar-coll-noun", "ar-decl-coll-noun",
-    "coll", startFrom, upTo, non_gendered_params_to_remove)
-create_declensions(params.save, "Noun", "ar-sing-noun", "ar-decl-sing-noun",
-    "sing", startFrom, upTo, non_gendered_params_to_remove)
-create_declensions(params.save, "Noun", "ar-noun-nisba", "ar-decl-gendered-noun",
-    "sg", startFrom, upTo, params_to_remove)
-for adj_template in ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in",
-    "ar-adj-an"]:
-  create_declensions(params.save, "Adjective", adj_template, "ar-decl-adj",
+if not params.proper:
+  create_declensions(params.save, "Noun", "ar-noun", "ar-decl-noun",
+      "sg", startFrom, upTo, non_gendered_params_to_remove)
+  create_declensions(params.save, "Noun", "ar-coll-noun", "ar-decl-coll-noun",
+      "coll", startFrom, upTo, non_gendered_params_to_remove)
+  create_declensions(params.save, "Noun", "ar-sing-noun", "ar-decl-sing-noun",
+      "sing", startFrom, upTo, non_gendered_params_to_remove)
+  create_declensions(params.save, "Noun", "ar-noun-nisba", "ar-decl-gendered-noun",
       "sg", startFrom, upTo, params_to_remove)
+  for adj_template in ["ar-adj", "ar-nisba", "ar-adj-sound", "ar-adj-in",
+      "ar-adj-an"]:
+    create_declensions(params.save, "Adjective", adj_template, "ar-decl-adj",
+        "sg", startFrom, upTo, params_to_remove)
+create_declensions(params.save, "Proper noun", "ar-proper noun", "ar-decl-noun",
+    "sing", startFrom, upTo, non_gendered_params_to_remove,
+    is_proper=True)
