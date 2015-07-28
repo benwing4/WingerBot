@@ -30,7 +30,7 @@ def push_manual_changes(save, verbose, direcfile, startFrom, upTo):
     if not m:
       msg("WARNING: Unable to parse line: [%s]" % line)
       pass
-    else:
+    elif m.group(2) != m.group(3):
       template_changes.append(m.groups())
 
   for current, index in blib.iter_pages(template_changes, startFrom, upTo,
@@ -76,7 +76,7 @@ def push_manual_changes(save, verbose, direcfile, startFrom, upTo):
             pagemsg("WARNING: Something wrong, length mismatch during replacement: Expected length change=%s, actual=%s, ratio=%.2f, curr=%s, repl=%s"
                 % (repl_curr_diff, newtext_text_diff, ratio, curr_template,
                   repl_template))
-        changelog = "Replaced %s with %s" % (curr_template, repl_template)
+        changelog = "(Manually) replaced %s with %s" % (curr_template, repl_template)
         pagemsg("Change log = %s" % changelog)
       return newtext, changelog
 
