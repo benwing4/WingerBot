@@ -649,7 +649,6 @@ def pre_canonicalize_latin(text, arabic=None, msgfun=msg):
     text = rsub(text, r"\(tun\)$", "")
     text = rsub(text, r"\(un\)$", "")
     #### vowel/diphthong canonicalizations
-    text = rsub(text, u"[ae][iy]", u"ay")
     text = rsub(text, u"([aeiouəāēīōū])u", r"\1w")
     text = rsub(text, u"([aeiouəāēīōū])i", r"\1y")
     # Convert -iy- not followed by a vowel or y to long -ī-
@@ -665,12 +664,16 @@ def pre_canonicalize_latin(text, arabic=None, msgfun=msg):
     # Reduce cases of three characters in a row (e.g. from īyy -> iyyy -> iyy);
     # but not ''', which stands for boldface, or ..., which is legitimate
     text = rsub(text, r"([^'.])\1\1", r"\1\1")
-    # Remove double consonant following another consonant
-    text = re.sub(ur"([^aeiouəāēīōū\W])(%s)\2" % (
+    # Remove double consonant following another consonant, but only at
+    # word boundaries, since that's the only time when these cases seem to
+    # legitimately occur
+    text = re.sub(ur"([^aeiouəāēīōū\W])(%s)\2\b" % (
         latin_consonants_no_double_after_cons_re), r"\1\2", text, 0, re.U)
-    # Remove double consonant preceding another consonant
-    text = re.sub(ur"([^aeiouəāēīōū\W])\1(%s)" % (
-        latin_consonants_no_double_after_cons_re), r"\1\2", text, 0, re.U)
+    # Remove double consonant preceding another consonant but special-case
+    # a known example that shouldn't be touched.
+    if text != u"dunḡḡwān":
+        text = re.sub(ur"([^aeiouəāēīōū\W])\1(%s)" % (
+            latin_consonants_no_double_after_cons_re), r"\1\2", text, 0, re.U)
     if arabic:
         # Remove links from Arabic to simplify the following code
         arabic = remove_links(arabic)
