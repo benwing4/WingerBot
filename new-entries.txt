@@ -291,7 +291,28 @@ From the root {{ar-root|ن|و|ي}}.
 }}
 
 
+Page 786/786 Greek Orthodox Church: t.2: Processing: {{t|ar|الكَنِيسَة الأُرْثُوذُكْسِيَّة اليُونَانِيَّة|tr=al-kanīsa l-ʾurṯūḏuksiyya l-yābāniyya}} <- {{t|ar|الكنيسة الأرثوذكسية اليونانية|tr=al-Knysh al-ʼRthwdhksyh al-Ywnānyh|sc=Arab}} ({{t|ar|الكنيسَة الأرثوذكسيَة اليونانيَة|tr=al-knysh al-ʾrthwdhksyh al-ywnānyh}})
+Page 183/183 Asian: t.2: Processing: {{t|ar|آسِيَوِيّ|m}} <- {{t|ar|آسيوِي|m|tr='aasyawiy}} ({{t|ar|آسْيَوِي|m}})
+Page 183/183 Asian: t.2: Processing: {{t|ar|آسِيَوِيَّة|f}} <- {{t|ar|آسيوية|f|tr='aasyawíyya|sc=Arab}} ({{t|ar|آسْيَوِيَّة|f}})
+Page 183/183 Asian: t.2: Processing: {{t|ar|آسِيَوِيّ|m}} <- {{t|ar|آسيوِي|m|tr='asyawiy}} ({{t|ar|آسيوِي|m|tr=ʾasyawī}})
+Page 6647/6647 blackberry: t.2: NOTE: Unable to vocalize كبوش (kbúch): Unable to match Arabic character ش at index 3, Latin character c at index 3: [DELETE] <- {{t|ar|كبوش|f|tr=kbúch|sc=Arab}} ({{t|ar|كبوش|f|tr=kbuch}})
+Page 8233/8233 context: t.2: NOTE: Unable to vocalize قرنية (qarība): Unable to match Arabic character ن at index 2, Latin character ī at index 4: [DELETE] <- {{t|ar|قرنية|f|tr=qarība}} ({{t|ar|قرنيَة|f|tr=qarība}})
 
+fig
+
+From {{etyl|enm|en}} {{term|fige|lang=enm}}, {{term|fygge|lang=enm}} (also {{term|fyke|lang=enm}}, from {{etyl|ang|-}} {{m|ang|fīc}}, see {{l|en|fike}}), from {{etyl|xno|en}} {{term|figue|lang=fro}}, from {{etyl|pro|en}} {{term|figa|lang=pro}}, from {{etyl|VL.|en}} {{m|la|fīca||fig}}, from {{etyl|la|en}} {{m|la|fīcus||fig tree}}, from a pre-Indo European language, perhaps {{etyl|phn|en}} {{term|||tr=pagh|ripe fig|lang=phn|sc=Phnx}} (compare {{etyl|hbo|-}} {{term|פַּגָּה||early fallen fig|lang=he|tr=paggâ}}, {{etyl|syc|-}} {{term|ܦܓܐ|tr=paggāʾ|lang=syc}}, dialectal {{etyl|ar|-}} {{term|فَجّ|lang=ar}}, {{term|فِجّ|lang=ar}})<ref>Andreas Franz and Wilhelm Schimper, ''Plant Geography Upon a Physiological Basis'', volume 2 (Berlin: Gebrüder Borntraeger, 1902), page 100</ref>.
+
+
+kana
+
+==Serbo-Croatian==
+
+===Etymology 1===
+From {{etyl|tr|sh}} {{term|kına|lang=tr}}, from {{etyl|ar|sh}} {{term|حِنَّاء|lang=ar}}.
+
+karaoke
+
+Page 12996/12996 karaoke: t.2: NOTE: Unable to vocalize كاراوكه (karaūkih): Unable to match Arabic character ا at index 3, Latin character ū at index 5: [DELETE] <- {{t|ar|كاراوكه|m|tr=karaūkih}} ({{t|ar|كاراوكه|m|tr=karaūkih}})
 
 
 
