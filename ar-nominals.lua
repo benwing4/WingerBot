@@ -195,7 +195,7 @@ local inflections = {}
 
 local max_mods = 9 -- maximum number of modifiers
 local mod_list = {"mod"} -- list of "mod", "mod2", "mod3", ...
-for i in 2,max_mods do
+for i=2,max_mods do
 	table.insert(mod_list, "mod" .. i)
 end
 
@@ -302,11 +302,13 @@ end
 -- data.numbers has not yet been initialized.
 function parse_state_etc_spec(data, args)
 	local function check(arg, dataval, allvalues)
-		if args[arg] and not contains(allvalues, args[arg]) then
-			error("For " .. arg .. "=, value '" .. args[arg] .. "' should be one of " ..
-				table.concat(allvalues, ", "))
+		if args[arg] then
+			if not contains(allvalues, args[arg]) then
+				error("For " .. arg .. "=, value '" .. args[arg] .. "' should be one of " ..
+					table.concat(allvalues, ", "))
+			end
+			data[dataval] = args[arg]
 		end
-		data[dataval] = args[arg]
 	end
 
 	local function check_boolean(arg, dataval)
@@ -319,7 +321,7 @@ function parse_state_etc_spec(data, args)
 	end
 
 	-- Make sure no holes in mod values
-	for i in 1,(#mod_list)-1 do
+	for i=1,(#mod_list)-1 do
 		if args[mod_list[i+1]] and not args[mod_list[i]] then
 			error("Hole in modifier arguments -- " .. mod_list[i+1] ..
 				" present but not " .. mod_list[i])
@@ -338,7 +340,7 @@ function parse_state_etc_spec(data, args)
 
 	-- List of pairs of idafaN/modN parameters
 	local idafa_mod_list = {{"idafa", "mod"}}
-	for i in 2,max_mods do
+	for i=2,max_mods do
 		table.insert(idafa_mod_list, {"idafa" .. i, "mod" .. i})
 	end
 
@@ -674,7 +676,7 @@ end
 -- instead choose based on whether modifier is adjectival or nominal
 -- (ʾiḍāfa).
 function get_pos(data, mod)
-	ismod == mod ~= ""
+	local ismod = mod ~= ""
 	if not ismod then
 		return data.pos
 	elseif data[mod .. "idafa"] then
@@ -768,7 +770,7 @@ end
 --
 -- About bases and modifiers: Note that e.g. in the noun phrase يَوْم الاِثْنَيْن
 -- the head noun يَوْم is the base and the noun الاِثْنَيْن is the modifier.
--- In a noun phrase like البَحْر الأَبْيَض المُتَوَسِّط, there are two modifiers.
+-- In a noun phrase like البَحْر الأَبْيَض المُتَوَسِّط, there are two modifiers.
 -- Note that modifiers come in two varieties, adjectival modifiers and
 -- construct (ʾidāfa) modifiers. The first above noun phrase is an example
 -- of a noun phrase with a construct modifier, where the base is fixed in
@@ -1294,8 +1296,6 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 				-- if modN_state= or basestate= is set to some particular state.
 				-- We use "defcon" in place of "con" when we're dealing with
 				-- an adjectival modifier; see comment above.
-				local first_adj_modifier = ismod and not data[mod .. "idafa"]
-					and prev_mod_is_noun(mod)
 				local thestate = ismod and data[mod .. "state"] or
 				  ismod and not data[mod .. "idafa"] and prev_mod_is_noun(mod) and state == "con" and "defcon" or
 				  not ismod and data.basestate or
@@ -1506,7 +1506,7 @@ end
 
 function in_defective(stem, tr, data, mod, numgen, tri)
 	if not rfind(stem, IN .. "$") then
-		error(""in" declension stem should end in -in: '" .. stem .. "'")
+		error("'in' declension stem should end in -in: '" .. stem .. "'")
 	end
 
 	stem = rsub(stem, IN .. "$", "")
