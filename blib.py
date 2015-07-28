@@ -614,7 +614,7 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
             pagemsg("WARNING: Length mismatch when splitting template on tr commas, may have matched multiple templates: old=%s, new=%s" % (
               oldtemp, newtemp))
           newtext[0] = new_newtext
-          return ["split tr=%s" % latin]
+          return ["split %s=%s" % (paramtr, latin)]
         return []
 
       actions += do_process_one_page_links(pagetitle, index, text,
