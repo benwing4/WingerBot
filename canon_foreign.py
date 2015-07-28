@@ -203,8 +203,8 @@ def combine_adjacent(values):
 
 def sort_group_changelogs(actions):
   grouped_actions = {}
-  begins = ["match-canon ", "cross-canon ", "self-canon ", "remove redundant ",
-      "remove ", ""]
+  begins = ["split ", "match-canon ", "cross-canon ", "self-canon ",
+      "remove redundant ", "remove ", ""]
   for begin in begins:
     grouped_actions[begin] = []
   actiontype = None
@@ -242,9 +242,10 @@ def canon_links(save, verbose, cattype, lang, longlang, script,
         translit_module, include_tempname_in_changelog=True)
     scvalue = getparam(template, "sc")
     if scvalue in script:
-      if show_template and result == False:
-        pagemsg("Processing %s" % (unicode(template)))
       tname = unicode(template.name)
+      if show_template and result == False:
+        msg("Page %s %s: %s.%s: Processing %s" % (index,
+          pagetitle, tname, "sc", unicode(template)))
       msg("Page %s %s: %s.%s: Removing sc=%s" % (index,
         pagetitle, tname, "sc", scvalue))
       oldtempl = "%s" % unicode(template)
