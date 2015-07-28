@@ -315,7 +315,7 @@ function parse_state_etc_spec(data, args)
 		check(arg, dataval, {"yes", "no"})
 		if data[dataval] == "yes" then
 			data[dataval] = true
-		else
+		elseif data[dataval] == "no" then
 			data[dataval] = false
 		end
 	end
@@ -362,9 +362,9 @@ function parse_state_etc_spec(data, args)
 
 	-- Convert a base/mod spec to an index: 0=base, 1=mod, 2=mod2, etc.
 	local function basemod_to_index(basemod)
-		if mod == "base" then return 0 end
-		if mod == "mod" then return 1 end
-		return assert_rsub(basemod, "^mod", "") + 0
+		if basemod == "base" then return 0 end
+		if basemod == "mod" then return 1 end
+		return tonumber(assert_rsub(basemod, "^mod", ""))
 	end
 
 	-- Recognize idafa spec and handle it.
@@ -439,7 +439,7 @@ function parse_state_etc_spec(data, args)
 			if idafaval == "yes" then
 				idafaval = "sg"
 			end
-			if contains(data.allstates, idafaval) then
+			if idafaval == "ind-def" or contains(data.allstates, idafaval) then
 				idafaval = idafaval .. "-sg"
 			end
 			if not idafaval then
@@ -449,6 +449,10 @@ function parse_state_etc_spec(data, args)
 				if adjref ~= "base" then
 					data[mod .. "_case"] = "gen"
 					data[mod .. "_state"] = data[adjref .. "_state"]
+					-- if agreement is with ind-def, make it def
+					if data[mod .. "_state"] == "ind-def" then
+						data[mod .. "_state"] = "def"
+					end
 					data[mod .. "_number"] = data[adjref .. "_number"]
 					data[mod .. "_numgen"] = data[adjref .. "_numgen"]
 					data[mod .. "_idafa"] = false
@@ -465,12 +469,25 @@ function parse_state_etc_spec(data, args)
 				bad_idafa = false
 			elseif rfind(idafaval, "%-") then
 				local state_num = rsplit(idafaval, "%-")
+				-- Support ind-def as a possible value. We set modstate to
+				-- ind-def, which will signal definite agreement with adjectival
+				-- modifiers; then later on we change the value to ind.
+				if #state_num == 3 and state_num[1] == "ind" and state_num[2] == "def" then
+					state_num[1] = "ind-def"
+					state_num[2] = state_num[3]
+					table.remove(state_num)
+				end
 				if #state_num == 2 then
 					local state = state_num[1]
 					local num = state_num[2]
-					if contains(data.allstates, state) and contains(data.allnumbers, num) then
+					if (state == "ind-def" or contains(data.allstates, state))
+							and contains(data.allnumbers, num) then
 						if mod == last_idafa_mod then
-							data.states = {state}
+							if state == "ind-def" then
+								data.states = {"def"}
+							else
+								data.states = {state}
+							end
 						else
 							error(paramval .. " cannot specify a state because it is not the last ʾidāfa modifier")
 						end
@@ -485,6 +502,19 @@ function parse_state_etc_spec(data, args)
 			end
 			if bad_idafa then
 				error(paramval .. " should be one of yes, def, sg, def-sg, adj, adj-base, adj-mod, adj-mod2 or similar")
+			end
+		end
+	end
+
+	if args["state"] == "ind-def" then
+		data.states = {"def"}
+		data.basestate = "ind"
+	elseif args["state"] then
+		data.states = rsplit(args["state"], ",")
+		for _, state in ipairs(data.states) do
+			if not contains(data.allstates, state) then
+				error("For state=, value '" .. state .. "' should be one of " ..
+					table.concat(data.allstates, ", "))
 			end
 		end
 	end
@@ -504,40 +534,14 @@ function parse_state_etc_spec(data, args)
 		check_boolean(mod .. "omitarticle", mod .. "_omitarticle")
 	end
 
-	-- HACK!! If we have an ʾidāfa construction (i.e. mod= is given and also
-	-- modcase=, so we're not dealing with an adjectival construction) and
-	-- a single-state value is given for state=, treat it as if basestate=
-	-- was given. This is because currently such cases are written using
-	-- state=con rather than basestate=con.
-	--
-	-- FIXME! Remove this hack after we have run a bot to convert the
-	-- parameters appropriately.
-	--
-	-- MOD FIXME! This doesn't work for multiple mods, and is a hack anyway
-	-- which should be removed and will be once the args are converted, and
-	-- determining whether we have an ʾidāfa construction should be based on
-	-- mod_idafa.
-	if args["state"] and not rfind(args["state"], ",") and not args["basestate"]
-			and args["mod"] and args["modcase"] then
-		check("state", "basestate", data.allstates)
-		if args["modstate"] then
-			data.states = {args["modstate"]}
-		end
-		data.mod_idafa = true
-	elseif args["state"] then
-		data.states = rsplit(args["state"], ",")
-		for _, state in ipairs(data.states) do
-			if not contains(data.allstates, state) then
-				error("For state=, value '" .. state .. "' should be one of " ..
-					table.concat(data.allstates, ", "))
-			end
-		end
-	end
-
 	-- Make sure modN_numgen is initialized, to modN_number if necessary.
 	-- This simplifies logic in certain places, e.g. call_inflections().
+	-- Also convert ind-def to ind.
 	for _, mod in ipairs(mod_list) do
 		data[mod .. "_numgen"] = data[mod .. "_numgen"] or data[mod .. "_number"]
+		if data[mod .. "_state"] == "ind-def" then
+			data[mod.. "_state"] = "ind"
+		end
 	end
 end
 
@@ -1294,12 +1298,14 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 				-- We are generating the inflections for STATE, but sometimes
 				-- we want to use the inflected form of a different state, e.g.
 				-- if modN_state= or basestate= is set to some particular state.
-				-- We use "defcon" in place of "con" when we're dealing with
-				-- an adjectival modifier; see comment above.
+				-- If we're dealing with an adjectival modifier, then in
+				-- place of "con" we use "defcon" if immediately after a noun
+				-- (see comment above), else "def".
 				local thestate = ismod and data[mod .. "state"] or
-				  ismod and not data[mod .. "idafa"] and prev_mod_is_noun(mod) and state == "con" and "defcon" or
-				  not ismod and data.basestate or
-				  state
+					ismod and not data[mod .. "idafa"] and state == "con" and
+				  		(prev_mod_is_noun(mod) and "defcon" or "def") or
+					not ismod and data.basestate or
+					state
 				local thecase = (case == "lemma" or case == "inf") and case or
 					ismod and data[mod .. "case"] or case
 				add_inflection(data, mod .. case .. "_" .. ng .. "_" .. state,
