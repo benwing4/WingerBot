@@ -197,7 +197,7 @@ end
 -- append array to array
 local function append_array(tab, items)
 	for _, item in ipairs(items) do
-		table.append(tab, item)
+		table.insert(tab, item)
 	end
 end
 
@@ -854,7 +854,7 @@ function export.verb_part_all2(parargs, args)
 end
 
 -- Return a property of the conjugation other than a verb part.
-function verb_prob(frameargs)
+function verb_prop(frameargs)
 	local origargs, args = get_args(frameargs)
 
 	local prop = args[1]
@@ -908,7 +908,7 @@ end
 
 -- Return a property of the conjugation other than a verb part.
 function export.verb_prop(frame)
-	return verb_prob(frame:getParent().args)
+	return verb_prop(frame:getParent().args)
 end
 
 -- Version of verb_prop entry point meant for calling from the debug console.
@@ -920,9 +920,9 @@ end
 function export.verb_forms(frame)
 	local origargs, args = get_frame_args(frame)
 	local i = 1
-	local possible_past_vowels = {'a', 'i', 'u'}
+	local past_vowel_re = "^[aui,]*$"
 	local combined_root = nil
-	if not args[i] or contains(possible_past_vowels, args[i]) then
+	if not args[i] or rfind(args[i], past_vowel_re) then
 		combined_root = mw.title.getCurrentTitle().text
 		if not rfind(combined_root, " ") then
 			error("When inferring roots from page title, need spaces in page title: " .. combined_root)
@@ -932,94 +932,161 @@ function export.verb_forms(frame)
 		i = i + 1
 	else
 		local separate_roots = {}
-		while args[i] and not contains(possible_past_vowels, args[i]) do
-			separate_roots.append(args[i])
+		while args[i] and not rfind(args[i], past_vowel_re) do
+			table.insert(separate_roots, args[i])
 			i = i + 1
 		end
 		combined_root = table.concat(separate_roots, " ")
 	end
 	local past_vowel = args[i]
 	i = i + 1
-	if past_vowel and not contains(possible_past_vowels, past_vowel) then
-		error("Unrecognized past vowel, should be 'a', 'i', 'u' or empty: " .. past_vowel)
+	if past_vowel and not rfind(past_vowel, past_vowel_re) then
+		error("Unrecognized past vowel, should be 'a', 'i', 'u', 'a,u', etc. or empty: " .. past_vowel)
 	end
 	if not past_vowel then
 		past_vowel = ""
 	end
 
 	local split_root = rsplit(combined_root, " ")
+	-- Map from verb forms (I, II, etc.) to a table of verb properties,
+	-- which has entries e.g. for "verb" (either true to autogenerate the verb
+	-- head, or an explicitly specified verb head using e.g. argument "I-head"),
+	-- and for "verb-gloss" (which comes from e.g. the argument "I" or "I-gloss"),
+	-- and for "vn" and "vn-gloss", "ap" and "ap-gloss", "pp" and "pp-gloss".
 	local verb_properties = {}
 	for _, form in ipairs(allowed_forms) do
-		local formprops = {}
+		local formpropslist = {}
 		local derivs = {{"verb", ""}, {"vn", "-vn"}, {"ap", "-ap"}, {"pp", "-pp"}}
-		for _, deriv in ipairs(derivs) do
-			local prop = deriv[1]
-			local extn = deriv[2]
-			if args[form .. extn] == "+" then
-				formprops[prop] = true
-			elseif args[form .. extn] then
-				formprops[prop] = args[form .. extn]
+		local index = 1
+		while true do
+			local formprops = {}
+			local prefix = index == 1 and form or form .. index
+			if prefix == "I" then
+				formprops["pv"] = past_vowel
 			end
-			if args[form .. extn .. "-gloss"] then
-				if not formprops[prop] then
+			if args[prefix .. "-pv"] then
+				formprops["pv"] = args[prefix .. "-pv"]
+			end
+			for _, deriv in ipairs(derivs) do
+				local prop = deriv[1]
+				local extn = deriv[2]
+				if args[prefix .. extn] == "+" then
 					formprops[prop] = true
+				elseif args[prefix .. extn] == "-" then
+					formprops[prop] = false
+				elseif args[prefix .. extn] then
+					formprops[prop] = true
+					formprops[prop .. "-gloss"] = args[prefix .. extn]
 				end
-				formprops[prop .. "-gloss"] = args[form .. extn .. "-gloss"]
+				if args[prefix .. extn .. "-head"] then
+					if formprops[prop] == nil then
+						formprops[prop] = true
+					end
+					formprops[prop] = args[prefix .. extn .. "-head"]
+				end
+				if args[prefix .. extn .. "-gloss"] then
+					if formprops[prop] == nil then
+						formprops[prop] = true
+					end
+					formprops[prop .. "-gloss"] = args[prefix .. extn .. "-gloss"]
+				end
+			end
+			if formprops["verb"] then
+				-- If a verb form specified, also turn on vn (unless form I, with
+				-- unpredictable vn) and ap, and maybe pp, according to form,
+				-- weakness and past vowel. But don't turn these on if there's
+				-- an explicit on/off specification for them (e.g. I-pp=-).
+				if form ~= "I" and formprops["vn"] == nil then
+					formprops["vn"] = true
+				end
+				if formprops["ap"] == nil then
+					formprops["ap"] = true
+				end
+				local weakness = weakness_from_radicals(form, split_root[1],
+					split_root[2], split_root[3], split_root[4])
+				if formprops["pp"] == nil and not form_probably_no_passive(form,
+						weakness, rsplit(formprops["pv"] or "", ","), {}) then
+					formprops["pp"] = true
+				end
+				table.insert(formpropslist, formprops)
+				index = index + 1
+			else
+				break
 			end
 		end
-		if #formprops > 0 then
-			verb_properties[form] = formprops
-		end
+		table.insert(verb_properties, {form, formpropslist})
 	end
 
 	-- Go through and create the verb form derivations as necessary, when
 	-- they haven't been explicitly given
-	for form, props in pairs(verb_properties) do
-		local args = {}
-		function append_form_and_root()
-			args.append(form)
-			if form == "I" then
-				args.append(past_vowel)
-				args.append("")
+	for _, vplist in ipairs(verb_properties) do
+		local form = vplist[1]
+		for _, props in ipairs(vplist[2]) do
+			local args = {}
+			function append_form_and_root()
+				table.insert(args, form)
+				if form == "I" then
+					table.insert(args, props["pv"]) -- past vowel
+					table.insert(args, "")
+				end
+				append_array(args, split_root)
 			end
-			append_array(args, split_root)
-		end
-		if props["verb"] == true then
-			args = {}
-			append_form_and_root()
-			-- FIXME! Deal with all forms
-			props["verb"] = past3sm(args, false)
-		end
-		for _, deriv in ipairs({"vn", "ap", "pp"}) do
-			if props[deriv] == true then
-				args = {deriv}
+			if props["verb"] == true then
+				args = {}
 				append_form_and_root()
-				-- FIXME! Deal with all forms
-				props[deriv] = verb_part(args, false)
+				props["verb"] = past3sm(args, true)
+			end
+			for _, deriv in ipairs({"vn", "ap", "pp"}) do
+				if props[deriv] == true then
+					args = {deriv}
+					append_form_and_root()
+					props[deriv] = verb_part(args, true)
+				end
 			end
 		end
 	end
 
     -- Go through and output the result
 	local formtextarr = {}
-	for form, props in pairs(verb_properties) do
-		local textarr = {}
-		if props["verb"] then
-			local text = "* '''[[Appendix:Arabic verbs#Form " .. form .. "|Form " .. form .. "]]''': "
-			text = text .. m_links.full_link(props["verb"], nil, lang, nil, nil, nil, {gloss = ine(props["verb-gloss"])}, false) .. "\n"
-			textarr.append(text)
-			for _, derivengl in ipairs({{"vn", "Verbal noun"}, {"ap", "Active participle"}, {"pp", "Passive participle"}}) do
-				local deriv = derivengl[1]
-				local engl = derivengl[2]
-				local text = "** " .. engl .. ": "
-				text = text .. m_links.full_link(props[deriv], nil, lang, nil, nil, nil, {gloss = ine(props[deriv .. "-gloss"])}, false) .. "\n"
-				textarr.append(text)
+	for _, vplist in ipairs(verb_properties) do
+		local form = vplist[1]
+		for _, props in ipairs(vplist[2]) do
+			local textarr = {}
+			if props["verb"] then
+				local text = "* '''[[Appendix:Arabic verbs#Form " .. form .. "|Form " .. form .. "]]''': "
+				local linktext = {}
+				local splitheads = rsplit(props["verb"], "[,،]")
+				for _, head in ipairs(splitheads) do
+					table.insert(linktext, m_links.full_link(head, nil, lang, nil, nil, nil, {gloss = ine(props["verb-gloss"])}, false))
+				end
+				text = text .. table.concat(linktext, ", ")
+				table.insert(textarr, text)
+				for _, derivengl in ipairs({{"vn", "Verbal noun"}, {"ap", "Active participle"}, {"pp", "Passive participle"}}) do
+					local deriv = derivengl[1]
+					local engl = derivengl[2]
+					if props[deriv] then
+						local text = "** " .. engl .. ": "
+						local linktext = {}
+						local splitheads = rsplit(props[deriv], "[,،]")
+						for _, head in ipairs(splitheads) do
+							table.insert(linktext, m_links.full_link(head, nil, lang, nil, nil, nil, {gloss = ine(props[deriv .. "-gloss"])}, false))
+						end
+						text = text .. table.concat(linktext, ", ")
+						table.insert(textarr, text)
+					end
+				end
+				table.insert(formtextarr, table.concat(textarr, "\n"))
 			end
-			formtextarr.append(table.concat(textarr, ""))
 		end
 	end
 
-	return table.concat(formtextarr, "")
+	return table.concat(formtextarr, "\n")
+end
+
+-- Version of verb_forms entry point meant for calling from the debug console.
+-- See export.show2().
+function export.verb_forms2(parargs, args)
+	return export.verb_forms(debug_frame(parargs, args))
 end
 
 -- Guts of conjugation functions. Shared between {{temp|ar-conj}} and
@@ -1207,33 +1274,10 @@ function conjugate(args, argind)
 	--	rad4 = rad4 or weakness == "final-weak" and W or "ق"
 	--end
 
-	-- If weakness unspecified, derive from radicals.
-	if not quadlit then
-		if weakness == nil then
-			if is_waw_ya(rad3) and rad1 == W and form == "I" then
-				weakness = "assimilated+final-weak"
-			elseif is_waw_ya(rad3) and form_supports_final_weak(form) then
-				weakness = "final-weak"
-			elseif rad2 == rad3 and form_supports_geminate(form) then
-				weakness = "geminate"
-			elseif is_waw_ya(rad2) and form_supports_hollow(form) then
-				weakness = "hollow"
-			elseif rad1 == W and form == "I" then
-				weakness = "assimilated"
-			else
-				weakness = "sound"
-			end
-		end
-	else
-		if weakness == nil then
-			if is_waw_ya(rad4) then
-				weakness = "final-weak"
-			else
-				weakness = "sound"
-			end
-		end
+	if weakness == nil then
+		weakness = weakness_from_radicals(form, rad1, rad2, rad3, rad4)
 	end
-
+	
 	-- Error if radicals are wrong given the weakness. More likely to happen
 	-- if the weakness is explicitly given rather than inferred. Will also
 	-- happen if certain incorrect letters are included as radicals e.g.
@@ -1356,6 +1400,35 @@ function conjugate(args, argind)
 	end
 
 	return data, form, weakness, past_vowel, nonpast_vowel
+end
+
+-- Determine weakness from radicals
+function weakness_from_radicals(form, rad1, rad2, rad3, rad4)
+	local weakness = nil
+	local quadlit = rmatch(form, "q$")
+	-- If weakness unspecified, derive from radicals.
+	if not quadlit then
+		if is_waw_ya(rad3) and rad1 == W and form == "I" then
+			weakness = "assimilated+final-weak"
+		elseif is_waw_ya(rad3) and form_supports_final_weak(form) then
+			weakness = "final-weak"
+		elseif rad2 == rad3 and form_supports_geminate(form) then
+			weakness = "geminate"
+		elseif is_waw_ya(rad2) and form_supports_hollow(form) then
+			weakness = "hollow"
+		elseif rad1 == W and form == "I" then
+			weakness = "assimilated"
+		else
+			weakness = "sound"
+		end
+	else
+		if is_waw_ya(rad4) then
+			weakness = "final-weak"
+		else
+			weakness = "sound"
+		end
+	end
+	return weakness
 end
 
 -- Infer radicals from headword and form. Throw an error if headword is
@@ -3185,8 +3258,16 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 
 	-- past and non-past stems, active and passive
 	local past_stem = past_stem_base .. a_base_suffix
+	-- In forms 5 and 6, non-past has /a/ as last stem vowel in the non-past
+	-- in both active and passive, but /i/ in the active participle and /a/
+	-- in the passive participle. Elsewhere, consistent /i/ in active non-past
+	-- and participle, consistent /a/ in passive non-past and participle.
+	-- Hence, forms 5 and 6 differ only in the non-past active (but not
+	-- active participle), so we have to split the finite non-past stem and
+	-- active participle stem.
 	local nonpast_stem = nonpast_stem_base ..
 		(form56 and a_base_suffix or i_base_suffix)
+	local ap_stem = nonpast_stem_base .. i_base_suffix
 	local ps_past_stem = ps_past_stem_base .. i_base_suffix
 	local ps_nonpast_stem = nonpast_stem_base .. a_base_suffix
 	-- imperative stem
@@ -3204,10 +3285,10 @@ function make_augmented_sound_final_weak_verb(data, args, rad3,
 
 	-- active and passive participle
 	if final_weak then
-		insert_part(data, "ap", MU .. nonpast_stem .. IN)
+		insert_part(data, "ap", MU .. ap_stem .. IN)
 		insert_part(data, "pp", MU .. ps_nonpast_stem .. AN .. AMAQ)
 	else
-		insert_part(data, "ap", MU .. nonpast_stem .. UNS)
+		insert_part(data, "ap", MU .. ap_stem .. UNS)
 		insert_part(data, "pp", MU .. ps_nonpast_stem .. UNS)
 	end
 end
