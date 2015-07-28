@@ -167,6 +167,7 @@ FIX ETYM {{ar-noun|اِشْتِرَاكِيَّة}} "Socialism"
 ADD DEFN {{ar-verb|I|a|u}} صلح لِ {{ar-root|ص ل ح}} "to be suitable for"
 ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 
+كرسي
 
 ==Arabic==
 
@@ -189,6 +190,105 @@ Compare {{etyl|akk|-}} {{m|akk|𒄖𒍝|tr=kussû [GU.ZA]}} / {{m|akk|𒄑𒄖�
 
 [[Category:ar:Furniture]]
 
+نواة
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ن|و|ي}}.
+
+====Noun====
+{{ar-sing-noun|نَوَاة|coll=نَوًى|pauc=نَوَيَات|pl=نَوَيَات}}
+
+# [[date pit]]
+# {{lb|ar|fruit}} [[kernel]]
+# {{lb|ar|fruit|general}} [[center]], [[core]]
+# {{lb|ar|physics|general}} [[nucleus]]
+
+=====Declension=====
+{{ar-decl-sing-noun|نَوَاة|coll=نَوًى|pauc=نَوَيَات|pl=نَوَيَات}}
+
+=====Derived terms=====
+* {{l|ar|نَوَوِيّ||[[nuclear]], [[atomic]]}}
+
+=====References=====
+* {{R:ar:Wehr-4|نوي}}
+
+===Etymology 2===
+{{ar-verbal noun}} of {{m|ar|نَوَى||to [[indend]], to [[determine]] {{i|to do something}}}}, from the root {{ar-root|ن و ي}}.
+
+====Noun====
+{{ar-noun|نَوَاة|f}}
+
+# {{ar-verbal noun of|نَوَى|form=I}}
+# [[intention]], [[purpose]]
+# [[determination]]
+
+=====Declension=====
+{{ar-decl-noun|نَوَاة}}
+
+=====References=====
+* {{R:ar:Wehr-4|نوي}}
+
+نوى
+
+==Arabic==
+
+===Etymology 1===
+From the root {{ar-root|ن|و|ي}}.
+
+====Pronunciation====
+* {{audio|Ar-نوى.ogg|Audio|lang=ar}}
+
+====Verb====
+{{ar-verb|I|a|i}}
+
+# to [[think]]
+# {{lbl|ar|transitive}} to [[intend]]
+
+=====Conjugation=====
+{{ar-conj|I|a|i|passive=y|vn=نِيَّة,نَوَاة}}
+
+===Etymology 2===
+From the root {{ar-root|ن|و|ي}}.
+
+====Noun====
+{{ar-coll-noun|نَوًى|sing=نَوَاة|pauc=نَوَيَات|pl=نَوَيَات}}
+
+# [[date pits]]
+# {{lb|ar|fruit}} [[kernels]]
+
+=====Declension=====
+{{ar-coll-noun|نَوًى|sing=نَوَاة|pauc=نَوَيَات|pl=نَوَيَات}}
+
+=====References=====
+* {{R:ar:Wehr-4|نوي}}
+
+
+في
+
+==Tunisian Arabic==
+
+===Preposition===
+{{head|aeb|preposition|head='''فِي'''|sc=Arab|tr=fī}}
+
+# [[in]]
+#:* {{lang|aeb|عَايِلْتِي تُسْكُنْ فِي سُوسَة|tr=ʿāyiltī tuskun fī sūsa}} — ''My family lives in Sousse''
+#:* {{lang|aeb|هِيَّ بِشْ تْجِي فِي مَارِسْ|tr=hiyya biš tjī fī mars}} — ''She will come in March''
+#:* {{lang|aeb|ن&amp;#x0651;&amp;#x064E;جِّمْ نَعْمِلْ الْخِدْمَة هَاذِي فِي ثْلَاثَة يَّام|tr=nnajjim naʿmil ilḫidma hāḏī fī ṯlāṯa yyām}} — ''I can do this work in three days''
+#:* {{lang|aeb|هِيَّ فِي صَحَّة طَيّْبَة|tr=hiyya fī ṣaḥḥa ṭayyba}} — ''She is in good health''
+
+=====Inflection=====
+{{aeb-prep-inflection
+|base={{l|aeb|فِي|tr=fī}}
+|1s={{l|aeb|في|فِيَّا|tr=fiyya}}
+|2s={{l|aeb|فِيكْ|tr=fīk}}
+|3ms={{l|aeb|فِيهْ|tr=fīh}}
+|3fs={{l|aeb|فِيهَا|tr=fīha}}
+|1p={{l|aeb|فِينَا|tr=fīna}}
+|2p={{l|aeb|فِيكُمْ|tr=fīkum}}
+|3p={{l|aeb|فِيهُمْ|tr=fīhum}}
+}}
 
 
 
