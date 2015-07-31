@@ -173,20 +173,22 @@ def do_canon_param(pagetitle, index, template, fromparam, toparam, paramtr,
     actions.append("remove redundant %s=%s" % (paramtrname, latin))
     canonlatin = True
   else:
+    if match_canon:
+      operation="Match-canoning"
+      passive="Match-canoned"
+      actionop="match-canon"
+    else:
+      operation="Cross-canoning"
+      passive="Cross-canoned"
+      actionop="cross-canon"
     if translit:
-      pagemsg("NOTE: Canoned Latin %s not same as auto-translit %s, can't remove: %s" %
-          (canonlatin, translit, unicode(template)))
+      pagemsg("NOTE: %s Latin %s not same as auto-translit %s, can't remove: %s" %
+          (passive, canonlatin, translit, unicode(template)))
     if canonlatin == latin:
       pagemsg("No change in Latin %s: Arabic %s -> %s (auto-translit %s)" %
           (latin, arabic, newarabic, translit))
       canonlatin = False
     else:
-      if match_canon:
-        operation="Match-canoning"
-        actionop="match-canon"
-      else:
-        operation="Cross-canoning"
-        actionop="cross-canon"
       pagemsg("%s Latin %s -> %s: Arabic %s -> %s (auto-translit %s): %s" % (
           operation, latin, canonlatin, arabic, newarabic, translit,
           unicode(template)))
