@@ -167,152 +167,87 @@ FIX ETYM {{ar-noun|اِشْتِرَاكِيَّة}} "Socialism"
 ADD DEFN {{ar-verb|I|a|u}} صلح لِ {{ar-root|ص ل ح}} "to be suitable for"
 ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 
-كرسي
+how are you
 
-==Arabic==
+====Translations====
+{{trans-top|greeting}}
+* Afrikaans: [[hoe gaan dit]]?
+* Albanian: [[si jeni]]? {{qualifier|formal}}, [[qysh je]]? {{qualifier|informal}}
+*: Arbëresh: [[si rrini]]? {{qualifier|formal}} [[si rri]]? {{qualifier|informal}}
+* American Sign Language: {{t|ase|BentB@BackFinger-PalmBack-BentB@CenterChesthigh-PalmBack C@Ulnar-PalmUp-C@CenterChesthigh-PalmUp 1@CenterChesthigh-TipFingerForward}}
+* Arabic: {{t|ar|كَيْفَ حَالُكَ؟}}
+*: Egyptian Arabic: {{i|to a male}} {{t|arz|ازيك|alt=إِزَّيَّك؟|m|tr=izzáyyak?}}, {{i|to a female}} {{t|arz|ازيك|alt=إِزَّيِّك؟|f|tr=izzáyyik?}}
+*: Mesopotamian Arabic: {{i|to a male}} {{t|apc|شْلُونَك؟|tr=šlōnak?|m}}, {{i|to a male}} {{t|apc|شْلُونَك؟|tr=šlōnik?|f}}, {{t|apc|شْلُونَك؟|tr=šlōnič?|f}}
+*: Moroccan Arabic: {{t|ary|لَا بَاس؟|tr=la bas?}}
+*: North Levantine Arabic: {{i|to a male}} {{t|apc|كِيفَك؟|m|tr=kīfak?}}, {{i|to a female}} {{t|apc|كِيفِك؟|m|tr=kīfik?}}
 
-===Etymology===
-Compare {{etyl|akk|-}} {{m|akk|𒄖𒍝|tr=kussû [GU.ZA]}} / {{m|akk|𒄑𒄖𒍝|tr=kussû [GIŠ.GU.ZA]}}, {{etyl|arc|-}} {{m|arc|כּוּרְסְיָא|tr=kursəyā}}, {{etyl|syc|-}} {{m|syc|ܟܘܪܣܝܐ|tr=kursyā}}, {{etyl|uga|-}} {{m|uga|𐎋𐎒𐎜|tr=ksủ}}, {{etyl|he|-}} {{m/he|כיסא|dwv=כִּסֵּא|tr=kisé, kissē}}.
+please speak more slowly
 
-===Noun===
-{{ar-noun|كُرْسِيّ|m|pl=كَرَاسِيّ|pl2=كَرَاسٍ}}
+====Translations====
+{{trans-top|please speak more slowly}}
+* Arabic: {{i|to a man}} {{t|ar|تَكَلَّم بِبُطْء أَكْثَر مِن فَضْلِكَ|tr=takallam bi-buṭʾ ʾakṯar min faḍlika}}, {{t|ar|تَكَلَّم بِبُطْء أَكْثَر مِن فَضْلِكِ|tr=takallam bi-buṭʾ ʾakṯar min faḍliki}}
 
-# [[chair]], [[seat]]
-# [[seating]]
-# [[throne]]
-# [[sofa]], [[couch]]
+rejoice
 
-====Declension====
-{{ar-decl-noun|كُرْسِيّ|pl=كَرَاسِيّ|pl2=كَرَاسٍ}}
+{{trans-top|be happy}}
+* Arabic: {{t|ar|فَرِحَ|alt=فَرِحَ بِـ}}
 
-====Synonyms====
-* {{sense|throne}} {{l|ar|سِرِير}}
+fifty-two
 
-[[Category:ar:Furniture]]
+Page 10381/10381 fifty-two: t.2: NOTE: Match-canoned Latin ʾiṯnēn wi-ḵamsūn not same as auto-translit ʾiṯnīn wiḵamsūn, can't remove: {{t|ar|اِثْنَان وَخَمْسُون|tr=iṯnān wa-ḵamsūn}} <- {{t|ar|اثنين وخمسون|tr=’iθné:n wi-χamsú:n}} ({{t|ar|إِثْنِين وِخَمْسُون|tr=ʾiṯnēn wi-ḵamsūn}})
 
-نواة
+what is that
 
-==Arabic==
+====Translations====
+{{trans-top|what is that?}}
+* Afrikaans: {{t|af|wat is dit?}}
+* Albanian: {{t|sq|çfarë është kjo?}}
+* Arabic: {{t|ar|مَا هٰذَا؟}}
+*: Egyptian Arabic: {{t|arz|ايه ده؟|tr=ē da?}}
+*: Levantine: {{t|apc|شُو هَاد؟|tr=šū hād?}}, {{t|aPC|إِيش هَاد؟|tr=ʾēš hād?}}
+*: Moroccan Arabic: {{t|ary|اشنو هدا؟|tr=ašnu hada?}}
 
-===Etymology 1===
-From the root {{ar-root|ن|و|ي}}.
+Module:ar-translit
 
-====Noun====
-{{ar-sing-noun|نَوَاة|coll=نَوًى|pauc=نَوَيَات|pl=نَوَيَات}}
+Check/fix translit of اَلَّتِي allatī and similarly for الَّذِي and الَذدِينَ
 
-# [[date pit]]
-# {{lb|ar|fruit}} [[kernel]]
-# {{lb|ar|fruit|general}} [[center]], [[core]]
-# {{lb|ar|physics|general}} [[nucleus]]
+ar_translit.py
 
-=====Declension=====
-{{ar-decl-sing-noun|نَوَاة|coll=نَوًى|pauc=نَوَيَات|pl=نَوَيَات}}
+Fix handling of اَلَّتِي allatī and similarly for الَّذِي and الَذدِينَ; it converts to attatī etc.
 
-=====Derived terms=====
-* {{l|ar|نَوَوِيّ||[[nuclear]], [[atomic]]}}
+what
 
-=====References=====
-* {{R:ar:Wehr-4|نوي}}
-
-===Etymology 2===
-{{ar-verbal noun}} of {{m|ar|نَوَى||to [[indend]], to [[determine]] {{i|to do something}}}}, from the root {{ar-root|ن و ي}}.
-
-====Noun====
-{{ar-noun|نَوَاة|f}}
-
-# {{ar-verbal noun of|نَوَى|form=I}}
-# [[intention]], [[purpose]]
-# [[determination]]
-
-=====Declension=====
-{{ar-decl-noun|نَوَاة}}
-
-=====References=====
-* {{R:ar:Wehr-4|نوي}}
-
-نوى
-
-==Arabic==
-
-===Etymology 1===
-From the root {{ar-root|ن|و|ي}}.
-
-====Pronunciation====
-* {{audio|Ar-نوى.ogg|Audio|lang=ar}}
-
-====Verb====
-{{ar-verb|I|a|i}}
-
-# to [[think]]
-# {{lbl|ar|transitive}} to [[intend]]
-
-=====Conjugation=====
-{{ar-conj|I|a|i|passive=y|vn=نِيَّة,نَوَاة}}
-
-===Etymology 2===
-From the root {{ar-root|ن|و|ي}}.
-
-====Noun====
-{{ar-coll-noun|نَوًى|sing=نَوَاة|pauc=نَوَيَات|pl=نَوَيَات}}
-
-# [[date pits]]
-# {{lb|ar|fruit}} [[kernels]]
-
-=====Declension=====
-{{ar-coll-noun|نَوًى|sing=نَوَاة|pauc=نَوَيَات|pl=نَوَيَات}}
-
-=====References=====
-* {{R:ar:Wehr-4|نوي}}
+====Translations====
+{{trans-top|interrogative pronoun}}
+* Afrikaans: {{t|af|wat}}
+* Albanian: {{t+|sq|çfarë}}, {{t|sq|ç'}}
+* American Sign Language: {{t|ase|Claw5@SideTrunkhigh-PalmUp-Claw5@SideTrunkhigh
+-PalmUp Sidetoside-Sidetoside}}
+* Arabic: {{t|ar|مَاذَا}}, {{t+|ar|مَا}}
+*: Egyptian Arabic: {{t|arz|ايه|tr=ēh|sc=Arab}}
+*: Iraqi Arabic: {{t|acm|شنو|tr=šunu|sc=Arab}}
+*: Moroccan Arabic: {{t|ary|اشنو|tr=ʾašnū}}
+*: Levantine Arabic: {{t+|apc|شُو|tr=šū}}, {{t+|apc|إِيش|tr=ʾēš}}
 
 
-في
+where
 
-==Tunisian Arabic==
-
-===Preposition===
-{{head|aeb|preposition|head='''فِي'''|sc=Arab|tr=fī}}
-
-# [[in]]
-#:* {{lang|aeb|عَايِلْتِي تُسْكُنْ فِي سُوسَة|tr=ʿāyiltī tuskun fī sūsa}} — ''My family lives in Sousse''
-#:* {{lang|aeb|هِيَّ بِشْ تْجِي فِي مَارِسْ|tr=hiyya biš tjī fī mars}} — ''She will come in March''
-#:* {{lang|aeb|ن&amp;#x0651;&amp;#x064E;جِّمْ نَعْمِلْ الْخِدْمَة هَاذِي فِي ثْلَاثَة يَّام|tr=nnajjim naʿmil ilḫidma hāḏī fī ṯlāṯa yyām}} — ''I can do this work in three days''
-#:* {{lang|aeb|هِيَّ فِي صَحَّة طَيّْبَة|tr=hiyya fī ṣaḥḥa ṭayyba}} — ''She is in good health''
-
-=====Inflection=====
-{{aeb-prep-inflection
-|base={{l|aeb|فِي|tr=fī}}
-|1s={{l|aeb|في|فِيَّا|tr=fiyya}}
-|2s={{l|aeb|فِيكْ|tr=fīk}}
-|3ms={{l|aeb|فِيهْ|tr=fīh}}
-|3fs={{l|aeb|فِيهَا|tr=fīha}}
-|1p={{l|aeb|فِينَا|tr=fīna}}
-|2p={{l|aeb|فِيكُمْ|tr=fīkum}}
-|3p={{l|aeb|فِيهُمْ|tr=fīhum}}
-}}
+====Translations====
+{{trans-top|at what place; to what place; from what place}}
+* Afrikaans: {{t|af|waar}}
+* Albanian: {{t|sq|ku}}
+* American Sign Language: {{t|ase|1@Side-PalmForward SmallSidetoside}}
+* Arabic: {{t|ar|أَيْنَ}}, {{t|ar|مِن أَيْنَ}} {{qualifier|where from}}, {{t|ar|إِلَى أَيْنَ}} {{qualifier|to what place}}
+*: Egyptian: {{t|arz|منين|tr=menīn|sc=Arab}} {{qualifier|from what place}}, {{t|arz|فين|tr=fēn|sc=Arab}} {{qualifier|at what place}}
+*: Moroccan Arabic: {{t|ary|فين|tr=fin}}, {{t|ary|منين|tr=mnin}} {{qualifier|where from}}
+*: North Levantine Arabic: {{t|apc|وَيْن|tr=wayn}} {{qualifier|and other Eastern dialects}}
 
 
-Page 786/786 Greek Orthodox Church: t.2: Processing: {{t|ar|الكَنِيسَة الأُرْثُوذُكْسِيَّة اليُونَانِيَّة|tr=al-kanīsa l-ʾurṯūḏuksiyya l-yābāniyya}} <- {{t|ar|الكنيسة الأرثوذكسية اليونانية|tr=al-Knysh al-ʼRthwdhksyh al-Ywnānyh|sc=Arab}} ({{t|ar|الكنيسَة الأرثوذكسيَة اليونانيَة|tr=al-knysh al-ʾrthwdhksyh al-ywnānyh}})
-Page 183/183 Asian: t.2: Processing: {{t|ar|آسِيَوِيّ|m}} <- {{t|ar|آسيوِي|m|tr='aasyawiy}} ({{t|ar|آسْيَوِي|m}})
-Page 183/183 Asian: t.2: Processing: {{t|ar|آسِيَوِيَّة|f}} <- {{t|ar|آسيوية|f|tr='aasyawíyya|sc=Arab}} ({{t|ar|آسْيَوِيَّة|f}})
-Page 183/183 Asian: t.2: Processing: {{t|ar|آسِيَوِيّ|m}} <- {{t|ar|آسيوِي|m|tr='asyawiy}} ({{t|ar|آسيوِي|m|tr=ʾasyawī}})
-Page 6647/6647 blackberry: t.2: NOTE: Unable to vocalize كبوش (kbúch): Unable to match Arabic character ش at index 3, Latin character c at index 3: [DELETE] <- {{t|ar|كبوش|f|tr=kbúch|sc=Arab}} ({{t|ar|كبوش|f|tr=kbuch}})
-Page 8233/8233 context: t.2: NOTE: Unable to vocalize قرنية (qarība): Unable to match Arabic character ن at index 2, Latin character ī at index 4: [DELETE] <- {{t|ar|قرنية|f|tr=qarība}} ({{t|ar|قرنيَة|f|tr=qarība}})
+yellow
 
-fig
-
-From {{etyl|enm|en}} {{term|fige|lang=enm}}, {{term|fygge|lang=enm}} (also {{term|fyke|lang=enm}}, from {{etyl|ang|-}} {{m|ang|fīc}}, see {{l|en|fike}}), from {{etyl|xno|en}} {{term|figue|lang=fro}}, from {{etyl|pro|en}} {{term|figa|lang=pro}}, from {{etyl|VL.|en}} {{m|la|fīca||fig}}, from {{etyl|la|en}} {{m|la|fīcus||fig tree}}, from a pre-Indo European language, perhaps {{etyl|phn|en}} {{term|||tr=pagh|ripe fig|lang=phn|sc=Phnx}} (compare {{etyl|hbo|-}} {{term|פַּגָּה||early fallen fig|lang=he|tr=paggâ}}, {{etyl|syc|-}} {{term|ܦܓܐ|tr=paggāʾ|lang=syc}}, dialectal {{etyl|ar|-}} {{term|فَجّ|lang=ar}}, {{term|فِجّ|lang=ar}})<ref>Andreas Franz and Wilhelm Schimper, ''Plant Geography Upon a Physiological Basis'', volume 2 (Berlin: Gebrüder Borntraeger, 1902), page 100</ref>.
-
-
-kana
-
-==Serbo-Croatian==
-
-===Etymology 1===
-From {{etyl|tr|sh}} {{term|kına|lang=tr}}, from {{etyl|ar|sh}} {{term|حِنَّاء|lang=ar}}.
-
-karaoke
-
-Page 12996/12996 karaoke: t.2: NOTE: Unable to vocalize كاراوكه (karaūkih): Unable to match Arabic character ا at index 3, Latin character ū at index 5: [DELETE] <- {{t|ar|كاراوكه|m|tr=karaūkih}} ({{t|ar|كاراوكه|m|tr=karaūkih}})
+====Translations====
+{{trans-top|to become yellow or more yellow}}
+* Arabic: {{t|ar|اِصْفَرَّ}}
 
 
 
