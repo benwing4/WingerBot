@@ -28,9 +28,12 @@ def push_manual_changes(save, verbose, direcfile, startFrom, upTo):
     m = re.match(r"^Page [^ ]+ (.*?): .*?: (\{\{.*?\}\}) <- \{\{.*?\}\} \((\{\{.*?\}\})\)$",
         line)
     if not m:
-      msg("WARNING: Unable to parse line: [%s]" % line)
-      pass
-    elif m.group(2) != m.group(3):
+      m = re.match(r"^\* \[\[(.*?)\]\]: .*?: <nowiki>(\{\{.*?\}\}) <- \{\{.*?\}\} \((\{\{.*?\}\})\)</nowiki>.*$",
+          line)
+      if not m:
+        msg("WARNING: Unable to parse line: [%s]" % line)
+        continue
+    if m.group(2) != m.group(3):
       template_changes.append(m.groups())
 
   for current, index in blib.iter_pages(template_changes, startFrom, upTo,
