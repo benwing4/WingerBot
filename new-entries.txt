@@ -167,87 +167,12 @@ FIX ETYM {{ar-noun|اِشْتِرَاكِيَّة}} "Socialism"
 ADD DEFN {{ar-verb|I|a|u}} صلح لِ {{ar-root|ص ل ح}} "to be suitable for"
 ADD DEFN {{ar-adv|تَقْرِيبًا}} "almost, approximately"
 
-how are you
-
-====Translations====
-{{trans-top|greeting}}
-* Afrikaans: [[hoe gaan dit]]?
-* Albanian: [[si jeni]]? {{qualifier|formal}}, [[qysh je]]? {{qualifier|informal}}
-*: Arbëresh: [[si rrini]]? {{qualifier|formal}} [[si rri]]? {{qualifier|informal}}
-* American Sign Language: {{t|ase|BentB@BackFinger-PalmBack-BentB@CenterChesthigh-PalmBack C@Ulnar-PalmUp-C@CenterChesthigh-PalmUp 1@CenterChesthigh-TipFingerForward}}
-* Arabic: {{t|ar|كَيْفَ حَالُكَ؟}}
-*: Egyptian Arabic: {{i|to a male}} {{t|arz|ازيك|alt=إِزَّيَّك؟|m|tr=izzáyyak?}}, {{i|to a female}} {{t|arz|ازيك|alt=إِزَّيِّك؟|f|tr=izzáyyik?}}
-*: Mesopotamian Arabic: {{i|to a male}} {{t|apc|شْلُونَك؟|tr=šlōnak?|m}}, {{i|to a male}} {{t|apc|شْلُونَك؟|tr=šlōnik?|f}}, {{t|apc|شْلُونَك؟|tr=šlōnič?|f}}
-*: Moroccan Arabic: {{t|ary|لَا بَاس؟|tr=la bas?}}
-*: North Levantine Arabic: {{i|to a male}} {{t|apc|كِيفَك؟|m|tr=kīfak?}}, {{i|to a female}} {{t|apc|كِيفِك؟|m|tr=kīfik?}}
-
-please speak more slowly
-
-====Translations====
-{{trans-top|please speak more slowly}}
-* Arabic: {{i|to a man}} {{t|ar|تَكَلَّم بِبُطْء أَكْثَر مِن فَضْلِكَ|tr=takallam bi-buṭʾ ʾakṯar min faḍlika}}, {{t|ar|تَكَلَّم بِبُطْء أَكْثَر مِن فَضْلِكِ|tr=takallam bi-buṭʾ ʾakṯar min faḍliki}}
-
-rejoice
-
-{{trans-top|be happy}}
-* Arabic: {{t|ar|فَرِحَ|alt=فَرِحَ بِـ}}
-
-fifty-two
-
-Page 10381/10381 fifty-two: t.2: NOTE: Match-canoned Latin ʾiṯnēn wi-ḵamsūn not same as auto-translit ʾiṯnīn wiḵamsūn, can't remove: {{t|ar|اِثْنَان وَخَمْسُون|tr=iṯnān wa-ḵamsūn}} <- {{t|ar|اثنين وخمسون|tr=’iθné:n wi-χamsú:n}} ({{t|ar|إِثْنِين وِخَمْسُون|tr=ʾiṯnēn wi-ḵamsūn}})
-
-what is that
-
-====Translations====
-{{trans-top|what is that?}}
-* Afrikaans: {{t|af|wat is dit?}}
-* Albanian: {{t|sq|çfarë është kjo?}}
-* Arabic: {{t|ar|مَا هٰذَا؟}}
-*: Egyptian Arabic: {{t|arz|ايه ده؟|tr=ē da?}}
-*: Levantine: {{t|apc|شُو هَاد؟|tr=šū hād?}}, {{t|aPC|إِيش هَاد؟|tr=ʾēš hād?}}
-*: Moroccan Arabic: {{t|ary|اشنو هدا؟|tr=ašnu hada?}}
-
-Module:ar-translit
-
-Check/fix translit of اَلَّتِي allatī and similarly for الَّذِي and الَذدِينَ
 
 ar_translit.py
 
 Fix handling of اَلَّتِي allatī and similarly for الَّذِي and الَذدِينَ; it converts to attatī etc.
 
-what
 
-====Translations====
-{{trans-top|interrogative pronoun}}
-* Afrikaans: {{t|af|wat}}
-* Albanian: {{t+|sq|çfarë}}, {{t|sq|ç'}}
-* American Sign Language: {{t|ase|Claw5@SideTrunkhigh-PalmUp-Claw5@SideTrunkhigh
--PalmUp Sidetoside-Sidetoside}}
-* Arabic: {{t|ar|مَاذَا}}, {{t+|ar|مَا}}
-*: Egyptian Arabic: {{t|arz|ايه|tr=ēh|sc=Arab}}
-*: Iraqi Arabic: {{t|acm|شنو|tr=šunu|sc=Arab}}
-*: Moroccan Arabic: {{t|ary|اشنو|tr=ʾašnū}}
-*: Levantine Arabic: {{t+|apc|شُو|tr=šū}}, {{t+|apc|إِيش|tr=ʾēš}}
-
-
-where
-
-====Translations====
-{{trans-top|at what place; to what place; from what place}}
-* Afrikaans: {{t|af|waar}}
-* Albanian: {{t|sq|ku}}
-* American Sign Language: {{t|ase|1@Side-PalmForward SmallSidetoside}}
-* Arabic: {{t|ar|أَيْنَ}}, {{t|ar|مِن أَيْنَ}} {{qualifier|where from}}, {{t|ar|إِلَى أَيْنَ}} {{qualifier|to what place}}
-*: Egyptian: {{t|arz|منين|tr=menīn|sc=Arab}} {{qualifier|from what place}}, {{t|arz|فين|tr=fēn|sc=Arab}} {{qualifier|at what place}}
-*: Moroccan Arabic: {{t|ary|فين|tr=fin}}, {{t|ary|منين|tr=mnin}} {{qualifier|where from}}
-*: North Levantine Arabic: {{t|apc|وَيْن|tr=wayn}} {{qualifier|and other Eastern dialects}}
-
-
-yellow
-
-====Translations====
-{{trans-top|to become yellow or more yellow}}
-* Arabic: {{t|ar|اِصْفَرَّ}}
 
 
 
