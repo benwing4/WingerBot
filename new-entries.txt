@@ -173,12 +173,6 @@ ar_translit.py
 Fix handling of اَلَّتِي allatī and similarly for الَّذِي and الَذدِينَ; it converts to attatī etc.
 
 
-Madrid
-
-====Translations====
-{{trans-top|capital of Spain}}
-* Arabic: {{t|ar|مَدْرِيد|f}}, {{qualifier|archaic}} {{t|ar|مَجْرِيط|f}}
-
 
 
 
