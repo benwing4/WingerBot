@@ -1,19 +1,27 @@
 {{documentation subpage}}
-This template displays an inflection table for Arabic adjectives. The parameters are largely the same as for the headword template {{temp|ar-adj}}, and in general it is possible to copy such a template, change its name to {{temp|ar-decl-adj}}, and get an appropriate declension table -- provided that the masculine plural is specified appropriately, or that the adjective is of a sort that uses a sound masculine plural (e.g. participles of non-form-I verbs and some form-I participles).
+This template displays an inflection table for Arabic adjectives. The parameters are largely the same as for the headword template {{temp|ar-adj}}, and in general it is possible to copy such a template, change its name to {{temp|ar-decl-adj}}, and get an appropriate declension table -- provided that the masculine plural is specified appropriately (possibly using {{para|pl=sp}} to specify a sound masculine plural, for adjectives that use it, e.g. participles of non-form-I verbs and some form-I participles).
 
 See also {{temp|ar-decl-noun}}.
 
 ==Parameters==
 ; {{para|1}}
-: The stem used in the masculine singular, including vowels. Can optionally be of the form 'STEM:TYPE' with an explicitly specified inflection type (see below); otherwise the inflection type is inferred from the form of the stem. Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied (note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-adj}}). Can be "-" to suppress the masculine singular.
+: The stem used in the masculine singular, including vowels, of one of the following forms:
+:# most commonly, just <code>STEM</code>, i.e. an Arabic stem where the transliteration automatically determined and the inflection type inferred from the stem (this inference is very accurate and rarely makes mistakes);
+:# <code>STEM/TR</code> with manual transliteration supplied (use only when the automatic translit is wrong or can't be determined);
+:# <code>STEM:TYPE</code> with an explicitly specified inflection type (see below);
+:# <code>STEM/TR:TYPE</code> with both manual transliteration and explicitly specified inflection;
+:# just <code>TYPE</code> for certain special-cased irregular adjectives (although none may currently exist);
+:# <code>?</code> to indicate an unknown masculine singular (used more often in the masculine plural);
+:# <code>-</code> to suppress the masculine singular.
+: Note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-adj}}.
 ; {{para|head2}}, {{para|head3}}, ...
 : Additional masculine singular stems.
 ; {{para|tr}}, {{para|tr2}}, {{para|tr3}}, ...
-: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates.
+: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates.
 ; {{para|f}}, {{para|f2}}, ...
-: The stem(s) used in the feminine singular, including vowels. Normally unnecessary; if omitted, the feminine singular will be inferred from the masculine singular (equivalent to specifying {{para|f|f}}). Can be of the form 'STEM' (inflection type inferred), 'STEM:TYPE' (with an explicitly specified inflection type, as above), or 'TYPE' (feminine singular stem inferred from inflection type and masculine singular stem; only works for 'f', 'rf', 'intf', 'cdf', 'elf'). Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied. Can be "-" to suppress the feminine.
+: The stem(s) used in the feminine singular, including vowels. Normally unnecessary; if omitted, the feminine singular will be inferred from the masculine singular (equivalent to specifying {{para|f|f}}). Has the same forms as for the masculine singular stem(s), with the addition that the value can be a raw inflection <code>TYPE</code> (feminine singular stem inferred from inflection type and masculine singular stem; only works for <code>f</code>, <code>rf</code>, <code>intf</code>, <code>cdf</code>, <code>elf</code>).
 ; {{para|ftr}}, {{para|f2tr}}, ...
-: Alternative way to specify manual transliteration for {{para|f}}, {{para|f2}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates. Similar parameters are available for plurals and duals.
+: Alternative way to specify manual transliteration for {{para|f}}, {{para|f2}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates. Similar parameters are available for plurals and duals.
 ; {{para|pl}}, {{para|pl2}}, ...
 : The stem(s) used in the masculine plural, including vowels. If omitted, equivalent to specifying {{para|pl|p}}; i.e. defaults to being unknown, except for color-defect adjectives, where the plural can automatically be determined. To specify a strong plural (as for derived participles), use {{para|pl|sp}}. Has the same allowed forms as for the feminine singular.
 ; {{para|fpl}}, {{para|fpl2}}, ...
@@ -25,22 +33,22 @@ See also {{temp|ar-decl-noun}}.
 ; {{para|fd}}, {{para|fd2}}, ...
 : The stem(s) used in the feminine dual, including vowels. Normally unnecessary; if omitted, inferred from the feminine singular (equivalent to specifying {{para|fd|d}}). Has the same allowed forms as for the feminine singular.
 ; {{para|number}}
-: Explicitly control which numbers appear. The value is a comma-separated list of one of more of ''sg, du, pl''. By default, all numbers appear.
+: Explicitly control which numbers appear. The value is a comma-separated list of one of more of <code>sg</code>, <code>du</code>, <code>pl</code>. By default, all numbers appear.
 ; {{para|state}}
-: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind'' (indefinite) or ''def'' (definite); the value ''con'' (construct), possible for nouns, doesn't apply to adjectives (although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+: Explicitly control which states appear. The value is a comma-separated list of one of more of <code>ind</code> (indefinite) or <code>def</code> (definite); the value <code>con</code> (construct), possible for nouns, doesn't apply to adjectives (although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
 ; {{para|basestate}}
-: Override the morphological state. This is mostly used with proper nouns. The value is one of ''ind'' or ''def'' (''con'' doesn't apply to adjectives, although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives).
+: Override the morphological state. This is mostly used with proper nouns. The value is one of <code>ind</code> or <code>def</code> (<code>con</code> doesn't apply to adjectives, although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives).
 ; {{para|omitarticle}}
 : If specified, omit the definite article that is otherwise automatically added in the definite state.
 ; {{para|nom_m_sg_ind}}, {{para|nom_m_sg_def}}, {{para|nom_m_sg_con}}, ...
-: Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), gender (<code>m/f</code>), number (<code>sg/du/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). Manual transliterations can be specified using the 'STEM/TR' form (no alternative parameters are provided in this case for manual translits). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular adjectives]] (or [[:Category:Arabic irregular numerals]], etc. depending on the part of speech), unless {{para|noirreg}} is given a value.
+: Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), gender (<code>m/f</code>), number (<code>sg/du/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). Manual transliterations can be specified using the <code>STEM/TR</code> form (no alternative parameters are provided in this case for manual translits). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular adjectives]] (or [[:Category:Arabic irregular numerals]], etc. depending on the part of speech), unless {{para|noirreg}} is given a value.
 ; {{para|lemma}}
 : Override the lemma (displayed at the head of the declension table).
 ; {{para|noirreg}}
 : If specified, don't place the page in an irregular-declension category when overrides are specified.
 ; {{para|pos}}
 : Override the part of speech (displayed at the head of the declension table).
-; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modf}},{{para|modf2}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modfpl}},{{para|modfpl2}},...; {{para|modd}},{{para|modd2}},...; {{para|modfd}},{{para|modfd2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumgen}}, and {{para|modtr}},{{para|modtr2}},...; {{para|modftr}},{{para|modf2tr}},...; etc.
+; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modf}},{{para|modf2}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modfpl}},{{para|modfpl2}},...; {{para|modd}},{{para|modd2}},...; {{para|modfd}},{{para|modfd2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumgen}}, {{modidafa}}, {{modprefix}} and {{para|modtr}},{{para|modtr2}},...; {{para|modftr}},{{para|modf2tr}},...; etc.
 : Specify another word that is declined separately as a modifier. See {{temp|ar-decl-noun}}, except that {{para|modnumgen}} is used to restrict both number and gender, typically {{para|modnumgen|m_sg}}.
 ; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2f}},{{para|mod2f2}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2fpl}},{{para|mod2fpl2}},...; {{para|mod2d}},{{para|mod2d2}},...; {{para|mod2fd}},{{para|mod2fd2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
 : Specify a second modifying word. See {{temp|ar-decl-noun}}. Similarly, a third modifying word, etc. can be specified using {{para|mod3}} and derivatives, up to {{para|mod9}}.
@@ -57,15 +65,15 @@ See also {{temp|ar-decl-noun}}.
 ; <code>diin</code>
 : Form ending in ''-in'', forcing the "diptote" variant (with indefinite accusative in ''-iya''). Rarely needed for adjectives. See {{temp|ar-decl-noun}} for a discussion of the singular and plural ''-in'' variants in nouns.
 ; <code>inv</code>
-: Invariable declension ending in alif or alif maqṣūra. Such words will have feminine plurals in ''-ayāt'' and duals in ''-ayān''.
+: Invariable declension. Typically ends in alif or alif maqṣūra, but this is not required. Such words will have sound feminine plurals in ''-ayāt'' and duals in ''-ayān''.
 ; <code>lwinv</code>
-: Invariable declension, loanword-type. Always ends in tall alif. Such words will have feminine plurals in ''-āt'' and duals in ''-atān'', as if the alif was a tāʾ marbūṭa.
+: Invariable declension, loanword-type. Always ends in tall alif. Such words will have sound feminine plurals in ''-āt'' and duals in ''-atān'', as if the alif was a tāʾ marbūṭa.
 ; <code>an</code>
 : Forms ending in ''-an'', such as final-weak passive participles.
 ; <code>el</code>
-: Elative adjective. Same as ''di'' but causes the feminine to be inferred as type ''elf''.
+: Elative adjective. Same as <code>di</code> but causes the feminine to be inferred as type <code>elf</code>.
 ; <code>cd</code>
-: Color-defect adjective. Same as ''di'' but causes the feminine to be inferred as type ''cdf'' and plural to be inferred as type ''cdp''.
+: Color-defect adjective. Same as <code>di</code> but causes the feminine to be inferred as type <code>cdf</code> and plural to be inferred as type <code>cdp</code>.
 ; <code>rf</code>
 : Regular feminine in ''-a''.
 ; <code>intf</code>
@@ -75,7 +83,7 @@ See also {{temp|ar-decl-noun}}.
 ; <code>cdf</code>
 : Color-defect feminine, e.g. {{m|ar|حَمْرَاء}} to masculine {{m|ar|أَحْمَر||red}}.
 ; <code>f</code>
-: Select the appropriate feminine form. Equivalent to ''elp'' if the masculine is of type ''el''; ''cdp'' if the masculine is of type ''cd''; ''intf'' if the masculine is of the form of an intensive adjective, such as {{m|ar|كَسْلَان||lazy}} or {{m|ar|عَطْشَان||thirsty}}; else ''rf''.
+: Select the appropriate feminine form. Equivalent to <code>elp</code> if the masculine is of type <code>el</code>; <code>cdp</code> if the masculine is of type <code>cd</code>; <code>intf</code> if the masculine is of the form of an intensive adjective, such as {{m|ar|كَسْلَان||lazy}} or {{m|ar|عَطْشَان||thirsty}}; else <code>rf</code>.
 ; <code>smp</code>
 : Sound masculine plural in ''-ūn(a)/-īn(a)''.
 ; <code>sfp</code>
@@ -85,9 +93,9 @@ See also {{temp|ar-decl-noun}}.
 ; <code>cdp</code>
 : Color-defect adjective plural.
 ; <code>p</code>
-: Select the appropriate plural form if known (currently only if the singular is of type ''cd'', in which case it is equivalent to ''cdp''); else, equivalent to type ''?''.
+: Select the appropriate plural form if known (currently only if the singular is of type <code>cd</code>, in which case it is equivalent to <code>cdp</code>); else, equivalent to type <code>?</code>.
 ; <code>sp</code>
-: Select the appropriate plural form if known, else a strong plural. Equivalent to ''cdp'' if the singular is of type ''cd''; else ''sfp'' for feminines, ''awnp'' for masculines if the singular is of type ''an'', ''smp'' for other masculines.
+: Select the appropriate plural form if known, else a strong plural. Equivalent to <code>cdp</code> if the singular is of type <code>cd</code>; else <code>sfp</code> for feminines, <code>awnp</code> for masculines if the singular is of type <code>an</code>, <code>smp</code> for other masculines.
 ; <code>d</code>
 : Select the appropriate dual form.
 ; <code>?</code>

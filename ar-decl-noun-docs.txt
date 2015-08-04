@@ -3,27 +3,39 @@ This template displays an inflection table for Arabic nouns. The parameters are 
 
 See also {{temp|ar-decl-adj}}.
 
-==Parameters==
+==Base parameters==
 ; {{para|1}}
-: The stem used in the singular, including vowels. Can optionally be of the form 'STEM:TYPE' with an explicitly specified inflection type (see below); otherwise the inflection type is inferred from the form of the stem. Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied (note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-noun}}). Can be just 'TYPE' with irregular noun types, where the stem is known. Can be "-" for words without a singular (e.g. {{m|ar|نَاس||people}}).
+: The stem used in the singular, including vowels, of one of the following forms:
+:# most commonly, just <code>STEM</code>, i.e. an Arabic stem where the transliteration automatically determined and the inflection type inferred from the stem (this inference is very accurate and rarely makes mistakes);
+:# <code>STEM/TR</code> with manual transliteration supplied (use only when the automatic translit is wrong or can't be determined);
+:# <code>STEM:TYPE</code> with an explicitly specified inflection type (see below);
+:# <code>STEM/TR:TYPE</code> with both manual transliteration and explicitly specified inflection;
+:# just <code>TYPE</code> for certain special-cased irregular nouns (although none may currently exist);
+:# <code>?</code> to indicate an unknown singular (used more often the masculine plural of adjectives, and occasionally in nouns to specify an unknown dual);
+:# <code>-</code> for words without a singular (e.g. {{m|ar|نَاس||people}}).
+: Note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-noun}}.
 ; {{para|head2}}, {{para|head3}}, ...
 : Additional singular stems.
 ; {{para|tr}}, {{para|tr2}}, {{para|tr3}}, ...
-: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates.
+: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates.
 ; {{para|pl}}, {{para|pl2}}, ...
-: The stem(s) used in the plural, including vowels. Can be of the form 'STEM' (inflection type inferred), 'STEM:TYPE' (with an explicitly specified inflection type, as above), or 'TYPE' (plural stem inferred from inflection type and singular stem; only works for 'sp', 'sfp', 'smp' and 'awnp'). Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied.
+: The stem(s) used in the plural, including vowels. Has the same forms as for the singular stem(s), with the addition that the value can be a raw inflection <code>TYPE</code>: e.g. <code>sp</code> to infer a strong plural from the singular and its gender; <code>sfp</code>, <code>smp</code> or <code>awnp</code> to construct a strong plural from the singular with a specified ending.
 ; {{para|pltr}}, {{para|pl2tr}}, ...
-: Alternative way to specify manual transliteration for {{para|pl}}, {{para|pl2}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates. Similar parameters are available for duals.
+: Alternative way to specify manual transliteration for {{para|pl}}, {{para|pl2}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates. Similar parameters are available for duals.
 ; {{para|d}}, {{para|d2}}, ...
-: The stem(s) used in the dual, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singular. Can be "-" for words without a dual when it would otherwise appear (which happens when the noun has a plural specified).
+: The stem(s) used in the dual, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singular. Can be <code>-</code> for words without a dual when it would otherwise appear (which happens when the noun has a plural specified); can be <code>?</code> to indicate that the dual exists but is unknown (e.g. it is currently used in {{m|ar|بِيَانُو|tr=biyānō||[[piano]]}}).
+; {{para|dtr}}, {{para|d2tr}}, ...
+: See {{para|pltr}}, {{para|pl2tr}}, ...
 ; {{para|number}}
-: Explicitly control which numbers appear. The value is a comma-separated list of one of more of ''sg, du, pl''. By default, the singular appears unless it is specified as "-"; the dual appears when both the singular and plural appear; and the plural appears when at least one plural is given.
+: Explicitly control which numbers appear. The value is a comma-separated list of one of more of <code>sg</code>, <code>du</code>, <code>pl</code>. By default, the singular appears unless it is specified as <code>-</code>; the dual appears when both the singular and plural appear; and the plural appears when at least one plural is given.
 ; {{para|state}}
-: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind, def, con'' (standing for indefinite, definite, construct). By default, all states appear. (Alternatively, the value can be ''ind-def'', for proper nouns that are syntactically definite but morphologically indefinite. This is equivalent to setting the value to ''def'' and adding {{para|basestate|ind}}.) Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+: Explicitly control which states appear. The value is a comma-separated list of one of more of <code>ind</code>, <code>def</code>, <code>con</code> (standing for indefinite, definite, construct). By default, all states appear. (Alternatively, the value can be <code>ind-def</code>, for proper nouns that are syntactically definite but morphologically indefinite. This is equivalent to setting the value to <code>def</code> and adding {{para|basestate|ind}}.) Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
 ; {{para|basestate}}
 : Override the morphological state. This can be used e.g. with proper nouns, which are syntactically definite but morphologically indefinite; but using {{para|state|ind-def}} for this case is preferred.
 ; {{para|omitarticle}}
 : If specified, omit the definite article that is otherwise automatically added in the definite state.
+; {{para|prefix}}
+: Specify a prefix to appear before the base word and before any definite article. This is typically a clitic such as {{m|ar|وَ|tr=wa-||and}} or {{m|ar|بِ|tr=bi-||in, with, by}}, but can be a separate word such as {{m|ar|فِي||in}}, in which a space is needed after the word and the whole thing, space and all, needs to be enclosed in quotes since leading and trailing spaces are normally removed in named template arguments.
 ; {{para|nom_sg_ind}}, {{para|nom_sg_def}}, {{para|nom_sg_con}}, ...
 : Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), number (<code>sg/du/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular nouns]] (or [[:Category:Arabic irregular pronouns]], etc. depending on the part of speech), unless {{para|noirreg}} is given a value.
 ; {{para|lemma}}
@@ -32,10 +44,20 @@ See also {{temp|ar-decl-adj}}.
 : If specified, don't place the page in an irregular-declension category when overrides are specified.
 ; {{para|pos}}
 : Override the part of speech (displayed at the head of the declension table).
-; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modd}},{{para|modd2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumber}}, and {{para|modtr}},{{para|mod2tr}},...; {{para|modpltr}},{{para|modpl2tr}},...; etc.
-: Specify another word that is declined separately as a modifier. Generally only {{para|mod}} is needed, but multiple heads can be given ({{para|modhead2}}, etc.), as well as separate plural ({{para|modpl}}, etc.) and dual ({{para|modd}}, etc.) forms. If the word has a fixed genitive case in an ''ʾiḍāfa'' construction, {{para|idafa}} should be specified, e.g. {{para|idafa|def}} for a definite-state singular ''ʾiḍāfa'' modifier. It is also possible to manually specify the case, state and number of an ''ʾiḍāfa'' construction using various other parameters (e.g. {{para|modstate}}, {{para|modcase}}, {{para|modnumber}}, {{para|modidafa}}, {{para|basestate}}) but this is rarely if ever necessary. See examples below. Note that separate manual transliteration parameters also exist ({{para|modtr}},{{para|modtr2}},...; {{para|modpltr}},{{para|modpl2tr}},...; etc.}) and can be used as alternatives to the ''ARABIC/TRANSLIT'' notation.
+
+==Modifier parameters==
+; Stem: {{para|mod}},{{para|modhead2}},{{para|modhead3}},...
+;; Alternative manual translit params: {{para|modtr}},{{para|modtr2}}, ...
+; Plural: {{para|modpl}},{{para|modpl2}},...
+;; Alternative manual translit params: {{para|modpltr}},{{para|modpl2tr}}, ...
+; Dual: {{para|modd}},{{para|modd2}},...
+;; Alternative manual translit params: {{para|moddtr}},{{para|modd2tr}}, ...
+; Nature of modifier, high-level (''ʾiḍāfa'' or adjectival): {{para|idafa}}
+; Nature of modifier low-level: {{para|modstate}},{{para|modcase}},{{para|modnumber}},{{para|modidafa}}
+; Other: {{para|modomitarticle}},{{para|modprefix}}
+: Specify another word that is declined separately as a modifier. Generally only {{para|mod}} is needed, but multiple heads can be given ({{para|modhead2}}, etc., which will be distributed over the base form(s)), as well as separate plural ({{para|modpl}}, etc.) and dual ({{para|modd}}, etc.) forms. All the forms for specifying a base stem, base plural stem, etc. are available in the corresponding modifier stems, and alternative manual translit params also exist. If the modifier has a fixed genitive case in an ''ʾiḍāfa'' construction, {{para|idafa}} should be specified, e.g. {{para|idafa|def}} for a definite-state singular ''ʾiḍāfa'' modifier. See the list below of possible values for this parameter, and the numerous examples below. It is also possible to manually specify the case, state and/or number of the modifier using the lower-level parameters {{para|modstate}}, {{para|modcase}}, {{para|modnumber}}, and/or {{para|modidafa}} possibly in conjunction with {{para|basestate}}, but this is rarely needed. (Underlyingly, the various values of {{para|idafa}} are implemented by setting these low-level parameters. {{para|idafa}} can be combine with the low-level parameters, with the explicitly-specified values overriding the values induced by {{para|idafa}}.)
 ; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2d}},{{para|mod2d2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
-: Specify a second modifying word. The values for {{para|idafa2}} are the same as for {{para|idafa}}, but in addition it is necessary to specify e.g. {{para|idafa2|adj-mod}} for an adjectival modifier that modifies a previous ''ʾiḍāfa'' modifier.
+: Specify a second modifying word. All parameters specific to the first modifying word have corresponding parameters for the second and higher modifying words. The values for {{para|idafa2}} are the same as for {{para|idafa}}, but in addition it is necessary to specify e.g. {{para|idafa2|adj-mod}} for an adjectival modifier that modifies a previous ''ʾiḍāfa'' modifier.
 ; {{para|mod3}},{{para|mod3head2}},{{para|mod3head3}},...; {{para|mod3pl}},{{para|mod3pl2}},...; {{para|mod3d}},{{para|mod3d2}},...; etc. Also {{para|idafa3}}. Also {{para|mod3state}}, {{para|mod3tr}}, etc.
 : Specify a third modifying word, etc. up to {{para|mod9}}.
 
@@ -44,26 +66,30 @@ See also {{temp|ar-decl-adj}}.
 : Regular triptote.
 ; <code>di</code>
 : Regular diptote.
-; <code>smp</code>
-: Sound masculine plural in ''-ūn(a)/-īn(a)''.
-; <code>sfp</code>
-: Sound feminine plural in ''-āt-''.
 ; <code>in</code>
 : Noun ending in ''-in'', such as {{m|ar|بَانٍ}}. This automatically selects the triptote or diptote variant according to the number (singular vs. plural) and the form of the noun.
 ; <code>triin</code>
 : Noun ending in ''-in'', forcing the "triptote" variant (with indefinite accusative in ''-iyan'').
 ; <code>diin</code>
 : Noun ending in ''-in'', forcing the "diptote" variant (with indefinite accusative in ''-iya''). Most but not all plural nouns use this variant. (Specifically, ''-iya'' is used with nouns whose pattern is analogous to a diptote pattern, such as {{m|ar|أَيَادٍ||hands}} and {{m|ar|لَيَالٍ||nights}}, which correspond to the diptote pattern ''CaCāCiC''. The "singular" ''-iyan'' is used with plural nouns such as {{m|ar|أَيْدٍ||hands}}, which corresponds to the triptote pattern ''ʾaCCuC''.)
+; <code>inv</code>
+: Invariable declension, such as {{m|ar|ذِكْرَى||remembrance}} or {{m|ar|دُنْيَا||world}}. Typically ends in alif or alif maqṣūra, but this is not required. Such words will have sound feminine plurals in ''-ayāt'' and duals in ''-ayān''.
+; <code>lwinv</code>
+: Invariable declension, loanword-type. Always ends in tall alif. Such words will have sound feminine plurals in ''-āt'' and duals in ''-atān'', as if the alif was a tāʾ marbūṭa.
 ; <code>an</code>
 : Noun ending in ''-an'', such as {{m|ar|مُسْتَشْفًى}} or {{m|ar|عَصًا}}.
-; <code>awnp</code>
-: Plural ending in ''-awn(a)'', esp. of adjectives, such as {{m|ar|أَدْنَوْنَ}} plural of {{m|ar|أَدْنَى||closer, lower}}.
-; <code>inv</code>
-: Invariable declension in the singular, such as {{m|ar|ذِكْرَى||remembrance}} or {{m|ar|دُنْيَا||world}}.
-; <code>lwinv</code>
-: Invariable declension in the singular, loanword-type. Always ends in tall alif, which is treated as tāʾ marbūṭa in the dual and plural (I think).
 ; <code>lc</code>
 : Noun with a lengthened construct ending, such as {{m|ar|أَبٌ}} with construct {{m|ar|أَبُو}}.
+; <code>smp</code>
+: Sound masculine plural in ''-ūn(a)/-īn(a)''.
+; <code>sfp</code>
+: Sound feminine plural in ''-āt-''.
+; <code>awnp</code>
+: Plural ending in ''-awn(a)'', esp. of adjectives, such as {{m|ar|أَدْنَوْنَ}} plural of {{m|ar|أَدْنَى||closer, lower}}.
+; <code>sp</code>
+: Select the appropriate plural form if known, else a strong plural. Equivalent to <code>sfp</code> for feminines, <code>awnp</code> for masculines if the singular is of type <code>an</code>, <code>smp</code> for other masculines.
+; <code>d</code>
+: Select the appropriate dual form.
 ; <code>?</code>
 : Indicate that the declension is unknown. All inflections will appear as question marks.
 
@@ -298,6 +324,26 @@ which produces
 In this case, we use {{para|state=ind-def}}, which sets the overall state to definite, but declines the base noun as indefinite. (This is equivalent to using <code>|state=def|basestate=ind</code>.) This is consistent with the fact that the expression is grammatically definite and its modifier will appear with the definite article. Note also that we need to write the modifier in its indefinite form {{m|ar|ثَانٍ}}; the appropriate definite form is automatically generated.
 
 Other similar examples are {{m|ar|أَمْرِيكَا الشَمَالِيَّة||[[North America]]}}, {{m|ar|كُورِيَا الجَنُوبِيَّة|tr=kōriyā l-janūbiyya||[[South Korea]]}} and {{m|ar|فِرْجِينِيَا الغَرْبِيَّة||[[West Virginia]]}}.
+
+====Prefix example #1====
+An example where {{para|prefix}} (actually {{para|modprefix}}) comes in handy is the phrase {{m|ar|التَوْرَاة وَالإِنْجِيل|tr=at-tawrāh wa-l-ʾinjīl}}. The declension for this phrase can be expressed as follows:
+
+<code><nowiki>{{ar-decl-noun|تَوْرَاة|mod=إِنْجِيل|modprefix=وَ/wa-|state=def}}</nowiki></code>
+
+which produces
+
+{{ar-decl-noun|تَوْرَاة|mod=إِنْجِيل|modprefix=وَ/wa-|state=def}}
+
+Note the use of a prefix to handle the conjunction {{m|ar|وَ|tr=wa-||and}}, and the automatic implementation of elision in the transliteration.
+
+====Prefix example #2====
+A similar example occurs with numbers, such as {{m|ar|تِسْرَة وَعِشْرُون|tr=tisʿa wa-ʿišrūn||[[twenty-nine]]}}. The declension can be expressed as follows:
+
+<code><nowiki>{{ar-decl-numeral|تِسْعَة|f=تِسْع|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}</nowiki></code>
+
+which produces
+
+{{ar-decl-numeral|تِسْعَة|f=تِسْع|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
 
 ====Multiple modifiers #1====
 Things get more complicated when multiple modifiers are involved, because there are various possibilities: Each of the modifiers can independently be adjectival or ''ʾidāfa'', and a second or further-on adjectival modifier can modify an earlier ''ʾidāfa'' modifier rather than the base.
