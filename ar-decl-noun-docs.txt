@@ -10,7 +10,6 @@ See also {{temp|ar-decl-adj}}.
 :# <code>STEM/TR</code> with manual transliteration supplied (use only when the automatic translit is wrong or can't be determined);
 :# <code>STEM:TYPE</code> with an explicitly specified inflection type (see below);
 :# <code>STEM/TR:TYPE</code> with both manual transliteration and explicitly specified inflection;
-:# just <code>TYPE</code> for certain special-cased irregular nouns (although none may currently exist);
 :# <code>?</code> to indicate an unknown singular (used more often the masculine plural of adjectives, and occasionally in nouns to specify an unknown dual);
 :# <code>-</code> for words without a singular (e.g. {{m|ar|نَاس||people}}).
 : Note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-noun}}.
@@ -31,7 +30,7 @@ See also {{temp|ar-decl-adj}}.
 ; {{para|state}}
 : Explicitly control which states appear. The value is a comma-separated list of one of more of <code>ind</code>, <code>def</code>, <code>con</code> (standing for indefinite, definite, construct). By default, all states appear. (Alternatively, the value can be <code>ind-def</code>, for proper nouns that are syntactically definite but morphologically indefinite. This is equivalent to setting the value to <code>def</code> and adding {{para|basestate|ind}}.) Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
 ; {{para|basestate}}
-: Override the morphological state. This can be used e.g. with proper nouns, which are syntactically definite but morphologically indefinite; but using {{para|state|ind-def}} for this case is preferred.
+: Override the morphological state. The value is one of <code>ind</code>, <code>def</code> or <code>con</code>. This can be used e.g. with proper nouns, which are syntactically definite but morphologically indefinite; but using {{para|state|ind-def}} for this case is preferred.
 ; {{para|omitarticle}}
 : If specified, omit the definite article that is otherwise automatically added in the definite state.
 ; {{para|prefix}}
@@ -53,12 +52,12 @@ See also {{temp|ar-decl-adj}}.
 ; Dual: {{para|modd}},{{para|modd2}},...
 ;; Alternative manual translit params: {{para|moddtr}},{{para|modd2tr}}, ...
 ; Nature of modifier, high-level (''ʾiḍāfa'' or adjectival): {{para|idafa}}
-; Nature of modifier low-level: {{para|modstate}},{{para|modcase}},{{para|modnumber}},{{para|modidafa}}
+; Nature of modifier, low-level: {{para|modstate}},{{para|modcase}},{{para|modnumber}},{{para|modidafa}}
 ; Other: {{para|modomitarticle}},{{para|modprefix}}
 : Specify another word that is declined separately as a modifier. Generally only {{para|mod}} is needed, but multiple heads can be given ({{para|modhead2}}, etc., which will be distributed over the base form(s)), as well as separate plural ({{para|modpl}}, etc.) and dual ({{para|modd}}, etc.) forms. All the forms for specifying a base stem, base plural stem, etc. are available in the corresponding modifier stems, and alternative manual translit params also exist. If the modifier has a fixed genitive case in an ''ʾiḍāfa'' construction, {{para|idafa}} should be specified, e.g. {{para|idafa|def}} for a definite-state singular ''ʾiḍāfa'' modifier. See the list below of possible values for this parameter, and the numerous examples below. It is also possible to manually specify the case, state and/or number of the modifier using the lower-level parameters {{para|modstate}}, {{para|modcase}}, {{para|modnumber}}, and/or {{para|modidafa}} possibly in conjunction with {{para|basestate}}, but this is rarely needed. (Underlyingly, the various values of {{para|idafa}} are implemented by setting these low-level parameters. {{para|idafa}} can be combine with the low-level parameters, with the explicitly-specified values overriding the values induced by {{para|idafa}}.)
-; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2d}},{{para|mod2d2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
+; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2d}},{{para|mod2d2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}},{{para|mod2tr}}, etc.
 : Specify a second modifying word. All parameters specific to the first modifying word have corresponding parameters for the second and higher modifying words. The values for {{para|idafa2}} are the same as for {{para|idafa}}, but in addition it is necessary to specify e.g. {{para|idafa2|adj-mod}} for an adjectival modifier that modifies a previous ''ʾiḍāfa'' modifier.
-; {{para|mod3}},{{para|mod3head2}},{{para|mod3head3}},...; {{para|mod3pl}},{{para|mod3pl2}},...; {{para|mod3d}},{{para|mod3d2}},...; etc. Also {{para|idafa3}}. Also {{para|mod3state}}, {{para|mod3tr}}, etc.
+; {{para|mod3}},{{para|mod3head2}},{{para|mod3head3}},...; {{para|mod3pl}},{{para|mod3pl2}},...; {{para|mod3d}},{{para|mod3d2}},...; etc. Also {{para|idafa3}}. Also {{para|mod3state}},{{para|mod3tr}}, etc.
 : Specify a third modifying word, etc. up to {{para|mod9}}.
 
 ==Inflection types==
@@ -336,14 +335,7 @@ which produces
 
 Note the use of a prefix to handle the conjunction {{m|ar|وَ|tr=wa-||and}}, and the automatic implementation of elision in the transliteration.
 
-====Prefix example #2====
-A similar example occurs with numbers, such as {{m|ar|تِسْرَة وَعِشْرُون|tr=tisʿa wa-ʿišrūn||[[twenty-nine]]}}. The declension can be expressed as follows:
-
-<code><nowiki>{{ar-decl-numeral|تِسْعَة|f=تِسْع|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}</nowiki></code>
-
-which produces
-
-{{ar-decl-numeral|تِسْعَة|f=تِسْع|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
+Another prefix example is found in the documentation for {{temp|ar-decl-numeral}}.
 
 ====Multiple modifiers #1====
 Things get more complicated when multiple modifiers are involved, because there are various possibilities: Each of the modifiers can independently be adjectival or ''ʾidāfa'', and a second or further-on adjectival modifier can modify an earlier ''ʾidāfa'' modifier rather than the base.

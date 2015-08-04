@@ -14,6 +14,17 @@ This yields
 
 {{ar-decl-numeral|ثَلَاثَة|head2=ثَلَاثَة:di|f=ثَلَاث}}
 
+===A more complex example===
+The following example is for the complex numeral {{m|ar|تِسْرَة وَعِشْرُون|tr=tisʿa wa-ʿišrūn||[[twenty-nine]]}}. The declension can be expressed as follows:
+
+<code><nowiki>{{ar-decl-numeral|-|pl=تِسْعَة|fpl=تِسْع|mod=-|modpl=عِشْرُون|modfpl=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}</nowiki></code>
+
+which produces
+
+{{ar-decl-numeral|-|pl=تِسْعَة|fpl=تِسْع|mod=-|modpl=عِشْرُون|modfpl=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
+
+Note the use of {{para|modprefix}} to insert the clitic prefix {{m|ar|وَ|tr=wa-}} before {{m|ar|عِشْرُون}}.
+
 <includeonly>
 [[Category:Arabic numeral inflection-table templates|{{BASEPAGENAME}}]]
 </includeonly>

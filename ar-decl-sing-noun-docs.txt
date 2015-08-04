@@ -5,29 +5,45 @@ This template works very similarly to {{temp|ar-decl-noun}}. See that template f
 
 ==Parameters==
 ; {{para|1}}
-: The stem used in the singulative, including vowels. Can optionally be of the form 'STEM:TYPE' with an explicitly specified inflection type (see below); otherwise the inflection type is inferred from the form of the stem. Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied (note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-sing-noun}}). Can be just 'TYPE' with irregular noun types, where the stem is known. Can be "-" for words without a singulative.
+: The stem used in the singulative, including vowels, of one of the following forms:
+:# most commonly, just <code>STEM</code>, i.e. an Arabic stem where the transliteration automatically determined and the inflection type inferred from the stem (this inference is very accurate and rarely makes mistakes);
+:# <code>STEM/TR</code> with manual transliteration supplied (use only when the automatic translit is wrong or can't be determined);
+:# <code>STEM:TYPE</code> with an explicitly specified inflection type (see below);
+:# <code>STEM/TR:TYPE</code> with both manual transliteration and explicitly specified inflection;
+:# <code>?</code> to indicate an unknown singulative (used more often the masculine plural of adjectives, and occasionally in nouns to specify an unknown dual);
+:# <code>-</code> for words without a singulative.
+: Note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-sing-noun}}.
+; {{para|1}}
 ; {{para|head2}}, {{para|head3}}, ...
 : Additional singulative stems.
 ; {{para|tr}}, {{para|tr2}}, {{para|tr3}}, ...
-: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates.
+: Alternative way to specify manual transliteration for {{para|1}}, {{para|head2}}, {{para|head3}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates.
 ; {{para|pl}}, {{para|pl2}}, ...
-: The stem(s) used in the plural, including vowels. Can be of the form 'STEM' (inflection type inferred), 'STEM:TYPE' (with an explicitly specified inflection type, as above), or 'TYPE' (plural stem inferred from inflection type and collective stem; only works for 'sp', 'sfp', 'smp' and 'awnp'). Can also be 'STEM/TR' or 'STEM/TR:TYPE' with manual transliteration supplied.
+: The stem(s) used in the plural, including vowels. Has the same forms as for the singulative stem(s), with the addition that the value can be a raw inflection <code>TYPE</code>: e.g. <code>sp</code> to infer a strong plural from the singulative and its gender; <code>sfp</code>, <code>smp</code> or <code>awnp</code> to construct a strong plural from the singulative with a specified ending.
 ; {{para|pltr}}, {{para|pl2tr}}, ...
-: Alternative way to specify manual transliteration for {{para|pl}}, {{para|pl2}}, ..., respectively, instead of using the 'STEM/TR' specification. Provided for compatibility with headword templates. Similar parameters are available for collectives, duals and paucals.
+: Alternative way to specify manual transliteration for {{para|pl}}, {{para|pl2}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates. Similar parameters are available for collectives, duals and paucals.
 ; {{para|coll}}, {{para|coll2}}, ...
-: The stem(s) used in the collective, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be "-" for words without a collective.
+: The stem(s) used in the collective, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be <code>-</code> for words without a collective.
+; {{para|colltr}}, {{para|coll2tr}}, ...
+: See {{para|pltr}}, {{para|pl2tr}}, ...
 ; {{para|d}}, {{para|d2}}, ...
-: The stem(s) used in the dual, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be "-" for words without a dual.
+: The stem(s) used in the dual, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be <code>-</code> for words without a dual.
+; {{para|dtr}}, {{para|d2tr}}, ...
+: See {{para|pltr}}, {{para|pl2tr}}, ...
 ; {{para|pauc}}, {{para|pauc2}}, ...
-: The stem(s) used in the paucal, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be "-" for words without a paucal.
+: The stem(s) used in the paucal, including vowels. Same form as for plurals. Doesn't need to be present in most cases as it's inferred from the singulative. Can be <code>-</code> for words without a paucal.
+; {{para|pauctr}}, {{para|pauc2tr}}, ...
+: See {{para|pltr}}, {{para|pl2tr}}, ...
 ; {{para|number}}
-: Explicitly control which numbers appear. The value is a comma-separated list of one of more of ''sing, coll, du, pauc, pl''. By default, all except the plural appear, unless a particular number is disabled using "-"; the plural appears only when at least one plural is given.
+: Explicitly control which numbers appear. The value is a comma-separated list of one of more of <code>sing</code>, <code>coll</code>, <code>du</code>, <code>pauc</code>, <code>pl</code>. By default, all except the plural appear, unless a particular number is disabled using <code>-</code>; the plural appears only when at least one plural is given.
 ; {{para|state}}
-: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind, def, con'' (standing for indefinite, definite, construct). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+: Explicitly control which states appear. See {{temp|ar-decl-noun}}.
 ; {{para|basestate}}
 : Override the morphological state. See {{temp|ar-decl-noun}}.
 ; {{para|omitarticle}}
 : If specified, omit the definite article that is otherwise automatically added in the definite state.
+; {{para|prefix}}
+: Specify a prefix to appear before the base word and before any definite article. See {{temp|ar-decl-noun}}.
 ; {{para|nom_sing_ind}}, {{para|nom_sing_def}}, {{para|nom_sing_con}}, ...
 : Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), number (<code>sing/coll/du/pauc/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular nouns]], unless {{para|noirreg}} is given a value.
 ; {{para|lemma}}
@@ -36,7 +52,7 @@ This template works very similarly to {{temp|ar-decl-noun}}. See that template f
 : If specified, don't place the page in an irregular-declension category when overrides are specified.
 ; {{para|pos}}
 : Override the part of speech (displayed at the head of the declension table).
-; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modcoll}},{{para|modcoll2}},...; {{para|modd}},{{para|modd2}},...; {{para|modpauc}},{{para|modpauc2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumber}}, and {{para|modtr}},{{para|mod2tr}},...; {{para|modpltr}},{{para|modpl2tr}},...; etc.
+; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modcoll}},{{para|modcoll2}},...; {{para|modd}},{{para|modd2}},...; {{para|modpauc}},{{para|modpauc2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}},{{para|modcase}},{{para|modnumber}},{{para|modidafa}},{{para|modprefix}} and {{para|modtr}},{{para|mod2tr}},...; {{para|modpltr}},{{para|modpl2tr}},...; etc.
 : Specify another word that is declined separately as a modifier. See {{temp|ar-decl-noun}}.
 ; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2coll}},{{para|mod2coll2}},...; {{para|mod2d}},{{para|mod2d2}},...; {{para|mod2pauc}},{{para|mod2pauc2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
 : Specify a second modifying word. See {{temp|ar-decl-noun}}. Similarly, a third modifying word, etc. can be specified using {{para|mod3}} and derivatives, up to {{para|mod9}}.

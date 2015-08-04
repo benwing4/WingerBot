@@ -10,7 +10,6 @@ See also {{temp|ar-decl-noun}}.
 :# <code>STEM/TR</code> with manual transliteration supplied (use only when the automatic translit is wrong or can't be determined);
 :# <code>STEM:TYPE</code> with an explicitly specified inflection type (see below);
 :# <code>STEM/TR:TYPE</code> with both manual transliteration and explicitly specified inflection;
-:# just <code>TYPE</code> for certain special-cased irregular adjectives (although none may currently exist);
 :# <code>?</code> to indicate an unknown masculine singular (used more often in the masculine plural);
 :# <code>-</code> to suppress the masculine singular.
 : Note that manual transliteration can also be specified using separate parameters, as with headword templates like {{temp|ar-adj}}.
@@ -24,22 +23,34 @@ See also {{temp|ar-decl-noun}}.
 : Alternative way to specify manual transliteration for {{para|f}}, {{para|f2}}, ..., respectively, instead of using the <code>STEM/TR</code> specification. Provided for compatibility with headword templates. Similar parameters are available for plurals and duals.
 ; {{para|pl}}, {{para|pl2}}, ...
 : The stem(s) used in the masculine plural, including vowels. If omitted, equivalent to specifying {{para|pl|p}}; i.e. defaults to being unknown, except for color-defect adjectives, where the plural can automatically be determined. To specify a strong plural (as for derived participles), use {{para|pl|sp}}. Has the same allowed forms as for the feminine singular.
+; {{para|pltr}}, {{para|pl2tr}}, ...
+: See {{para|ftr}}, {{para|f2tr}}, ...
 ; {{para|fpl}}, {{para|fpl2}}, ...
 : The stem(s) used in the feminine plural, including vowels. Normally unnecessary; if omitted, inferred from the feminine singular (equivalent to specifying {{para|fpl|sp}}). Has the same allowed forms as for the feminine singular.
+; {{para|fpltr}}, {{para|fpl2tr}}, ...
+: See {{para|ftr}}, {{para|f2tr}}, ...
 ; {{para|cpl}}, {{para|cpl2}}, ...
 : The stem(s) used in the masculine and feminine plural, including vowels. Equivalent to specifying both {{para|pl}} and {{para|fpl}} with the same value. Can be freely mixed with {{para|pl}} and {{para|fpl}} and will be listed after them. Has the same allowed forms as for the feminine singular.
+; {{para|cpltr}}, {{para|cpl2tr}}, ...
+: See {{para|ftr}}, {{para|f2tr}}, ...
 ; {{para|d}}, {{para|d2}}, ...
 : The stem(s) used in the masculine dual, including vowels. Normally unnecessary; if omitted, inferred from the masculine singular (equivalent to specifying {{para|d|d}}). Has the same allowed forms as for the feminine singular.
+; {{para|dtr}}, {{para|d2tr}}, ...
+: See {{para|ftr}}, {{para|f2tr}}, ...
 ; {{para|fd}}, {{para|fd2}}, ...
 : The stem(s) used in the feminine dual, including vowels. Normally unnecessary; if omitted, inferred from the feminine singular (equivalent to specifying {{para|fd|d}}). Has the same allowed forms as for the feminine singular.
+; {{para|fdtr}}, {{para|fd2tr}}, ...
+: See {{para|ftr}}, {{para|f2tr}}, ...
 ; {{para|number}}
 : Explicitly control which numbers appear. The value is a comma-separated list of one of more of <code>sg</code>, <code>du</code>, <code>pl</code>. By default, all numbers appear.
 ; {{para|state}}
-: Explicitly control which states appear. The value is a comma-separated list of one of more of <code>ind</code> (indefinite) or <code>def</code> (definite); the value <code>con</code> (construct), possible for nouns, doesn't apply to adjectives (although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+: Explicitly control which states appear. The value is a comma-separated list of one of more of <code>ind</code> (indefinite) or <code>def</code> (definite); the value <code>con</code> (construct), possible for nouns, doesn't apply to adjectives (although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives). (An additional possibility is <code>ind-def</code>, although it's unlikely it's useful for adjectives. See {{temp|ar-decl-noun}}.) By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
 ; {{para|basestate}}
-: Override the morphological state. This is mostly used with proper nouns. The value is one of <code>ind</code> or <code>def</code> (<code>con</code> doesn't apply to adjectives, although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives).
+: Override the morphological state. This is mostly used with proper nouns; see {{temp|ar-decl-noun}}. The value is one of <code>ind</code> or <code>def</code> (<code>con</code> doesn't apply to adjectives, although it does apply to gendered nouns and numerals, which otherwise use the same parameters as adjectives).
 ; {{para|omitarticle}}
 : If specified, omit the definite article that is otherwise automatically added in the definite state.
+; {{para|prefix}}
+: Specify a prefix to appear before the base word and before any definite article. See {{temp|ar-decl-noun}}.
 ; {{para|nom_m_sg_ind}}, {{para|nom_m_sg_def}}, {{para|nom_m_sg_con}}, ...
 : Override particular forms. The param name is a combination of case (<code>nom/acc/gen/inf</code> where <code>inf</code> is the informal form), gender (<code>m/f</code>), number (<code>sg/du/pl</code>) and state (<code>ind/def/con</code>). The value can have semicolons or commas (or Arabic equivalents) to separate distinct stems and a vertical bar to separate alternative spellings for a given stem (typically different possible hamza seats). Manual transliterations can be specified using the <code>STEM/TR</code> form (no alternative parameters are provided in this case for manual translits). When overrides are specified, the page will be placed in a category indicating irregular declension such as [[:Category:Arabic irregular adjectives]] (or [[:Category:Arabic irregular numerals]], etc. depending on the part of speech), unless {{para|noirreg}} is given a value.
 ; {{para|lemma}}
@@ -48,7 +59,7 @@ See also {{temp|ar-decl-noun}}.
 : If specified, don't place the page in an irregular-declension category when overrides are specified.
 ; {{para|pos}}
 : Override the part of speech (displayed at the head of the declension table).
-; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modf}},{{para|modf2}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modfpl}},{{para|modfpl2}},...; {{para|modd}},{{para|modd2}},...; {{para|modfd}},{{para|modfd2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}}, {{para|modcase}}, {{para|modnumgen}}, {{modidafa}}, {{modprefix}} and {{para|modtr}},{{para|modtr2}},...; {{para|modftr}},{{para|modf2tr}},...; etc.
+; {{para|mod}},{{para|modhead2}},{{para|modhead3}},...; {{para|modf}},{{para|modf2}},...; {{para|modpl}},{{para|modpl2}},...; {{para|modfpl}},{{para|modfpl2}},...; {{para|modd}},{{para|modd2}},...; {{para|modfd}},{{para|modfd2}},...; etc. Also {{para|idafa}}. Also {{para|modstate}},{{para|modcase}},{{para|modnumgen}},{{modidafa}},{{modprefix}} and {{para|modtr}},{{para|modtr2}},...; {{para|modftr}},{{para|modf2tr}},...; etc.
 : Specify another word that is declined separately as a modifier. See {{temp|ar-decl-noun}}, except that {{para|modnumgen}} is used to restrict both number and gender, typically {{para|modnumgen|m_sg}}.
 ; {{para|mod2}},{{para|mod2head2}},{{para|mod2head3}},...; {{para|mod2f}},{{para|mod2f2}},...; {{para|mod2pl}},{{para|mod2pl2}},...; {{para|mod2fpl}},{{para|mod2fpl2}},...; {{para|mod2d}},{{para|mod2d2}},...; {{para|mod2fd}},{{para|mod2fd2}},...; etc. Also {{para|idafa2}}. Also {{para|mod2state}}, {{para|mod2tr}}, etc.
 : Specify a second modifying word. See {{temp|ar-decl-noun}}. Similarly, a third modifying word, etc. can be specified using {{para|mod3}} and derivatives, up to {{para|mod9}}.
