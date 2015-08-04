@@ -92,6 +92,7 @@ local UNOPT = UN .. "?"
 local UNUOPT = UNU .. "?"
 local SKOPT = SK .. "?"
 
+-- lists of consonants
 -- exclude tāʾ marbūṭa because we don't want it treated as a consonant
 -- in patterns like أَفْعَل
 local consonants_needing_vowels_no_tam = "بتثجحخدذرزسشصضطظعغفقكلمنهپچڤگڨڧأإؤئء"
@@ -524,6 +525,7 @@ function parse_state_etc_spec(data, args)
 	check("basestate", "basestate", data.allstates)
 	check_boolean("noirreg", "noirreg")
 	check_boolean("omitarticle", "omitarticle")
+	data.prefix = args.prefix
 
 	for _, mod in ipairs(mod_list) do
 		check(mod .. "state", mod .. "_state", data.allstates)
@@ -532,6 +534,7 @@ function parse_state_etc_spec(data, args)
 		check(mod .. "numgen", mod .. "_numgen", data.allnumgens)
 		check_boolean(mod .. "idafa", mod .. "_idafa")
 		check_boolean(mod .. "omitarticle", mod .. "_omitarticle")
+		data[mod .. "_prefix"] = args[mod .. "prefix"]
 	end
 
 	-- Make sure modN_numgen is initialized, to modN_number if necessary.
@@ -753,7 +756,7 @@ end
 -- STEM/TRANSLIT (where the transliteration is either manually specified in
 -- the stem argument, e.g. 'pl=لُورْدَات/lordāt', or auto-transliterated from
 -- the Arabic, with BOGUS_CHAR substituting for the transliteration if
--- auto-translit fails. STEM_TYPE is the declension of the stem, either
+-- auto-translit fails). STEM_TYPE is the declension of the stem, either
 -- manually specified, e.g. 'بَبَّغَاء:di' for manually-specified diptote, or
 -- auto-detected (see stem_and_type() and detect_type()).
 --
@@ -1204,8 +1207,20 @@ function reorder_shadda(word)
 	return word
 end
 
-function combine_with_ending(ar, tr, ending)
+-- Combine PREFIX, AR/TR, and ENDING in that order. PREFIX and ENDING
+-- can be of the form ARABIC/TRANSLIT. The Arabic and translit parts are
+-- separated out and grouped together, resulting in a string of the
+-- form ARABIC/TRANSLIT (TRANSLIT will always be present, computed
+-- automatically if not present in the source). The return value is actually a
+-- list of ARABIC/TRANSLIT strings because hamza resolution is applied to
+-- ARABIC, which may produce multiple outcomes (all of which will have the
+-- same TRANSLIT).
+function combine_with_ending(prefix, ar, tr, ending)
+	local prefixar, prefixtr = split_arabic_tr(prefix)
 	local endingar, endingtr = split_arabic_tr(ending)
+	-- When calling hamza_seat(), leave out prefixes, which we expect to be
+	-- clitics like وَ. (In case the prefix is a separate word, it won't matter
+	-- whether we include it in the text passed to hamza_seat().)
 	allar = hamza_seat(ar .. endingar)
 	-- Convert ...īān to ...iyān in case of stems ending in -ī or -ū
 	-- (e.g. kubrī "bridge").
@@ -1216,15 +1231,24 @@ function combine_with_ending(ar, tr, ending)
 			tr = rsub(tr, "ū$", "uw")
 		end
 	end
-	tr = tr .. endingtr
+	tr = prefixtr .. tr .. endingtr
 	allartr = {}
 	for _, arval in ipairs(allar) do
-		table.insert(allartr, arval .. "/" .. tr)
+		table.insert(allartr, prefixar .. arval .. "/" .. tr)
 	end
 	return allartr
 end
 
-function add_inflection(data, key, stem, tr, ending)
+-- Combine PREFIX, STEM/TR and ENDING in that order and insert into the
+-- list of items in DATA[KEY], initializing it if empty and making sure
+-- not to insert duplicates. ENDING can be a list of endings, will be
+-- distributed over the remaining parts. PREFIX and/or ENDING can be
+-- of the form ARABIC/TRANSLIT (the stem is already split into Arabic STEM
+-- and Latin TR). Note that what's inserted into DATA[KEY] is actually a
+-- list of ARABIC/TRANSLIT strings; if more than one is present in the list,
+-- they represent hamza variants, i.e. different ways of writing a hamza
+-- sound, such as مُبْتَدَؤُون vs. مُبْتَدَأُون (see init_data()).
+function add_inflection(data, key, prefix, stem, tr, ending)
 	if data.forms[key] == nil then
 		data.forms[key] = {}
 	end
@@ -1232,21 +1256,24 @@ function add_inflection(data, key, stem, tr, ending)
 		ending = {ending}
 	end
 	for _, endingval in ipairs(ending) do
-		insert_if_not(data.forms[key], combine_with_ending(stem, tr, endingval))
+		insert_if_not(data.forms[key],
+			combine_with_ending(prefix, stem, tr, endingval))
 	end
 end
 
 -- Form inflections from combination of STEM, with transliteration TR,
--- and ENDINGS (and definite article where necessary) and store in DATA,
--- for the number or gender/number determined by MOD ("", "mod_", "mod2_",
--- etc.; see call_inflection()) and NUMGEN ("sg", "du", "pl", or "m_sg",
--- "f_pl", etc. for adjectives). ENDINGS is an array of 15 values, each of
--- which is a string or array of alternatives. The order of ENDINGS is
--- indefinite nom, acc, gen; definite nom, acc, gen; construct-state nom, acc,
--- gen; informal indefinite, definite, construct; lemma indefinite, definite,
--- construct. (Normally the lemma is based off of the indefinite, but if
--- the inflection has been restricted to particular states, it comes from
--- one of those states, in the order indefinite, definite, construct.)
+-- and ENDINGS (and definite article where necessary, plus any specified
+-- prefixes) and store in DATA, for the number or gender/number
+-- determined by MOD ("", "mod_", "mod2_", etc.; see call_inflection()) and
+-- NUMGEN ("sg", "du", "pl", or "m_sg", "f_pl", etc. for adjectives). ENDINGS
+-- is an array of 15 values, each of which is a string or array of
+-- alternatives. The order of ENDINGS is indefinite nom, acc, gen; definite
+-- nom, acc, gen; construct-state nom, acc, gen; informal indefinite, definite,
+-- construct; lemma indefinite, definite, construct. (Normally the lemma is
+-- based off of the indefinite, but if the inflection has been restricted to
+-- particular states, it comes from one of those states, in the order
+-- indefinite, definite, construct.) See also add_inflection() for more info
+-- on exactly what is inserted into DATA.
 function add_inflections(stem, tr, data, mod, numgen, endings)
 	stem = canon_hamza(stem)
 	assert(#endings == 15)
@@ -1306,9 +1333,12 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 				  		(prev_mod_is_noun(mod) and "defcon" or "def") or
 					not ismod and data.basestate or
 					state
-				local thecase = (case == "lemma" or case == "inf") and case or
+				local is_lemmainf = case == "lemma" or case == "inf"
+				-- Don't substitute value of modcase for lemma/informal "cases"
+				local thecase = is_lemmainf and case or
 					ismod and data[mod .. "case"] or case
 				add_inflection(data, mod .. case .. "_" .. ng .. "_" .. state,
+					data[mod .. "prefix"],
 					stems[thestate], trs[thestate],
 					endings[data.statecases[thestate][thecase]])
 			end
@@ -2300,8 +2330,8 @@ function show_form_1(form, list_of_mods, trailing_artrmods, use_parens)
 						tr_subspan = (rfind(translit, BOGUS_CHAR) or rfind(trmod, BOGUS_CHAR)) and "?" or
 							"<span style=\"color: #888\">" .. translit .. trmod .. "</span>"
 						-- implement elision of al- after vowel
-						tr_subspan = rsub(tr_subspan, "([aeiouāēīōū]) a([sšṣtṯṭdḏḍzžẓnrḷl]%-)", "%1 %2")
-						tr_subspan = rsub(tr_subspan, "([aeiouāēīōū]) a(llāh)", "%1 %2")
+						tr_subspan = rsub(tr_subspan, "([aeiouāēīōū][ %-])a([sšṣtṯṭdḏḍzžẓnrḷl]%-)", "%1%2")
+						tr_subspan = rsub(tr_subspan, "([aeiouāēīōū][ %-])a(llāh)", "%1%2")
 
 						if arabic:find("{{{") then
 							ar_subspan = m_links.full_link(nil, arabic .. armod, lang, nil, nil, nil, {tr = "-"}, false)
