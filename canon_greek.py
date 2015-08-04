@@ -23,7 +23,7 @@ from canon_foreign import canon_links
 pa = blib.init_argparser("Canonicalize Greek and translit")
 pa.add_argument("--cattype", default="borrowed",
     help="""Categories to examine ('vocab', 'borrowed', 'translation',
-'pagetext', 'pages' or comma-separated list)""")
+'links', 'pagetext', 'pages' or comma-separated list)""")
 pa.add_argument("--page-file",
     help="""File containing "pages" to process when --cattype pagetext,
 or list of pages when --cattype pages""")

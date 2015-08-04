@@ -385,9 +385,10 @@ def canon_headwords(save, verbose, startFrom, upTo):
 # Canonicalize Arabic and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'vocab', 'borrowed', 'translation' or 'pagetext', indicating
-# which categories to examine. If CATTYPE is 'pagetext', PAGES_TO_DO should
-# be a list of (PAGETITLE, PAGETEXT).
+# should be 'vocab', 'borrowed', 'translation', 'links', 'pagetext' or 'pages',
+# indicating which pages to examine. If CATTYPE is 'pagetext', PAGES_TO_DO
+# should be a list of (PAGETITLE, PAGETEXT). If CATTYPE is 'pages', PAGES_TO_DO
+# should be a list of page titles, specifying the pages to do.
 def canon_links(save, verbose, cattype, startFrom, upTo, pages_to_do=[]):
   def process_param(pagetitle, index, template, param, paramtr):
     result = canon_param(pagetitle, index, template, param, paramtr,
@@ -420,7 +421,7 @@ if __name__ == "__main__":
       help="Correct vocalization and translit of headwords")
   pa.add_argument("--cattype", default="borrowed",
       help="""Categories to examine ('vocab', 'borrowed', 'translation',
-  'pagetext', 'pages' or comma-separated list)""")
+  'links', 'pagetext', 'pages' or comma-separated list)""")
   pa.add_argument("--page-file",
       help="""File containing "pages" to process when --cattype pagetext,
   or list of pages when --cattype pages""")

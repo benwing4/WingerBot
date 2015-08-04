@@ -638,8 +638,12 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
   else:
     cattypes = [cattype]
   for cattype in cattypes:
-    if cattype == "translation":
-      for template in ["t", "t+", "t-", "t+check", "t-check"]:
+    if cattype in ["translation", "links"]:
+      if cattype == "translation":
+        templates = ["t", "t+", "t-", "t+check", "t-check"]
+      else:
+        templates = ["l", "m", "term", "link", "mention"]
+      for template in templates:
         msg("Processing template %s" % template)
         errmsg("Processing template %s" % template)
         for page, index in references("Template:%s" % template, startFrom, upTo):
@@ -663,7 +667,7 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         cats = [subcat for subcat, index in
             cat_subcats("Terms derived from %s" % longlang)]
       else:
-        raise ValueError("Category type '%s' should be 'vocab', 'borrowed' or 'translation'")
+        raise ValueError("Category type '%s' should be 'vocab', 'borrowed', 'translation', 'links', 'pages' or 'pagetext'")
       for cat in cats:
         msg("Processing category %s" % unicode(cat))
         errmsg("Processing category %s" % unicode(cat))

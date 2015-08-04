@@ -226,13 +226,14 @@ def sort_group_changelogs(actions):
 # Canonicalize foreign and Latin in link-like templates on pages from STARTFROM
 # to (but not including) UPTO, either page names or 0-based integers. Save
 # changes if SAVE is true. Show exact changes if VERBOSE is true. CATTYPE
-# should be 'vocab', 'borrowed', 'translation' or 'pagetext', indicating
-# which categories to examine. If CATTYPE is 'pagetext', PAGES_TO_DO should
-# be a list of (PAGETITLE, PAGETEXT). LANG is a language code and LONGLANG
-# the canonical language name, as in blib.process_links(). SCRIPT is a
-# script code or list of script codes to remove from templates.
-# TRANSLIT_MODULE is the module handling transliteration,
-# match-canonicalization and removal of diacritics.
+# should be 'vocab', 'borrowed', 'translation', 'links', 'pagetext' or 'pages',
+# indicating which pages to examine. If CATTYPE is 'pagetext', PAGES_TO_DO
+# should be a list of (PAGETITLE, PAGETEXT). If CATTYPE is 'pages', PAGES_TO_DO
+# should be a list of page titles, specifying the pages to do. LANG is a
+# language code and LONGLANG the canonical language name, as in
+# blib.process_links(). SCRIPT is a script code or list of script codes to
+# remove from templates. TRANSLIT_MODULE is the module handling
+# transliteration, match-canonicalization and removal of diacritics.
 def canon_links(save, verbose, cattype, lang, longlang, script,
     translit_module, startFrom, upTo, pages_to_do=[]):
   if not isinstance(script, list):
