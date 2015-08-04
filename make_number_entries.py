@@ -38,12 +38,12 @@ class Number(object):
         obl = re.sub(UUN + "$", IIN, nom)
       else:
         obl = nom
-    femnom = reorder_shadda(nom)
+    femnom = reorder_shadda(femnom)
     if not femobl:
       if femnom.endswith(UUN):
-        obl = re.sub(UUN + "$", IIN, femnom)
+        femobl = re.sub(UUN + "$", IIN, femnom)
       else:
-        obl = femnom
+        femobl = femnom
     self.eastarabnum = eastarabnum
     self.english = english
     self.nom = nom
@@ -57,7 +57,7 @@ class Number(object):
 
 digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة"),
           2:Number(u"٢", "two", u"اِثْنَان", u"اِثْنَتَان", u"اِثْنَيْن", u"اِثْنَتَيْن"),
-          3:Number(u"٣", "three", u"ثَلَاثَةث"),
+          3:Number(u"٣", "three", u"ثَلَاثَة"),
           4:Number(u"٤", "four", u"أَرْبَعَة"),
           5:Number(u"٥", "five", u"خَمْسَة"),
           6:Number(u"٦", "six", u"سِتَّة"),
@@ -91,33 +91,38 @@ def iter_numerals():
 # #: Eastern Arabic numeral: {{l|ar|٢٩}}
 #
 # ====Declension====
-# {{ar-decl-numeral|تِسْعَة|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
+# {{ar-decl-numeral|-|pl=تِسْعَة|fpl=تِسْع|mod=-|modpl=عِشْرُون|modfpl=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
 #
 # ====Coordinate terms====
 # * Last: {{l|ar|ثَمَانِيَة وَعِشْرُون|tr=ṯamāniya wa-ʿišrūn}} (or {{lang|ar|٢٨}} = 28)
 # * Next: {{l|ar|ثَلَاثُون}} (or {{lang|ar|٣٠}} = 30)
 
 def create_lemma(tenval, ten, digval, dig):
+  pagename = u"%s وَ%s" % (dig.nom, ten.nom)
   etym = """Literally "%s and %s", from {{m|ar|%s}} and {{m|ar|%s}}.""" % (
       (dig.english, ten.english, dig.nom, ten.nom))
-  headword = u"""{{ar-numeral|%s وَ%s|m|tr=%s wa-%s|f=%s وَ%s|ftr=%s wa-%s|obl=%s وَ%s|obltr=%s wa-%s|fobl=%s وَ%s|fobltr=%s wa-%s}}""" % (
-      dig.nom, ten.nom, dig.nomtr, ten.nomtr,
+  headword = u"""{{ar-numeral|%s|m|tr=%s wa-%s|f=%s وَ%s|ftr=%s wa-%s|obl=%s وَ%s|obltr=%s wa-%s|fobl=%s وَ%s|fobltr=%s wa-%s}}""" % (
+      pagename, dig.nomtr, ten.nomtr,
       dig.femnom, ten.femnom, dig.femnomtr, ten.femnomtr,
-      dig.oblnom, ten.oblnom, dig.oblnomtr, ten.oblnomtr,
-      dig.femoblnom, ten.femoblnom, dig.femoblnomtr, ten.femoblnomtr)
+      dig.obl, ten.obl, dig.obltr, ten.obltr,
+      dig.femobl, ten.femobl, dig.femobltr, ten.femobltr)
 
   defn = u"""# [[%s-%s]]
 #: Eastern Arabic numeral: {{l|ar|%s%s}}""" % (
       ten.english, dig.english, ten.eastarabnum[0], dig.eastarabnum)
 
-  decl = u"""{{ar-decl-numeral|%s|mod=%s|modprefix=وَ/wa-|state=ind,def}}""" % (
-      dig.nom, ten.nom)
+  decl = u"""{{ar-decl-numeral|-|pl=%s%s|fpl=%s%s|mod=-|modpl=%s|modfpl=%s|modprefix=وَ/wa-|state=ind,def}}""" % (
+      # Force dual for اِثْنَان so it will be conjugated correctly even though
+      # labeled as plural
+      dig.nom, digval == 2 and ":d" or "",
+      dig.femnom, digval == 2 and ":d" or "",
+      ten.nom, ten.femnom)
 
   lastcoordterm = (u"""* Last: {{l|ar|%s}} (or {{lang|ar|%s}} = %s)""" % (
       ten.nom, ten.eastarabnum, tenval) if digval == 1 else
   u"""* Last: {{l|ar|%s وَ%s|tr=%s wa-%s}} (or {{lang|ar|%s%s}} = %s)""" % (
       digits[digval - 1].nom, ten.nom, digits[digval - 1].nomtr, ten.nomtr,
-      ten.eastarabnum[0], digits[digitval - 1].eastarabnum,
+      ten.eastarabnum[0], digits[digval - 1].eastarabnum,
       tenval + digval - 1))
   nextcoordterm = (u"""* Next: {{l|ar|مِائَة|tr=miʾa}} (or {{lang|ar|١٠٠}} = 100)"""
       if tenval == 90 and digval == 9 else
@@ -126,7 +131,7 @@ def create_lemma(tenval, ten, digval, dig):
       if digval == 9 else
   u"""* Next: {{l|ar|%s وَ%s|tr=%s wa-%s}} (or {{lang|ar|%s%s}} = %s)""" % (
       digits[digval + 1].nom, ten.nom, digits[digval + 1].nomtr, ten.nomtr,
-      ten.eastarabnum[0], digits[digitval + 1].eastarabnum,
+      ten.eastarabnum[0], digits[digval + 1].eastarabnum,
       tenval + digval + 1))
 
   text = """
@@ -147,7 +152,9 @@ def create_lemma(tenval, ten, digval, dig):
 %s
 %s
 """ % (etym, headword, defn, decl, lastcoordterm, nextcoordterm)
-  msg(text)
+  changelog = "Creating lemma entry for %s (Arabic numeral '%s-%s')" % (
+      pagename, ten.english, dig.english)
+  return pagename, text, changelog
 
 # ==Arabic==
 #
@@ -171,8 +178,9 @@ def create_non_lemma(tenval, ten, digval, dig, obl=False, fem=False):
     return num.femobl if fem and obl else num.fem if fem else num.obl
   def tr(num):
     return num.femobltr if fem and obl else num.femtr if fem else num.obltr
-  headword = u"""{{head|ar|numeral form|head=%s وَ%s|%s|tr=%s wa-%s}}""" % (
-      arabic(dig), arabic(ten), "f" if fem else "m", tr(dig), tr(ten))
+  pagename = u"%s وَ%s" % (arabig(dig), arabic(ten))
+  headword = u"""{{head|ar|numeral form|head=%s|%s|tr=%s wa-%s}}""" % (
+      pagename, "f" if fem else "m", tr(dig), tr(ten))
   defns = []
   for case in ["informal", "acc", "gen"] if obl else ["nom"]:
     defns.append(u"""# {{inflection of|lang=ar|%s وَ%s|tr=%s wa-%s||%s|%s|gloss=[[%s-%s]]}}""" % (
@@ -187,7 +195,10 @@ def create_non_lemma(tenval, ten, digval, dig, obl=False, fem=False):
 
 %s
 """ % (headword, defn)
-  msg(text)
+  changelog = "Creating non-lemma entry (%s) for %s (Arabic numeral '%s-%s')" % (
+      fem and obl and "feminine oblique" or fem and "feminine nominative" or
+      "masculine oblique", pagename, ten.english, dig.english)
+  return pagename, text, changelog
 
 pa = blib.init_argparser("Save numbers to Wiktionary")
 pa.add_argument("--lemmas", action="store_true",
@@ -197,10 +208,30 @@ pa.add_argument("--non-lemmas", action="store_true",
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
-for tenval, ten, digval, dig in iter_numerals():
-  if params.lemmas:
-    create_lemma(tenval, ten, digval, dig)
-  if params.non_lemmas:
-    create_non_lemma(tenval, ten, digval, dig, obl=True)
-    create_non_lemma(tenval, ten, digval, dig, fem=True)
-    create_non_lemma(tenval, ten, digval, dig, obl=True, fem=True)
+
+def iter_pages(createfn):
+  for tenval, ten, digval, dig in iter_numerals():
+    yield createfn(tenval, ten, digval, dig)
+
+def do_pages(createfn):
+  pages = iter_pages(createfn)
+  for current, index  in blib.iter_pages(pages, startFrom, upTo,
+      key=lambda x:x[0]):
+    pagename, text, changelog = current
+    pagetitle = remove_diacritics(pagename)
+    page = pywikibot.Page(site, pagetitle)
+    if page.exists():
+      msg("Page %s %s: WARNING, page already exists, skipping" % (
+        index, pagename))
+    else:
+      def save_text(page, index, parsed):
+        return text, changelog
+      blib.do_edit(page, index, save_text, save=params.save,
+          verbose=params.verbose)
+
+if params.lemmas:
+  do_pages(create_lemma)
+if params.non_lemmas:
+  do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, obl=True))
+  do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, fem=True))
+  do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, obl=True, fem=True))
