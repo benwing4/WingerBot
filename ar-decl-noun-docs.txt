@@ -19,9 +19,9 @@ See also {{temp|ar-decl-adj}}.
 ; {{para|number}}
 : Explicitly control which numbers appear. The value is a comma-separated list of one of more of ''sg, du, pl''. By default, the singular appears unless it is specified as "-"; the dual appears when both the singular and plural appear; and the plural appears when at least one plural is given.
 ; {{para|state}}
-: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind, def, con'' (standing for indefinite, definite, construct). By default, all states appear. Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
+: Explicitly control which states appear. The value is a comma-separated list of one of more of ''ind, def, con'' (standing for indefinite, definite, construct). By default, all states appear. (Alternatively, the value can be ''ind-def'', for proper nouns that are syntactically definite but morphologically indefinite. This is equivalent to setting the value to ''def'' and adding {{para|basestate|ind}}.) Currently, non-"appearing" states are displayed with a dash in place of the appropriate declension members instead of not appearing at all.
 ; {{para|basestate}}
-: Override the morphological state. This can be used e.g. with proper nouns, which are syntactically definite but morphologically indefinite. The value is one of ''ind'', ''def'' or ''con''. See the example below for {{m|ar|مِصْر}}.
+: Override the morphological state. This can be used e.g. with proper nouns, which are syntactically definite but morphologically indefinite; but using {{para|state|ind-def}} for this case is preferred.
 ; {{para|omitarticle}}
 : If specified, omit the definite article that is otherwise automatically added in the definite state.
 ; {{para|nom_sg_ind}}, {{para|nom_sg_def}}, {{para|nom_sg_con}}, ...
@@ -72,10 +72,10 @@ See also {{temp|ar-decl-adj}}.
 : An ''ʾidāfa'' modifier that can exist in multiple states and is of the specified number, e.g. indefinite-state {{m|ar|غُرْفَة نَوْم|tr=ḡurfat nawm|gloss=bedroom}}, with corresponding definite state {{m|ar||غُرْفَة ال-نَوْم|tr=ḡurfat an-nawm}}.
 ; <code>yes</code>
 : Same as <code>sg</code>.
-; <code>def-sg</code>, <code>def-du</code>, <code>def-pl</code>, <code>ind-sg</code>, <code>ind-du</code>, <code>ind-pl</code>
-: An ''ʾidāfa'' modifier that exists in a fixed state and number.
-; <code>def</code>, <code>ind</code>
-: same as <code>def-sg</code>, <code>ind-sg</code>, respectively.
+; <code>STATE-NUM</code>
+: An ''ʾidāfa'' modifier that exists in a fixed state (<code>def</code>, <code>ind</code> or <code>ind-def</code>) and number (<code>sg</code>, <code>du</code> or <code>pl</code>) .
+; <code>STATE</code>
+: Same as <code>STATE-sg</code>.
 ; <code>adj</code> ''or'' <code>adj-base</code>
 : An adjectival modifier that modifies the base word. Unnecessary to specify; this is the default.
 ; <code>adj-mod</code>, <code>adj-mod2</code>, etc.
@@ -86,11 +86,11 @@ See also {{temp|ar-decl-adj}}.
 ===A simple example===
 Normally, it is sufficient to copy the headword declaration for a noun and make minor changes, in particular changing the template name from <code>{{temp|ar-noun|...}}</code> to <code>{{temp|ar-decl-noun|...}}</code> and removing the gender. For example, for the noun {{m|ar|مَدْرَسَة||school}}, the headword is declared as follows:
 
-<code>{{temp|ar-noun|مَدْرَسَة|f|pl=مَدَارِس}}</code>
+<code><nowiki>{{ar-noun|مَدْرَسَة|f|pl=مَدَارِس}}</nowiki></code>
 
 and a declension template can easily be declared by the above minor changes, yielding the following:
 
-<code>{{temp|ar-decl-noun|مَدْرَسَة|pl=مَدَارِس}}</code>
+<code><nowiki>{{ar-decl-noun|مَدْرَسَة|pl=مَدَارِس}}</nowiki></code>
 
 which produces the following:
 
@@ -101,11 +101,11 @@ Note that the plural {{m|ar|مَدَارِس||schools}} is a diptote, and this i
 ===A more complicated example===
 The same trick for generating declensions from headword templates usually works with more complex examples, as well, e.g. with {{m|ar|قَفًا||nape}}. For this noun, the headword is declared as follows:
 
-<code>{{temp|ar-noun|قَفًا|m|g2=f|d=قَفَوَان|pl=أَقْفِيَة|pl2=أَقْفٍ|pl3=أَقْفَاء|pl4=قُفِيّ|pl5=قِفِيّ}}</code>
+<code><nowiki>{{ar-noun|قَفًا|m|g2=f|d=قَفَوَان|pl=أَقْفِيَة|pl2=أَقْفٍ|pl3=أَقْفَاء|pl4=قُفِيّ|pl5=قِفِيّ}}</nowiki></code>
 
 Removing the gender and changing the template name yields this:
 
-<code>{{temp|ar-decl-noun|قَفًا|d=قَفَوَان|pl=أَقْفِيَة|pl2=أَقْفٍ|pl3=أَقْفَاء|pl4=قُفِيّ|pl5=قِفِيّ}}</code>
+<code><nowiki>{{ar-decl-noun|قَفًا|d=قَفَوَان|pl=أَقْفِيَة|pl2=أَقْفٍ|pl3=أَقْفَاء|pl4=قُفِيّ|pl5=قِفِيّ}}</nowiki></code>
 
 which produces a correct declension table, even though there is an irregular dual and five broken plurals of three different declensions:
 
@@ -115,9 +115,9 @@ In general, the code is very good at figuring out the correct declension from th
 
 ===An example where the declension must be manually specified===
 
-The code is very good at guessing the declension of a noun or adjective based on its form, but sometimes it needs help. An example is off-shape diptotes, e.g. {{m|ar|بَبَّغَاء||[[parrot]]}} (also {{m|ar|بَبْغَاء}} and {{m|ar|بَبَغَاء}}), which needs an annotation like <code>:di</code>:
+The code is very good at guessing the declension of a noun or adjective based on its form, but sometimes it needs help. An example is off-shape diptotes, e.g. {{m|ar|بَبَّغَاء||[[parrot]]}} (also {{m|ar|بَبْغَاء}} and {{m|ar|بَبَغَاء}}), which needs an annotation like <code>:di</code>:
 
-<code>{{temp|ar-decl-noun|بَبْغَاء:di|head2=بَبَّغَاء:di|head3=بَبَغَاء:di|pl=بَبْغَاوَات|pl2=بَبَّغَاوَات|pl3=بَبَغَاوَات}}</code>
+<code><nowiki>{{ar-decl-noun|بَبْغَاء:di|head2=بَبَّغَاء:di|head3=بَبَغَاء:di|pl=بَبْغَاوَات|pl2=بَبَّغَاوَات|pl3=بَبَغَاوَات}}</nowiki></code>
 
 which produces
 
@@ -127,11 +127,11 @@ which produces
 
 Nisba nouns use special headword templates. A basic nisba noun headword template like this, for {{m|ar|مِصْرِيّ||[[Egyptian]] person}}:
 
-<code>{{temp|ar-noun-nisba|مِصْرِيّ}}</code>
+<code><nowiki>{{ar-noun-nisba|مِصْرِيّ}}</nowiki></code>
 
 can be converted to a declension template as follows:
 
-<code>{{temp|ar-decl-noun|مِصْرِيّ|pl=sp}}</code>
+<code><nowiki>{{ar-decl-noun|مِصْرِيّ|pl=sp}}</nowiki></code>
 
 This produces
 
@@ -141,11 +141,11 @@ Note that it is necessary to specify the plural; otherwise the declension table 
 
 When the plural is overridden in the headword, conversion is even easier. An example is {{m|ar|عَرَبِيّ||Arab}}. The nisba noun headword template is:
 
-<code>{{temp|ar-noun-nisba|عَرَبِيّ|pl=عَرَب}}</code>
+<code><nowiki>{{ar-noun-nisba|عَرَبِيّ|pl=عَرَب}}</nowiki></code>
 
 This converts easily to a declension template:
 
-<code>{{temp|ar-decl-noun|عَرَبِيّ|pl=عَرَب}}</code>
+<code><nowiki>{{ar-decl-noun|عَرَبِيّ|pl=عَرَب}}</nowiki></code>
 
 producing
 
@@ -155,20 +155,20 @@ producing
 
 Definite proper nouns like {{m|ar|الإِسْلَام||Islam}} exist only in the definite state. This can be specified using {{para|state|def}}. The stem should be specified without the definite article, e.g.
 
-<code>{{temp|ar-decl-noun|إِسْلَام|state=def}}</code>
+<code><nowiki>{{ar-decl-noun|إِسْلَام|state=def}}</nowiki></code>
 
 which produces
 
 {{ar-decl-noun|إِسْلَام|state=def}}
 
 ===Indefinite proper nouns===
-Proper nouns like {{m|ar|مِصْر}} or {{m|ar|أَحْمَد}} or {{m|ar|مُحَمَّد}} are morphologically declined only in the indefinite state, but are syntactically definite, and are often diptote. This can be specified using {{para|state|def}} and {{para|basestate|ind}} and adding a {{m|ar|ـُ}} diacritic after the stem if needed, e.g.
+Proper nouns like {{m|ar|مِصْر}} or {{m|ar|أَحْمَد}} or {{m|ar|مُحَمَّد}} are morphologically declined only in the indefinite state, but are syntactically definite, and are often diptote. This can be specified using {{para|state|ind-def}} and adding a {{m|ar|ـُ}} diacritic after the stem if needed, e.g.
 
-<code>{{temp|ar-decl-noun|مِصْرُ|state=def|basestate=ind}}</code>
+<code><nowiki>{{ar-decl-noun|مِصْرُ|state=ind-def}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|مِصْرُ|state=def|basestate=ind}}
+{{ar-decl-noun|مِصْرُ|state=ind-def}}
 
 Note how the noun is declined as if it is indefinite, but is listed as definite. This would matter, for example, in that a modifying adjective would be in the definite state. (See below for the example of {{m|ar|كَانُون الثَانِي}}.)
 
@@ -180,7 +180,7 @@ One complex example is the word {{m|ar|ذُو||owner (of)}}, which exists only i
 
 Its declension can be specified as follows:
 
-<code>{{temp|ar-decl-noun|ذ:lc|d=ذَوَان|pl=أُولُون/ʾulūn|pl2=ذَوُونو|state=con}}</code>
+<code><nowiki>{{ar-decl-noun|ذ:lc|d=ذَوَان|pl=أُولُون/ʾulūn|pl2=ذَوُونو|state=con}}</nowiki></code>
 
 yielding
 
@@ -213,8 +213,8 @@ Note that the dual {{m|ar|اِمْرَآنِ}}, with ''ʾalif madda'', is automa
 ===Hamza seats===
 It was noted above that the dual of the stem {{m|ar|اِمْرَأ||man}} was correctly constructed as {{m|ar|اِمْرَآنِ}}, with an ''ʾalif madda'' hamza seat. In general, the code has extensive knowledge of the rules regarding the correct hamza seat in various circumstances and should essentially always get this correct. An example of this knowledge at work is the declension of the words {{m|ar|شَيْء||thing}} and {{m|ar|مُبْتَدَأ||(grammatical) subject}}, declared as follows:
 
-* <code>{{temp|ar-decl-noun|شَيْء|pl=أَشْيَاء}}</code>
-* <code>{{temp|ar-decl-noun|مُبْتَدَأ|pl=sp}}</code>
+* <code><nowiki>{{ar-decl-noun|شَيْء|pl=أَشْيَاء}}</nowiki></code>
+* <code><nowiki>{{ar-decl-noun|مُبْتَدَأ|pl=sp}}</nowiki></code>
 
 and appearing as follows:
 
@@ -227,7 +227,7 @@ In the former case, the hamza-on-the-line {{m|ar|ء|tr=-}} automatically changes
 ====ʾiḍāfa construction #1====
 Some phrases appear as lemmas in Wiktionary. An example is the ''ʾiḍāfa'' construction {{m|ar|بَيْت المُقَدَّس}} or {{m|ar|بَيْت المَقْدِس}}, both meaning [[Jerusalem]] (literally ''house of the holy place''). This is composed of {{m|ar|بَيْت||house}} in the construct state, declined according to case, plus {{m|ar|مُقَدَّس}} or {{m|ar|مَقْدِس}} in the definite state, genitive case. The declension for this phrase can be expressed as follows:
 
-<code>{{temp|ar-decl-noun|بَيْت|mod=مُقَدَّس|modhead2=مَقْدِس|idafa=def}}</code>
+<code><nowiki>{{ar-decl-noun|بَيْت|mod=مُقَدَّس|modhead2=مَقْدِس|idafa=def}}</nowiki></code>
 
 which produces
 
@@ -236,7 +236,7 @@ which produces
 ====ʾiḍāfa construction #2====
 The previous example had a both head noun and modifier in the singular. However, they can disagree, in which case {{para|idafa}} should reflect the number of the modifier. An example is {{m|ar|يَوْم الاِثْنَيْن||Monday}} (literally "day of the two"), where {{m|ar|اِثْنَيْن||two}} appears in the dual. The declension for this phrase can be expressed as follows:
 
-<code>{{temp|ar-decl-noun|يَوْم|mod=-|modd=اِثْنَان|idafa=def-du}}</code>
+<code><nowiki>{{ar-decl-noun|يَوْم|mod=-|modd=اِثْنَان|idafa=def-du}}</nowiki></code>
 
 which produces
 
@@ -247,7 +247,7 @@ Note that we express {{m|ar|اِثْنَان||two}} in the nominative case and w
 ====ʾiḍāfa construction #3====
 The previous examples had a head noun appearing only in the singular, and only in the definite state. However, many phrases using ʾiḍāfa can appear in all states (definite, indefinite and construct), according to the state of the modifying noun. For example, "bedroom" is {{m|ar|غُرْفَة نَوْم|tr=ḡurfat nawm|lit=room of sleep}}, while "the bedroom" is {{m|ar||غُرْفَة النَوْم|tr=ḡurfat an-nawm}} and "her bedroom" is {{m|ar||غُرْفَة نَوْمِهَا|tr=ḡurfat nawmihā}}. It also exists in the plural ({{m|ar||غُرَف نَوْم}}) and dual (({{m|ar||غُرْفَتَان نَوْم}}). This can be expressed using {{para|idafa|sg}}, which does not constrain the state, as follows:
 
-<code>{{temp|ar-decl-noun|غُرْفَة|pl=غُرَف|mod=نَوْم|idafa=sg}}</code>
+<code><nowiki>{{ar-decl-noun|غُرْفَة|pl=غُرَف|mod=نَوْم|idafa=sg}}</nowiki></code>
 
 which produces
 
@@ -256,7 +256,7 @@ which produces
 ====ʾiḍāfa construction #4====
 An example similar to the previous one but which uses a singulative noun is {{m|ar|دُودَة فَرَاشَة|tr=dūdat farāša||caterpillar|lit=worm of butterfly}}. {{m|ar|دُودَة||worm}} is a singulative noun, so we use a singulative noun template. {{m|ar|فَرَاشَة||butterfly}} is in the singular; in this case, we have to use {para|idafa|sing}} since that's the closest we can get to a singular number. (For collective nouns we would use {{para|idafa|coll}} to indicate the singular.) The declension for this phrase can be expressed as follows:
 
-<code>{{temp|ar-decl-sing-noun|دُودَة|pl=دِيدَان|mod=فَرَاشَة|idafa=sing}}</code>
+<code><nowiki>{{ar-decl-sing-noun|دُودَة|pl=دِيدَان|mod=فَرَاشَة|idafa=sing}}</nowiki></code>
 
 which produces
 
@@ -267,7 +267,7 @@ As with the previous example, the value of {{para|idafa}} does not constrain the
 ====Adjectival modifier #1====
 Things are different for adjectival modifiers, which do not need to have their case, state or number fixed. An example is the declension for {{m|ar|زَوْبَعَة شَدِيدَة|tr=zawbaʿa šadīda||hurricane}}, literally "strong storm". Both noun and adjective need to be declined for case, state and number. This can be expressed as follows:
 
-<code>{{temp|ar-decl-noun|زَوْبَعَة|pl=زَوَابِع|mod=شَدِيدَة|modpl=شَدِيدَة}}</code>
+<code><nowiki>{{ar-decl-noun|زَوْبَعَة|pl=زَوَابِع|mod=شَدِيدَة|modpl=شَدِيدَة}}</nowiki></code>
 
 which produces
 
@@ -278,7 +278,7 @@ Note the need to express the plural of both noun and modifier. The modifier happ
 ====Adjectival modifier #2====
 Another example is the declension for {{m|ar|الْوِلَايَات الْمُتَّحِدَة||United States}}. This noun appears only in the definite state and in the plural. This can be expressed as follows:
 
-<code>{{temp|ar-decl-noun|-|pl=وِلَايَات|state=def|mod=-|modpl=مُتَّحِدَة}}</code>
+<code><nowiki>{{ar-decl-noun|-|pl=وِلَايَات|state=def|mod=-|modpl=مُتَّحِدَة}}</nowiki></code>
 
 which produces
 
@@ -289,73 +289,82 @@ Note the use of a <code>-</code> to indicate no singular, with both the main nou
 ====Adjectival construction #3====
 A tricky example is {{m|ar|كَانُون الثَانِي||[[January]]|lit=the second Kānūn}}. Despite appearances this is an adjectival construction, not an ʾiḍāfa construction. {{m|ar|كَانُون}} is actually a diptote proper noun, morphologically indefinite but syntactically definite, i.e. its declension is indefinite but it is treated grammatically as definite for the purposes of modifiers. This can be expressed using the lower-level parameters to override parts of what is normally generated by {{para|idafa}} (including in its default value of {{para|idafa|adj}}). The declension for this phrase can be expressed as follows:
 
-<code>{{temp|ar-decl-noun|كَانُون:di|mod=ثَانٍ|state=def|basestate=ind}}</code>
+<code><nowiki>{{ar-decl-noun|كَانُون:di|mod=ثَانٍ|state=ind-def}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|كَانُون:di|mod=ثَانٍ|state=def|basestate=ind}}
+{{ar-decl-noun|كَانُون:di|mod=ثَانٍ|state=ind-def}}
 
-In this case, we set the overall state to definite, consistent with the fact that the expression is grammatically definite and its modifier will appear with the definite article; but then we override the state of the base noun using {{para|basestate|ind}}, which will force it to appear as morphologically indefinite. Note also that we need to write the modifier in its indefinite form {{m|ar|ثَانٍ}}; the appropriate definite form is automatically generated.
+In this case, we use {{para|state=ind-def}}, which sets the overall state to definite, but declines the base noun as indefinite. (This is equivalent to using <code>|state=def|basestate=ind</code>.) This is consistent with the fact that the expression is grammatically definite and its modifier will appear with the definite article. Note also that we need to write the modifier in its indefinite form {{m|ar|ثَانٍ}}; the appropriate definite form is automatically generated.
 
-Other similar examples are {{m|ar|أَمْرِيكَا الشَمَالِيَّة||[[North America]]}}, {{m|ar|كُورِيَا الجَنُوبِيَّة|tr=kōriyā l-janūbiyya||[[South Korea]]}} and {{m|ar|فِرْجِينِيَا الغَرْبِيَّة||[[West Virginia]]}}.
+Other similar examples are {{m|ar|أَمْرِيكَا الشَمَالِيَّة||[[North America]]}}, {{m|ar|كُورِيَا الجَنُوبِيَّة|tr=kōriyā l-janūbiyya||[[South Korea]]}} and {{m|ar|فِرْجِينِيَا الغَرْبِيَّة||[[West Virginia]]}}.
 
 ====Multiple modifiers #1====
 Things get more complicated when multiple modifiers are involved, because there are various possibilities: Each of the modifiers can independently be adjectival or ''ʾidāfa'', and a second or further-on adjectival modifier can modify an earlier ''ʾidāfa'' modifier rather than the base.
 
-Perhaps the simplest case is when all modifiers are adjectival. An example is {{m|ar|غُدَّة بَصَلِيَّة إِحْلِيلِيَّة|tr=ḡudda baṣaliyya ʾiḥlīliyya||[[bulbourethral gland]]|lit=bulbous urethral gland}}. This can appear in multiple states and numbers, e.g. definite plural {{m|ar|الغُدَد البَصَلِيَّة الإِحْلِيلِيَّة|tr=al-ḡudad al-baṣaliyya l-ʾiḥlīliyya}}. This can be expressed as follows:
+Perhaps the simplest case is when all modifiers are adjectival. An example is {{m|ar|غُدَّة بَصَلِيَّة إِحْلِيلِيَّة|tr=ḡudda baṣaliyya ʾiḥlīliyya||[[bulbourethral gland]]|lit=bulbous urethral gland}}. This can appear in multiple states and numbers, e.g. definite plural {{m|ar|الغُدَد البَصَلِيَّة الإِحْلِيلِيَّة|tr=al-ḡudad al-baṣaliyya l-ʾiḥlīliyya}}. This can be expressed as follows:
 
-<code>{{temp|ar-decl-noun|غُدَّة|pl=غُدَد|mod=بَصَلِيَّة|modpl=بَصَلِيَّة|mod2=إِحْلِيلِيَّة|mod2pl=إِحْلِيلِيَّة}}</code>
+<code><nowiki>{{ar-decl-noun|غُدَّة|pl=غُدَد|mod=بَصَلِيَّة|modpl=بَصَلِيَّة|mod2=إِحْلِيلِيَّة|mod2pl=إِحْلِيلِيَّة}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|غُدَّة|pl=غُدَد|mod=بَصَلِيَّة|modpl=بَصَلِيَّة|mod2=إِحْلِيلِيَّة|mod2pl=إِحْلِيلِيَّة}}
+{{ar-decl-noun|غُدَّة|pl=غُدَد|mod=بَصَلِيَّة|modpl=بَصَلِيَّة|mod2=إِحْلِيلِيَّة|mod2pl=إِحْلِيلِيَّة}}
 
-Note that the non-personal plural of the feminine adjective {{m|ar|بَصَلِيَّة||[[bulbous]]}} happens to be the same as the singular since non-personal nouns take feminine singular agreement, but the {{para|modpl}} parameter still needs to be expressed; likewise for {{m|ar|إِحْلِيلِيَّة||[[urethral]]}}.
+Note that the non-personal plural of the feminine adjective {{m|ar|بَصَلِيَّة||[[bulbous]]}} happens to be the same as the singular since non-personal nouns take feminine singular agreement, but the {{para|modpl}} parameter still needs to be expressed; likewise for {{m|ar|إِحْلِيلِيَّة||[[urethral]]}}.
 
 ====Multiple modifiers #2====
-Another example with entirely adjectival modifiers is {{m|ar|البَحْر الأَبْيَض المُتَوَسِّط||[[Mediterranean Sea]]}}, this time only in the definite singular. This can be expressed with a {{para|state|def}} parameter, as follows:
+Another example with entirely adjectival modifiers is {{m|ar|البَحْر الأَبْيَض المُتَوَسِّط||[[Mediterranean Sea]]}}, this time only in the definite singular. This can be expressed with a {{para|state|def}} parameter, as follows:
 
-<code>{{temp|ar-decl-noun|بَحْر|mod=أَبْيَض|mod2=مُتَوَسِّط|state=def}}</code>
+<code><nowiki>{{ar-decl-noun|بَحْر|mod=أَبْيَض|mod2=مُتَوَسِّط|state=def}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|بَحْر|mod=أَبْيَض|mod2=مُتَوَسِّط|state=def}}
+{{ar-decl-noun|بَحْر|mod=أَبْيَض|mod2=مُتَوَسِّط|state=def}}
 
 ====Multiple modifiers #3====
-Consider {{m|ar|مُنََظَّمَة التَحْرِير الفِلَسْطِينِيَّة|tr=munaẓẓamat at-taḥrīr al-filasṭīniyya||Palestine Liberation Organization}}. {{m|ar|مُنَظَّمَة||[[organization]]}} has an ''ʾidāfa'' modifier {{m|ar|تَحْرِير||[[liberation]]}} and a second adjectival modifier {{m|ar|فِلَسْطِينِيّ||[[Palestinian]]}} (the fact that this modifies {{m|ar|مُنَظَّمَة}} and not {{m|ar|تَحْرِير}} is clear from the feminine gender of the adjective). The first, ''ʾidāfa'' modifier appears only in the definite state, which can be expressed by {{para|idafa|def}}, and the fact that the second adjectival modifier modifies the base noun could be expressed by {{para|idafa2|adj}}, but this is the default and so can be omitted, as follows:
+Consider {{m|ar|مُنَظَّمَة التَحْرِير الفِلَسْطِينِيَّة|tr=munaẓẓamat at-taḥrīr al-filasṭīniyya||Palestine Liberation Organization}}. {{m|ar|مُنَظَّمَة||[[organization]]}} has an ''ʾidāfa'' modifier {{m|ar|تَحْرِير||[[liberation]]}} and a second adjectival modifier {{m|ar|فِلَسْطِينِيّ||[[Palestinian]]}} (the fact that this modifies {{m|ar|مُنَظَّمَة}} and not {{m|ar|تَحْرِير}} is clear from the feminine gender of the adjective). The first, ''ʾidāfa'' modifier appears only in the definite state, which can be expressed by {{para|idafa|def}}, and the fact that the second adjectival modifier modifies the base noun could be expressed by {{para|idafa2|adj}}, but this is the default and so can be omitted, as follows:
 
-<code>{{temp|ar-decl-noun|مُنََظَّمَة|mod=تَحْرِير|mod2=فِلَسْطِينِيَّة|idafa=def}}</code>
+<code><nowiki>{{ar-decl-noun|مُنَظَّمَة|mod=تَحْرِير|mod2=فِلَسْطِينِيَّة|idafa=def}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|مُنََظَّمَة|mod=تَحْرِير|mod2=فِلَسْطِينِيَّة|idafa=def}}
+{{ar-decl-noun|مُنََظَّمَة|mod=تَحْرِير|mod2=فِلَسْطِينِيَّة|idafa=def}}
 
 ====Multiple modifiers #4====
-Another example is {{m|ar|جَنُوب القَارَّة الأَفْرِيقِيَّة|tr=janūb al-qārra l-ʾafrīqiyya||Southern Africa|lit=the South of the African continent}}. In this case {{m|ar|قَارَّة||[[continent]]}} is an ''ʾidāfa'' modifier of {{m|ar|جَنُوب||[[south]]}}, and {{m|ar|أَفْرِيقِيّ||[[African]]}} modifies {{m|ar|قَارَّة}}, meaning it will agree in case, number and state (in this case, fixed to genitive singular definite). This can be expressed as follows, with a parameter {{para|idafa2|adj-mod}} indicating that the second modifier is an adjectival modifier of the first modifier:
+Another example is {{m|ar|جَنُوب القَارَّة الأَفْرِيقِيَّة|tr=janūb al-qārra l-ʾafrīqiyya||Southern Africa|lit=the South of the African continent}}. In this case {{m|ar|قَارَّة||[[continent]]}} is an ''ʾidāfa'' modifier of {{m|ar|جَنُوب||[[south]]}}, and {{m|ar|أَفْرِيقِيّ||[[African]]}} modifies {{m|ar|قَارَّة}}, meaning it will agree in case, number and state (in this case, fixed to genitive singular definite). This can be expressed as follows, with a parameter {{para|idafa2|adj-mod}} indicating that the second modifier is an adjectival modifier of the first modifier:
 
-<code>{{temp|ar-decl-noun|جَنُوب|mod=قَارَّة|mod2=أَفْرِيقِيَّة|idafa=def|idafa2=adj-mod}}</code>
+<code><nowiki>{{ar-decl-noun|جَنُوب|mod=قَارَّة|mod2=أَفْرِيقِيَّة|idafa=def|idafa2=adj-mod}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|جَنُوب|mod=قَارَّة|mod2=أَفْرِيقِيَّة|idafa=def|idafa2=adj-mod}}
+{{ar-decl-noun|جَنُوب|mod=قَارَّة|mod2=أَفْرِيقِيَّة|idafa=def|idafa2=adj-mod}}
 
 ====Multiple modifiers #5====
-An example with two ''ʾidāfa'' modifiers which can appear in various states and numbers is {{m|ar|وَاجِهَة بَرمَجَة تَطْبِيقَات|tr=wājihat barmajat taṭbīqāt||[[application programming interface]]}}, declined as follows:
+A similar example requiring {{para|idafa|ind-def}} is {{m|ar|جُمْهُورِيَّة غِينِيَا الاِسْتِوَائِيَّة|tr=jumhūriyyat ḡīniyā l-istiwāʾiyya||Republic of Equatorial Guinea}}. In this case, {{m|ar|غِينِيَا||[[Guinea]]}} is a proper noun, grammatically definite but morphologically indefinite (similar to {{m|ar|مِصْر||[[Egypt]]}}, above), and {{m|ar|اِسْتِوَائِيّ||[[equatorial]]}} agrees with it, requiring the definite state. This is signalled using {{para|idafa|ind-def}}:
 
-<code>{{temp|ar-decl-noun|وَاجِهَة|pl=وَاجِهَات|mod=بَرْمَجَة|mod2=-|mod2pl=تَطْبِيقَات|idafa=def|idafa2=def-pl}}</code>
+<code><nowiki>{{ar-decl-noun|جُمْهُورِيَّة|mod=غِينِيَا|mod2=اِسْتِوَائِيَّة|state=def|idafa=ind-def|idafa2=adj-mod}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|وَاجِهَة|pl=وَاجِهَات|mod=بَرْمَجَة|mod2=-|mod2pl=تَطْبِيقَات|idafa=def|idafa2=def-pl}}
+{{ar-decl-noun|جُمْهُورِيَّة|mod=غِينِيَا|mod2=اِسْتِوَائِيَّة|state=def|idafa=ind-def|idafa2=adj-mod}}
 
 ====Multiple modifiers #6====
-A complex example with three modifiers is {{m|ar|نِصْف الكُرَة الأَرْضِيَّة الشَمَالِيّ|tr=niṣf al-kura l-ʾarḍiyya š-šamāliyy||[[Northern Hemisphere]]|lit=the northern half of the earthly ball}}. The first modifier is an ''ʾidāfa''; the second is adjectival, modifying the first, and the third is adjectival, modifying the base. This would be specified as follows:
+An example with two ''ʾidāfa'' modifiers which can appear in various states and numbers is {{m|ar|وَاجِهَة بَرمَجَة تَطْبِيقَات|tr=wājihat barmajat taṭbīqāt||[[application programming interface]]}}, declined as follows:
 
-<code>{{temp|ar-decl-noun|نِصْف|mod=كُرَة|mod2=أَرْضِيَّة|mod3=شَمَالِيّ|idafa=def|idafa2=adj-mod}}</code>
+<code><nowiki>{{ar-decl-noun|وَاجِهَة|pl=وَاجِهَات|mod=بَرْمَجَة|mod2=-|mod2pl=تَطْبِيقَات|idafa=yes|idafa2=pl}}</nowiki></code>
 
 which produces
 
-{{ar-decl-noun|نِصْف|mod=كُرَة|mod2=أَرْضِيَّة|mod3=شَمَالِيّ|idafa=def|idafa2=adj-mod}}
+{{ar-decl-noun|وَاجِهَة|pl=وَاجِهَات|mod=بَرْمَجَة|mod2=-|mod2pl=تَطْبِيقَات|idafa=yes|idafa2=pl}}
+
+====Multiple modifiers #7====
+A complex example with three modifiers is {{m|ar|نِصْف الكُرَة الأَرْضِيَّة الشَمَالِيّ|tr=niṣf al-kura l-ʾarḍiyya š-šamāliyy||[[Northern Hemisphere]]|lit=the northern half of the earthly ball}}. The first modifier is an ''ʾidāfa''; the second is adjectival, modifying the first, and the third is adjectival, modifying the base. This would be specified as follows:
+
+<code><nowiki>{{ar-decl-noun|نِصْف|mod=كُرَة|mod2=أَرْضِيَّة|mod3=شَمَالِيّ|idafa=def|idafa2=adj-mod}}</nowiki></code>
+
+which produces
+
+{{ar-decl-noun|نِصْف|mod=كُرَة|mod2=أَرْضِيَّة|mod3=شَمَالِيّ|idafa=def|idafa2=adj-mod}}
 
 
 <includeonly>
