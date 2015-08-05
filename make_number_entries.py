@@ -26,7 +26,7 @@ site = pywikibot.Site()
 
 class Number(object):
   def __init__(self, eastarabnum, english, nom, femnom=None, obl=None,
-      femobl=None):
+      femobl=None, ord=None):
     nom = reorder_shadda(nom)
     if not femnom:
       if nom.endswith(AH):
@@ -54,16 +54,43 @@ class Number(object):
     self.obltr = ar_translit.tr(obl)
     self.femobl = femobl
     self.femobltr = ar_translit.tr(femobl)
+    if ord:
+      if len(ord) == 5:
+        self.ordroot, self.ordeng, self.cardteeneng, self.ordlemma, \
+            self.cardteen = ord
+      else:
+        self.ordroot, self.ordeng, self.cardteeneng = ord
+        self.ordlemma = (self.ordroot[0] + AA + self.ordroot[1] + I +
+            self.ordroot[2])
+        self.cardteen = self.nom + A + u" عَشَرَ"
+      self.ordteen = (self.ordroot[0] + AA + self.ordroot[1] + I +
+          self.ordroot[2] + A + u" عَشَرَ")
+      self.femordteen = (self.ordroot[0] + AA + self.ordroot[1] + I +
+          self.ordroot[2] + AH + A + u" عَشْرَةَ")
+      self.ordteeneng = ("twelfth" if self.cardteeneng == "twelve" else
+          self.cardteeneng + "th")
 
-digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة"),
-          2:Number(u"٢", "two", u"اِثْنَان", u"اِثْنَتَان", u"اِثْنَيْن", u"اِثْنَتَيْن"),
-          3:Number(u"٣", "three", u"ثَلَاثَة"),
-          4:Number(u"٤", "four", u"أَرْبَعَة"),
-          5:Number(u"٥", "five", u"خَمْسَة"),
-          6:Number(u"٦", "six", u"سِتَّة"),
-          7:Number(u"٧", "seven", u"سَبْعَة"),
-          8:Number(u"٨", "eight", u"ثَمَانِيَة", u"ثَمَانٍ"),
-          9:Number(u"٩", "nine", u"تِسْعَة")}
+digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة",
+            ord=[u"حدي", "first (combining form)", "eleven", u"حَادٍ",
+              u"أَحَدَ عََشَرَ"]),
+          2:Number(u"٢", "two", u"اِثْنَان", u"اِثْنَتَان", u"اِثْنَيْن", u"اِثْنَتَيْن",
+            ord=[u"ثني", "second", "twelve", u"ثَانٍ",
+              u"اِثْنَا عَشَرَ"]),
+          3:Number(u"٣", "three", u"ثَلَاثَة",
+            ord=[u"ثلث", "third", "thirteen"]),
+          4:Number(u"٤", "four", u"أَرْبَعَة",
+            ord=[u"ربع", "fourth", "fourteen"]),
+          5:Number(u"٥", "five", u"خَمْسَة",
+            ord=[u"خمس", "fifth", "fifteen"]),
+          6:Number(u"٦", "six", u"سِتَّة",
+            ord=[u"سدس", "sixth", "sixteen"]),
+          7:Number(u"٧", "seven", u"سَبْعَة",
+            ord=[u"سبع", "seventh", "seventeen"]),
+          8:Number(u"٨", "eight", u"ثَمَانِيَة", u"ثَمَانٍ",
+            ord=[u"ثمن", "eighth", "eighteen"]),
+          9:Number(u"٩", "nine", u"تِسْعَة",
+            ord=[u"تسع", "ninth", "nineteen"]),
+         }
 tens = { #10:Number(u"١٠", "ten", u"عَشَرَة", u"عَشْر"),
          20:Number(u"٢٠", "twenty", u"عِشْرُون"),
          30:Number(u"٣٠", "thirty", u"ثَلَاثُون"),
@@ -152,7 +179,7 @@ def create_lemma(tenval, ten, digval, dig):
 %s
 %s
 """ % (etym, headword, defn, decl, lastcoordterm, nextcoordterm)
-  changelog = "Creating lemma entry for %s (Arabic numeral '%s-%s')" % (
+  changelog = "Create lemma entry for %s (Arabic numeral '%s-%s')" % (
       pagename, ten.english, dig.english)
   return pagename, text, changelog
 
@@ -195,9 +222,95 @@ def create_non_lemma(tenval, ten, digval, dig, obl=False, fem=False):
 
 %s
 """ % (headword, defn)
-  changelog = "Creating non-lemma entry (%s) for %s (Arabic numeral '%s-%s')" % (
+  changelog = "Create non-lemma entry (%s) for %s وََ%s (Arabic numeral '%s-%s')" % (
       fem and obl and "feminine oblique" or fem and "feminine nominative" or
-      "masculine oblique", pagename, ten.english, dig.english)
+      "masculine oblique", dig.nom, ten.nom, ten.english, dig.english)
+  return pagename, text, changelog
+
+# ==Arabic==
+#
+# ===Etymology===
+# {{compound|lang=ar|تَاسِع|t1=ninth|عَشَرَ|t2=-ten}}, with both parts in the accusative case as with the cardinal numeral {{m|ar|تِسْعَةَ عَشَرَ|nineteen}}, and the same form for the tens part as with the cardinal. Units part from the root {{ar-root|ت س ع}}.
+#
+# ===Adjective===
+# {{ar-adj|تَاسِعَ عَشَرَ|f=تَاسِعَةَ عَشْرَةَ}}
+#
+# # {{context|ordinal|lang=ar}} {{l|en|nineteenth}}
+#
+# ====Declension====
+# {{ar-decl-adj|تَاسِعَ عَشَرَ:inv|f=تَاسِعَةَ عَشْرَةَ:inv|number=sg}}
+#
+# ====Coordinate terms====
+# * Cardinal: {{l|ar|تِسْعَةَ عَشَرَ||nineteen}}
+# * Last: {{l|ar|ثَامِنَ عَشَرَ||eighteenth}}
+# * Next: {{l|ar|عِشْرُون||twentieth}}
+
+def create_ordinal_lemma(digval, dig):
+  pagename = dig.ordteen
+  etym = u"""{{compound|lang=ar|%s|t1=%s|عَشَرَ|t2=-ten}}, with both parts in the accusative case as with the cardinal numeral {{m|ar|%s|%s}}, and the same form for the tens part as with the cardinal. Units part from the root {{ar-root|%s}}.""" % (
+      dig.ordlemma, dig.ordeng, dig.cardteen, dig.cardteeneng,
+      " ".join(dig.ordroot))
+
+  headword = u"""{{ar-adj|%s|f=%s}}""" % (dig.ordteen, dig.femordteen)
+
+  defn = u"""# {{context|ordinal|lang=ar}} {{l|en|%s}}""" % dig.ordteeneng
+
+  decl = u"""{{ar-decl-adj|%s:inv|f=%s:inv|number=sg}}""" % (dig.ordteen, dig.femordteen)
+
+  cardcoordterm = u"""* Cardinal: {{l|ar|%s||%s}}""" % (dig.cardteen,
+      dig.cardteeneng)
+  lastcoordterm = (u"""* Last: {{l|ar|عَاشِر||tenth}}""" if digval == 1 else
+    u"""* Last: {{l|ar|%s||%s}}""" % (digits[digval - 1].ordteen,
+      digits[digval - 1].ordteeneng))
+  nextcoordterm = (u"""* Next: {{l|ar|عِشْرُون||twentieth}}""" if digval == 9 else
+    u"""* Next: {{l|ar|%s||%s}}""" % (digits[digval + 1].ordteen,
+      digits[digval + 1].ordteeneng))
+
+  text = """
+==Arabic==
+
+===Etymology===
+%s
+
+===Adjective===
+%s
+
+%s
+
+====Declension====
+%s
+
+====Coordinate terms====
+%s
+%s
+%s
+""" % (etym, headword, defn, decl, cardcoordterm, lastcoordterm, nextcoordterm)
+  changelog = "Create lemma entry for %s (Arabic ordinal numeral '%s')" % (
+      pagename, dig.ordteeneng)
+  return pagename, text, changelog
+
+# ==Arabic==
+#
+# ===Adjective===
+# {{ar-adj-fem|تَاسِعَةَ عَشْرَةَ}}
+#
+# # {{inflection of|lang=ar|تَاسِعَ عَشَرَ||f|gloss=nineteenth}}
+
+def create_ordinal_non_lemma(digval, dig):
+  pagename = dig.femordteen
+  headword = u"""{{ar-adj-fem|%s}}}""" % pagename
+  defn = u"""# {{inflection of|lang=ar|%s||f|gloss=%s}}""" % (
+      dig.ordteen, dig.ordteeneng)
+  text = """\
+==Arabic==
+
+===Adjective===
+%s
+
+%s
+""" % (headword, defn)
+  changelog = "Create non-lemma entry (feminine) for %s (Arabic ordinal numeral '%s')" % (
+      dig.ordteen, dig.ordteeneng)
   return pagename, text, changelog
 
 pa = blib.init_argparser("Save numbers to Wiktionary")
@@ -205,6 +318,12 @@ pa.add_argument("--lemmas", action="store_true",
     help="Do lemmas from 21-99.")
 pa.add_argument("--non-lemmas", action="store_true",
     help="Do non-lemmas from 21-99.")
+pa.add_argument("--ordinal-lemmas", action="store_true",
+    help="Do ordinal lemmas from 11-19.")
+pa.add_argument("--ordinal-non-lemmas", action="store_true",
+    help="Do ordinal non-lemmas from 11-19.")
+pa.add_argument("--offline", action="store_true",
+    help="Run offline, checking output only.")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
@@ -213,21 +332,29 @@ def iter_pages(createfn):
   for tenval, ten, digval, dig in iter_numerals():
     yield createfn(tenval, ten, digval, dig)
 
-def do_pages(createfn):
-  pages = iter_pages(createfn)
-  for current, index  in blib.iter_pages(pages, startFrom, upTo,
+def iter_pages_units(createfn):
+  for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
+    yield createfn(digval, dig)
+
+def do_pages(createfn, units_only=False):
+  pages = units_only and iter_pages_units(createfn) or iter_pages(createfn)
+  for current, index in blib.iter_pages(pages, startFrom, upTo,
       key=lambda x:x[0]):
     pagename, text, changelog = current
     pagetitle = remove_diacritics(pagename)
-    page = pywikibot.Page(site, pagetitle)
-    if page.exists():
-      msg("Page %s %s: WARNING, page already exists, skipping" % (
-        index, pagename))
+    if params.offline:
+      msg("Text for %s: [[%s]]" % (pagename, text))
+      msg("Changelog = %s" % changelog)
     else:
-      def save_text(page, index, parsed):
-        return text, changelog
-      blib.do_edit(page, index, save_text, save=params.save,
-          verbose=params.verbose)
+      page = pywikibot.Page(site, pagetitle)
+      if page.exists():
+        msg("Page %s %s: WARNING, page already exists, skipping" % (
+          index, pagename))
+      else:
+        def save_text(page, index, parsed):
+          return text, changelog
+        blib.do_edit(page, index, save_text, save=params.save,
+            verbose=params.verbose)
 
 if params.lemmas:
   do_pages(create_lemma)
@@ -235,3 +362,7 @@ if params.non_lemmas:
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, obl=True))
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, fem=True))
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, obl=True, fem=True))
+if params.ordinal_lemmas:
+  do_pages(create_ordinal_lemma, units_only=True)
+if params.ordinal_non_lemmas:
+  do_pages(create_ordinal_non_lemma, units_only=True)
