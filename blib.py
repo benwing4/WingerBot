@@ -396,9 +396,10 @@ def getEtymLanguageData():
 # the template is split into multiple copies, each with one of the entries,
 # and the templates are comma-separated.
 #
+# If QUIET, don't output the list of processed templates at the end.
 def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
     process_param, join_actions=None, split_templates="[,]",
-    pages_to_do=[]):
+    pages_to_do=[], quiet=False):
   templates_changed = {}
   templates_seen = {}
 
@@ -674,9 +675,10 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         for page, index in cat_articles(cat, startFrom, upTo):
           do_edit(page, index, process_one_page_links_wrapper, save=save,
               verbose=verbose)
-  msg("Templates seen:")
-  for template, count in sorted(templates_seen.items(), key=lambda x:-x[1]):
-    msg("  %s = %s" % (template, count))
-  msg("Templates processed:")
-  for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
-    msg("  %s = %s" % (template, count))
+  if not quiet:
+    msg("Templates seen:")
+    for template, count in sorted(templates_seen.items(), key=lambda x:-x[1]):
+      msg("  %s = %s" % (template, count))
+    msg("Templates processed:")
+    for template, count in sorted(templates_changed.items(), key=lambda x:-x[1]):
+      msg("  %s = %s" % (template, count))
