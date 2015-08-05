@@ -63,11 +63,13 @@ class Number(object):
         self.ordlemma = (self.ordroot[0] + AA + self.ordroot[1] + I +
             self.ordroot[2])
         self.cardteen = self.nom + A + u" عَشَرَ"
+      self.femordlemma = (self.ordroot[0] + AA + self.ordroot[1] + I +
+          self.ordroot[2] + AH)
       self.ordteen = (self.ordroot[0] + AA + self.ordroot[1] + I +
           self.ordroot[2] + A + u" عَشَرَ")
-      self.femordteen = (self.ordroot[0] + AA + self.ordroot[1] + I +
-          self.ordroot[2] + AH + A + u" عَشْرَةَ")
+      self.femordteen = self.femordlemma + A + u" عَشْرَةَ"
       self.ordteeneng = ("twelfth" if self.cardteeneng == "twelve" else
+          "twentieth" if self.cardteeneng == "twenty" else
           self.cardteeneng + "th")
 
 digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة",
@@ -90,6 +92,8 @@ digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة",
             ord=[u"ثمن", "eighth", "eighteen"]),
           9:Number(u"٩", "nine", u"تِسْعَة",
             ord=[u"تسع", "ninth", "nineteen"]),
+          10:Number(u"١٠", "ten", u"عَشَرَة",
+            ord=[u"عشر", "tenth", "twenty"]),
          }
 tens = { #10:Number(u"١٠", "ten", u"عَشَرَة", u"عَشْر"),
          20:Number(u"٢٠", "twenty", u"عِشْرُون"),
@@ -104,7 +108,8 @@ tens = { #10:Number(u"١٠", "ten", u"عَشَرَة", u"عَشْر"),
 def iter_numerals():
   for tenval, ten in sorted(tens.iteritems(), key=lambda x:x[0]):
     for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
-      yield (tenval, ten, digval, dig)
+      if digval != 10:
+        yield (tenval, ten, digval, dig)
 
 # ==Arabic==
 #
@@ -230,6 +235,91 @@ def create_non_lemma(tenval, ten, digval, dig, obl=False, fem=False):
 # ==Arabic==
 #
 # ===Etymology===
+# From the root {{ar-root|ت س ع}}; compare {{m|ar|تِسْعَة||nine}}.
+#
+# ===Adjective===
+# {{ar-adj|تَاسِع|f=تَاسِعَة}}
+#
+# # {{context|ordinal|lang=ar}} {{l|en|ninth}}
+#
+# ====Declension====
+# {{ar-decl-adj|تَاسِع|number=sg}}
+#
+# ====Coordinate terms====
+# * Cardinal: {{l|ar|تِسْعَة||nine}}
+# * Last: {{l|ar|ثَامِن||eighth}}
+# * Next: {{l|ar|عَاشِر||tenth}}
+
+def create_unit_ordinal_lemma(digval, dig):
+  pagename = dig.ordlemma
+  etym = u"""From the root {{ar-root|%s}}; compare {{m|ar|%s||%s}}.""" % (
+      " ".join(dig.ordroot), u"أَحَد" if digval == 1 else dig.nom,
+      dig.english)
+
+  headword = u"""{{ar-adj|%s|f=%s}}""" % (dig.ordlemma, dig.femordlemma)
+
+  defn = u"""# {{context|ordinal|lang=ar}} {{l|en|%s}}""" % dig.ordeng
+
+  decl = u"""{{ar-decl-adj|%s|number=sg}}""" % dig.ordlemma
+
+  cardcoordterm = u"""* Cardinal: {{l|ar|%s||%s}}""" % (dig.nom, dig.english)
+  lastcoordterm = (u"""* Last: {{l|ar|أَوَّل||first}}""" if digval == 2 else
+    u"""* Last: {{l|ar|%s||%s}}""" % (digits[digval - 1].ordlemma,
+      digits[digval - 1].ordeng))
+  nextcoordterm = (u"""* Next: {{l|ar|حَادِيَ عَشَرَ||eleventh}}""" if digval == 10 else
+    u"""* Next: {{l|ar|%s||%s}}""" % (digits[digval + 1].ordlemma,
+      digits[digval + 1].ordeng))
+
+  text = """
+==Arabic==
+
+===Etymology===
+%s
+
+===Adjective===
+%s
+
+%s
+
+====Declension====
+%s
+
+====Coordinate terms====
+%s
+%s
+%s
+""" % (etym, headword, defn, decl, cardcoordterm, lastcoordterm, nextcoordterm)
+  changelog = "Create lemma entry for %s (Arabic ordinal numeral '%s')" % (
+      pagename, dig.ordeng)
+  return pagename, text, changelog
+
+# ==Arabic==
+#
+# ===Adjective===
+# {{ar-adj-fem|تَاسِعَة}}
+#
+# # {{inflection of|lang=ar|تَاسِع||f|gloss=ninth}}
+
+def create_unit_ordinal_non_lemma(digval, dig):
+  pagename = dig.femordlemma
+  headword = u"""{{ar-adj-fem|%s}}}""" % pagename
+  defn = u"""# {{inflection of|lang=ar|%s||f|gloss=%s}}""" % (
+      dig.ordlemma, dig.ordeng)
+  text = """\
+==Arabic==
+
+===Adjective===
+%s
+
+%s
+""" % (headword, defn)
+  changelog = "Create non-lemma entry (feminine) for %s (Arabic ordinal numeral '%s')" % (
+      dig.ordlemma, dig.ordeng)
+  return pagename, text, changelog
+
+# ==Arabic==
+#
+# ===Etymology===
 # {{compound|lang=ar|تَاسِع|t1=ninth|عَشَرَ|t2=-ten}}, with both parts in the accusative case as with the cardinal numeral {{m|ar|تِسْعَةَ عَشَرَ|nineteen}}, and the same form for the tens part as with the cardinal. Units part from the root {{ar-root|ت س ع}}.
 #
 # ===Adjective===
@@ -245,7 +335,7 @@ def create_non_lemma(tenval, ten, digval, dig, obl=False, fem=False):
 # * Last: {{l|ar|ثَامِنَ عَشَرَ||eighteenth}}
 # * Next: {{l|ar|عِشْرُون||twentieth}}
 
-def create_ordinal_lemma(digval, dig):
+def create_teen_ordinal_lemma(digval, dig):
   pagename = dig.ordteen
   etym = u"""{{compound|lang=ar|%s|t1=%s|عَشَرَ|t2=-ten}}, with both parts in the accusative case as with the cardinal numeral {{m|ar|%s|%s}}, and the same form for the tens part as with the cardinal. Units part from the root {{ar-root|%s}}.""" % (
       dig.ordlemma, dig.ordeng, dig.cardteen, dig.cardteeneng,
@@ -296,7 +386,7 @@ def create_ordinal_lemma(digval, dig):
 #
 # # {{inflection of|lang=ar|تَاسِعَ عَشَرَ||f|gloss=nineteenth}}
 
-def create_ordinal_non_lemma(digval, dig):
+def create_teen_ordinal_non_lemma(digval, dig):
   pagename = dig.femordteen
   headword = u"""{{ar-adj-fem|%s}}}""" % pagename
   defn = u"""# {{inflection of|lang=ar|%s||f|gloss=%s}}""" % (
@@ -332,12 +422,13 @@ def iter_pages(createfn):
   for tenval, ten, digval, dig in iter_numerals():
     yield createfn(tenval, ten, digval, dig)
 
-def iter_pages_units(createfn):
+def iter_pages_units(createfn, include_ten=False, skip_one=False):
   for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
-    yield createfn(digval, dig)
+    if (digval != 10 or include_ten) and (digval != 1 or not skip_one):
+      yield createfn(digval, dig)
 
-def do_pages(createfn, units_only=False):
-  pages = units_only and iter_pages_units(createfn) or iter_pages(createfn)
+def do_pages(createfn, iterfn=iter_pages):
+  pages = iterfn(createfn)
   for current, index in blib.iter_pages(pages, startFrom, upTo,
       key=lambda x:x[0]):
     pagename, text, changelog = current
@@ -363,6 +454,8 @@ if params.non_lemmas:
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, fem=True))
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, obl=True, fem=True))
 if params.ordinal_lemmas:
-  do_pages(create_ordinal_lemma, units_only=True)
+  do_pages(create_unit_ordinal_lemma, lambda fn:iter_pages_units(fn, include_ten=True, skip_one=True))
+  do_pages(create_teen_ordinal_lemma, iter_pages_units)
 if params.ordinal_non_lemmas:
-  do_pages(create_ordinal_non_lemma, units_only=True)
+  do_pages(create_unit_ordinal_non_lemma, lambda fn:iter_pages_units(fn, include_ten=True, skip_one=True))
+  do_pages(create_teen_ordinal_non_lemma, iter_pages_units)
