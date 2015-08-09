@@ -337,6 +337,15 @@ Note the use of a prefix to handle the conjunction {{m|ar|وَ|tr=wa-||and}}, an
 
 Another prefix example is found in the documentation for {{temp|ar-decl-numeral}}.
 
+====Prefix example #2====
+A similar example occurs with numbers, such as {{m|ar|تِسْرَة وَعِشْرُون|tr=tisʿa wa-ʿišrūn||[[twenty-nine]]}}. The declension can be expressed as follows:
+
+<code><nowiki>{{ar-decl-numeral|تِسْعَة|f=تِسْع|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}</nowiki></code>
+
+which produces
+
+{{ar-decl-numeral|تِسْعَة|f=تِسْع|mod=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
+
 ====Multiple modifiers #1====
 Things get more complicated when multiple modifiers are involved, because there are various possibilities: Each of the modifiers can independently be adjectival or ''ʾidāfa'', and a second or further-on adjectival modifier can modify an earlier ''ʾidāfa'' modifier rather than the base.
 
