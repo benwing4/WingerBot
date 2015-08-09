@@ -26,7 +26,8 @@ site = pywikibot.Site()
 russian_vowels = u"АОУҮЫЭЯЁЮИЕІѢѴаоуүыэяёюиеіѣѵAEIOUYĚƐaeiouyěɛ"
 not_russian_vowel_class = "[^%s]" % russian_vowels
 
-templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv"]
+templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
+  "ru-phrase"]
 
 def find_vocalized(term, pagemsg):
   # We can't handle [[FOO|BAR]] currently; in any case, BAR is generally
@@ -51,7 +52,7 @@ def find_vocalized(term, pagemsg):
     if not page.exists():
       return term
   except Exception as e:
-    pagemsg("WARNING: Error checking page existence: %s" % e)
+    pagemsg("WARNING: Error checking page existence: %s" % unicode(e))
     return term
   heads = set()
   def add_if(val):
@@ -137,7 +138,8 @@ def find_russian_need_vowels(save, verbose, direcfile, startFrom, upTo):
                 unbalanced = True
                 break
             if not unbalanced:
-              newval = " ".join(find_vocalized(word, pagemsg)
+              newval = " ".join((find_vocalized(word, pagemsg) if
+                  check_need_accent(word) else word)
                   for word in words)
           if newval != val:
             if remove_diacritics(newval) != remove_diacritics(val):
