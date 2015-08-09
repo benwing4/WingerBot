@@ -21,19 +21,28 @@ from blib import msg, getparam, addparam
 
 site = pywikibot.Site()
 
-def push_manual_changes(save, verbose, direcfile, startFrom, upTo):
+def push_manual_changes(save, verbose, direcfile, annotation, startFrom, upTo):
   template_changes = []
   for line in codecs.open(direcfile, "r", encoding="utf-8"):
     line = line.strip()
     m = re.match(r"^Page [^ ]+ (.*?): .*?: (\{\{.*?\}\}) <- \{\{.*?\}\} \((\{\{.*?\}\})\)$",
         line)
     if not m:
-      m = re.match(r"^\* \[\[(.*?)\]\]: .*?: <nowiki>(\{\{.*?\}\}) <- \{\{.*?\}\} \((\{\{.*?\}\})\)</nowiki>.*$",
+      m = re.match(r"^\* (?:Page [^ ]+ )?\[\[(.*?)\]\]: .*?: <nowiki>(\{\{.*?\}\}) <- \{\{.*?\}\} \((\{\{.*?\}\})\)</nowiki>.*$",
           line)
       if not m:
         msg("WARNING: Unable to parse line: [%s]" % line)
         continue
     if m.group(2) != m.group(3):
+      # If the current template is the same as the current template of the
+      # previous entry, ignore the previous entry; otherwise we won't be
+      # able to locate the current template the second time around. This
+      # happens e.g. in the output of find_russian_need_vowels.py when
+      # processing a template such as cardinalbox or compound that has
+      # more than one foreign-language parameter in it.
+      if len(template_changes) > 0 and template_changes[-1][2] == m.group(3):
+        msg("Ignoring change for pagename %s, %s -> %s" % template_changes[-1])
+        template_changes.pop()
       template_changes.append(m.groups())
 
   for current, index in blib.iter_pages(template_changes, startFrom, upTo,
@@ -79,7 +88,8 @@ def push_manual_changes(save, verbose, direcfile, startFrom, upTo):
             pagemsg("WARNING: Something wrong, length mismatch during replacement: Expected length change=%s, actual=%s, ratio=%.2f, curr=%s, repl=%s"
                 % (repl_curr_diff, newtext_text_diff, ratio, curr_template,
                   repl_template))
-        changelog = "(Manually) replaced %s with %s" % (curr_template, repl_template)
+        changelog = "Replaced %s with %s (%s)" % (curr_template, repl_template,
+            annotation)
         pagemsg("Change log = %s" % changelog)
       return newtext, changelog
 
@@ -94,8 +104,10 @@ def push_manual_changes(save, verbose, direcfile, startFrom, upTo):
 pa = blib.init_argparser("Push manual changes to Wiktionary")
 pa.add_argument("--file",
     help="File containing templates to change, as output by parse_log_file.py")
+pa.add_argument("--annotation", default="manually",
+    help="Annotation in change log message used to indicate source of changes (default 'manually')")
 
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-push_manual_changes(params.save, params.verbose, params.file, startFrom, upTo)
+push_manual_changes(params.save, params.verbose, params.file, params.annotation, startFrom, upTo)
