@@ -1338,7 +1338,7 @@ function add_inflections(stem, tr, data, mod, numgen, endings)
 				local thecase = is_lemmainf and case or
 					ismod and data[mod .. "case"] or case
 				add_inflection(data, mod .. case .. "_" .. ng .. "_" .. state,
-					data[mod .. "prefix"],
+					data[mod .. "prefix"] or "",
 					stems[thestate], trs[thestate],
 					endings[data.statecases[thestate][thecase]])
 			end
