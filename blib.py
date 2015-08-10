@@ -524,16 +524,23 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
           # FUCKME: This is a complicated template, might be doing it wrong
           doparam("5")
           doparam("6")
-          for p in ["card", "ord", "adv", "mult", "dis", "coll", "opt", "opt2",
-              "opt2x"]:
+          for p in ["card", "ord", "adv", "mult", "dis", "coll", "frac",
+              "optx", "opt2x"]:
             if getp(p + "alt"):
-              doparam(p + "alt")
+              doparam(p + "alt", p + "tr")
             else:
               doparam(p)
-            if getp("alt"):
-              doparam("alt")
-            else:
-              doparam("wplink")
+          if getp("alt"):
+            doparam("alt")
+          else:
+            doparam("wplink")
+      elif tempname in ["der2", "der3", "der4", "der5", "rel2", "rel3", "rel4",
+          "rel5", "hyp2", "hyp3", "hyp4", "hyp5"]:
+        if getp("lang") == lang:
+          i = 1
+          while getp(str(i)):
+            doparam(str(i))
+            i += 1
       elif tempname == "elements":
         if getp("lang") == lang:
           doparam("2")
