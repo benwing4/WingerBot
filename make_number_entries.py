@@ -40,8 +40,10 @@ site = pywikibot.Site()
 # -- 'ordlemma': Arabic lemma for masculine ordinal number
 # -- 'ordlemmatr': Translit lemma for masculine ordinal number
 # -- 'femordlemma': Arabic lemma for feminine ordinal number
+# -- 'femordlemmatr': Arabic lemma for feminine ordinal number
 # -- 'ordroot': Three-letter ordinal root
 # -- 'ordeng': English text of ordinal number
+# -- 'ordgloss': English text of gloss used for ordinal number
 # *********** Other forms ************
 # -- 'adv': Adverbial
 # -- 'frac': Fractional
@@ -99,6 +101,7 @@ class Number(object):
       self.thousandtr = ar_translit.tr(self.thousand)
     self.ordroot = None
     self.ordeng = None
+    self.ordgloss = None
     self.cardteeneng = None
     self.ordlemma = None
     self.cardteen = None
@@ -108,11 +111,12 @@ class Number(object):
     self.mult = mult
     self.numadj = numadj
     if ord:
-      if len(ord) == 5:
-        self.ordroot, self.ordeng, self.cardteeneng, self.ordlemma, \
-            self.cardteen = ord
+      if len(ord) == 6:
+        self.ordroot, self.ordeng, self.ordgloss, self.cardteeneng, \
+            self.ordlemma, self.cardteen = ord
       else:
         self.ordroot, self.ordeng, self.cardteeneng = ord
+        self.ordgloss = self.ordeng
         self.ordlemma = (self.ordroot[0] + AA + self.ordroot[1] + I +
             self.ordroot[2])
         self.cardteen = self.nom + A + u" عَشَرَ"
@@ -121,6 +125,7 @@ class Number(object):
       R2 = self.ordroot[1]
       R3 = self.ordroot[2]
       self.femordlemma = R1 + AA + R2 + I + R3 + AH
+      self.femordlemmatr = ar_translit.tr(self.femordlemma)
       self.ordteen = R1 + AA + R2 + I + R3 + A + u" عَشَرَ"
       self.femordteen = self.femordlemma + A + u" عَشْرَةَ"
       self.ordteeneng = ("twelfth" if self.cardteeneng == "twelve" else
@@ -141,13 +146,13 @@ class Number(object):
 
 digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة",
             hundred=u"مِائَة", thousand=u"أَلْف",
-            ord=[u"حدي", "first (combining form)", "eleven", u"حَادٍ",
+            ord=[u"حدي", "first", "first|first (combining form)", "eleven", u"حَادٍ",
               u"أَحَدَ عََشَرَ"],
             adv=u"مَرَّة", mult=u"مُفْرَد", dist=[u"أُحَاد", u"وُحَاد", u"مَوْحَد"],
             numadj=u"أُحَادِيّ"),
           2:Number(u"٢", "two", u"اِثْنَان", u"اِثْنَتَان", u"اِثْنَيْن", u"اِثْنَتَيْن",
             hundred=u"مِائَتَان", thousand=u"أَلْفَان",
-            ord=[u"ثني", "second", "twelve", u"ثَانٍ", u"اِثْنَا عَشَرَ"],
+            ord=[u"ثني", "second", "second", "twelve", u"ثَانٍ", u"اِثْنَا عَشَرَ"],
             frac=u"نِصْف", adv=u"مَرَّتَان", mult=u"مُثَنًّى", dist=[u"ثُنَاء", u"مَثْنَى"],
             numadj=u"ثُنَائِيّ"),
           3:Number(u"٣", "three", u"ثَلَاثَة",
@@ -188,7 +193,7 @@ def iter_numerals():
         yield (tenval, ten, digval, dig)
 
 # ==Arabic==
-# {{cardinalbox|ar|٢٨/28|٢٩/29|٣٠/30|ثَمَانِيَة وَعِشْرُون|ثَلَاثُون|alt=تِسْعَة وَعِشْرُون|tr=tisʿa wa-ʿišrūn|ord=تَاسِع وَعِشْرُون|ordtr=tāsiʿ wa-ʿišrūn}}
+# {{number box|ar|29}}
 # 
 # ===Etymology===
 # {{compound|lang=ar|تِسْعَة|t1=[[nine]]|وَ|tr2=wa-|t2=[[and]]|عِشْرُون|tr3=[[twenty]]}}.
@@ -204,43 +209,27 @@ def iter_numerals():
 
 def create_lemma(tenval, ten, digval, dig):
   pagename = u"%s وَ%s" % (dig.nom, ten.nom)
-  etym = """Literally "%s and %s", from {{m|ar|%s}} and {{m|ar|%s}}.""" % (
-      (dig.english, ten.english, dig.nom, ten.nom))
-  headword = u"""{{ar-numeral|%s|m|tr=%s wa-%s|f=%s وَ%s|ftr=%s wa-%s|obl=%s وَ%s|obltr=%s wa-%s|fobl=%s وَ%s|fobltr=%s wa-%s}}""" % (
+  nbox = "{{number box|ar|%s}}" % (tenval + digval)
+  etym = u"""{{compound|lang=ar|%s|t1=[[%s]]|وَ|tr2=wa-|t2=[[and]]|%s|t3=[[%s]]}}.""" % (
+      (dig.nom, dig.english, ten.nom, ten.english))
+  headword = u"""{{ar-numeral|%s|m|tr=%s wa-%s|f=%s وَ%s|ftr=%s wa-%s}}""" % (
       pagename, dig.nomtr, ten.nomtr,
-      dig.femnom, ten.femnom, dig.femnomtr, ten.femnomtr,
-      dig.obl, ten.obl, dig.obltr, ten.obltr,
-      dig.femobl, ten.femobl, dig.femobltr, ten.femobltr)
+      dig.femnom, ten.femnom, dig.femnomtr, ten.femnomtr)
 
   defn = u"""# [[%s-%s]]
 #: Eastern Arabic numeral: {{l|ar|%s%s}}""" % (
       ten.english, dig.english, ten.eastarabnum[0], dig.eastarabnum)
 
-  decl = u"""{{ar-decl-numeral|-|pl=%s%s|fpl=%s%s|mod=-|modpl=%s|modfpl=%s|modprefix=وَ/wa-|state=ind,def}}""" % (
+  decl = u"""{{ar-decl-numeral|-|pl=%s%s|f=-|fpl=%s%s|mod=-|modpl=%s|modf=-|modfpl=%s|modprefix=وَ/wa-|state=ind,def}}""" % (
       # Force dual for اِثْنَان so it will be conjugated correctly even though
       # labeled as plural
       dig.nom, digval == 2 and ":d" or "",
       dig.femnom, digval == 2 and ":d" or "",
       ten.nom, ten.femnom)
 
-  lastcoordterm = (u"""* Last: {{l|ar|%s}} (or {{lang|ar|%s}} = %s)""" % (
-      ten.nom, ten.eastarabnum, tenval) if digval == 1 else
-  u"""* Last: {{l|ar|%s وَ%s|tr=%s wa-%s}} (or {{lang|ar|%s%s}} = %s)""" % (
-      digits[digval - 1].nom, ten.nom, digits[digval - 1].nomtr, ten.nomtr,
-      ten.eastarabnum[0], digits[digval - 1].eastarabnum,
-      tenval + digval - 1))
-  nextcoordterm = (u"""* Next: {{l|ar|مِائَة|tr=miʾa}} (or {{lang|ar|١٠٠}} = 100)"""
-      if tenval == 90 and digval == 9 else
-  u"""* Next: {{l|ar|%s}} (or {{lang|ar|%s}} = %s)""" % (
-      tens[tenval + 10].nom, tens[tenval + 10].eastarabnum, tenval + 10)
-      if digval == 9 else
-  u"""* Next: {{l|ar|%s وَ%s|tr=%s wa-%s}} (or {{lang|ar|%s%s}} = %s)""" % (
-      digits[digval + 1].nom, ten.nom, digits[digval + 1].nomtr, ten.nomtr,
-      ten.eastarabnum[0], digits[digval + 1].eastarabnum,
-      tenval + digval + 1))
-
   text = """
 ==Arabic==
+%s
 
 ===Etymology===
 %s
@@ -252,11 +241,7 @@ def create_lemma(tenval, ten, digval, dig):
 
 ====Declension====
 %s
-
-====Coordinate terms====
-%s
-%s
-""" % (etym, headword, defn, decl, lastcoordterm, nextcoordterm)
+""" % (nbox, etym, headword, defn, decl)
   changelog = "Create lemma entry for %s (Arabic numeral '%s-%s')" % (
       pagename, ten.english, dig.english)
   return pagename, text, changelog
@@ -306,45 +291,37 @@ def create_non_lemma(tenval, ten, digval, dig, obl=False, fem=False):
   return pagename, text, changelog
 
 # ==Arabic==
-#
+# {{number box|ar|29}}
+# 
 # ===Etymology===
-# From the root {{ar-root|ت س ع}}; compare {{m|ar|تِسْعَة||nine}}.
-#
+# {{compound|lang=ar|تَاسِع|t1=[[ninth]]|وَ|tr2=wa-|t2=[[and]]|عِشْرُون|tr3=[[twenty]]}}.
+# 
 # ===Adjective===
-# {{ar-adj|تَاسِع|f=تَاسِعَة}}
+# {{ar-adj|تَاسِع  وَعِشْرُون|m|tr=tāsiʿ wa-ʿišrūn|f=تَاسِعَة وَعِشْرُون|ftr=tāsiʿa wa-ʿišrūn}}
 #
-# # {{context|ordinal|lang=ar}} {{l|en|ninth}}
-#
+# # {{context|ordinal|lang=ar}} {{l|en|twenty-ninth}}
+# 
 # ====Declension====
-# {{ar-decl-adj|تَاسِع|number=sg}}
-#
-# ====Coordinate terms====
-# * Cardinal: {{l|ar|تِسْعَة||nine}}
-# * Last: {{l|ar|ثَامِن||eighth}}
-# * Next: {{l|ar|عَاشِر||tenth}}
+# {{ar-decl-adj|تَاسِع|mod=عِشْرُون:smp|modf=عِشْرُون:smp|modprefix=وَ/wa-|number=sg}}
 
-def create_unit_ordinal_lemma(digval, dig):
-  pagename = dig.ordlemma
-  etym = u"""From the root {{ar-root|%s}}; compare {{m|ar|%s||%s}}.""" % (
-      " ".join(dig.ordroot), u"أَحَد" if digval == 1 else dig.nom,
-      dig.english)
+def create_ordinal_lemma(tenval, ten, digval, dig):
+  pagename = u"%s وَ%s" % (dig.ordlemma, ten.nom)
+  nbox = "{{number box|ar|%s}}" % (tenval + digval)
+  etym = u"""{{compound|lang=ar|%s|t1=[[%s]]|وَ|tr2=wa-|t2=[[and]]|%s|t3=[[%s]]}}.""" % (
+      (dig.ordlemma, dig.ordgloss, ten.nom, ten.english))
+  headword = u"""{{ar-adj|%s|m|tr=%s wa-%s|f=%s وَ%s|ftr=%s wa-%s}}""" % (
+      pagename, dig.ordlemmatr, ten.nomtr,
+      dig.femordlemma, ten.femnom, dig.femordlemmatr, ten.femnomtr)
 
-  headword = u"""{{ar-adj|%s|f=%s}}""" % (dig.ordlemma, dig.femordlemma)
+  defn = u"""# {{context|ordinal|lang=ar}} {{l|en|%s-%s}}""" % (
+      ten.english, dig.ordeng)
 
-  defn = u"""# {{context|ordinal|lang=ar}} {{l|en|%s}}""" % dig.ordeng
-
-  decl = u"""{{ar-decl-adj|%s|number=sg}}""" % dig.ordlemma
-
-  cardcoordterm = u"""* Cardinal: {{l|ar|%s||%s}}""" % (dig.nom, dig.english)
-  lastcoordterm = (u"""* Last: {{l|ar|أَوَّل||first}}""" if digval == 2 else
-    u"""* Last: {{l|ar|%s||%s}}""" % (digits[digval - 1].ordlemma,
-      digits[digval - 1].ordeng))
-  nextcoordterm = (u"""* Next: {{l|ar|حَادِيَ عَشَرَ||eleventh}}""" if digval == 10 else
-    u"""* Next: {{l|ar|%s||%s}}""" % (digits[digval + 1].ordlemma,
-      digits[digval + 1].ordeng))
+  decl = u"""{{ar-decl-adj|%s|mod=%s:smp|modf=%s:smp|modprefix=وَ/wa-|number=sg}}""" % (
+      dig.ordlemma, ten.nom, ten.femnom)
 
   text = """
 ==Arabic==
+%s
 
 ===Etymology===
 %s
@@ -356,12 +333,53 @@ def create_unit_ordinal_lemma(digval, dig):
 
 ====Declension====
 %s
+""" % (nbox, etym, headword, defn, decl)
+  changelog = "Create lemma entry for %s (Arabic ordinal numeral '%s-%s')" % (
+      pagename, ten.english, dig.ordeng)
+  return pagename, text, changelog
 
-====Coordinate terms====
+# ==Arabic==
+# {{number box|ar|9}}
+#
+# ===Etymology===
+# From the root {{ar-root|ت س ع}}; compare {{m|ar|تِسْعَة||nine}}.
+#
+# ===Adjective===
+# {{ar-adj|تَاسِع|f=تَاسِعَة}}
+#
+# # {{context|ordinal|lang=ar}} {{l|en|ninth}}
+#
+# ====Declension====
+# {{ar-decl-adj|تَاسِع|number=sg}}
+
+def create_unit_ordinal_lemma(digval, dig):
+  pagename = dig.ordlemma
+  nbox = "{{number box|ar|%s}}" % digval
+  etym = u"""From the root {{ar-root|%s}}; compare {{m|ar|%s||%s}}.""" % (
+      " ".join(dig.ordroot), u"أَحَد" if digval == 1 else dig.nom,
+      dig.english)
+
+  headword = u"""{{ar-adj|%s|f=%s}}""" % (dig.ordlemma, dig.femordlemma)
+
+  defn = u"""# {{context|ordinal|lang=ar}} {{l|en|%s}}""" % dig.ordeng
+
+  decl = u"""{{ar-decl-adj|%s|number=sg}}""" % dig.ordlemma
+
+  text = """
+==Arabic==
 %s
+
+===Etymology===
 %s
+
+===Adjective===
 %s
-""" % (etym, headword, defn, decl, cardcoordterm, lastcoordterm, nextcoordterm)
+
+%s
+
+====Declension====
+%s
+""" % (etym, nbox, headword, defn, decl)
   changelog = "Create lemma entry for %s (Arabic ordinal numeral '%s')" % (
       pagename, dig.ordeng)
   return pagename, text, changelog
@@ -391,6 +409,7 @@ def create_unit_ordinal_non_lemma(digval, dig):
   return pagename, text, changelog
 
 # ==Arabic==
+# {{number box|ar|19}}
 #
 # ===Etymology===
 # {{compound|lang=ar|تَاسِع|t1=ninth|عَشَرَ|t2=-ten}}, with both parts in the accusative case as with the cardinal numeral {{m|ar|تِسْعَةَ عَشَرَ|nineteen}}, and the same form for the tens part as with the cardinal. Units part from the root {{ar-root|ت س ع}}.
@@ -402,14 +421,10 @@ def create_unit_ordinal_non_lemma(digval, dig):
 #
 # ====Declension====
 # {{ar-decl-adj|تَاسِعَ عَشَرَ:inv|f=تَاسِعَةَ عَشْرَةَ:inv|number=sg}}
-#
-# ====Coordinate terms====
-# * Cardinal: {{l|ar|تِسْعَةَ عَشَرَ||nineteen}}
-# * Last: {{l|ar|ثَامِنَ عَشَرَ||eighteenth}}
-# * Next: {{l|ar|عِشْرُون||twentieth}}
 
 def create_teen_ordinal_lemma(digval, dig):
   pagename = dig.ordteen
+  nbox = "{{number box|ar|%s}}" % (10 + digval)
   etym = u"""{{compound|lang=ar|%s|t1=%s|عَشَرَ|t2=-ten}}, with both parts in the accusative case as with the cardinal numeral {{m|ar|%s|%s}}, and the same form for the tens part as with the cardinal. Units part from the root {{ar-root|%s}}.""" % (
       dig.ordlemma, dig.ordeng, dig.cardteen, dig.cardteeneng,
       " ".join(dig.ordroot))
@@ -420,17 +435,9 @@ def create_teen_ordinal_lemma(digval, dig):
 
   decl = u"""{{ar-decl-adj|%s:inv|f=%s:inv|number=sg}}""" % (dig.ordteen, dig.femordteen)
 
-  cardcoordterm = u"""* Cardinal: {{l|ar|%s||%s}}""" % (dig.cardteen,
-      dig.cardteeneng)
-  lastcoordterm = (u"""* Last: {{l|ar|عَاشِر||tenth}}""" if digval == 1 else
-    u"""* Last: {{l|ar|%s||%s}}""" % (digits[digval - 1].ordteen,
-      digits[digval - 1].ordteeneng))
-  nextcoordterm = (u"""* Next: {{l|ar|عِشْرُون||twentieth}}""" if digval == 9 else
-    u"""* Next: {{l|ar|%s||%s}}""" % (digits[digval + 1].ordteen,
-      digits[digval + 1].ordteeneng))
-
   text = """
 ==Arabic==
+%s
 
 ===Etymology===
 %s
@@ -442,12 +449,7 @@ def create_teen_ordinal_lemma(digval, dig):
 
 ====Declension====
 %s
-
-====Coordinate terms====
-%s
-%s
-%s
-""" % (etym, headword, defn, decl, cardcoordterm, lastcoordterm, nextcoordterm)
+""" % (nbox, etym, headword, defn, decl)
   changelog = "Create lemma entry for %s (Arabic ordinal numeral '%s')" % (
       pagename, dig.ordteeneng)
   return pagename, text, changelog
@@ -598,6 +600,7 @@ if params.non_lemmas:
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, fem=True))
   do_pages(lambda tv, t, dv, d:create_non_lemma(tv, t, dv, d, obl=True, fem=True))
 if params.ordinal_lemmas:
+  do_pages(create_ordinal_lemma)
   do_pages(create_unit_ordinal_lemma, lambda fn:iter_pages_units(fn, include_ten=True, skip_one=True))
   do_pages(create_teen_ordinal_lemma, iter_pages_units)
 if params.ordinal_non_lemmas:
