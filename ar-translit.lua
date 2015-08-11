@@ -330,21 +330,41 @@ end
 -- establishing regularity, hyphens are ignored and word-final tāʾ marbūṭa
 -- can be transliterated as "(t)", "" or "t".
 function export.irregular_translit(arabic, tr)
-	local regtr = export.tr(arabic)
-	if not regtr or not tr or tr == "" or regtr == tr then
+	if not arabic or arabic == "" or not tr or tr == "" then
 		return false
 	end
+	local regtr = export.tr(arabic)
+	if not regtr or regtr == tr then
+		return false
+	end
+	local arwords = rsplit(arabic, " ")
 	local regwords = rsplit(regtr, " ")
 	local words = rsplit(tr, " ")
-	if #regwords ~= #words then
+	if #regwords ~= #words or #regwords ~= #arwords then
 		return true
 	end
 	for i=1,#regwords do
-		local regword = rsub(regwords[i], "%-", "")
-		local word = rsub(words[i], "%-", "")
-		if regword ~= word and rsub(regword, "%(t%)$", "") ~= word and
-				rsub(regword, "%(t%)$", "t") ~= word then
-			returntrue
+		local regword = regwords[i]
+		local word = words[i]
+		local arword = arwords[i]
+		-- Resolve final (t) in auto-translit to t, h or nothing
+		if rfind(regword, "%(t%)$") then
+			regword = rfind(word, "āh$") and rsub(regword, "%(t%)$", "h") or
+				rfind(word, "t$") and rsub(regword, "%(t%)$", "t") or
+				rsub(regword, "%(t%)$", "")
+		end
+		-- Resolve clitics + short a + alif-lām, which may get auto-translated
+		-- to contain long ā, to short a if the manual translit has it; note
+		-- that currently in cases with assimilated l, the auto-translit will
+		-- fail, so we won't ever get here and don't have to worry about
+		-- auto-translit l against manual-translit assimilated char.
+		local clitic_chars = "^[وفكل]" -- separate line to avoid L2R display weirdness
+		if rfind(arword, clitic_chars .. "\217\142?[\216\167\217\177]\217\132") and rfind(word, "^[wfkl]a%-") then
+			regword = rsub(regword, "^([wfkl])ā", "%1a")
+		end
+		-- Ignore hyphens when comparing
+		if rsub(regword, "%-", "") ~= rsub(word, "%-", "") then
+			return true
 		end
 	end
 	return false
