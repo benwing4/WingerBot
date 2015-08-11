@@ -177,6 +177,14 @@ function track_form(argname, form, translit, pos)
 	end
 end
 
+local function prepend_cat(data, pos)
+	table.insert(data.categories, 1, lang:getCanonicalName() .. " " .. pos)
+end
+
+local function append_cat(data, pos)
+	table.insert(data.categories, lang:getCanonicalName() .. " " .. pos)
+end
+
 -- The main entry point.
 function export.show(frame)
 	local poscat = frame.args[1] or error("Part of speech has not been specified. Please pass parameter 1 to the module invocation.")
@@ -212,7 +220,7 @@ function export.show(frame)
 	end
 
 	if irreg_translit then
-		append_cat(data, "Arabic terms with irregular pronunciations")
+		append_cat(data, "terms with irregular pronunciations")
 	end
 	
 	if pos_functions[poscat] then
@@ -293,14 +301,6 @@ local function handle_all_infl(args, data, argpref, label, nobase)
 	handle_infl(args, data, argpref .. "def", labelsp .. "definite state")
 	handle_infl(args, data, argpref .. "obl", labelsp .. "oblique")
 	handle_infl(args, data, argpref .. "inf", labelsp .. "informal")
-end
-
-local function prepend_cat(data, pos)
-	table.insert(data.categories, 1, lang:getCanonicalName() .. " " .. pos)
-end
-
-local function append_cat(data, pos)
-	table.insert(data.categories, lang:getCanonicalName() .. " " .. pos)
 end
 
 -- Handle the case where pl=-, indicating an uncountable noun.
