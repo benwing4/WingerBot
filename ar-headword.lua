@@ -301,8 +301,8 @@ local function handle_noun_plural(args, data)
 end
 
 local valid_genders = list_to_set(
-	{"m", "m-pr", "m-np",
-	 "f", "f-pr", "f-np",
+	{"m", "m-s", "m-pr", "m-s-pr", "m-np", "m-s-np",
+	 "f", "f-s", "f-pr", "f-s-pr", "f-np", "f-s-np",
 	 "m-d", "m-d-pr", "m-d-np",
 	 "f-d", "f-d-pr", "f-d-np",
 	 "m-p", "m-p-pr", "m-p-np",
@@ -466,60 +466,6 @@ pos_functions["proper nouns"] = {
 	end
 }
 
-pos_functions["verbal nouns"] = {
-	params = {
-		["g"] = {},
-		["g2"] = {},
-		
-		["cons"]  = {}, ["constr"]  = {}, ["consg"]  = {}, ["consg2"]  = {},
-		["cons2"] = {}, ["cons2tr"] = {}, ["cons2g"] = {}, ["cons2g2"] = {},
-		["cons3"] = {}, ["cons3tr"] = {}, ["cons3g"] = {}, ["cons3g2"] = {},
-		["cons4"] = {}, ["cons4tr"] = {}, ["cons4g"] = {}, ["cons4g2"] = {},
-		
-		["def"]  = {}, ["deftr"]  = {}, ["defg"]  = {}, ["defg2"]  = {},
-		["def2"] = {}, ["def2tr"] = {}, ["def2g"] = {}, ["def2g2"] = {},
-		["def3"] = {}, ["def3tr"] = {}, ["def3g"] = {}, ["def3g2"] = {},
-		["def4"] = {}, ["def4tr"] = {}, ["def4g"] = {}, ["def4g2"] = {},
-		
-		["obl"]  = {}, ["obltr"]  = {}, ["oblg"]  = {}, ["oblg2"]  = {},
-		["obl2"] = {}, ["obl2tr"] = {}, ["obl2g"] = {}, ["obl2g2"] = {},
-		["obl3"] = {}, ["obl3tr"] = {}, ["obl3g"] = {}, ["obl3g2"] = {},
-		["obl4"] = {}, ["obl4tr"] = {}, ["obl4g"] = {}, ["obl4g2"] = {},
-		
-		["inf"]  = {}, ["inftr"]  = {}, ["infg"]  = {}, ["infg2"]  = {},
-		["inf2"] = {}, ["inf2tr"] = {}, ["inf2g"] = {}, ["inf2g2"] = {},
-		["inf3"] = {}, ["inf3tr"] = {}, ["inf3g"] = {}, ["inf3g2"] = {},
-		["inf4"] = {}, ["inf4tr"] = {}, ["inf4g"] = {}, ["inf4g2"] = {},
-		
-		["dual"] = {}, ["dualtr"] = {}, ["dualg"] = {}, ["dualg2"] = {},
-		
-		["dualcons"]  = {}, ["dualconstr"]  = {}, ["dualconsg"]  = {}, ["dualconsg2"]  = {},
-		["dualcons2"] = {}, ["dualcons2tr"] = {}, ["dualcons2g"] = {}, ["dualcons2g2"] = {},
-		["dualcons3"] = {}, ["dualcons3tr"] = {}, ["dualcons3g"] = {}, ["dualcons3g2"] = {},
-		["dualcons4"] = {}, ["dualcons4tr"] = {}, ["dualcons4g"] = {}, ["dualcons4g2"] = {},
-		
-		["dualdef"]  = {}, ["dualdeftr"]  = {}, ["dualdefg"]  = {}, ["dualdefg2"]  = {},
-		["dualdef2"] = {}, ["dualdef2tr"] = {}, ["dualdef2g"] = {}, ["dualdef2g2"] = {},
-		["dualdef3"] = {}, ["dualdef3tr"] = {}, ["dualdef3g"] = {}, ["dualdef3g2"] = {},
-		["dualdef4"] = {}, ["dualdef4tr"] = {}, ["dualdef4g"] = {}, ["dualdef4g2"] = {},
-		
-		["dualobl"]  = {}, ["dualobltr"]  = {}, ["dualoblg"]  = {}, ["dualoblg2"]  = {},
-		["dualobl2"] = {}, ["dualobl2tr"] = {}, ["dualobl2g"] = {}, ["dualobl2g2"] = {},
-		["dualobl3"] = {}, ["dualobl3tr"] = {}, ["dualobl3g"] = {}, ["dualobl3g2"] = {},
-		["dualobl4"] = {}, ["dualobl4tr"] = {}, ["dualobl4g"] = {}, ["dualobl4g2"] = {},
-		
-		["dualinf"]  = {}, ["dualinftr"]  = {}, ["dualinfg"]  = {}, ["dualinfg2"]  = {},
-		["dualinf2"] = {}, ["dualinf2tr"] = {}, ["dualinf2g"] = {}, ["dualinf2g2"] = {},
-		["dualinf3"] = {}, ["dualinf3tr"] = {}, ["dualinf3g"] = {}, ["dualinf3g2"] = {},
-		["dualinf4"] = {}, ["dualinf4tr"] = {}, ["dualinf4g"] = {}, ["dualinf4g2"] = {},
-		},
-	func = function(args, data)
-		prepend_cat(data, "nouns")
-		handle_gender(args, data)
-		handle_noun_infls(args, data)
-	end
-}
-
 pos_functions["pronouns"] = {
 	params = {
 		["g"] = {},
@@ -583,6 +529,18 @@ pos_functions["noun plural forms"] = {
 		--prepend_cat(data, "noun forms")
 		handle_gender(args, data, "p")
 		handle_all_infl(args, data, "", "") -- handle cons, def, obl, inf
+	end
+}
+
+pos_functions["adjective feminine forms"] = {
+	params = {
+		["g"] = {},
+		["g2"] = {},
+		},
+	func = function(args, data)
+		--prepend_cat(data, "feminines")
+		--prepend_cat(data, "adjective forms")
+		handle_gender(args, data, "f")
 	end
 }
 
