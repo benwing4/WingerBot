@@ -196,10 +196,12 @@ before_diacritic_checking_subs = [
     [u"l-[" + sun_letters + "]", ttsun2]
 ]
 
-# Transliterate any words or phrases. OMIT_I3RAAB means leave out final
-# short vowels (ʾiʿrāb). FORCE_TRANSLATE causes even non-vocalized text to
-# be transliterated (normally the function checks for non-vocalized text and
-# returns None, since such text is ambiguous in transliteration).
+# Transliterate the word(s) in TEXT. LANG (the language) and SC (the script)
+# are ignored. OMIT_I3RAAB means leave out final short vowels (ʾiʿrāb).
+# GRAY_I3RAAB means render transliterate short vowels (ʾiʿrāb) in gray.
+# FORCE_TRANSLATE causes even non-vocalized text to be transliterated
+# (normally the function checks for non-vocalized text and returns nil,
+# since such text is ambiguous in transliteration).
 def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=False,
         force_translate=False, msgfun=msg):
     for sub in before_diacritic_checking_subs:
@@ -255,7 +257,9 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=False,
     # whitespace, nothing when final; but render final -اة and -آة as -āh,
     # consistent with Wehr's dictionary
     text = rsub(text, u"([\u0627\u0622])\u0629$", u"\\1h")
-    # Need to do the following after graying or omitting word-final ʾiʿrāb.
+    # Ignore final tāʾ marbūṭa (it appears as "a" due to the preceding
+    # short vowel). Need to do this after graying or omitting word-final
+    # ʾiʿrāb.
     text = rsub(text, u"\u0629$", u"")
     if not omit_i3raab: # show ʾiʿrāb in transliteration
         text = rsub(text, u"\u0629\\s", u"(t) ")
@@ -263,6 +267,14 @@ def tr(text, lang=None, sc=None, omit_i3raab=False, gray_i3raab=False,
         # When omitting ʾiʿrāb, show all non-absolutely-final instances of
         # tāʾ marbūṭa as (t), with trailing ʾiʿrāb omitted.
         text = rsub(text, u"\u0629", u"(t)")
+    # tatwīl should be rendered as - at beginning or end of word. It will
+    # be rendered as nothing in the middle of a word (FIXME, do we want
+    # this?)
+    text = rsub(text, u"^ـ", "-")
+    text = rsub(text, u"\\sـ", " -")
+    text = rsub(text, u"ـ$", "-")
+    text = rsub(text, u"ـ\\s", "- ")
+    # Now convert remaining Arabic chars according to table.
     text = rsub(text, u".", tt)
     text = rsub(text, u"aā", u"ā")
     # Implement elision of al- after a final vowel. We do this
