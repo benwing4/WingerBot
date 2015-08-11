@@ -19,7 +19,7 @@ import codecs
 import time
 
 import blib, pywikibot
-from blib import msg, errmsg, getparam, addparam
+from blib import msg, errmsg, getparam, addparam, remove_links
 from arabiclib import *
 
 site = pywikibot.Site()
