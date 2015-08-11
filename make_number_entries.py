@@ -24,9 +24,47 @@ from arabiclib import *
 
 site = pywikibot.Site()
 
+# Classes have the following fields:
+# *********** For the cardinal itself ***********
+# -- 'nom': Arabic masculine nominative form of number
+# -- 'nomtr': Translit masculine nominative form of number
+# -- 'femnom': Arabic feminine nominative form of number
+# -- 'femnomtr': Translit feminine nominative form of number
+# -- 'obl': Arabic masculine oblique form of number
+# -- 'obltr': Translit masculine oblique form of number
+# -- 'femobl': Arabic feminine oblique form of number
+# -- 'femobltr': Translit feminine oblique form of number
+# -- 'english': English text of number
+# -- 'eastarabnum': East Arabic numerals for number
+# *********** For the ordinal itself ************
+# -- 'ordlemma': Arabic lemma for masculine ordinal number
+# -- 'ordlemmatr': Translit lemma for masculine ordinal number
+# -- 'femordlemma': Arabic lemma for feminine ordinal number
+# -- 'ordroot': Three-letter ordinal root
+# -- 'ordeng': English text of ordinal number
+# *********** Other forms ************
+# -- 'adv': Adverbial
+# -- 'frac': Fractional
+# -- 'mult': Multiplier
+# -- 'dist': Distributive
+# -- 'numadj': Numeral adjective
+# *********** For number+10 ************
+# -- 'cardteen': For numbers 1-10, Arabic form of number+10
+# -- 'cardteeneng': For numbers 1-10, English text of number+10
+# -- 'ordteen': For numbers 1-10, Arabic form of masculine ordinal number+10
+# -- 'femordteen': For numbers 1-10, Arabic form of feminine ordinal number+10
+# -- 'ordteeneng': For numbers 1-10, English text of ordinal number+10
+# *********** For higher numbers ************
+# -- 'hundred': For numbers 1-10, Arabic form of number*100
+# -- 'hundredtr': For numbers 1-10, translit form of number*100
+# -- 'thousand': For numbers 1-10, Arabic form of number*1000
+# -- 'thousandtr': For numgers 1-10, translit form of number*1000
 class Number(object):
+  thousandpl = u"آلَاف"
+  thousandpltr = ar_translit.tr(thousandpl)
   def __init__(self, eastarabnum, english, nom, femnom=None, obl=None,
-      femobl=None, ord=None):
+      femobl=None, hundred=None, thousand=None,
+      ord=None, adv=None, frac=None, dist=None, mult=None, numadj=None):
     nom = reorder_shadda(nom)
     if not femnom:
       if nom.endswith(AH):
@@ -54,6 +92,21 @@ class Number(object):
     self.obltr = ar_translit.tr(obl)
     self.femobl = femobl
     self.femobltr = ar_translit.tr(femobl)
+    self.hundred = hundred
+    self.thousand = thousand
+    self.thousandtr = None
+    if self.thousand:
+      self.thousandtr = ar_translit.tr(self.thousand)
+    self.ordroot = None
+    self.ordeng = None
+    self.cardteeneng = None
+    self.ordlemma = None
+    self.cardteen = None
+    self.adv = adv
+    self.frac = frac
+    self.dist = dist
+    self.mult = mult
+    self.numadj = numadj
     if ord:
       if len(ord) == 5:
         self.ordroot, self.ordeng, self.cardteeneng, self.ordlemma, \
@@ -63,25 +116,46 @@ class Number(object):
         self.ordlemma = (self.ordroot[0] + AA + self.ordroot[1] + I +
             self.ordroot[2])
         self.cardteen = self.nom + A + u" عَشَرَ"
-      self.femordlemma = (self.ordroot[0] + AA + self.ordroot[1] + I +
-          self.ordroot[2] + AH)
-      self.ordteen = (self.ordroot[0] + AA + self.ordroot[1] + I +
-          self.ordroot[2] + A + u" عَشَرَ")
+      self.ordlemmatr = ar_translit.tr(self.ordlemma)
+      R1 = self.ordroot[0]
+      R2 = self.ordroot[1]
+      R3 = self.ordroot[2]
+      self.femordlemma = R1 + AA + R2 + I + R3 + AH
+      self.ordteen = R1 + AA + R2 + I + R3 + A + u" عَشَرَ"
       self.femordteen = self.femordlemma + A + u" عَشْرَةَ"
       self.ordteeneng = ("twelfth" if self.cardteeneng == "twelve" else
           "twentieth" if self.cardteeneng == "twenty" else
           self.cardteeneng + "th")
+      # one and two are totally special-cased
+      if self.english != "one" and self.english != "two":
+        self.frac = R1 + U + R2 + SK + R3
+        self.adv = self.femnom + u" مَرَّات"
+        self.mult = u"مُ" + R1 + A + R2 + SH + A + R3
+        self.numadj = R1 + U + R2 + AA + R3 + IY + SH
+        if not self.hundred:
+          self.hundred = self.femnom + U + u"مِائَة"
+        if not self.thousand:
+          self.thousand = self.nom + " " + self.thousandpl
+          self.thousandtr = self.nomtr + "t " + self.thousandpltr
+      self.hundredtr = ar_translit.tr(self.hundred.replace(u"مِا", u"مِ"))
 
 digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة",
+            hundred=u"مِائَة", thousand=u"أَلْف",
             ord=[u"حدي", "first (combining form)", "eleven", u"حَادٍ",
-              u"أَحَدَ عََشَرَ"]),
+              u"أَحَدَ عََشَرَ"],
+            adv=u"مَرَّة", mult=u"مُفْرَد", dist=[u"أُحَاد", u"وُحَاد", u"مَوْحَد"],
+            numadj=u"أُحَادِيّ"),
           2:Number(u"٢", "two", u"اِثْنَان", u"اِثْنَتَان", u"اِثْنَيْن", u"اِثْنَتَيْن",
-            ord=[u"ثني", "second", "twelve", u"ثَانٍ",
-              u"اِثْنَا عَشَرَ"]),
+            hundred=u"مِائَتَان", thousand=u"أَلْفَان",
+            ord=[u"ثني", "second", "twelve", u"ثَانٍ", u"اِثْنَا عَشَرَ"],
+            frac=u"نِصْف", adv=u"مَرَّتَان", mult=u"مُثَنًّى", dist=[u"ثُنَاء", u"مَثْنَى"],
+            numadj=u"ثُنَائِيّ"),
           3:Number(u"٣", "three", u"ثَلَاثَة",
-            ord=[u"ثلث", "third", "thirteen"]),
+            ord=[u"ثلث", "third", "thirteen"],
+            dist=[u"ثُلَاث", u"مَثْلَث"]),
           4:Number(u"٤", "four", u"أَرْبَعَة",
-            ord=[u"ربع", "fourth", "fourteen"]),
+            ord=[u"ربع", "fourth", "fourteen"],
+            dist=[u"رُبَاع", u"مَرْبَع"]),
           5:Number(u"٥", "five", u"خَمْسَة",
             ord=[u"خمس", "fifth", "fifteen"]),
           6:Number(u"٦", "six", u"سِتَّة",
@@ -89,10 +163,12 @@ digits = {1:Number(u"١", "one", u"وَاحِد", u"وَاحِدَة",
           7:Number(u"٧", "seven", u"سَبْعَة",
             ord=[u"سبع", "seventh", "seventeen"]),
           8:Number(u"٨", "eight", u"ثَمَانِيَة", u"ثَمَانٍ",
+            hundred=u"ثَمَانِمِائَة",
             ord=[u"ثمن", "eighth", "eighteen"]),
           9:Number(u"٩", "nine", u"تِسْعَة",
             ord=[u"تسع", "ninth", "nineteen"]),
-          10:Number(u"١٠", "ten", u"عَشَرَة",
+          10:Number(u"١٠", "ten", u"عَشَرَة", u"عَشْر",
+            hundred=u"أَلْف",
             ord=[u"عشر", "tenth", "twenty"]),
          }
 tens = { #10:Number(u"١٠", "ten", u"عَشَرَة", u"عَشْر"),
@@ -101,7 +177,7 @@ tens = { #10:Number(u"١٠", "ten", u"عَشَرَة", u"عَشْر"),
          40:Number(u"٤٠", "forty", u"أَرْبَعُون"),
          50:Number(u"٥٠", "fifty", u"خَمْسُون"),
          60:Number(u"٦٠", "sixty", u"سِتُّون"),
-         70:Number(u"٧٠", "seventy", u"سسَبْعُون"),
+         70:Number(u"٧٠", "seventy", u"سَبْعُون"),
          80:Number(u"٨٠", "eighty", u"ثَمَانُون"),
          90:Number(u"٩٠", "ninety", u"تِسْعُون")}
 
@@ -112,22 +188,19 @@ def iter_numerals():
         yield (tenval, ten, digval, dig)
 
 # ==Arabic==
-#
+# {{cardinalbox|ar|٢٨/28|٢٩/29|٣٠/30|ثَمَانِيَة وَعِشْرُون|ثَلَاثُون|alt=تِسْعَة وَعِشْرُون|tr=tisʿa wa-ʿišrūn|ord=تَاسِع وَعِشْرُون|ordtr=tāsiʿ wa-ʿišrūn}}
+# 
 # ===Etymology===
-# Literally "nine and twenty", from {{m|ar|تِسْعَة}} and {{m|ar|عِشْرُون}}.
-#
+# {{compound|lang=ar|تِسْعَة|t1=[[nine]]|وَ|tr2=wa-|t2=[[and]]|عِشْرُون|tr3=[[twenty]]}}.
+# 
 # ===Numeral===
-# {{ar-numeral|تِسْعَة وَعِشْرُون|m|tr=tisʿa wa-ʿišrūn|f=تِسْع وَعِشْرُون|ftr=tisʿ wa-ʿišrūn|obl=تِسْعَة وَعِشْرِين|obltr=tisʿa wa-ʿišrīn|fobl=تِسْع وَعِشْرِين|fobltr=tisʿ wa-ʿišrīn}}
-#
+# {{ar-numeral|تِسْعَة وَعِشْرُون|m|tr=tisʿa wa-ʿišrūn|f=تِسْع وَعِشْرُون|ftr=tisʿ wa-ʿišrūn}}
+# 
 # # [[twenty-nine]]
 # #: Eastern Arabic numeral: {{l|ar|٢٩}}
-#
+# 
 # ====Declension====
-# {{ar-decl-numeral|-|pl=تِسْعَة|fpl=تِسْع|mod=-|modpl=عِشْرُون|modfpl=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
-#
-# ====Coordinate terms====
-# * Last: {{l|ar|ثَمَانِيَة وَعِشْرُون|tr=ṯamāniya wa-ʿišrūn}} (or {{lang|ar|٢٨}} = 28)
-# * Next: {{l|ar|ثَلَاثُون}} (or {{lang|ar|٣٠}} = 30)
+# {{ar-decl-numeral|-|pl=تِسْعَة|f=-|fpl=تِسْع|mod=-|modpl=عِشْرُون|modf=-|modfpl=عِشْرُون|modprefix=وَ/wa-|state=ind,def}}
 
 def create_lemma(tenval, ten, digval, dig):
   pagename = u"%s وَ%s" % (dig.nom, ten.nom)
@@ -403,6 +476,57 @@ def create_teen_ordinal_non_lemma(digval, dig):
       dig.ordteen, dig.ordteeneng)
   return pagename, text, changelog
 
+def create_number_list_data():
+  msg("local export = {numbers = {}}")
+  # Do 1-10
+  for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
+    msg("""
+export.numbers[%s] = {
+	numeral = "%s",
+	cardinal = "%s",
+	ordinal = "%s",""" % (digval, dig.eastarabnum, dig.nom, dig.ordlemma))
+    if dig.adv:
+      msg("""	adverbial = "%s",""" % dig.adv)
+    if dig.frac:
+      msg("""	fractional = "%s",""" % dig.frac)
+    if dig.mult:
+      msg("""	multiplier = "%s",""" % dig.mult)
+    if dig.dist:
+      msg("""	distributive = {%s},""" % ", ".join(
+        ['"' + x+ '"' for x in dig.dist]))
+    if dig.numadj:
+      msg("""	other = {"Numeral adjective", "%s"},""" % dig.numadj)
+    msg("""}""")
+  # Do 11-19
+  for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
+    if digval != 10:
+      msg(u"""
+export.numbers[%s] = {
+	numeral = "١%s",
+	cardinal = "%s",
+	ordinal = %s",
+}""" % (digval + 10, dig.eastarabnum, dig.cardteen, dig.ordteen))
+  # Do 20-99
+  for tenval, ten in sorted(tens.iteritems(), key=lambda x:x[0]):
+    # Do 20, 30, 40, ...
+    msg("""
+export.numbers[%s] = {
+	numeral = "%s",
+	cardinal = "%s",
+	ordinal = "%s",
+}""" % (tenval, ten.eastarabnum, ten.nom, ten.nom))
+    # Do 21-29, 31-39, 41-49, ...
+    for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
+      if digval != 10:
+        msg("""
+export.numbers[%s] = {
+	numeral = "%s",
+	cardinal = {{"%s", "%s"}},
+	ordinal = {{"%s", "%s"}},
+}""" % (tenval + digval, ten.eastarabnum[0] + dig.eastarabnum,
+        dig.nom + u" وَ" + ten.nom, dig.nomtr + " wa-" + ten.nomtr,
+        dig.ordlemma + u" وَ" + ten.nom, dig.ordlemmatr + " wa-" + ten.nomtr))
+
 pa = blib.init_argparser("Save numbers to Wiktionary")
 pa.add_argument("--lemmas", action="store_true",
     help="Do lemmas from 21-99.")
@@ -412,6 +536,8 @@ pa.add_argument("--ordinal-lemmas", action="store_true",
     help="Do ordinal lemmas from 11-19.")
 pa.add_argument("--ordinal-non-lemmas", action="store_true",
     help="Do ordinal non-lemmas from 11-19.")
+pa.add_argument("--number-list-data", action="store_true",
+    help="Output number list data.")
 pa.add_argument("--offline", action="store_true",
     help="Run offline, checking output only.")
 
@@ -459,3 +585,5 @@ if params.ordinal_lemmas:
 if params.ordinal_non_lemmas:
   do_pages(create_unit_ordinal_non_lemma, lambda fn:iter_pages_units(fn, include_ten=True, skip_one=True))
   do_pages(create_teen_ordinal_non_lemma, iter_pages_units)
+if params.number_list_data:
+  create_number_list_data()
