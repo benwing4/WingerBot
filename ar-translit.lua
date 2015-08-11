@@ -2,9 +2,18 @@
 
 local export = {}
 
-local rsub = mw.ustring.gsub
 local u = mw.ustring.char
+local rfind = mw.ustring.find
+local rsubn = mw.ustring.gsub
+local rmatch = mw.ustring.match
+local rsplit = mw.text.split
 local gcodepoint = mw.ustring.gcodepoint
+
+-- version of rsubn() that discards all but the first return value
+function rsub(term, foo, bar)
+	local retval = rsubn(term, foo, bar)
+	return retval
+end
 
 local zwnj = u(0x200c) -- zero-width non-joiner
 --local zwj = u(0x200d) -- zero-width joiner
@@ -302,6 +311,31 @@ function has_diacritics(text)
 		text = rsub(text, sub[1], sub[2])
 	end
 	return #text == 0
+end
+
+-- Return true if transliteration TR is an irregular transliteration of
+-- ARABIC. Return false if ARABIC can't be transliterated. For purposes of
+-- establishing regularity, hyphens are ignored and word-final tāʾ marbūṭa
+-- can be transliterated as "(t)", "" or "t".
+function export.irregular_translit(arabic, tr)
+	local regtr = export.tr(arabic)
+	if not regtr or not tr or tr == "" or regtr == tr then
+		return false
+	end
+	local regwords = rsplit(regtr, " ")
+	local words = rsplit(tr, " ")
+	if #regwords ~= #words then
+		return true
+	end
+	for i=1,#regwords do
+		local regword = rsub(regwords[i], "%-", "")
+		local word = rsub(words[i], "%-", "")
+		if regword ~= word and rsub(regword, "%(t%)$", "") ~= word and
+				rsub(regword, "%(t%)$", "t") ~= word then
+			returntrue
+		end
+	end
+	return false
 end
 
 return export

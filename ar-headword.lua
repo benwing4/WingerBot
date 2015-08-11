@@ -1,3 +1,7 @@
+-- Authors: Benwing, CodeCat
+
+local ar_translit = require("Module:ar-translit")
+
 local lang = require("Module:languages").getByCode("ar")
 
 local export = {}
@@ -192,14 +196,23 @@ function export.show(frame)
 	local translit = ine(args["tr"])
 	local i = 1
 	
+	local irreg_translit = false
+
 	while head do
 		table.insert(data.heads, head)
 		data.translits[#data.heads] = translit
+		if ar_translit.irregular_translit(head, translit) then
+			irreg_translit = true
+		end
 		track_form("head", head, translit, poscat)
 		
 		i = i + 1
 		head = ine(args["head" .. i])
 		translit = ine(args["tr" .. i])
+	end
+
+	if irreg_translit then
+		append_cat(data, "Arabic terms with irregular pronunciations")
 	end
 	
 	if pos_functions[poscat] then
