@@ -508,14 +508,14 @@ export.numbers[%s] = {
 }""" % (digval + 10, dig.eastarabnum, dig.cardteen, dig.ordteen))
   # Do 20-99
   for tenval, ten in sorted(tens.iteritems(), key=lambda x:x[0]):
-    # Do 20, 30, 40, ...
+    # Do 20, 30, 40, ..., 90
     msg("""
 export.numbers[%s] = {
 	numeral = "%s",
 	cardinal = "%s",
 	ordinal = "%s",
 }""" % (tenval, ten.eastarabnum, ten.nom, ten.nom))
-    # Do 21-29, 31-39, 41-49, ...
+    # Do 21-29, 31-39, 41-49, ..., 91-99
     for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
       if digval != 10:
         msg("""
@@ -526,6 +526,21 @@ export.numbers[%s] = {
 }""" % (tenval + digval, ten.eastarabnum[0] + dig.eastarabnum,
         dig.nom + u" وَ" + ten.nom, dig.nomtr + " wa-" + ten.nomtr,
         dig.ordlemma + u" وَ" + ten.nom, dig.ordlemmatr + " wa-" + ten.nomtr))
+  # Do 100, 200, 300, ..., 900
+  for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
+    if digval != 10:
+      msg(u"""
+export.numbers[%s] = {
+	numeral = "%s٠٠",
+	cardinal = {{"%s", "%s"}},
+}""" % (digval * 100, dig.eastarabnum, dig.hundred, dig.hundredtr))
+  # Do 1000, 2000, 3000, ..., 10000
+  for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
+    msg(u"""
+export.numbers[%s] = {
+      numeral = "%s٠٠٠",
+      cardinal = {{"%s", "%s"}},
+}""" % (digval * 1000, dig.eastarabnum, dig.thousand, dig.thousandtr))
 
 pa = blib.init_argparser("Save numbers to Wiktionary")
 pa.add_argument("--lemmas", action="store_true",
