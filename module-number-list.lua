@@ -32,6 +32,9 @@ function export.show_box(frame)
 	local forms = {}
 	local cur_type
 	
+	-- Insert text for each type of number. An individual entry is either
+	-- a string or a list of elements, each of which is either a string or
+	-- a two-element list {TEXT, TR} for specified text and transliteration.
 	local function insert_form(key, display)
 		local entries = cur_data[key]
 		if entries then
