@@ -495,7 +495,8 @@ export.numbers[%s] = {
       msg("""	distributive = {%s},""" % ", ".join(
         ['"' + x+ '"' for x in dig.dist]))
     if dig.numadj:
-      msg("""	other = {"Numeral adjective", "%s"},""" % dig.numadj)
+      msg("""	other_title = "Numeral adjective",
+	other = "%s",""" % dig.numadj)
     msg("""}""")
   # Do 11-19
   for digval, dig in sorted(digits.iteritems(), key=lambda x:x[0]):
@@ -541,6 +542,8 @@ export.numbers[%s] = {
       numeral = "%s٠٠٠",
       cardinal = {{"%s", "%s"}},
 }""" % (digval * 1000, dig.eastarabnum, dig.thousand, dig.thousandtr))
+  msg(u"""
+return export""")
 
 pa = blib.init_argparser("Save numbers to Wiktionary")
 pa.add_argument("--lemmas", action="store_true",
