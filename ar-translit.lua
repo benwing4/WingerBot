@@ -145,10 +145,10 @@ local before_diacritic_checking_subs = {
 	-- ignore dagger alif placed over regular alif or alif maqṣūra
 	{"([\216\167\217\137])\217\176", "%1"},
 
-    ----------- rest of these concern definite article alif-lām ----------
-    -- NOTE: \217\132 = lām = ل
-    -- in kasra/ḍamma + alif + lam, make alif into hamzatu l-waṣl, so we
-    -- handle cases like بِالتَّوْفِيق (bi-t-tawfīq) correctly
+	----------- rest of these concern definite article alif-lām ----------
+	-- NOTE: \217\132 = lām = ل
+	-- in kasra/ḍamma + alif + lam, make alif into hamzatu l-waṣl, so we
+	-- handle cases like بِالتَّوْفِيق (bi-t-tawfīq) correctly
 	{"([\217\143\217\144])\216\167\217\132", "%1\217\177\217\132"},
 	-- al + consonant + shadda (only recognize word-initially if regular alif): remove shadda
 	{"^(\216\167\217\142?\217\132[" .. lconsonants .. "])\217\145", "%1"},
@@ -194,57 +194,57 @@ function export.tr(text, lang, sc, omit_i3raab, gray_i3raab, force_translate)
 	-- from alif w/hamzatu l-waṣl. Must go before generation of ū and ī, which
 	-- eliminate the ḍamma/kasra.
 	text = rsub(text, "\216\167([\217\142\217\143\217\144])", "\217\177%1")
- 	-- ḍamma + waw not followed by a diacritic is ū, otherwise w
- 	text = rsub(text, "\217\143\217\136([^\217\139\217\140\217\141\217\142\217\143\217\144\217\145\217\146\217\176])", "ū%1")
- 	text = rsub(text, "\217\143\217\136$", "ū")
- 	-- kasra + yaa not followed by a diacritic (or ū from prev step) is ī, otherwise y
- 	text = rsub(text, "\217\144\217\138([^\217\139\217\140\217\141\217\142\217\143\217\144\217\145\217\146\217\176ū])", "ī%1")
- 	text = rsub(text, "\217\144\217\138$", "ī")
+	-- ḍamma + waw not followed by a diacritic is ū, otherwise w
+	text = rsub(text, "\217\143\217\136([^\217\139\217\140\217\141\217\142\217\143\217\144\217\145\217\146\217\176])", "ū%1")
+	text = rsub(text, "\217\143\217\136$", "ū")
+	-- kasra + yaa not followed by a diacritic (or ū from prev step) is ī, otherwise y
+	text = rsub(text, "\217\144\217\138([^\217\139\217\140\217\141\217\142\217\143\217\144\217\145\217\146\217\176ū])", "ī%1")
+	text = rsub(text, "\217\144\217\138$", "ī")
 	-- convert shadda to double letter.
 	text = rsub(text, "(.)\217\145", "%1%1")
-    if not omit_i3raab and gray_i3raab then -- show ʾiʿrāb grayed in transliteration
-        -- decide whether to gray out the t in ﺓ. If word begins with al- or l-, yes.
-        -- Otherwise, no if word ends in a/i/u, yes if ends in an/in/un.
-        text = rsub(text, "^(a?l%-[^%s]+)\216\169([\217\139\217\140\217\141\217\142\217\143\217\144])",
-            '%1<span style="color: #888888">t</span>%2')
-        text = rsub(text, "(%sa?l%-[^%s]+)\216\169([\217\139\217\140\217\141\217\142\217\143\217\144])",
-            '%1<span style="color: #888888">t</span>%2')
-        text = rsub(text, "\216\169([\217\142\217\143\217\144])", "t%1")
-        text = rsub(text, "\216\169([\217\139\217\140\217\141])",
-            '<span style="color: #888888">t</span>%1')
-        text = rsub(text, ".", {
-            ["\217\139"] = '<span style="color: #888888">an</span>',
-            ["\217\141"] = '<span style="color: #888888">in</span>',
-            ["\217\140"] = '<span style="color: #888888">un</span>'
-        })
-        text = rsub(text, "([\217\142\217\143\217\144])%s", {
-            ["\217\142"] = '<span style="color: #888888">a</span> ',
-            ["\217\144"] = '<span style="color: #888888">i</span> ',
-            ["\217\143"] = '<span style="color: #888888">u</span> '
-        })
-        text = rsub(text, "[\217\142\217\143\217\144]$", {
-            ["\217\142"] = '<span style="color: #888888">a</span>',
-            ["\217\144"] = '<span style="color: #888888">i</span>',
-            ["\217\143"] = '<span style="color: #888888">u</span>'
-        })
-        text = rsub(text, '</span><span style="color: #888888">', "")
-    elseif omit_i3raab then -- omit ʾiʿrāb in transliteration
+	if not omit_i3raab and gray_i3raab then -- show ʾiʿrāb grayed in transliteration
+		-- decide whether to gray out the t in ﺓ. If word begins with al- or l-, yes.
+		-- Otherwise, no if word ends in a/i/u, yes if ends in an/in/un.
+		text = rsub(text, "^(a?l%-[^%s]+)\216\169([\217\139\217\140\217\141\217\142\217\143\217\144])",
+			'%1<span style="color: #888888">t</span>%2')
+		text = rsub(text, "(%sa?l%-[^%s]+)\216\169([\217\139\217\140\217\141\217\142\217\143\217\144])",
+			'%1<span style="color: #888888">t</span>%2')
+		text = rsub(text, "\216\169([\217\142\217\143\217\144])", "t%1")
+		text = rsub(text, "\216\169([\217\139\217\140\217\141])",
+			'<span style="color: #888888">t</span>%1')
+		text = rsub(text, ".", {
+			["\217\139"] = '<span style="color: #888888">an</span>',
+			["\217\141"] = '<span style="color: #888888">in</span>',
+			["\217\140"] = '<span style="color: #888888">un</span>'
+		})
+		text = rsub(text, "([\217\142\217\143\217\144])%s", {
+			["\217\142"] = '<span style="color: #888888">a</span> ',
+			["\217\144"] = '<span style="color: #888888">i</span> ',
+			["\217\143"] = '<span style="color: #888888">u</span> '
+		})
+		text = rsub(text, "[\217\142\217\143\217\144]$", {
+			["\217\142"] = '<span style="color: #888888">a</span>',
+			["\217\144"] = '<span style="color: #888888">i</span>',
+			["\217\143"] = '<span style="color: #888888">u</span>'
+		})
+		text = rsub(text, '</span><span style="color: #888888">', "")
+	elseif omit_i3raab then -- omit ʾiʿrāb in transliteration
 		text = rsub(text, "[\217\139\217\140\217\141]", "")
 		text = rsub(text, "[\217\142\217\143\217\144]%s", " ")
 		text = rsub(text, "[\217\142\217\143\217\144]$", "")
 	end
-    -- tāʾ marbūṭa should not be rendered by -t if word-final even when
-    -- ʾiʿrāb (desinential inflection) is shown; instead, use (t) before
-    -- whitespace, nothing when final; but render final -ﺍﺓ and -ﺁﺓ as -āh,
-    -- consistent with Wehr's dictionary
+	-- tāʾ marbūṭa should not be rendered by -t if word-final even when
+	-- ʾiʿrāb (desinential inflection) is shown; instead, use (t) before
+	-- whitespace, nothing when final; but render final -ﺍﺓ and -ﺁﺓ as -āh,
+	-- consistent with Wehr's dictionary
 	text = rsub(text, "([\216\167\216\162])\216\169$", "%1h")
-    -- Need to do the following after graying or omitting word-final ʾiʿrāb.
+	-- Need to do the following after graying or omitting word-final ʾiʿrāb.
 	text = rsub(text, "\216\169$", "")
-    if not omit_i3raab then -- show ʾiʿrāb in transliteration
- 		text = rsub(text, "\216\169%s", "(t) ")
-    else
-        -- When omitting ʾiʿrāb, show all non-absolutely-final instances of
-        -- tāʾ marbūṭa as (t), with trailing ʾiʿrāb omitted.
+	if not omit_i3raab then -- show ʾiʿrāb in transliteration
+		text = rsub(text, "\216\169%s", "(t) ")
+	else
+		-- When omitting ʾiʿrāb, show all non-absolutely-final instances of
+		-- tāʾ marbūṭa as (t), with trailing ʾiʿrāb omitted.
 		text = rsub(text, "\216\169", "(t)")
 	end
 	text = rsub(text, ".", tt)
@@ -265,9 +265,9 @@ function export.tr(text, lang, sc, omit_i3raab, gray_i3raab, force_translate)
 		text = rsub(text, "([aiuāīū]</span>) a([" .. sun_letters_tr .. "]%-)",
 			"%1 %2")
 	end
-    -- Special-case the transliteration of allāh, without the hyphen
-    text = rsub(text, "^(a?)l%-lāh", "%1llāh")
-    text = rsub(text, "(%sa?)l%-lāh", "%1llāh")
+	-- Special-case the transliteration of allāh, without the hyphen
+	text = rsub(text, "^(a?)l%-lāh", "%1llāh")
+	text = rsub(text, "(%sa?)l%-lāh", "%1llāh")
 
 	return text
 end
@@ -302,8 +302,8 @@ local has_diacritics_subs = {
 	{"[" .. numbers .. "ٱ" .. "آ" .. "]", ""},
 	-- remove non-Arabic characters
 	{"[^" .. u(0x0600) .. "-" .. u(0x06FF) .. u(0x0750) .. "-" .. u(0x077F) ..
-		     u(0x08A0) .. "-" .. u(0x08FF) .. u(0xFB50) .. "-" .. u(0xFDFF) ..
-		     u(0xFE70) .. "-" .. u(0xFEFF) .. "]", ""}
+			 u(0x08A0) .. "-" .. u(0x08FF) .. u(0xFB50) .. "-" .. u(0xFDFF) ..
+			 u(0xFE70) .. "-" .. u(0xFEFF) .. "]", ""}
 }
 
 function has_diacritics(text)
@@ -339,3 +339,6 @@ function export.irregular_translit(arabic, tr)
 end
 
 return export
+
+-- For Vim, so we get 4-space tabs
+-- vim: set ts=4 sw=4 noet:
