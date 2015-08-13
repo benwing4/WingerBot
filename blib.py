@@ -64,6 +64,15 @@ def addparam(template, param, value, showkey=None, before=None):
   else:
     template.add(param, value, showkey=showkey, before=before)
 
+def rmparam(template, param):
+  if template.has(param):
+    template.remove(param)
+
+def getrmparam(template, param):
+  val = getparam(template, param)
+  rmparam(template, param)
+  return val
+
 def do_edit(page, index, func=None, null=False, save=False, verbose=False):
   title = page.title()
   def pagemsg(text):
