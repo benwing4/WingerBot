@@ -587,27 +587,41 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
       elif tempname == "w":
         if getp("lang") == lang:
           doparam("w", None)
+      elif tempname in ["bor", "borrowing"] and getp("lang"):
+        if getp("1") == lang:
+          if getp("alt"):
+            doparam("alt")
+          elif getp("3"):
+            doparam("3")
+          else:
+            doparam("2")
+      elif tempname in ["der", "derived", "inh", "inherited", "bor", "borrowing"]:
+        if getp("2") == lang:
+          if getp("alt"):
+            doparam("alt")
+          elif getp("4"):
+            doparam("4")
+          else:
+            doparam("3")
       # Look for any other template with lang as first argument
       elif (#tempname in ["l", "link", "m", "mention"] and
           # If "1" matches, don't do templates with a lang= as well,
           # e.g. we don't want to do {{hyphenation|ru|men|lang=sh}} in
-          # Russian because it's actually lang sh. But do do 'borrowing',
-          # which legitimately has two language codes, in 1= and lang=.
-          getp("1") == lang and (tempname == "borrowing" or not getp("lang"))):
+          # Russian because it's actually lang sh.
+          getp("1") == lang and not getp("lang")):
         # Look for:
         #   {{m|ar|<PAGENAME>|<ARABICTEXT>}}
         #   {{m|ar|<PAGENAME>|alt=<ARABICTEXT>}}
         #   {{m|ar|<ARABICTEXT>}}
         if getp("alt"):
           doparam("alt")
-        elif tempname != "borrowing" and getp("3"):
+        elif getp("3"):
           doparam("3")
         elif tempname != "transliteration":
           doparam("2")
       # Look for any other template with "lang=ar" in it. But beware of
       # {{borrowing|en|<ENGLISHTEXT>|lang=ar}}.
       elif (#tempname in ["term", "plural of", "definite of", "feminine of", "diminutive of"] and
-          tempname != "borrowing" and
           getp("lang") == lang):
         # Look for:
         #   {{term|lang=ar|<PAGENAME>|<ARABICTEXT>}}
