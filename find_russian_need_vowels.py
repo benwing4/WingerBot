@@ -14,6 +14,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# FIXME:
+#
+# 1. Handle '''FOO''', matched up against blank tr, TR or '''TR'''.
+#    Cf. '''спасти''' in 23865 спасти.
+# 2. Handle multiword expressions *inside* of find_vocalized so e.g. the
+#    multiword linked expressions in 24101 стан.
+
 import re, codecs
 
 import blib, pywikibot
@@ -30,24 +37,26 @@ not_russian_vowel_class = "[^%s]" % russian_vowels
 templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
   "ru-phrase", "ru-noun form"]
 
-def find_vocalized(term, verbose, pagemsg):
+def find_vocalized(term, termtr, verbose, pagemsg):
+  if verbose:
+    pagemsg("Looking up term: %s" % term)
   # We can't handle [[FOO|BAR]] currently; in any case, BAR is generally
   # an inflected term that probably won't have an entry
   if "|" in term:
     pagemsg("Can't handle links with vertical bars: %s" % term)
-    return term, ""
+    return term, termtr
   if "<" in term or ">" in term:
     pagemsg("Can't handle stray < or >: %s" % term)
-    return term, ""
+    return term, termtr
   # But we can handle plain [[FOO]]
   m = re.match(r"\[\[([^\[\]]*)\]\]$", term)
   if m:
-    newterm, newtr = find_vocalized(m.group(1), verbose, pagemsg)
-    return "[[" + newtr + "]]", newtr
+    newterm, newtr = find_vocalized(m.group(1), termtr, verbose, pagemsg)
+    return "[[" + newterm + "]]", newtr
   # This can happen if e.g. we're passed "[[FOO]] [[BAR]]".
   if "[" in term or "]" in term:
     pagemsg("Can't handle stray bracket in %s" % term)
-    return term, ""
+    return term, termtr
   pagename = remove_diacritics(term)
 
   def expand_text(tempcall):
@@ -56,10 +65,10 @@ def find_vocalized(term, verbose, pagemsg):
   page = pywikibot.Page(site, pagename)
   try:
     if not page.exists():
-      return term, ""
+      return term, termtr
   except Exception as e:
     pagemsg("WARNING: Error checking page existence: %s" % unicode(e))
-    return term, ""
+    return term, termtr
   heads = set()
   def add(val, tr):
     val_to_add = blib.remove_links(val)
@@ -99,10 +108,10 @@ def find_vocalized(term, verbose, pagemsg):
         pagemsg("Redirect without heads")
       else:
         pagemsg("WARNING: Can't find any heads: %s" % pagename)
-    return term, ""
+    return term, termtr
   if len(heads) > 1:
     pagemsg("WARNING: Found multiple heads for %s: %s" % (pagename, ",".join("%s%s" % (ru, "//%s" % tr if tr else "") for ru, tr in heads)))
-    return term, ""
+    return term, termtr
   newterm, newtr = list(heads)[0]
   if remove_diacritics(newterm) != remove_diacritics(term):
     pagemsg("WARNING: Accented term %s differs from %s in more than just accents" % (
@@ -149,58 +158,64 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     val = pagetitle
   else:
     val = getparam(template, ruparam)
-  tr = getparam(template, trparam) if trparam else ""
+  valtr = getparam(template, trparam) if trparam else ""
   changed = False
   if check_need_accent(val):
     if find_accents:
-      newval, newtr = find_vocalized(val, verbose, pagemsg)
-      if newval == val and newtr == tr:
+      newval, newtr = find_vocalized(val, valtr, verbose, pagemsg)
+      if newval == val and newtr == valtr:
         words = re.split(" +", val)
-        # Check for "unbalanced" brackets. Can happen if the text is e.g.
-        # [[торго́вец]] [[произведение искусства|произведе́ниями иску́сства]]
-        # with multiple words inside a bracket -- not really unbalanced
-        # but tricky to handle properly.
-        unbalanced = False
-        for word in words:
-          if word.count("[") != word.count("]"):
-            pagemsg("WARNING: Unbalanced brackets in %s" % word)
-            unbalanced = True
-            break
-        if not unbalanced:
-          ruwords = []
-          trwords = []
-          sawtr = False
+        trwords = re.split(" +", valtr)
+        if trwords and len(words) != len(trwords):
+          pagemsg("WARNING: %s Cyrillic words but different number %s translit words")
+        else:
+          # Check for "unbalanced" brackets. Can happen if the text is e.g.
+          # [[торго́вец]] [[произведение искусства|произведе́ниями иску́сства]]
+          # with multiple words inside a bracket -- not really unbalanced
+          # but tricky to handle properly.
+          unbalanced = False
           for word in words:
-            if check_need_accent(word):
-              ru, tr = find_vocalized(word, verbose, pagemsg)
-              ruwords.append(ru)
-              if tr:
-                sawtr = True
-              trwords.append(tr)
-            else:
-              ruwords.append(word)
-              trwords.append("")
-          if sawtr:
+            if word.count("[") != word.count("]"):
+              pagemsg("WARNING: Unbalanced brackets in %s" % word)
+              unbalanced = True
+              break
+          if not unbalanced:
+            newwords = []
             newtrwords = []
-            got_error = False
-            for ru, tr in zip(ruwords, trwords):
-              if tr:
+            sawtr = False
+            for i in xrange(len(words)):
+              word = words[i]
+              trword = trwords[i] if trwords else ""
+              if check_need_accent(word):
+                ru, tr = find_vocalized(word, trword, verbose, pagemsg)
+                newwords.append(ru)
+                if tr:
+                  sawtr = True
                 newtrwords.append(tr)
               else:
-                tr = expand_text("{{xlit|ru|%s}}" % ru)
-                if not tr:
-                  got_error = True
-                  pagemsg("WARNING: Got error during transliteration")
-                  break
+                newwords.append(word)
+                newtrwords.append(trword)
+            if sawtr:
+              newertrwords = []
+              got_error = False
+              for ru, tr in zip(newwords, newtrwords):
+                if tr:
+                  newertrwords.append(tr)
                 else:
-                  newtrwords.append(tr)
-            if not got_error:
-              newval = " ".join(ruwords)
-              newtr = " ".join(newtrwords)
-          else:
-            newtrwords = " ".join(ruwords)
-            newtr = ""
-      if newval != val or newtr != tr:
+                  tr = expand_text("{{xlit|ru|%s}}" % ru)
+                  if not tr:
+                    got_error = True
+                    pagemsg("WARNING: Got error during transliteration")
+                    break
+                  else:
+                    newertrwords.append(tr)
+              if not got_error:
+                newval = " ".join(newwords)
+                newtr = " ".join(newertrwords)
+            else:
+              newval = " ".join(newwords)
+              newtr = ""
+      if newval != val or newtr != valtr:
         if remove_diacritics(newval) != remove_diacritics(val):
           pagemsg("WARNING: Accented page %s changed from %s in more than just accents, not changing" % (newval, val))
         else:
@@ -211,13 +226,13 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
               pagemsg("WARNING: Unable to change translit to %s because no translit param available (Cyrillic param %s): %s" %
                   (newtr, saveparam, origt))
             else:
-              if tr:
+              if valtr and valtr != newtr:
                 pagemsg("WARNING: Changed translit param %s from %s to %s: origt=%s" %
-                    (trparam, tr, newtr, origt))
+                    (trparam, valtr, newtr, origt))
               addparam(template, trparam, newtr)
-          elif tr:
+          elif valtr:
             pagemsg("WARNING: Template has translit %s but lookup result has none, leaving translit alone: origt=%s" %
-                (tr, origt))
+                (valtr, origt))
           if check_need_accent(newval):
             output_line("Need accents (changed)")
           else:
