@@ -35,12 +35,10 @@ semi_verbose = False # Set by --semi-verbose or --verbose
 russian_vowels = u"АОУҮЫЭЯЁЮИЕІѢѴаоуүыэяёюиеіѣѵAEIOUYĚƐaeiouyěɛ"
 not_russian_vowel_class = "[^%s]" % russian_vowels
 
-templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
+ru_head_templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
   "ru-phrase", "ru-noun form"]
 
-def find_vocalized(term, termtr, verbose, pagemsg):
-  if semi_verbose:
-    pagemsg("Looking up term: %s%s" % (term, "//%s" % termtr if termtr else ""))
+def find_vocalized_1(term, termtr, verbose, pagemsg):
   # We can't handle [[FOO|BAR]] currently; in any case, BAR is generally
   # an inflected term that probably won't have an entry
   if "|" in term:
@@ -63,9 +61,13 @@ def find_vocalized(term, termtr, verbose, pagemsg):
   def expand_text(tempcall):
     return blib.expand_text(tempcall, pagename, pagemsg, semi_verbose)
 
+  if semi_verbose:
+    pagemsg("find_vocalized: Finding heads on page %s" % pagename)
   page = pywikibot.Page(site, pagename)
   try:
     if not page.exists():
+      if semi_verbose:
+        pagemsg("find_vocalized: Page %s doesn't exist" % pagename)
       return term, termtr
   except Exception as e:
     pagemsg("WARNING: Error checking page existence: %s" % unicode(e))
@@ -79,7 +81,7 @@ def find_vocalized(term, termtr, verbose, pagemsg):
 
   for t in blib.parse(page).filter_templates():
     tname = unicode(t.name)
-    if tname in templates:
+    if tname in ru_head_templates:
       saw_head = True
       if getparam(t, "1"):
         add(getparam(t, "1"), getparam(t, "tr"))
@@ -114,10 +116,19 @@ def find_vocalized(term, termtr, verbose, pagemsg):
     pagemsg("WARNING: Found multiple heads for %s: %s" % (pagename, ",".join("%s%s" % (ru, "//%s" % tr if tr else "") for ru, tr in heads)))
     return term, termtr
   newterm, newtr = list(heads)[0]
+  if semi_verbose:
+    pagemsg("find_vocalized: Found head %s%s" % (newterm, "//%s" % newtr if newtr else ""))
   if remove_diacritics(newterm) != remove_diacritics(term):
     pagemsg("WARNING: Accented term %s differs from %s in more than just accents" % (
       newterm, term))
   return newterm, newtr
+
+def find_vocalized(term, termtr, verbose, pagemsg):
+  if semi_verbose:
+    pagemsg("find_vocalized: Call with term %s%s" % (term, "//%s" % termtr if termtr else ""))
+    term, termtr = find_vocalized_1(term, termtr, verbose, pagemsg)
+    pagemsg("find_vocalized: Return %s%s" % (term, "//%s" % termtr if termtr else ""))
+    return term, termtr
 
 def check_need_accent(text):
   for word in re.split(" +", text):
