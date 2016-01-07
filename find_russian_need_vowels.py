@@ -101,7 +101,7 @@ def find_vocalized(term, verbose, pagemsg):
         pagemsg("WARNING: Can't find any heads: %s" % pagename)
     return term, ""
   if len(heads) > 1:
-    pagemsg("WARNING: Found multiple heads for %s: %s" % (pagename, ", ".join(heads)))
+    pagemsg("WARNING: Found multiple heads for %s: %s" % (pagename, ",".join("%s%s" % (ru, "//%s" % tr if tr else "") for ru, tr in heads)))
     return term, ""
   newterm, newtr = list(heads)[0]
   if remove_diacritics(newterm) != remove_diacritics(term):
@@ -118,6 +118,22 @@ def check_need_accent(text):
     if len(word) > 1:
       return True
   return False
+
+def join_changelog_notes(notes):
+  accented_words = []
+  other_notes = []
+  for note in notes:
+    m = re.search("^auto-accent (.*)$", note)
+    if m:
+      accented_words.append(m.group(1))
+    else:
+      other_notes.append(note)
+  if accented_words:
+    notes = ["auto-accent %s" % ",".join(accented_words)]
+  else:
+    notes = []
+  notes.extend(other_notes)
+  return "; ".join(notes)
 
 def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     find_accents, verbose):
@@ -208,7 +224,7 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
             output_line("Found accents")
     if not changed:
       output_line("Need accents")
-  return ["auto-accent %s" % val] if changed else False
+  return ["auto-accent %s%s" % (newval, "//%s" % newtr if newtr else "")] if changed else False
 
 def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
     startFrom, upTo):
@@ -237,6 +253,7 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
 
       blib.process_links(save, verbose, "ru", "Russian", "pagetext", None,
           None, check_template_for_missing_accent,
+          join_actions=join_changelog_notes,
           pages_to_do=[(pagename, repltext)], quiet=True)
   else:
     def check_template_for_missing_accent(pagetitle, index, template,
@@ -249,7 +266,8 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
           output_line, find_accents, verbose)
 
     blib.process_links(save, verbose, "ru", "Russian", cattype, startFrom,
-        upTo, check_template_for_missing_accent, quiet=True)
+        upTo, check_template_for_missing_accent,
+        join_actions=join_changelog_notes, quiet=True)
 
 pa = blib.init_argparser("Find Russian terms needing accents")
 pa.add_argument("--cattype", default="vocab",
