@@ -16,8 +16,8 @@
 
 # FIXME:
 #
-# 1. Handle '''FOO''', matched up against blank tr, TR or '''TR'''.
-#    Cf. '''спасти''' in 23865 спасти.
+# 1. (DONE AS PART OF SMARTER WORD SPLITTING) Handle '''FOO''', matched up
+#    against blank tr, TR or '''TR'''. Cf. '''спасти''' in 23865 спасти.
 # 2. Handle multiword expressions *inside* of find_vocalized so e.g. the
 #    multiword linked expressions in 24101 стан.
 
@@ -29,6 +29,7 @@ from ru_translit import remove_diacritics
 import rulib as ru
 
 site = pywikibot.Site()
+semi_verbose = False # Set by --semi-verbose or --verbose
 
 # List of Russian vowels minus soft/hard signs
 russian_vowels = u"АОУҮЫЭЯЁЮИЕІѢѴаоуүыэяёюиеіѣѵAEIOUYĚƐaeiouyěɛ"
@@ -38,8 +39,8 @@ templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
   "ru-phrase", "ru-noun form"]
 
 def find_vocalized(term, termtr, verbose, pagemsg):
-  if verbose:
-    pagemsg("Looking up term: %s" % term)
+  if semi_verbose:
+    pagemsg("Looking up term: %s%s" % (term, "//%s" % termtr if termtr else ""))
   # We can't handle [[FOO|BAR]] currently; in any case, BAR is generally
   # an inflected term that probably won't have an entry
   if "|" in term:
@@ -60,7 +61,7 @@ def find_vocalized(term, termtr, verbose, pagemsg):
   pagename = remove_diacritics(term)
 
   def expand_text(tempcall):
-    return blib.expand_text(tempcall, pagename, pagemsg, verbose)
+    return blib.expand_text(tempcall, pagename, pagemsg, semi_verbose)
 
   page = pywikibot.Page(site, pagename)
   try:
@@ -164,56 +165,91 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     if find_accents:
       newval, newtr = find_vocalized(val, valtr, verbose, pagemsg)
       if newval == val and newtr == valtr:
-        words = re.split(" +", val)
-        trwords = re.split(" +", valtr)
+        words = re.split("((?:[ ,.?!]|''+)+)", val)
+        trwords = re.split("((?:[ ,.?!]|''+)+)", valtr) if valtr else []
         if trwords and len(words) != len(trwords):
-          pagemsg("WARNING: %s Cyrillic words but different number %s translit words")
+          pagemsg("WARNING: %s Cyrillic words but different number %s translit words: %s//%s" % (len(words), len(trwords), val, valtr))
+        elif len(words) == 1:
+          # Only one word, and we already looked it up; don't duplicate work
+          pass
         else:
           # Check for "unbalanced" brackets. Can happen if the text is e.g.
           # [[торго́вец]] [[произведение искусства|произведе́ниями иску́сства]]
           # with multiple words inside a bracket -- not really unbalanced
           # but tricky to handle properly.
           unbalanced = False
-          for word in words:
+          for i in xrange(0, len(words), 2):
+            word = words[i]
             if word.count("[") != word.count("]"):
-              pagemsg("WARNING: Unbalanced brackets in %s" % word)
+              pagemsg("WARNING: Unbalanced brackets in word #%s %s: %s" %
+                  (i//2, word, "".join(words)))
               unbalanced = True
               break
           if not unbalanced:
             newwords = []
             newtrwords = []
+            # If we end up with any words with manual translit (either because
+            # translit was already supplied by the existing template and we
+            # preserve the translit for a given word, or because we encounter
+            # manual translit when looking up a word), we will need to manually
+            # transliterate all remaining words. Note, even when the existing
+            # template supplies manual translit, we may need to manually
+            # translit some words, because the lookup of those words may
+            # (in fact, usually will) return a result without manual translit.
             sawtr = False
+            # Go through each word and separator.
             for i in xrange(len(words)):
               word = words[i]
               trword = trwords[i] if trwords else ""
-              if check_need_accent(word):
-                ru, tr = find_vocalized(word, trword, verbose, pagemsg)
+              if i % 2 == 0:
+                # If it's a word (not a separator), look it up if necessary.
+                if check_need_accent(word):
+                  ru, tr = find_vocalized(word, trword, verbose, pagemsg)
+                else:
+                  ru, tr = word, trword
                 newwords.append(ru)
+                newtrwords.append(tr)
+                # If we saw a manual translit word, note it (see above).
                 if tr:
                   sawtr = True
-                newtrwords.append(tr)
               else:
+                # Else, a separator. Just copy the separator. If it has
+                # translit, copy that as well, else copy the separator
+                # directly as the translit (all the separator tokens should
+                # pass through translit unchanged). Only flag the need for
+                # manual translit expansion if there's an existing manual
+                # translit of the separator that's different from the
+                # separator itself, i.e. different from what auto-translit
+                # would produce. (FIXME: It's arguably an error if the
+                # manual translit of a separator is different from the
+                # separator itself. We output a warning but maybe we should
+                # override the manual translit entirely.)
                 newwords.append(word)
-                newtrwords.append(trword)
+                newtrwords.append(trword or word)
+                if trword and word != trword:
+                  pagemsg("WARNING: Separator <%s> at index %s has manual translit <%s> that's different from it: %s" % (
+                    word, i, trword, origt))
+                  sawtr = True
             if sawtr:
               newertrwords = []
               got_error = False
               for ru, tr in zip(newwords, newtrwords):
                 if tr:
-                  newertrwords.append(tr)
+                  pass
+                elif not ru:
+                  tr = ""
                 else:
                   tr = expand_text("{{xlit|ru|%s}}" % ru)
                   if not tr:
                     got_error = True
                     pagemsg("WARNING: Got error during transliteration")
                     break
-                  else:
-                    newertrwords.append(tr)
+                newertrwords.append(tr)
               if not got_error:
-                newval = " ".join(newwords)
-                newtr = " ".join(newertrwords)
+                newval = "".join(newwords)
+                newtr = "".join(newertrwords)
             else:
-              newval = " ".join(newwords)
+              newval = "".join(newwords)
               newtr = ""
       if newval != val or newtr != valtr:
         if remove_diacritics(newval) != remove_diacritics(val):
@@ -239,6 +275,8 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
             output_line("Found accents")
     if not changed:
       output_line("Need accents")
+    if changed:
+      pagemsg("Replaced %s with %s" % (origt, unicode(template)))
   return ["auto-accent %s%s" % (newval, "//%s" % newtr if newtr else "")] if changed else False
 
 def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
@@ -289,10 +327,13 @@ pa.add_argument("--cattype", default="vocab",
     help="Categories to examine ('vocab', 'borrowed', 'translation')")
 pa.add_argument("--file",
     help="File containing output from parse_log_file.py")
+pa.add_argument("--semi-verbose", action="store_true",
+    help="More info but not as much as --verbose")
 pa.add_argument("--find-accents", action="store_true",
     help="Look up the accents in existing pages")
 
 params = pa.parse_args()
+semi_verbose = params.semi_verbose or params.verbose
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
 find_russian_need_vowels(params.find_accents, params.cattype,
