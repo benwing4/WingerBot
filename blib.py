@@ -105,7 +105,7 @@ def do_edit(page, index, func=None, null=False, save=False, verbose=False):
           # that only involve different shadda orders.
           if reorder_shadda(page.text) != reorder_shadda(new):
             if verbose:
-              pagemsg('Replacing [[%s]] with [[%s]]' % (page.text, new))
+              pagemsg('Replacing <%s> with <%s>' % (page.text, new))
             page.text = new
             if save:
               pagemsg("Saving with comment = %s" % comment)
