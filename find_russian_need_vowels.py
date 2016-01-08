@@ -32,6 +32,9 @@
 # 5. (DONE) When splitting on spaces, don't split on hyphens at first, but then
 #    split on hyphens the second time around.
 # 6. (DONE) Implement a cache in find_accented_2().
+# 7. (DONE, NO ACCENTED TEXT CAN'T BE PUT INTO WIKIPEDIA PAGE LINKS)
+#    Should probably skip {{wikipedia|lang=ru|...}} links. First check
+#    whether accented text can even be put into the page link.
 
 import re, codecs
 
@@ -484,7 +487,7 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save,
 
     blib.process_links(save, verbose, "ru", "Russian", cattype, startFrom,
         upTo, check_template_for_missing_accent,
-        join_actions=join_changelog_notes, quiet=True)
+        join_actions=join_changelog_notes)
 
 pa = blib.init_argparser("Find Russian terms needing accents")
 pa.add_argument("--cattype", default="vocab",
