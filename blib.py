@@ -435,7 +435,12 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
 
     actions = []
     for template in text.filter_templates():
+      def getp(param):
+        return getparam(template, param)
+      tempname = unicode(template.name)
       def doparam(param, trparam="tr", noadd=False):
+        if not getp(param):
+          return False
         if not noadd:
           templates_seen[tempname] = templates_seen.get(tempname, 0) + 1
         result = processfn(pagetitle, index, template, param, trparam)
@@ -445,9 +450,6 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
             templates_changed[tempname] = templates_changed.get(tempname, 0) + 1
           return True
         return False
-      def getp(param):
-        return getparam(template, param)
-      tempname = unicode(template.name)
 
       did_template = False
       if lang == "grc":
