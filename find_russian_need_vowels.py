@@ -31,7 +31,7 @@
 #    case we just want to refuse to do it.
 # 5. (DONE) When splitting on spaces, don't split on hyphens at first, but then
 #    split on hyphens the second time around.
-# 6. Implement a cache in find_accented_2().
+# 6. (DONE) Implement a cache in find_accented_2().
 
 import re, codecs
 
@@ -50,12 +50,28 @@ not_russian_vowel_class = "[^%s]" % russian_vowels
 ru_head_templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
   "ru-phrase", "ru-noun form"]
 
-# List of heads found during lookup. Value is None if the page doesn't
+# List of heads found during lookup of a page. Value is None if the page
+# doesn't exist. Value is the string "redirect" if page is a redirect.
+# Otherwise, value is a tuple (HEADS, SAW_HEAD) where HEADS is all heads
+# found on the page, and SAW_HEAD is True if we saw any headword templates
+# on the page (we might have found headword templates but no heads, e.g.
+# in a template call like {{ru-phrase}}).
 accented_cache = {}
+num_cache_lookups = 0
+num_cache_hits = 1
+global_disable_cache = False
 
 def is_monosyllabic(text):
   text = re.sub(not_russian_vowel_class, "", text)
   return len(text) <= 1
+
+def output_stats(pagemsg):
+  if global_disable_cache:
+    return
+  pagemsg("Cache size = %s" % len(accented_cache))
+  pagemsg("Cache lookups = %s, hits = %s, %0.2f%% hit rate" % (
+    num_cache_lookups, num_cache_hits,
+    float(num_cache_hits)*100/num_cache_lookups))
 
 # Look up a single term (which may be multi-word); if the page exists,
 # retrieve the headword(s), and if there's only one, return its
@@ -93,66 +109,98 @@ def find_accented_2(term, termtr, verbose, pagemsg):
   # Look up the page
   if semi_verbose:
     pagemsg("find_accented: Finding heads on page %s" % pagename)
-  page = pywikibot.Page(site, pagename)
-  try:
-    if not page.exists():
-      if semi_verbose:
-        pagemsg("find_accented: Page %s doesn't exist" % pagename)
-      return term, termtr
-  except Exception as e:
-    pagemsg("WARNING: Error checking page existence: %s" % unicode(e))
-    return term, termtr
 
-  # Page exists, find the heads
-  heads = set()
-  def add(val, tr):
-    val_to_add = blib.remove_links(val)
-    if val_to_add:
-      heads.add((val_to_add, tr))
-  saw_head = False
-  for t in blib.parse(page).filter_templates():
-    tname = unicode(t.name)
-    if tname in ru_head_templates:
-      saw_head = True
-      if getparam(t, "1"):
-        add(getparam(t, "1"), getparam(t, "tr"))
-      elif getparam(t, "head"):
+  cached_redirect = False
+  global num_cache_lookups
+  num_cache_lookups += 1
+  if pagename in accented_cache:
+    global num_cache_hits
+    num_cache_hits += 1
+    result = accented_cache[pagename]
+    cached = True
+    if result is None:
+      if semi_verbose:
+        pagemsg("find_accented: Page %s doesn't exist (cached)" % pagename)
+      return term, termtr
+    elif result == "redirect":
+      cached_redirect = True
+      heads = set()
+      saw_head = False
+    else:
+      heads, saw_head = result
+  else:
+    cached = False
+    page = pywikibot.Page(site, pagename)
+    try:
+      if not page.exists():
+        if semi_verbose:
+          pagemsg("find_accented: Page %s doesn't exist" % pagename)
+        if not global_disable_cache:
+          accented_cache[pagename] = None
+        return term, termtr
+    except Exception as e:
+      pagemsg("WARNING: Error checking page existence: %s" % unicode(e))
+      if not global_disable_cache:
+        accented_cache[pagename] = None
+      return term, termtr
+
+    # Page exists, find the heads
+    heads = set()
+    def add(val, tr):
+      val_to_add = blib.remove_links(val)
+      if val_to_add:
+        heads.add((val_to_add, tr))
+    saw_head = False
+    for t in blib.parse(page).filter_templates():
+      tname = unicode(t.name)
+      if tname in ru_head_templates:
+        saw_head = True
+        if getparam(t, "1"):
+          add(getparam(t, "1"), getparam(t, "tr"))
+        elif getparam(t, "head"):
+          add(getparam(t, "head"), getparam(t, "tr"))
+      elif tname == "head" and getparam(t, "1") == "ru":
+        saw_head = True
         add(getparam(t, "head"), getparam(t, "tr"))
-    elif tname == "head" and getparam(t, "1") == "ru":
-      saw_head = True
-      add(getparam(t, "head"), getparam(t, "tr"))
-    elif tname in ["ru-noun+", "ru-proper noun+"]:
-      saw_head = True
-      lemma = ru.fetch_noun_lemma(t, expand_text)
-      for head in re.split(",", lemma):
-        if "//" in head:
-          head, tr = re.split("//", head)
-          add(head, tr)
-        else:
-          add(head, "")
-    if saw_head:
-      for i in xrange(2, 10):
-        headn = getparam(t, "head" + str(i))
-        if headn:
-          add(headn, getparam(t, "tr" + str(i)))
+      elif tname in ["ru-noun+", "ru-proper noun+"]:
+        saw_head = True
+        lemma = ru.fetch_noun_lemma(t, expand_text)
+        for head in re.split(",", lemma):
+          if "//" in head:
+            head, tr = re.split("//", head)
+            add(head, tr)
+          else:
+            add(head, "")
+      if saw_head:
+        for i in xrange(2, 10):
+          headn = getparam(t, "head" + str(i))
+          if headn:
+            add(headn, getparam(t, "tr" + str(i)))
+    if not global_disable_cache:
+      accented_cache[pagename] = (heads, saw_head)
 
   # We have the heads
+  cached_msg = " (cached)" if cached else ""
   if len(heads) == 0:
     if not saw_head:
-      if re.match("#redirect", page.text, re.I):
+      if cached_redirect:
+        pagemsg("Redirect without heads (cached)")
+      elif not cached and re.match("#redirect", page.text, re.I):
+        if not global_disable_cache:
+          accented_cache[pagename] = "redirect"
         pagemsg("Redirect without heads")
       else:
-        pagemsg("WARNING: Can't find any heads: %s" % pagename)
+        pagemsg("WARNING: Can't find any heads: %s%s" % (pagename, cached_msg))
     return term, termtr
   if len(heads) > 1:
-    pagemsg("WARNING: Found multiple heads for %s: %s" % (pagename, ",".join("%s%s" % (ru, "//%s" % tr if tr else "") for ru, tr in heads)))
+    pagemsg("WARNING: Found multiple heads for %s%s: %s" % (pagename, cached_msg, ",".join("%s%s" % (ru, "//%s" % tr if tr else "") for ru, tr in heads)))
     return term, termtr
   newterm, newtr = list(heads)[0]
   if semi_verbose:
-    pagemsg("find_accented: Found head %s%s" % (newterm, "//%s" % newtr if newtr else ""))
+    pagemsg("find_accented: Found head %s%s%s" % (newterm, "//%s" % newtr if newtr else "", cached_msg))
   if remove_diacritics(newterm) != remove_diacritics(term):
-    pagemsg("WARNING: Accented term %s differs from %s in more than just accents" % (
-      newterm, term))
+    pagemsg("WARNING: Accented term %s differs from %s in more than just accents%s" % (
+      newterm, term, cached_msg))
   return newterm, newtr
 
 # After the words in TERM with translit TERMTR have been split into words
@@ -388,8 +436,8 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     pagemsg("Replaced %s with %s" % (origt, unicode(template)))
   return ["auto-accent %s%s" % (newval, "//%s" % newtr if newtr else "")] if changed else False
 
-def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
-    startFrom, upTo):
+def find_russian_need_vowels(find_accents, cattype, direcfile, save,
+    verbose, startFrom, upTo):
   if direcfile:
     processing_lines = []
     for line in codecs.open(direcfile, "r", encoding="utf-8"):
@@ -405,6 +453,8 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
 
       pagenum, pagename, tempname, repltext, rest = current
 
+      def pagemsg(text):
+        msg("Page %s(%s) %s: %s" % (pagenum, index, pagetitle, text))
       def check_template_for_missing_accent(pagetitle, index, template,
           ruparam, trparam):
         def output_line(directive):
@@ -417,6 +467,8 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
           None, check_template_for_missing_accent,
           join_actions=join_changelog_notes,
           pages_to_do=[(pagename, repltext)], quiet=True)
+      if index % 100 == 0:
+        output_stats(pagemsg)
   else:
     def check_template_for_missing_accent(pagetitle, index, template,
         ruparam, trparam):
@@ -424,8 +476,11 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
         msg("Page %s %s: %s" % (index, pagetitle, text))
       def output_line(directive):
         pagemsg("%s: %s" % (directive, unicode(template)))
-      return process_template(pagetitle, index, template, ruparam, trparam,
+      result = process_template(pagetitle, index, template, ruparam, trparam,
           output_line, find_accents, verbose)
+      if index % 100 == 0:
+        output_stats(pagemsg)
+      return result
 
     blib.process_links(save, verbose, "ru", "Russian", cattype, startFrom,
         upTo, check_template_for_missing_accent,
@@ -440,9 +495,12 @@ pa.add_argument("--semi-verbose", action="store_true",
     help="More info but not as much as --verbose")
 pa.add_argument("--find-accents", action="store_true",
     help="Look up the accents in existing pages")
+pa.add_argument("--no-cache", action="store_true",
+    help="Disable caching head lookup results")
 
 params = pa.parse_args()
 semi_verbose = params.semi_verbose or params.verbose
+global_disable_cache = params.no_cache
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
 find_russian_need_vowels(params.find_accents, params.cattype,
