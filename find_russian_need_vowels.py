@@ -31,6 +31,7 @@
 #    case we just want to refuse to do it.
 # 5. (DONE) When splitting on spaces, don't split on hyphens at first, but then
 #    split on hyphens the second time around.
+# 6. Implement a cache in find_accented_2().
 
 import re, codecs
 
@@ -48,6 +49,13 @@ not_russian_vowel_class = "[^%s]" % russian_vowels
 
 ru_head_templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
   "ru-phrase", "ru-noun form"]
+
+# List of heads found during lookup. Value is None if the page doesn't
+accented_cache = {}
+
+def is_monosyllabic(text):
+  text = re.sub(not_russian_vowel_class, "", text)
+  return len(text) <= 1
 
 # Look up a single term (which may be multi-word); if the page exists,
 # retrieve the headword(s), and if there's only one, return its
@@ -68,6 +76,12 @@ def find_accented_2(term, termtr, verbose, pagemsg):
     return term, termtr
   if "<" in term or ">" in term:
     pagemsg("Can't handle stray < or >: %s" % term)
+    return term, termtr
+  if u"\u0301" in term or u"ё" in term:
+    pagemsg(u"Term has accent or ё, not looking up accents: %s" % term)
+    return term, termtr
+  if is_monosyllabic(term):
+    pagemsg("Term is monosyllabic, not looking up accents: %s" % term)
     return term, termtr
   pagename = remove_diacritics(term)
   # We can't use expand_text() from find_accented_1() because it has a
@@ -178,12 +192,9 @@ def find_accented_split_words(term, termtr, words, trwords, verbose, pagemsg,
       word = words[i]
       trword = trwords[i] if trwords else ""
       if i % 2 == 0:
-        # If it's a word (not a separator), look it up if necessary.
-        if check_need_accent(word):
-          ru, tr = find_accented(word, trword, verbose, pagemsg, expand_text,
-              origt)
-        else:
-          ru, tr = word, trword
+        # If it's a word (not a separator), look it up.
+        ru, tr = find_accented(word, trword, verbose, pagemsg, expand_text,
+            origt)
         newwords.append(ru)
         newtrwords.append(tr)
         # If we saw a manual translit word, note it (see above).
@@ -305,16 +316,6 @@ def find_accented(term, termtr, verbose, pagemsg, expand_text, origt):
     pagemsg("find_accented: Return %s%s" % (term, "//%s" % termtr if termtr else ""))
   return term, termtr
 
-def check_need_accent(text):
-  for word in re.split(" +", text):
-    word = blib.remove_links(word)
-    if u"\u0301" in word or u"ё" in word:
-      continue
-    word = re.sub(not_russian_vowel_class, "", word)
-    if len(word) > 1:
-      return True
-  return False
-
 def join_changelog_notes(notes):
   accented_words = []
   other_notes = []
@@ -330,6 +331,15 @@ def join_changelog_notes(notes):
     notes = []
   notes.extend(other_notes)
   return "; ".join(notes)
+
+def check_need_accent(text):
+  for word in re.split(" +", text):
+    word = blib.remove_links(word)
+    if u"\u0301" in word or u"ё" in word:
+      continue
+    if not is_monosyllabic(word):
+      return True
+  return False
 
 def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     find_accents, verbose):
@@ -347,36 +357,35 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     val = getparam(template, ruparam)
   valtr = getparam(template, trparam) if trparam else ""
   changed = False
-  if check_need_accent(val):
-    if find_accents:
-      newval, newtr = find_accented(val, valtr, verbose, pagemsg, expand_text,
-          origt)
-      if newval != val or newtr != valtr:
-        if remove_diacritics(newval) != remove_diacritics(val):
-          pagemsg("WARNING: Accented page %s changed from %s in more than just accents, not changing" % (newval, val))
-        else:
-          changed = True
-          addparam(template, saveparam, newval)
-          if newtr:
-            if not trparam:
-              pagemsg("WARNING: Unable to change translit to %s because no translit param available (Cyrillic param %s): %s" %
-                  (newtr, saveparam, origt))
-            else:
-              if valtr and valtr != newtr:
-                pagemsg("WARNING: Changed translit param %s from %s to %s: origt=%s" %
-                    (trparam, valtr, newtr, origt))
-              addparam(template, trparam, newtr)
-          elif valtr:
-            pagemsg("WARNING: Template has translit %s but lookup result has none, leaving translit alone: origt=%s" %
-                (valtr, origt))
-          if check_need_accent(newval):
-            output_line("Need accents (changed)")
+  if find_accents:
+    newval, newtr = find_accented(val, valtr, verbose, pagemsg, expand_text,
+        origt)
+    if newval != val or newtr != valtr:
+      if remove_diacritics(newval) != remove_diacritics(val):
+        pagemsg("WARNING: Accented page %s changed from %s in more than just accents, not changing" % (newval, val))
+      else:
+        changed = True
+        addparam(template, saveparam, newval)
+        if newtr:
+          if not trparam:
+            pagemsg("WARNING: Unable to change translit to %s because no translit param available (Cyrillic param %s): %s" %
+                (newtr, saveparam, origt))
           else:
-            output_line("Found accents")
-    if not changed:
-      output_line("Need accents")
-    if changed:
-      pagemsg("Replaced %s with %s" % (origt, unicode(template)))
+            if valtr and valtr != newtr:
+              pagemsg("WARNING: Changed translit param %s from %s to %s: origt=%s" %
+                  (trparam, valtr, newtr, origt))
+            addparam(template, trparam, newtr)
+        elif valtr:
+          pagemsg("WARNING: Template has translit %s but lookup result has none, leaving translit alone: origt=%s" %
+              (valtr, origt))
+        if check_need_accent(newval):
+          output_line("Need accents (changed)")
+        else:
+          output_line("Found accents")
+  if not changed and check_need_accent(val):
+    output_line("Need accents")
+  if changed:
+    pagemsg("Replaced %s with %s" % (origt, unicode(template)))
   return ["auto-accent %s%s" % (newval, "//%s" % newtr if newtr else "")] if changed else False
 
 def find_russian_need_vowels(find_accents, cattype, direcfile, save, verbose,
