@@ -48,7 +48,7 @@ def find_vocalized_1(term, termtr, verbose, pagemsg):
     pagemsg("Can't handle stray < or >: %s" % term)
     return term, termtr
   # But we can handle plain [[FOO]]
-  m = re.match(r"\[\[([^\[\]]*)\]\]$", term)
+  m = re.search(r"^\[\[([^\[\]]*)\]\]$", term)
   if m:
     newterm, newtr = find_vocalized(m.group(1), termtr, verbose, pagemsg)
     return "[[" + newterm + "]]", newtr
@@ -56,8 +56,8 @@ def find_vocalized_1(term, termtr, verbose, pagemsg):
   if "[" in term or "]" in term:
     pagemsg("Can't handle stray bracket in %s" % term)
     return term, termtr
-  pagename = remove_diacritics(term)
 
+  pagename = remove_diacritics(term)
   def expand_text(tempcall):
     return blib.expand_text(tempcall, pagename, pagemsg, semi_verbose)
 
@@ -126,9 +126,10 @@ def find_vocalized_1(term, termtr, verbose, pagemsg):
 def find_vocalized(term, termtr, verbose, pagemsg):
   if semi_verbose:
     pagemsg("find_vocalized: Call with term %s%s" % (term, "//%s" % termtr if termtr else ""))
-    term, termtr = find_vocalized_1(term, termtr, verbose, pagemsg)
+  term, termtr = find_vocalized_1(term, termtr, verbose, pagemsg)
+  if semi_verbose:
     pagemsg("find_vocalized: Return %s%s" % (term, "//%s" % termtr if termtr else ""))
-    return term, termtr
+  return term, termtr
 
 def check_need_accent(text):
   for word in re.split(" +", text):
@@ -163,7 +164,7 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
   def pagemsg(text):
     msg("Page %s %s: %s" % (index, pagetitle, text))
   def expand_text(tempcall):
-    return blib.expand_text(tempcall, pagetitle, pagemsg, verbose)
+    return blib.expand_text(tempcall, pagetitle, pagemsg, semi_verbose)
   if isinstance(ruparam, list):
     ruparam, saveparam = ruparam
   if ruparam == "page title":
@@ -176,8 +177,8 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     if find_accents:
       newval, newtr = find_vocalized(val, valtr, verbose, pagemsg)
       if newval == val and newtr == valtr:
-        words = re.split("((?:[ ,.?!]|''+)+)", val)
-        trwords = re.split("((?:[ ,.?!]|''+)+)", valtr) if valtr else []
+        words = re.split(r"((?:[ ,.?!\-]|''+)+)", val)
+        trwords = re.split(r"((?:[ ,.?!\-]|''+)+)", valtr) if valtr else []
         if trwords and len(words) != len(trwords):
           pagemsg("WARNING: %s Cyrillic words but different number %s translit words: %s//%s" % (len(words), len(trwords), val, valtr))
         elif len(words) == 1:
