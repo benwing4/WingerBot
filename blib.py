@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pywikibot, mwparserfromhell, re, sys, urllib2, datetime, json, argparse
+import pywikibot, mwparserfromhell, re, sys, urllib2, datetime, json, argparse, time
 from arabiclib import reorder_shadda
 
 site = pywikibot.Site()
@@ -302,7 +302,10 @@ def parse_start_end(startsort, endsort):
 
   return (startsort, endsort)
 
+starttime = time.time()
+
 def init_argparser(desc):
+  msg("Beginning at %s" % time.ctime(starttime))
   pa = argparse.ArgumentParser(description=desc)
   pa.add_argument("-s", "--save", action='store_true',
       help="Save changed pages")
@@ -311,6 +314,19 @@ def init_argparser(desc):
   pa.add_argument("start", nargs="?", help="First page to work on")
   pa.add_argument("end", nargs="?", help="Last page to work on")
   return pa
+
+def elapsed_time():
+  endtime = time.time()
+  elapsed = endtime - starttime
+  hours = int(elapsed // 3600)
+  hoursecs = elapsed % 3600
+  mins = int(hoursecs / 60)
+  secs = hoursecs % 60
+  if hours:
+    msg("Elapsed time: %s hours %s mins %0.2f secs" % (hours, mins, secs))
+  else:
+    msg("Elapsed time: %s mins %0.2f secs" % (mins, secs))
+  msg("Ending at %s" % time.ctime(endtime))
 
 def remove_links(text):
   text = re.sub(r"\[\[[^|\]]*?\|", "", text)
