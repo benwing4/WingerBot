@@ -476,7 +476,10 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
           did_template = False
       elif lang == "ru":
         # Special-casing for Russian
-        if tempname == "ru-participle of":
+        if tempname in ["ru-participle of", "ru-abbrev of", "ru-etym abbrev of",
+            "ru-acronym of", "ru-etym acronym of", "ru-initialism of",
+            "ru-etym initialism of", "ru-clipping of", "ru-etym clipping of",
+            "ru-pre-reform"]:
           if getp("2"):
             doparam("2")
           else:
@@ -491,7 +494,9 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
 
       # Skip {{attention|ar|FOO}} or {{etyl|ar|FOO}} or {{audio|FOO|lang=ar}}
       # or {{lb|ar|FOO}} or {{context|FOO|lang=ar}} or {{Babel-2|ar|FOO}}
-      # or various others, where FOO is not Arabic
+      # or various others, where FOO is not Arabic, and {{w|FOO|lang=ar}}
+      # or {{wikipedia|FOO|lang=ar}} or {{pedia|FOO|lang=ar}} etc., where
+      # FOO is Arabic but diacritics aren't stripped so shouldn't be added.
       if (tempname in [
         "attention",
         "audio", "audio-IPA",
@@ -506,7 +511,13 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
         "sense", "italbrac-colon",
         "senseid",
         "given name",
-        "+preo", "IPA", "phrasebook", "PIE root", "surname", "Q", "was fwotd"]
+        "+preo", "IPA", "phrasebook", "PIE root", "surname", "Q", "was fwotd",
+        # skip Wikipedia templates
+        "wikipedia", "w", "pedialite", "pedia"]
+        # More Wiki-etc. templates
+        or tempname.startswith("projectlink")
+        or tempname.startswith("PL:")
+        # Babel templates indicating language proficiency
         or "Babel" in tempname):
         pass
       elif did_template:
@@ -586,9 +597,6 @@ def process_links(save, verbose, lang, longlang, cattype, startFrom, upTo,
           doparam("4", None)
           doparam("next2", None)
           doparam("prev2", None)
-      elif tempname == "w":
-        if getp("lang") == lang:
-          doparam("w", None)
       elif tempname in ["bor", "borrowing"] and getp("lang"):
         if getp("1") == lang:
           if getp("alt"):
