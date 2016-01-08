@@ -508,3 +508,5 @@ startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
 find_russian_need_vowels(params.find_accents, params.cattype,
     params.file, params.save, params.verbose, startFrom, upTo)
+
+blib.elapsed_time()
