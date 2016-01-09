@@ -29,26 +29,34 @@
 #    It's tricky to handle treating ''' as punctuation when doing this,
 #    and even trickier if there is manual translit; probably in the latter
 #    case we just want to refuse to do it.
-# 5. (DONE) When splitting on spaces, don't split on hyphens at first, but then
-#    split on hyphens the second time around.
+# 5. (DONE) When splitting on spaces, don't split on hyphens at first, but
+#    then split on hyphens the second time around.
 # 6. (DONE) Implement a cache in find_accented_2().
-# 7. (DONE, NO ACCENTED TEXT CAN'T BE PUT INTO WIKIPEDIA PAGE LINKS)
+# 7. (DONE, NO, ACCENTED TEXT CAN'T BE PUT INTO WIKIPEDIA PAGE LINKS)
 #    Should probably skip {{wikipedia|lang=ru|...}} links. First check
 #    whether accented text can even be put into the page link.
+# 8. (DONE) Skip {{temp|head}}.
+# 9. (DONE) Don't try to accent multisyllable particles that should be
+#    accentless (либо, нибудь, надо, обо, ото, перед, передо, подо, предо,
+#    через).
+# 10. (DONE) Message "changed from ... in more than just accents": Handle
+#    grave accent on е and и, handle case where accented text ends with extra
+#    ! or ?.
 
 import re, codecs
 
 import blib, pywikibot
 from blib import msg, getparam, addparam
-from ru_translit import remove_diacritics
 import rulib as ru
 
 site = pywikibot.Site()
 semi_verbose = False # Set by --semi-verbose or --verbose
 
-# List of Russian vowels minus soft/hard signs
-russian_vowels = u"АОУҮЫЭЯЁЮИЕІѢѴаоуүыэяёюиеіѣѵAEIOUYĚƐaeiouyěɛ"
-not_russian_vowel_class = "[^%s]" % russian_vowels
+# List of accentless multisyllabic words. FIXME: We include было because of
+# the expression не́ было, but we should maybe check for this expression
+# rather than never accenting было.
+accentless_multisyllable = [u"либо", u"нибудь", u"надо", u"обо", u"ото",
+  u"перед", u"передо", u"подо", u"предо", u"через", u"было"]
 
 ru_head_templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
   "ru-phrase", "ru-noun form"]
@@ -64,10 +72,6 @@ num_cache_lookups = 0
 num_cache_hits = 1
 global_disable_cache = False
 
-def is_monosyllabic(text):
-  text = re.sub(not_russian_vowel_class, "", text)
-  return len(text) <= 1
-
 def output_stats(pagemsg):
   if global_disable_cache:
     return
@@ -81,6 +85,9 @@ def output_stats(pagemsg):
 # (presumably accented) text and any manual translit; otherwise, return
 # the term and translit passed in.
 def find_accented_2(term, termtr, verbose, pagemsg):
+  if term in accentless_multisyllable:
+    pagemsg("Not accenting unaccented multisyllabic particle %s" % term)
+    return term, termtr
   # This can happen if e.g. we're passed "[[FOO|BAR]] BAZ"; we will reject it,
   # but it will then be word-split and handled correctly ("[[FOO|BAR]]" is
   # special-cased in find_accented_1()).
@@ -99,10 +106,10 @@ def find_accented_2(term, termtr, verbose, pagemsg):
   if u"\u0301" in term or u"ё" in term:
     pagemsg(u"Term has accent or ё, not looking up accents: %s" % term)
     return term, termtr
-  if is_monosyllabic(term):
+  if ru.is_monosyllabic(term):
     pagemsg("Term is monosyllabic, not looking up accents: %s" % term)
     return term, termtr
-  pagename = remove_diacritics(term)
+  pagename = ru.remove_accents(term)
   # We can't use expand_text() from find_accented_1() because it has a
   # different value for PAGENAME, and the proper value is important in
   # expanding ru-noun+ and ru-proper noun+.
@@ -201,7 +208,13 @@ def find_accented_2(term, termtr, verbose, pagemsg):
   newterm, newtr = list(heads)[0]
   if semi_verbose:
     pagemsg("find_accented: Found head %s%s%s" % (newterm, "//%s" % newtr if newtr else "", cached_msg))
-  if remove_diacritics(newterm) != remove_diacritics(term):
+  if re.search("[!?]$", newterm) and not re.search("[!?]$", term):
+    newterm_wo_punc = re.sub("[!?]$", "", newterm)
+    if ru.remove_accents(newterm_wo_punc) == ru.remove_accents(term):
+      pagemsg("Removing punctuation from %s when matching against %s" % (
+        newterm, term))
+      newterm = newterm_wo_punc
+  if ru.remove_accents(newterm) != ru.remove_accents(term):
     pagemsg("WARNING: Accented term %s differs from %s in more than just accents%s" % (
       newterm, term, cached_msg))
   return newterm, newtr
@@ -283,6 +296,11 @@ def find_accented_split_words(term, termtr, words, trwords, verbose, pagemsg,
             got_error = True
             pagemsg("WARNING: Got error during transliteration")
             break
+          if "," in tr:
+            chopped_tr = re.sub(",.*", "", tr)
+            pagemsg("WARNING: Comma in translit <%s>, chopping off text after the comma to <%s>" % (
+              tr, chopped_tr))
+            tr = chopped_tr
         newertrwords.append(tr)
       if not got_error:
         newterm = "".join(newwords)
@@ -388,7 +406,7 @@ def check_need_accent(text):
     word = blib.remove_links(word)
     if u"\u0301" in word or u"ё" in word:
       continue
-    if not is_monosyllabic(word):
+    if not ru.is_monosyllabic(word):
       return True
   return False
 
@@ -400,6 +418,9 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     msg("Page %s %s: %s" % (index, pagetitle, text))
   def expand_text(tempcall):
     return blib.expand_text(tempcall, pagetitle, pagemsg, semi_verbose)
+  if unicode(template.name) == "head":
+    # Skip {{head}}. We don't want to mess with headwords.
+    return False
   if isinstance(ruparam, list):
     ruparam, saveparam = ruparam
   if ruparam == "page title":
@@ -412,7 +433,7 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     newval, newtr = find_accented(val, valtr, verbose, pagemsg, expand_text,
         origt)
     if newval != val or newtr != valtr:
-      if remove_diacritics(newval) != remove_diacritics(val):
+      if ru.remove_accents(newval) != ru.remove_accents(val):
         pagemsg("WARNING: Accented page %s changed from %s in more than just accents, not changing" % (newval, val))
       else:
         changed = True
