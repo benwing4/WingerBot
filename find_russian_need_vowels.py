@@ -42,6 +42,7 @@
 # 10. (DONE) Message "changed from ... in more than just accents": Handle
 #    grave accent on е and и, handle case where accented text ends with extra
 #    ! or ?.
+# 11. (DONE) Turn off splitting of templates on translit with comma in it.
 
 import re, codecs
 
@@ -489,7 +490,7 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save,
 
       blib.process_links(save, verbose, "ru", "Russian", "pagetext", None,
           None, check_template_for_missing_accent,
-          join_actions=join_changelog_notes,
+          join_actions=join_changelog_notes, split_templates=None,
           pages_to_do=[(pagename, repltext)], quiet=True)
       if index % 100 == 0:
         output_stats(pagemsg)
@@ -508,7 +509,7 @@ def find_russian_need_vowels(find_accents, cattype, direcfile, save,
 
     blib.process_links(save, verbose, "ru", "Russian", cattype, startFrom,
         upTo, check_template_for_missing_accent,
-        join_actions=join_changelog_notes)
+        join_actions=join_changelog_notes, split_templates=None)
 
 pa = blib.init_argparser("Find Russian terms needing accents")
 pa.add_argument("--cattype", default="vocab",
