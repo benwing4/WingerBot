@@ -43,6 +43,14 @@
 #    grave accent on е and и, handle case where accented text ends with extra
 #    ! or ?.
 # 11. (DONE) Turn off splitting of templates on translit with comma in it.
+# 12. (DONE) When doing word splitting and looking up individual words,
+#    if the lookup result has a comma in translit, chop off everything
+#    after the comma and issue a warning. Occurs e.g. in 6661 детектив,
+#    with {{l|ru|частный детектив}}. (FIXME: Even better would be to
+#    duplicate the entire translit.)
+# 13. (DONE) When fetching the result of ru-noun+, if there are multiple
+#    lemmas, combine the ones with the same Russian by separating the translits
+#    with a comma. Occurs e.g. in 6810 динамика with {{l|ru|термодинамика}}.
 
 import re, codecs
 
@@ -70,7 +78,7 @@ ru_head_templates = ["ru-noun", "ru-proper noun", "ru-verb", "ru-adj", "ru-adv",
 # in a template call like {{ru-phrase}}).
 accented_cache = {}
 num_cache_lookups = 0
-num_cache_hits = 1
+num_cache_hits = 0
 global_disable_cache = False
 
 def output_stats(pagemsg):
@@ -79,7 +87,16 @@ def output_stats(pagemsg):
   pagemsg("Cache size = %s" % len(accented_cache))
   pagemsg("Cache lookups = %s, hits = %s, %0.2f%% hit rate" % (
     num_cache_lookups, num_cache_hits,
-    float(num_cache_hits)*100/num_cache_lookups))
+    float(num_cache_hits)*100/num_cache_lookups if num_cache_lookups else 0.0))
+
+def split_ru_tr(form):
+  if "//" in form:
+    rutr = re.split("//", form)
+    assert len(rutr) == 2
+    ru, tr = rutr
+    return (ru, tr)
+  else:
+    return (form, "")
 
 # Look up a single term (which may be multi-word); if the page exists,
 # retrieve the headword(s), and if there's only one, return its
@@ -176,12 +193,12 @@ def find_accented_2(term, termtr, verbose, pagemsg):
       elif tname in ["ru-noun+", "ru-proper noun+"]:
         saw_head = True
         lemma = ru.fetch_noun_lemma(t, expand_text)
-        for head in re.split(",", lemma):
-          if "//" in head:
-            head, tr = re.split("//", head)
-            add(head, tr)
-          else:
-            add(head, "")
+        lemmas = re.split(",", lemma)
+        lemmas = [split_ru_tr(lemma) for lemma in lemmas]
+        # Group lemmas by Russian, to group multiple translits
+        lemmas = ru.group_translits(lemmas, pagemsg, expand_text)
+        for val, tr in lemmas:
+          add(val, tr)
       if saw_head:
         for i in xrange(2, 10):
           headn = getparam(t, "head" + str(i))
@@ -260,6 +277,11 @@ def find_accented_split_words(term, termtr, words, trwords, verbose, pagemsg,
         # If it's a word (not a separator), look it up.
         ru, tr = find_accented(word, trword, verbose, pagemsg, expand_text,
             origt)
+        if tr and "," in tr:
+          chopped_tr = re.sub(",.*", "", tr)
+          pagemsg("WARNING: Comma in translit <%s>, chopping off text after the comma to <%s>" % (
+            tr, chopped_tr))
+          tr = chopped_tr
         newwords.append(ru)
         newtrwords.append(tr)
         # If we saw a manual translit word, note it (see above).
@@ -297,11 +319,6 @@ def find_accented_split_words(term, termtr, words, trwords, verbose, pagemsg,
             got_error = True
             pagemsg("WARNING: Got error during transliteration")
             break
-          if "," in tr:
-            chopped_tr = re.sub(",.*", "", tr)
-            pagemsg("WARNING: Comma in translit <%s>, chopping off text after the comma to <%s>" % (
-              tr, chopped_tr))
-            tr = chopped_tr
         newertrwords.append(tr)
       if not got_error:
         newterm = "".join(newwords)
@@ -447,6 +464,12 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
             if valtr and valtr != newtr:
               pagemsg("WARNING: Changed translit param %s from %s to %s: origt=%s" %
                   (trparam, valtr, newtr, origt))
+            if not valtr:
+              pagemsg("NOTE: Added translit param %s=%s to template: origt=%s" %
+                  (trparam, newtr, origt))
+              if unicode(template.name) in ["ru-ux"]:
+                pagemsg("WARNING: Added translit param %s=%s to ru-ux template, may be wrong, check carefully: origt=%s" %
+                    (trparam, newtr, origt))
             addparam(template, trparam, newtr)
         elif valtr:
           pagemsg("WARNING: Template has translit %s but lookup result has none, leaving translit alone: origt=%s" %
