@@ -14,6 +14,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Despite its name, this is actually a script to auto-accent Russian text
+# by looking up unaccented multisyllabic words in the dictionary and fetching
+# the accented headwords, and if there's only one, using it in place of the
+# original unaccented word. We're somewhat smarter than this, e.g. we first
+# try looking up the whole phrase before partitioning it into individual
+# words.
+#
 # FIXME:
 #
 # 1. (DONE AS PART OF SMARTER WORD SPLITTING) Handle '''FOO''', matched up
@@ -51,6 +58,12 @@
 # 13. (DONE) When fetching the result of ru-noun+, if there are multiple
 #    lemmas, combine the ones with the same Russian by separating the translits
 #    with a comma. Occurs e.g. in 6810 динамика with {{l|ru|термодинамика}}.
+# 14. If we repeat this script, we should handle words that occur directly
+#    after a stressed monosyllabic preposition and not auto-acent them.
+#    The list of such prepositions is без, близ, во, да, до, за, из, ко,
+#    меж, на, над, не, ни, об, от, по, под, пред, при, про, со, у. I don't
+#    think multisyllabic unstressed prepositions can steal accent from a
+#    following word; need to ask Anatoli/Wikitiki89 about this.
 
 import re, codecs
 
@@ -460,6 +473,9 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
           if not trparam:
             pagemsg("WARNING: Unable to change translit to %s because no translit param available (Cyrillic param %s): %s" %
                 (newtr, saveparam, origt))
+          elif unicode(template.name) in ["ru-ux"]:
+            pagemsg("WARNING: Not changing or adding translit param %s=%s to ru-ux: origt=%s" % (
+              trparam, newtr, origt))
           else:
             if valtr and valtr != newtr:
               pagemsg("WARNING: Changed translit param %s from %s to %s: origt=%s" %
@@ -467,9 +483,6 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
             if not valtr:
               pagemsg("NOTE: Added translit param %s=%s to template: origt=%s" %
                   (trparam, newtr, origt))
-              if unicode(template.name) in ["ru-ux"]:
-                pagemsg("WARNING: Added translit param %s=%s to ru-ux template, may be wrong, check carefully: origt=%s" %
-                    (trparam, newtr, origt))
             addparam(template, trparam, newtr)
         elif valtr:
           pagemsg("WARNING: Template has translit %s but lookup result has none, leaving translit alone: origt=%s" %
