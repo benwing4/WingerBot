@@ -449,6 +449,8 @@ def process_template(pagetitle, index, template, ruparam, trparam, output_line,
     msg("Page %s %s: %s" % (index, pagetitle, text))
   def expand_text(tempcall):
     return blib.expand_text(tempcall, pagetitle, pagemsg, semi_verbose)
+  if semi_verbose:
+    pagemsg("Processing template: %s" % unicode(template))
   if unicode(template.name) == "head":
     # Skip {{head}}. We don't want to mess with headwords.
     return False
