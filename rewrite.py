@@ -14,10 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import blib, re
+import blib, re, codecs
+import pywikibot
 from arabiclib import reorder_shadda
 
-def rewrite_pages(refrom, reto, refs, cat, comment, save, verbose, startFrom,
+def rewrite_pages(refrom, reto, refs, cat, pagefile, comment, save, verbose, startFrom,
     upTo):
   def rewrite_one_page(page, index, text):
     #blib.msg("From: [[%s]], To: [[%s]]" % (refrom, reto))
@@ -26,11 +27,16 @@ def rewrite_pages(refrom, reto, refs, cat, comment, save, verbose, startFrom,
     text = re.sub(refrom, reto, text)
     return text, comment or "replace %s -> %s" % (refrom, reto)
 
-  if refs:
-    pages = blib.references(refs, startFrom, upTo)
+  if pagefile:
+    lines = [x.strip() for x in codecs.open(pagefile, "r", "utf-8")]
+    pages = ((pywikibot.Page(blib.site, page), index) for page, index in blib.iter_pages(lines, startFrom, upTo))
+  elif refs:
+    pages = blib.references(refs, startFrom, upTo, includelinks=True)
   else:
     pages = blib.cat_articles(cat, startFrom, upTo)
   for page, index in pages:
+    if verbose:
+      blib.msg("Processing %s" % unicode(page.title()))
     blib.do_edit(page, index, rewrite_one_page, save=save, verbose=verbose)
 
 pa = blib.init_argparser("Search and replace on pages")
@@ -42,12 +48,20 @@ pa.add_argument("-r", "--references", "--refs",
 pa.add_argument("-c", "--category", "--cat",
     help="Do pages in this category")
 pa.add_argument("--comment", help="Specify the change comment to use")
+pa.add_argument('--pagefile', help="File containing pages to fix.")
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
-if not params.references and not params.category:
-  raise ValueError("--references or --category must be present")
+if not params.references and not params.category and not params.pagefile:
+  raise ValueError("--references, --category or --pagefile must be present")
 
-rewrite_pages(params.from_, params.to, params.references,
-    params.category, params.comment, params.save, params.verbose,
-    startFrom, upTo)
+references = params.references and params.references.decode("utf-8")
+category = params.category and params.category.decode("utf-8")
+from_ = params.from_ and params.from_.decode("utf-8")
+to = params.to and params.to.decode("utf-8")
+comment = params.comment and params.comment.decode("utf-8")
+
+blib.msg("References to %s" % references)
+
+rewrite_pages(from_, to, references, category, params.pagefile,
+    comment, params.save, params.verbose, startFrom, upTo)
