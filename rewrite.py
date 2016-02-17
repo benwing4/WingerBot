@@ -18,14 +18,20 @@ import blib, re, codecs
 import pywikibot
 from arabiclib import reorder_shadda
 
-def rewrite_pages(refrom, reto, refs, cat, pages, pagefile, comment,
-    filter_pages, save, verbose, startFrom, upTo):
+def rewrite_pages(refrom, reto, refs, cat, pages, pagefile, pagetitle_sub,
+    comment, filter_pages, save, verbose, startFrom, upTo):
   def rewrite_one_page(page, index, text):
     #blib.msg("From: [[%s]], To: [[%s]]" % (refrom, reto))
     text = unicode(text)
     text = reorder_shadda(text)
-    text = re.sub(refrom, reto, text)
-    return text, comment or "replace %s -> %s" % (refrom, reto)
+    zipped_fromto = zip(refrom, reto)
+    for fromval, toval in zipped_fromto:
+      if pagetitle_sub:
+        pagetitle = unicode(page.title())
+        fromval = fromval.replace(pagetitle_sub, re.escape(pagetitle))
+        toval = toval.replace(pagetitle_sub, pagetitle)
+      text = re.sub(fromval, toval, text)
+    return text, comment or "replace %s" % (", ".join("%s -> %s" % (f, t) for f, t in zipped_fromto))
 
   if pages:
     pages = ((pywikibot.Page(blib.site, page), index) for page, index in blib.iter_pages(pages, startFrom, upTo))
@@ -47,9 +53,10 @@ def rewrite_pages(refrom, reto, refs, cat, pages, pagefile, comment,
       blib.do_edit(page, index, rewrite_one_page, save=save, verbose=verbose)
 
 pa = blib.init_argparser("Search and replace on pages")
-pa.add_argument("-f", "--from", help="From regex", metavar="FROM",
-    dest="from_", required=True)
-pa.add_argument("-t", "--to", help="To regex", required=True)
+pa.add_argument("-f", "--from", help="From regex, can be specified multiple times",
+    metavar="FROM", dest="from_", required=True, action="append")
+pa.add_argument("-t", "--to", help="To regex, can be specified multiple times",
+    required=True, action="append")
 pa.add_argument("-r", "--references", "--refs",
     help="Do pages with references to this page")
 pa.add_argument("-c", "--category", "--cat",
@@ -58,6 +65,7 @@ pa.add_argument("--comment", help="Specify the change comment to use")
 pa.add_argument('--filter-pages', help="Regex to use to filter page names.")
 pa.add_argument('--pages', help="List of pages to fix, comma-separated.")
 pa.add_argument('--pagefile', help="File containing pages to fix.")
+pa.add_argument('--pagetitle', help="Value to substitute page title with.")
 params = pa.parse_args()
 startFrom, upTo = blib.parse_start_end(params.start, params.end)
 
@@ -66,13 +74,16 @@ if not params.references and not params.category and not params.pages and not pa
 
 references = params.references and params.references.decode("utf-8")
 category = params.category and params.category.decode("utf-8")
-from_ = params.from_ and params.from_.decode("utf-8")
-to = params.to and params.to.decode("utf-8")
+from_ = [x.decode("utf-8") for x in params.from_]
+to = [x.decode("utf-8") for x in params.to]
 pages = params.pages and re.split(",", params.pages.decode("utf-8"))
+pagetitle_sub = params.pagetitle and params.pagetitle.decode("utf-8")
 comment = params.comment and params.comment.decode("utf-8")
 filter_pages = params.filter_pages and params.filter_pages.decode("utf-8")
 
-blib.msg("References to %s" % references)
+if len(from_) != len(to):
+  raise ValueError("Same number of --from and --to arguments must be specified")
 
 rewrite_pages(from_, to, references, category, pages, params.pagefile,
-    comment, filter_pages, params.save, params.verbose, startFrom, upTo)
+    pagetitle_sub, comment, filter_pages, params.save, params.verbose,
+    startFrom, upTo)
